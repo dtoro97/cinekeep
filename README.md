@@ -1,60 +1,134 @@
 # CineKeep
 
-CineKeep is a TMDb-powered movie and TV discovery app. It is basically my take on an IMDb-style browsing experience: search for titles and people, browse curated lists, open detailed pages, and move through cast, episodes, reviews, videos, and photos.
+CineKeep is an IMDb-inspired movie and TV discovery app powered by
+[The Movie Database (TMDB)](https://www.themoviedb.org/). It is built as a
+modern Angular frontend for browsing titles, people, collections, reviews,
+videos, photos, episodes, and TMDB account lists from one polished interface.
 
-Live site: [https://dtoro97.github.io/cinekeep/](https://dtoro97.github.io/cinekeep/)
+![CineKeep preview](public/og-image.png)
 
-This project uses the TMDb API for data and images. It is not endorsed or certified by TMDb.
+[Live demo](https://cinekeep.torod76.workers.dev/)
 
-## What It Does
+## Highlights
 
-- Home page with trending titles, popular picks, people, trailers, TV airing today, streaming arrivals, and upcoming movies
-- Movie and TV detail pages with overview, cast and crew, episodes, videos, photos, and reviews
-- Search across movies, TV series, and people
-- Browse pages for popular, top-rated, now-playing, upcoming, and airing titles
-- Person detail pages with credits and photos
-- Collection pages and streaming/provider browsing
-- Account-related pages for watchlists, favorites, ratings, and lists where TMDb account access is available
+- Search movies, TV series, actors, creators, trailers, photos, and reviews.
+- Browse trending, popular, top-rated, now-playing, upcoming, and airing titles.
+- Filter discovery results by media type, genre, rating, vote count, runtime,
+  release window, language, and watch provider.
+- Open rich movie and TV detail pages with overview, cast and crew, seasons,
+  episodes, videos, image galleries, reviews, keywords, and external links.
+- Explore person profiles with biographies, known-for titles, full credits, and
+  photo galleries.
+- Browse movie collections and streaming/provider-focused shelves.
+- Sign in with TMDB to manage watchlists, favorites, ratings, and custom lists
+  where account access is available.
 
 ## Tech Stack
 
-- Angular 21
+- [Angular](https://angular.dev/) 21
 - TypeScript
 - SCSS
 - Angular Material/CDK
 - RxJS
 - `@ngrx/component-store`
-- Generated TMDb API clients from OpenAPI specs
-- Node SSR build for local rendering and GitHub Pages static deployment
+- Generated Angular clients for TMDB v3 and focused TMDB v4 list/account APIs
+- Angular SSR-capable application build
 
-## Running Locally
+## Getting Started
 
-Prerequisites:
+### Prerequisites
 
 - Node.js `^20.19.0`, `^22.12.0`, or `>=24.0.0`
-- npm
-- A TMDb API key or read access token
+- npm `10.9.2` or compatible
+- A TMDB API read access token
 
-Install dependencies:
+You can request a TMDB API key from your TMDB account settings. TMDB documents
+that the API is free for non-commercial use when TMDB is attributed as the
+source of the data and images.
+
+### Install
 
 ```bash
 npm install
 ```
 
-Add your TMDb token/key to the local environment file:
+### Configure The Local Environment
 
-```text
-src/environments/environment.development.ts
+Create `src/environments/environment.development.ts` for local development.
+This file is ignored by Git so your token stays out of the repository.
+
+```ts
+export const environment = {
+    production: false,
+    apiUrl: 'https://api.themoviedb.org/3',
+    apiV4Url: 'https://api.themoviedb.org/4',
+    apiKey: 'YOUR_TMDB_READ_ACCESS_TOKEN',
+};
 ```
 
-Then start the dev server:
+### Run The App Locally
 
 ```bash
 npm start
 ```
 
-The app runs at:
+Open [http://localhost:4200](http://localhost:4200).
+
+## Local Production Build
+
+The production build reads the TMDB token from `API_KEY` or `TMDB_API_KEY`.
+
+macOS/Linux:
+
+```bash
+TMDB_API_KEY=YOUR_TMDB_READ_ACCESS_TOKEN npm run build
+```
+
+Windows PowerShell:
+
+```powershell
+$env:TMDB_API_KEY = 'YOUR_TMDB_READ_ACCESS_TOKEN'
+npm run build
+```
+
+Serve the built SSR output locally:
+
+```bash
+npm run serve:ssr:cinekeep
+```
+
+## Useful Scripts
+
+| Command                      | Description                                                                      |
+| ---------------------------- | -------------------------------------------------------------------------------- |
+| `npm start`                  | Starts the Angular dev server.                                                   |
+| `npm run build`              | Creates a local production build.                                                |
+| `npm run serve:ssr:cinekeep` | Serves the local SSR build output.                                               |
+| `npm run watch`              | Builds in watch mode with the development configuration.                         |
+| `npm run generate-api`       | Regenerates the TMDB v3 Angular API client from `openapi.json`.                  |
+| `npm run generate-api:v4`    | Regenerates the focused TMDB v4 Angular API client from `openapi-v4-lists.json`. |
+
+## Project Structure
 
 ```text
-http://localhost:4200
+src/app/features     Lazy feature areas for home, discover, media, person, user, watch, search, and collections
+src/app/shared       Shared UI primitives, services, mappers, models, pipes, and utilities
+src/app/api          Generated TMDB v3 Angular client
+src/app/api-v4       Generated focused TMDB v4 Angular client
+src/styles           Global SCSS entry points, tokens, typography, theme, base, and utilities
+tools                Local build helpers
+public               Static public assets
 ```
+
+## Data And Attribution
+
+This project uses TMDB and the TMDB APIs for movie, TV, person, image, video,
+review, provider, account, and list data. It is not endorsed, certified, or
+otherwise approved by TMDB.
+
+Movie and TV imagery belongs to its respective owners and is provided through
+TMDB.
+
+## License
+
+[MIT](LICENSE)

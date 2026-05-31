@@ -15,7 +15,7 @@ export const watchRoutes: Routes = [
         title: 'Streaming Guide',
         data: {
             seoDescription:
-                'Browse popular streaming movies and TV series by provider, availability, and current watch lists.',
+                'Find popular movies and TV series streaming now, by provider, release window, runtime, and mood.',
         },
     },
     {
@@ -24,7 +24,7 @@ export const watchRoutes: Routes = [
         data: {
             streamingListKind: 'provider',
             seoDescription:
-                'Browse movies and TV series currently available on a streaming provider.',
+                'Browse movies and TV series streaming on this provider.',
         },
     },
     {
@@ -33,7 +33,7 @@ export const watchRoutes: Routes = [
         data: {
             streamingListKind: 'editorial',
             seoDescription:
-                'Browse curated streaming movies and TV series on CineKeep.',
+                'Browse curated streaming movies and TV series by theme, timing, and watchability.',
         },
     },
 ];

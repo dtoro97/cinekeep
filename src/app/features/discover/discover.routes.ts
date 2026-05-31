@@ -7,11 +7,11 @@ export const discoverRoutes: Routes = [
     {
         path: '',
         component: DiscoverPageComponent,
-        title: 'Discover',
+        title: 'Discover Movies & TV',
         data: {
             discoverPageKey: 'advanced',
             seoDescription:
-                'Find movies and TV series by genre, rating, runtime, release dates, and provider availability.',
+                'Filter movies and TV series by genre, rating, release date, runtime, language, and where to watch.',
         },
     },
 ];
@@ -29,7 +29,7 @@ export const movieBrowseRoutes: Routes = [
         data: {
             discoverPageKey: 'movie-popular',
             seoDescription:
-                'Browse popular movies currently getting the most attention from viewers.',
+                'See the movies getting the most attention right now.',
         },
     },
     {
@@ -39,7 +39,7 @@ export const movieBrowseRoutes: Routes = [
         data: {
             discoverPageKey: 'movie-top-rated',
             seoDescription:
-                'Browse highly rated movies with enough audience activity to keep the list stable.',
+                'Explore standout movies ranked by audience ratings.',
         },
     },
     {
@@ -48,7 +48,7 @@ export const movieBrowseRoutes: Routes = [
         title: 'Now Playing Movies',
         data: {
             discoverPageKey: 'movie-now-playing',
-            seoDescription: 'Browse movies currently listed as playing in theaters.',
+            seoDescription: 'Browse movies now playing in theaters.',
         },
     },
     {
@@ -58,7 +58,7 @@ export const movieBrowseRoutes: Routes = [
         data: {
             discoverPageKey: 'movie-upcoming',
             seoDescription:
-                'Browse theatrical movie releases scheduled over the next two weeks.',
+                'Browse upcoming theatrical releases and plan what to watch next.',
         },
     },
 ];
@@ -76,7 +76,7 @@ export const tvBrowseRoutes: Routes = [
         data: {
             discoverPageKey: 'tv-popular',
             seoDescription:
-                'Browse popular TV series currently getting the most attention from viewers.',
+                'See the TV series getting the most attention right now.',
         },
     },
     {
@@ -86,7 +86,7 @@ export const tvBrowseRoutes: Routes = [
         data: {
             discoverPageKey: 'tv-top-rated',
             seoDescription:
-                'Browse highly rated TV series with enough audience activity to keep the list stable.',
+                'Explore standout TV series ranked by audience ratings.',
         },
     },
     {
@@ -95,7 +95,7 @@ export const tvBrowseRoutes: Routes = [
         title: 'TV Series Airing Today',
         data: {
             discoverPageKey: 'tv-airing-today',
-            seoDescription: 'Browse TV series with episodes scheduled to air today.',
+            seoDescription: 'Find TV episodes scheduled to air today.',
         },
     },
     {
@@ -105,7 +105,7 @@ export const tvBrowseRoutes: Routes = [
         data: {
             discoverPageKey: 'tv-on-the-air',
             seoDescription:
-                'Browse TV series with episodes scheduled over the next seven days.',
+                'Track TV series with new episodes airing this week.',
         },
     },
 ];
@@ -122,7 +122,7 @@ export const peopleBrowseRoutes: Routes = [
         title: 'Popular People',
         data: {
             seoDescription:
-                'Browse popular actors, creators, and filmmakers currently trending.',
+                'Browse actors, filmmakers, and creators trending across movies and TV.',
         },
     },
 ];

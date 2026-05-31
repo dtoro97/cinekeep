@@ -8,7 +8,7 @@ export const searchRoutes: Routes = [
         title: 'Search',
         data: {
             seoDescription:
-                'Search CineKeep for movies, TV series, people, trailers, photos, and reviews.',
+                'Search movies, TV series, actors, creators, trailers, photos, and reviews across the catalogue.',
             robots: 'noindex, follow',
         },
     },

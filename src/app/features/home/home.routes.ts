@@ -7,10 +7,10 @@ export const homeRoutes: Routes = [
         path: '',
         component: HomePageComponent,
         pathMatch: 'full',
-        title: 'Browse Movies, TV Series, and People',
+        title: 'CineKeep',
         data: {
             seoDescription:
-                'Track what to watch next with trending movies, TV series, trailers, people, reviews, and photos.',
+                'Find what to watch next: trending movies and TV series, trailers, cast, photos, reviews, and people in a clean cinematic guide.',
         },
     },
     {
@@ -23,7 +23,7 @@ export const homeRoutes: Routes = [
         component: TrailersPageComponent,
         data: {
             seoDescription:
-                'Watch trending and newly released movie and TV series trailers on CineKeep.',
+                'Watch the trailers people are talking about, from new movie drops to TV series teasers.',
         },
     },
 ];

@@ -100,8 +100,8 @@ export class SearchPageComponent {
                     this.seo.setPage({
                         title: query ? `Results for "${query}"` : 'Search',
                         description: query
-                            ? `Search results for "${query}" on CineKeep, including movies, TV series, and people.`
-                            : 'Search CineKeep for movies, TV series, people, trailers, photos, and reviews.',
+                            ? `Search results for "${query}", including movies, TV series, actors, and creators.`
+                            : 'Search movies, TV series, actors, creators, trailers, photos, and reviews across the catalogue.',
                         robots: 'noindex, follow',
                     });
                 }),

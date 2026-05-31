@@ -21,9 +21,9 @@ import {
     getStreamingThisMonthTitle,
 } from '../streaming/streaming-browse.config';
 
-const STREAMING_HUB_TITLE = 'TV series and streaming';
+const STREAMING_HUB_TITLE = 'Streaming Guide';
 const STREAMING_HUB_SUBTITLE =
-    'TV series airing on popular services in your region, plus new arrivals and watch lists.';
+    'Popular movies and TV series streaming now, grouped by provider, release timing, runtime, and mood.';
 
 interface StreamingHubData {
     readonly providerCards: readonly StreamingProviderCard[];

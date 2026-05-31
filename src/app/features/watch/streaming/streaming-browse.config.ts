@@ -12,7 +12,7 @@ export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] 
     {
         slug: STREAMING_THIS_MONTH_SLUG,
         title: "This month's streaming arrivals",
-        description: 'Popular TV series premieres and returning seasons from major streaming services.',
+        description: 'Fresh premieres and returning seasons landing on major streaming services.',
         ctaLabel: 'Browse arrivals',
         baseQuery: {
             mediaTypes: ['movie', 'tv'],
@@ -50,7 +50,7 @@ export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] 
     {
         slug: 'short-streaming-movies',
         title: 'Short watches for movie night',
-        description: 'Streaming movies that keep the runtime lean without turning the evening into a marathon.',
+        description: 'Streaming movies with lean runtimes for an easier movie night.',
         ctaLabel: 'See short movies',
         baseQuery: {
             mediaTypes: ['movie'],
@@ -63,7 +63,7 @@ export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] 
         slug: 'hidden-streaming-gems',
         title: 'Under-the-radar streaming',
         description:
-            'Movies and TV series with strong audience scores outside the highest-vote titles.',
+            'Movies and TV series with strong scores outside the obvious crowd favorites.',
         ctaLabel: 'Browse under-the-radar titles',
         baseQuery: {
             mediaTypes: ['movie', 'tv'],

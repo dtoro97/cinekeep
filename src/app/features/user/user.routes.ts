@@ -19,27 +19,27 @@ export const userRoutes: Routes = [
                 path: '',
                 pathMatch: 'full',
                 component: UserProfileComponent,
-                title: 'Profile',
+                title: 'Your Profile',
             },
             {
                 path: 'lists/new',
                 component: UserListCreatePageComponent,
-                title: 'Create list',
+                title: 'Create List',
             },
             {
                 path: 'watchlists',
                 component: UserWatchlistPageComponent,
-                title: 'Watchlist',
+                title: 'Your Watchlist',
             },
             {
                 path: 'favorites',
                 component: UserFavouritesPageComponent,
-                title: 'Favorites',
+                title: 'Your Favorites',
             },
             {
                 path: 'ratings',
                 component: UserRatingsPageComponent,
-                title: 'Ratings',
+                title: 'Your Ratings',
             },
             {
                 path: 'lists/:listId',
@@ -48,7 +48,7 @@ export const userRoutes: Routes = [
             {
                 path: 'lists',
                 component: UserListsComponent,
-                title: 'Lists',
+                title: 'Your Lists',
             },
         ],
     },

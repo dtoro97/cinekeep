@@ -302,12 +302,24 @@ function isCrossSiteBrowserRequest(request: Request, requestUrl: URL): boolean {
         return true;
     }
 
+    if (!hasBrowserFetchMetadata(request)) {
+        return false;
+    }
+
     const origin = request.headers.get('origin');
     const referer = request.headers.get('referer');
 
     return (
         isDifferentOrigin(origin, requestUrl.origin) ||
         isDifferentOrigin(referer, requestUrl.origin)
+    );
+}
+
+function hasBrowserFetchMetadata(request: Request): boolean {
+    return (
+        request.headers.has('sec-fetch-site') ||
+        request.headers.has('sec-fetch-mode') ||
+        request.headers.has('sec-fetch-dest')
     );
 }
 

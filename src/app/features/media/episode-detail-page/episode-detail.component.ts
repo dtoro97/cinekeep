@@ -150,6 +150,12 @@ export class EpisodeDetailComponent {
                     if (vm.media && vm.episode) {
                         const episodeTitle =
                             vm.episode.name || toEpisodeCode(vm.episode);
+                        const episodeCode = toEpisodeCode(vm.episode);
+                        const episodeLabel =
+                            episodeTitle === episodeCode
+                                ? episodeTitle
+                                : `${episodeTitle} (${episodeCode})`;
+                        const mediaTitle = toMediaDisplayTitle(vm.media);
                         const imagePath =
                             vm.episode.still_path ??
                             vm.media.backdropPath ??
@@ -158,10 +164,10 @@ export class EpisodeDetailComponent {
                             !!vm.episode.still_path || !!vm.media.backdropPath;
 
                         this.seo.setPage({
-                            title: `${episodeTitle} | ${vm.media.title}`,
+                            title: `${mediaTitle} | ${episodeLabel}`,
                             description:
                                 vm.episode.overview ||
-                                `Episode details for ${episodeTitle} from ${vm.media.title}.`,
+                                `Episode details, cast, videos, and photos for ${episodeLabel} from ${mediaTitle}.`,
                             image: buildTmdbImageUrl(
                                 imagePath,
                                 hasWideImage ? 'w1280' : 'w780',
@@ -301,3 +307,6 @@ const toEpisodeCode = (episode: TvEpisode): string => {
 
     return `S${seasonNumber}E${episodeNumber}`;
 };
+
+const toMediaDisplayTitle = (media: { readonly title: string; readonly year: string }): string =>
+    media.year ? `${media.title} (${media.year})` : media.title;

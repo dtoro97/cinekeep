@@ -1,7 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -20,6 +19,7 @@ import {
     IconButtonComponent,
     PageScrollService,
     RepeatPipe,
+    SeoService,
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
@@ -74,9 +74,9 @@ export class UserListDetailPageComponent {
         private readonly pageScroll: PageScrollService,
         private readonly route: ActivatedRoute,
         private readonly router: Router,
+        private readonly seo: SeoService,
         private readonly snackbar: SnackbarService,
         private readonly store: UserListDetailStore,
-        private readonly titleService: Title,
     ) {
         this.route.paramMap
             .pipe(
@@ -95,11 +95,20 @@ export class UserListDetailPageComponent {
             .pipe(
                 tap((vm) => {
                     if (vm.header.state === 'success') {
-                        this.titleService.setTitle(`${vm.header.data.name} | List`);
+                        this.seo.setPage({
+                            title: `${vm.header.data.name} | List`,
+                            description:
+                                vm.header.data.description ||
+                                'Your saved movies and TV series in one CineKeep list.',
+                            robots: 'noindex, nofollow',
+                        });
                         return;
                     }
 
-                    this.titleService.setTitle('List');
+                    this.seo.setPage({
+                        title: 'List',
+                        robots: 'noindex, nofollow',
+                    });
                 }),
                 takeUntilDestroyed(this.destroyRef),
             )

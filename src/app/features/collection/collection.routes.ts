@@ -9,7 +9,7 @@ export const collectionRoutes: Routes = [
         component: CollectionDetailComponent,
         data: {
             seoDescription:
-                'Explore movie collections, entries, release timelines, ratings, and cast highlights on CineKeep.',
+                'Explore every movie in a collection, with release order, ratings, cast highlights, posters, and backdrops.',
         },
         providers: [CollectionStoreService],
     },

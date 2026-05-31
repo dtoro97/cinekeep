@@ -258,8 +258,8 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
             return provider
                 ? {
                       key: `provider-${provider.id}`,
-                      title: `Airing now on ${provider.name}`,
-                      description: `Browse popular movies and TV series currently available through ${provider.name}.`,
+                      title: `Streaming on ${provider.name}`,
+                      description: `Popular movies and TV series available with ${provider.name} in your region.`,
                       providerName: provider.name,
                       baseQuery: {
                           mediaTypes: ['movie', 'tv'],

@@ -44,7 +44,7 @@ export class PopularPeopleStoreService extends ComponentStore<PopularPeopleState
 
         return {
             title: 'Popular People',
-            subtitle: 'Actors, creators, and performers currently getting the most attention.',
+            subtitle: 'Actors, filmmakers, and creators trending across movies and TV.',
             resultsState: state.resultsState,
             visibleCount,
             totalResults: state.totalResults,

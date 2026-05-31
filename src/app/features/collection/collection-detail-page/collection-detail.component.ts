@@ -64,7 +64,7 @@ export class CollectionDetailComponent {
                             title: `${collection.name} | Collection`,
                             description:
                                 collection.overview ||
-                                `Explore ${collection.name}, its movies, release timeline, ratings, and cast highlights on CineKeep.`,
+                                `Explore every movie in ${collection.name}, with release order, ratings, cast highlights, posters, and backdrops.`,
                             image: buildTmdbImageUrl(
                                 imagePath,
                                 collection.backdrop_path ? 'w1280' : 'w780',

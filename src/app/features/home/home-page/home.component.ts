@@ -68,13 +68,13 @@ export class HomePageComponent {
                         vm.spotlight.state === 'success' ? vm.spotlight.data : null;
 
                     this.seo.setPage({
-                        title: 'Browse Movies, TV Series, and People',
+                        title: 'CineKeep',
                         description:
-                            'Track what to watch next with trending movies, TV series, trailers, people, reviews, and photos.',
+                            'Find what to watch next: trending movies and TV series, trailers, cast, photos, reviews, and people in a clean cinematic guide.',
                         image: buildTmdbImageUrl(spotlight?.backdropPath, 'w1280'),
                         imageAlt: spotlight
                             ? `${spotlight.title} spotlight artwork`
-                            : 'CineKeep preview',
+                            : 'Gold film reel logo on a dark background',
                         imageWidth: spotlight?.backdropPath ? 1280 : null,
                         imageHeight: spotlight?.backdropPath ? 720 : null,
                     });

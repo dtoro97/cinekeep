@@ -75,9 +75,9 @@ export class TrailersPageComponent {
                     const spotlight = vm.featuredSpotlight?.spotlight ?? null;
 
                     this.seo.setPage({
-                        title: 'Watch Movie and TV Series Trailers',
+                        title: 'Trailers',
                         description:
-                            'Watch trending and newly released movie and TV series trailers on CineKeep.',
+                            'Watch the trailers people are talking about, from new movie drops to TV series teasers.',
                         image: buildTmdbImageUrl(spotlight?.backdropPath, 'w1280'),
                         imageAlt: spotlight
                             ? `${spotlight.title} trailer preview`

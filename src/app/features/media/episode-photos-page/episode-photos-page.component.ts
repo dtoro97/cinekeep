@@ -101,6 +101,7 @@ export class EpisodePhotosPageComponent {
             .pipe(
                 tap((vm) => {
                     if (vm.media) {
+                        const mediaTitle = toMediaDisplayTitle(vm.media);
                         const imagePath =
                             vm.episode?.still_path ??
                             vm.media.backdropPath ??
@@ -109,8 +110,8 @@ export class EpisodePhotosPageComponent {
                             !!vm.episode?.still_path || !!vm.media.backdropPath;
 
                         this.seo.setPage({
-                            title: `${vm.pageTitle} | ${vm.media.title}`,
-                            description: `Photos from ${vm.pageTitle.replace(/ Photos$/, '')} of ${vm.media.title}.`,
+                            title: `${mediaTitle} | ${vm.pageTitle}`,
+                            description: `Photos from ${vm.pageTitle.replace(/ Photos$/, '')} of ${mediaTitle}.`,
                             image: buildTmdbImageUrl(
                                 imagePath,
                                 hasWideImage ? 'w1280' : 'w780',
@@ -139,3 +140,6 @@ export class EpisodePhotosPageComponent {
         });
     }
 }
+
+const toMediaDisplayTitle = (media: { readonly title: string; readonly year: string }): string =>
+    media.year ? `${media.title} (${media.year})` : media.title;

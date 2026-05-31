@@ -63,7 +63,7 @@ export class PersonDetailWrapperComponent {
                     const isPhotosPage = url.split('?')[0]?.endsWith('/photos') ?? false;
                     const title = isPhotosPage
                         ? `${person.name} | Photos`
-                        : `${person.name} | People`;
+                        : person.name;
                     const description = buildPersonDescription(
                         person,
                         knownForTitles,
@@ -103,7 +103,7 @@ const buildPersonDescription = (
         : null;
 
     if (isPhotosPage) {
-        return [knownFor, `Photos of ${person.name} on CineKeep.`]
+        return [knownFor, `Profile photos and portraits of ${person.name}.`]
             .filter(Boolean)
             .join(' ');
     }
@@ -111,7 +111,7 @@ const buildPersonDescription = (
     return [
         knownFor,
         person.biography ||
-            `Explore ${person.name}'s biography, credits, photos, and known-for titles on CineKeep.`,
+            `Explore ${person.name}'s biography, movie and TV credits, known-for titles, and photos.`,
     ]
         .filter(Boolean)
         .join(' ');

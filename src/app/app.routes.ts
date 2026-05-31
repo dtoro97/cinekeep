@@ -56,7 +56,7 @@ export const routes: Routes = [
         title: 'Search',
         data: {
             seoDescription:
-                'Search CineKeep for movies, TV series, people, trailers, photos, and reviews powered by TMDb.',
+                'Search movies, TV series, actors, creators, trailers, photos, and reviews across the catalogue.',
             robots: 'noindex, follow',
         },
         loadChildren: () =>
@@ -94,13 +94,13 @@ export const routes: Routes = [
     {
         path: 'not-found',
         component: NotFoundComponent,
-        title: 'Page Not Found',
+        title: 'Not Found',
         data: { robots: 'noindex, nofollow' },
     },
     {
         path: '**',
         component: NotFoundComponent,
-        title: 'Page Not Found',
+        title: 'Not Found',
         data: { robots: 'noindex, nofollow' },
     },
 ];

@@ -63,7 +63,9 @@ export class ReviewDetailPageComponent {
                     const media =
                         mediaState.state === 'success' ? mediaState.data : null;
                     const review = reviewState.data;
-                    const mediaTitle = review.media_title ?? media?.title ?? 'Review';
+                    const mediaTitle = media
+                        ? toMediaDisplayTitle(media)
+                        : review.media_title ?? 'Review';
                     const imagePath = getReviewImagePath(media);
                     const hasBackdrop = !!media?.backdropPath;
 
@@ -71,7 +73,7 @@ export class ReviewDetailPageComponent {
                         title: `${mediaTitle} | Review`,
                         description:
                             review.content ||
-                            `Read a review of ${mediaTitle} on CineKeep.`,
+                            `Read a full review of ${mediaTitle}.`,
                         image: buildTmdbImageUrl(
                             imagePath,
                             hasBackdrop ? 'w1280' : 'w780',
@@ -93,3 +95,6 @@ export class ReviewDetailPageComponent {
 
 const getReviewImagePath = (media: MediaDetails | null): string | null =>
     media?.backdropPath ?? media?.posterPath ?? null;
+
+const toMediaDisplayTitle = (media: MediaDetails): string =>
+    media.year ? `${media.title} (${media.year})` : media.title;

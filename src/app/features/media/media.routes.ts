@@ -17,7 +17,7 @@ export const mediaRoutes: Routes = [
         component: MediaWrapperComponent,
         data: {
             seoDescription:
-                'Explore movie and TV series details, cast, trailers, photos, reviews, and recommendations on CineKeep.',
+                'Explore movie and TV series details, cast, trailers, photos, reviews, ratings, and episodes.',
         },
         children: [
             {

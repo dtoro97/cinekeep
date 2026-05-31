@@ -161,8 +161,8 @@ const TOP_RATED_LOCKED_FILTERS: readonly DiscoverLockedFilterDefinition[] = [
 export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefinition> = {
     advanced: {
         key: 'advanced',
-        title: 'Discover',
-        subtitle: 'Find movies and TV series by genre, rating, runtime, release dates, and provider availability.',
+        title: 'Discover Movies & TV',
+        subtitle: 'Filter movies and TV series by genre, rating, release date, runtime, language, and where to watch.',
         mediaType: 'movie',
         mode: 'advanced',
         defaultSortKey: 'popularity',
@@ -174,7 +174,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'movie-popular': {
         key: 'movie-popular',
         title: 'Popular Movies',
-        subtitle: 'Movies currently getting the most attention from TMDb viewers.',
+        subtitle: 'Movies getting the most attention right now.',
         mediaType: 'movie',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -186,7 +186,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'movie-top-rated': {
         key: 'movie-top-rated',
         title: 'Top Rated Movies',
-        subtitle: 'Highly rated movies with enough audience activity to keep the list stable.',
+        subtitle: 'Standout movies ranked by audience ratings.',
         mediaType: 'movie',
         mode: 'browse',
         defaultSortKey: 'rating',
@@ -199,7 +199,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'movie-now-playing': {
         key: 'movie-now-playing',
         title: 'Now Playing Movies',
-        subtitle: 'Movies currently listed as playing in theaters.',
+        subtitle: 'Movies now playing in theaters.',
         mediaType: 'movie',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -214,7 +214,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'movie-upcoming': {
         key: 'movie-upcoming',
         title: 'Upcoming Movies',
-        subtitle: 'Theatrical releases scheduled over the next two weeks.',
+        subtitle: 'Upcoming theatrical releases to plan around.',
         mediaType: 'movie',
         mode: 'browse',
         defaultSortKey: 'release_date',
@@ -231,7 +231,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'tv-popular': {
         key: 'tv-popular',
         title: 'Popular TV Series',
-        subtitle: 'Series currently getting the most attention from TMDb viewers.',
+        subtitle: 'TV series getting the most attention right now.',
         mediaType: 'tv',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -243,7 +243,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'tv-top-rated': {
         key: 'tv-top-rated',
         title: 'Top Rated TV Series',
-        subtitle: 'Highly rated TV series with enough audience activity to keep the list stable.',
+        subtitle: 'Standout TV series ranked by audience ratings.',
         mediaType: 'tv',
         mode: 'browse',
         defaultSortKey: 'rating',
@@ -256,7 +256,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'tv-airing-today': {
         key: 'tv-airing-today',
         title: 'TV Series Airing Today',
-        subtitle: 'Series with episodes scheduled to air today.',
+        subtitle: 'TV episodes scheduled to air today.',
         mediaType: 'tv',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -270,7 +270,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'tv-on-the-air': {
         key: 'tv-on-the-air',
         title: 'TV Series Airing This Week',
-        subtitle: 'Series with episodes scheduled over the next seven days.',
+        subtitle: 'TV series with new episodes airing this week.',
         mediaType: 'tv',
         mode: 'browse',
         defaultSortKey: 'popularity',
