@@ -7,7 +7,7 @@ videos, photos, episodes, and TMDB account lists from one polished interface.
 
 ![CineKeep home page screenshot](preview.png)
 
-[Live demo](https://dtoro97.github.io/cinekeep/)
+[SSR deployment](https://cinekeep.vercel.app/) · [Static GitHub Pages deployment](https://dtoro97.github.io/cinekeep/)
 
 ## Highlights
 
@@ -32,7 +32,7 @@ videos, photos, episodes, and TMDB account lists from one polished interface.
 - RxJS
 - `@ngrx/component-store`
 - Generated Angular clients for TMDB v3 and focused TMDB v4 list/account APIs
-- Angular SSR-capable application build with GitHub Pages deployment support
+- Angular SSR deployment on Vercel with static GitHub Pages deployment support
 
 ## Notable Implementation Details
 
@@ -43,8 +43,8 @@ videos, photos, episodes, and TMDB account lists from one polished interface.
   models.
 - TMDB account integration supports watchlists, favorites, ratings, and custom
   lists where the runtime has account API access.
-- Separate environment targets support local development, SSR builds, and
-  GitHub Pages builds.
+- Separate environment targets support local development, SSR Vercel builds,
+  and static GitHub Pages builds.
 
 ## Getting Started
 
@@ -114,6 +114,9 @@ npm run serve:ssr:cinekeep
 
 ## Deployment
 
+The primary production deployment is the SSR Vercel app:
+[https://cinekeep.vercel.app/](https://cinekeep.vercel.app/).
+
 The production build keeps SSR output under `dist/cinekeep` and can be served
 locally after `npm run build`:
 
@@ -121,8 +124,10 @@ locally after `npm run build`:
 npm run serve:ssr:cinekeep
 ```
 
-The deploy path is GitHub Pages. Its workflow replaces the production
-`${API_KEY}` placeholder from the `API_KEY` secret before building:
+The GitHub Pages deployment remains available as a static build:
+[https://dtoro97.github.io/cinekeep/](https://dtoro97.github.io/cinekeep/).
+Its workflow replaces the production `${API_KEY}` placeholder from the
+`API_KEY` secret before building:
 
 ```bash
 npm run build:github-pages

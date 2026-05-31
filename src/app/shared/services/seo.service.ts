@@ -18,7 +18,7 @@ export interface SeoMetadata {
 }
 
 export const CINEKEEP_SITE_NAME = 'CineKeep';
-export const CINEKEEP_SITE_ORIGIN = 'https://dtoro97.github.io/cinekeep/';
+export const CINEKEEP_SITE_ORIGIN = 'https://cinekeep.vercel.app/';
 export const CINEKEEP_DEFAULT_DESCRIPTION =
     'Find what to watch next: trending movies and TV series, trailers, cast, photos, reviews, and people in a clean cinematic guide.';
 
@@ -27,8 +27,6 @@ const DEFAULT_PREVIEW_IMAGE_WIDTH = 1200;
 const DEFAULT_PREVIEW_IMAGE_HEIGHT = 630;
 const DEFAULT_ROBOTS = 'index, follow';
 const DESCRIPTION_MAX_LENGTH = 180;
-const CINEKEEP_SITE_URL = new URL(CINEKEEP_SITE_ORIGIN);
-const CINEKEEP_SITE_BASE_PATH = CINEKEEP_SITE_URL.pathname.replace(/\/$/, '');
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {
