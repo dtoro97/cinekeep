@@ -93,6 +93,26 @@
                             "server": false,
                             "ssr": false,
                             "outputMode": "static"
+                        },
+                        "cloudflare": {
+                            "outputPath": {
+                                "base": "dist/cloudflare",
+                                "browser": "browser",
+                                "server": "server"
+                            },
+                            "baseHref": "/",
+                            "ssr": {
+                                "entry": "src/server.cloudflare.ts",
+                                "experimentalPlatform": "neutral"
+                            },
+                            "security": {
+                                "allowedHosts": [
+                                    "localhost",
+                                    "127.0.0.1",
+                                    "*.workers.dev",
+                                    "*.pages.dev"
+                                ]
+                            }
                         }
                     },
                     "defaultConfiguration": "production"

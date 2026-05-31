@@ -1,0 +1,12 @@
+{
+    "name": "cinekeep",
+    "compatibility_date": "2026-05-31",
+    "compatibility_flags": ["nodejs_compat"],
+    "main": "./dist/cloudflare/server/server.mjs",
+    "assets": {
+        "directory": "./dist/cloudflare/browser"
+    },
+    "observability": {
+        "enabled": true
+    }
+}

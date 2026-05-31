@@ -7,9 +7,12 @@
     "start": "ng serve",
     "build": "node tools/build-with-api-key.mjs",
     "build:github-pages": "node tools/build-with-api-key.mjs --github-pages-spa --configuration production,github-pages --base-href https://dtoro97.github.io/cinekeep/",
+    "build:cloudflare": "node tools/build-with-api-key.mjs --configuration production,cloudflare",
     "watch": "ng build --watch --configuration development",
     "deploy": "npm run deploy:github-pages",
     "deploy:github-pages": "npm run build:github-pages && npx angular-cli-ghpages --no-silent --dir=dist/github-pages/",
+    "preview:cloudflare": "npm run build:cloudflare && npx wrangler dev",
+    "deploy:cloudflare": "npm run build:cloudflare && npx wrangler deploy",
     "generate-api": "npx -y @openapitools/openapi-generator-cli generate -i openapi.json -g typescript-angular -o src/app/api --additional-properties=providedIn=root,withInterfaces=true,serviceSuffix=RestControllerService",
     "generate-api:v4": "npx -y @openapitools/openapi-generator-cli generate -i openapi-v4-lists.json -g typescript-angular -o src/app/api-v4 --additional-properties=providedIn=root,withInterfaces=true",
     "serve:ssr:cinekeep": "node dist/cinekeep/server/server.mjs"

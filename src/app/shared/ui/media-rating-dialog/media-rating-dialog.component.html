@@ -24,7 +24,7 @@
     @if (data.authMode === 'anonymous') {
         <div class="media-rating-dialog__actions media-rating-dialog__actions--anonymous" mat-dialog-actions>
             <div class="media-rating-dialog__primary-actions">
-                <button matButton class="text-button" type="button" mat-dialog-close>Cancel</button>
+                <button matButton class="text-button" type="button" mat-dialog-close (click)="cancel()">Cancel</button>
                 <button matButton="filled" type="button" (click)="saveAsGuest()">Save as guest</button>
             </div>
 
