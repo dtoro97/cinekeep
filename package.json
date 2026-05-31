@@ -5,8 +5,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "node tools/build-with-api-key.mjs",
-    "build:github-pages": "node tools/build-with-api-key.mjs --github-pages-spa --configuration production,github-pages --base-href https://dtoro97.github.io/cinekeep/",
+    "build": "ng build",
+    "build:github-pages": "ng build --configuration production,github-pages --base-href https://dtoro97.github.io/cinekeep/",
     "build:cloudflare": "ng build --configuration production,cloudflare",
     "watch": "ng build --watch --configuration development",
     "deploy": "npm run deploy:github-pages",

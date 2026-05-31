@@ -27,10 +27,22 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            - name: Build Angular app
-              run: npm run build:github-pages
+            - name: Inject API key for GitHub Pages
+              run: |
+                  if [ -z "$API_KEY" ]; then
+                    echo "API_KEY secret is missing."
+                    exit 1
+                  fi
+
+                  sed -i "s|\${API_KEY}|${API_KEY}|g" src/environments/environment.ts
               env:
                   API_KEY: ${{ secrets.API_KEY }}
+
+            - name: Build Angular app
+              run: npm run build:github-pages
+
+            - name: Create GitHub Pages SPA fallback
+              run: cp dist/github-pages/index.html dist/github-pages/404.html
 
             - name: Deploy to gh-pages
               run: |

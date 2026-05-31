@@ -22,7 +22,7 @@ export interface SeoMetadata {
 }
 
 export const CINEKEEP_SITE_NAME = 'CineKeep';
-export const CINEKEEP_SITE_ORIGIN = 'https://dtoro97.github.io/cinekeep/';
+export const CINEKEEP_SITE_ORIGIN = 'https://app.cinekeep.workers.dev/';
 export const CINEKEEP_DEFAULT_DESCRIPTION =
     'Find what to watch next: trending movies and TV series, trailers, cast, photos, reviews, and people in a clean cinematic guide.';
 

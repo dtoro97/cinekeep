@@ -5,13 +5,13 @@ CineKeep is an IMDb-inspired movie and TV discovery app powered by
 modern Angular frontend for browsing titles, people, collections, reviews,
 videos, photos, episodes, and TMDB account lists from one polished interface.
 
-![CineKeep preview](public/og-image.png)
+![CineKeep home page screenshot](preview.png)
 
-[Live demo](https://cinekeep.torod76.workers.dev/)
+[Live demo](https://app.cinekeep.workers.dev/)
 
 ## Highlights
 
-- Search movies, TV series, actors, creators, trailers, photos, and reviews.
+- Search movies, TV series, actors, and creators.
 - Browse trending, popular, top-rated, now-playing, upcoming, and airing titles.
 - Filter discovery results by media type, genre, rating, vote count, runtime,
   release window, language, and watch provider.
@@ -32,7 +32,19 @@ videos, photos, episodes, and TMDB account lists from one polished interface.
 - RxJS
 - `@ngrx/component-store`
 - Generated Angular clients for TMDB v3 and focused TMDB v4 list/account APIs
-- Angular SSR-capable application build
+- Angular SSR-capable application build with Cloudflare Worker deployment support
+
+## Notable Implementation Details
+
+- Standalone Angular components with route-level lazy loading for feature areas.
+- ComponentStore-powered feature state for discovery, search, detail pages, and
+  account flows.
+- Generated API clients are paired with app-facing services, mappers, and UI
+  models.
+- TMDB account integration supports watchlists, favorites, ratings, and custom
+  lists where the runtime has account API access.
+- Separate environment targets support local development, SSR builds,
+  Cloudflare deployment, and GitHub Pages builds.
 
 ## Getting Started
 
@@ -40,11 +52,12 @@ videos, photos, episodes, and TMDB account lists from one polished interface.
 
 - Node.js `^20.19.0`, `^22.12.0`, or `>=24.0.0`
 - npm `10.9.2` or compatible
-- A TMDB API read access token
+- A TMDB API Read Access Token
 
-You can request a TMDB API key from your TMDB account settings. TMDB documents
-that the API is free for non-commercial use when TMDB is attributed as the
-source of the data and images.
+You can create a TMDB API Read Access Token from your TMDB account settings.
+Paste the token value without a `Bearer` prefix. TMDB documents that the API is
+free for non-commercial use when TMDB is attributed as the source of the data
+and images.
 
 ### Install
 
@@ -76,18 +89,7 @@ Open [http://localhost:4200](http://localhost:4200).
 
 ## Local Production Build
 
-The production build reads the TMDB token from `API_KEY` or `TMDB_API_KEY`.
-
-macOS/Linux:
-
 ```bash
-TMDB_API_KEY=YOUR_TMDB_READ_ACCESS_TOKEN npm run build
-```
-
-Windows PowerShell:
-
-```powershell
-$env:TMDB_API_KEY = 'YOUR_TMDB_READ_ACCESS_TOKEN'
 npm run build
 ```
 
@@ -99,14 +101,33 @@ npm run serve:ssr:cinekeep
 
 ## Useful Scripts
 
-| Command                      | Description                                                                      |
-| ---------------------------- | -------------------------------------------------------------------------------- |
-| `npm start`                  | Starts the Angular dev server.                                                   |
-| `npm run build`              | Creates a local production build.                                                |
-| `npm run serve:ssr:cinekeep` | Serves the local SSR build output.                                               |
-| `npm run watch`              | Builds in watch mode with the development configuration.                         |
-| `npm run generate-api`       | Regenerates the TMDB v3 Angular API client from `openapi.json`.                  |
-| `npm run generate-api:v4`    | Regenerates the focused TMDB v4 Angular API client from `openapi-v4-lists.json`. |
+| Command                         | Description                                                                      |
+| ------------------------------- | -------------------------------------------------------------------------------- |
+| `npm start`                     | Starts the Angular dev server.                                                   |
+| `npm run build`                 | Creates a local production build.                                                |
+| `npm run serve:ssr:cinekeep`    | Serves the local SSR build output.                                               |
+| `npm run build:cloudflare`      | Builds the Cloudflare Worker deployment bundle.                                  |
+| `npm run preview:cloudflare`    | Builds and previews the Cloudflare Worker locally with Wrangler.                  |
+| `npm run deploy:cloudflare`     | Builds and deploys the Cloudflare Worker.                                        |
+| `npm run build:github-pages`    | Builds the static GitHub Pages bundle.                                           |
+| `npm run deploy:github-pages`   | Builds and deploys the GitHub Pages bundle.                                      |
+| `npm run watch`                 | Builds in watch mode with the development configuration.                         |
+| `npm run generate-api`          | Regenerates the TMDB v3 Angular API client from `openapi.json`.                  |
+| `npm run generate-api:v4`       | Regenerates the focused TMDB v4 Angular API client from `openapi-v4-lists.json`. |
+
+## Deployment
+
+The live demo is deployed to Cloudflare Workers. That target uses the
+Cloudflare environment and can read the TMDB token from the `TMDB_API_KEY`
+runtime binding.
+
+The repo also keeps a GitHub Pages build path for static hosting. Its workflow
+replaces the production `${API_KEY}` placeholder from the `API_KEY` secret
+before building:
+
+```bash
+npm run build:github-pages
+```
 
 ## Project Structure
 
