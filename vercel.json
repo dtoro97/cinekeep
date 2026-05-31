@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "if [ -z \"$API_KEY\" ]; then echo \"API_KEY env var is missing.\"; exit 1; fi; sed -i \"s|\\${API_KEY}|${API_KEY}|g\" src/environments/environment.ts; npm run build",
+  "outputDirectory": "dist/cinekeep/browser",
+  "functions": {
+    "api/index.mjs": {
+      "includeFiles": "dist/cinekeep/**",
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ]
+}

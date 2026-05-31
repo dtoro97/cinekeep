@@ -29,7 +29,7 @@ import {
     MediaType,
     PersonCardItem,
     ToggleGroupOption,
-    shuffle,
+    pickDailySeededItem,
     toCardItem,
     toTmdbDiscoverSort,
     toPersonCardItem,
@@ -209,7 +209,11 @@ export class HomeStoreService extends ComponentStore<HomeState> {
                 );
 
                 const candidates = mediaItems.filter((item) => !!item.backdrop_path);
-                const picked = shuffle(candidates)[0];
+                const picked = pickDailySeededItem(
+                    candidates,
+                    'home-trending-spotlight',
+                    (item) => `${item.media_type}:${item.id ?? ''}`,
+                );
                 const spotlight = picked ? this.toSpotlightItem(picked) : null;
                 const carouselItems = mediaItems.filter((item) => item !== picked);
 

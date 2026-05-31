@@ -23,7 +23,6 @@ import {
     ViewerImage,
     buildExternalLinks,
     isPreferredImageLanguage,
-    shuffle,
 } from '../../shared';
 import { API_JSON_OPTIONS, CAROUSEL_COUNT } from '../../constants';
 
@@ -220,7 +219,7 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
         this.patchState({
             photos: {
                 state: 'success',
-                data: shuffle(images),
+                data: sortPersonPhotos(images),
             },
         });
     }
@@ -582,4 +581,19 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
             imdbType: 'name',
         });
     }
+}
+
+function sortPersonPhotos(images: readonly ViewerImage[]): ViewerImage[] {
+    const typeRank = (image: ViewerImage): number =>
+        image.photoType === 'profile' ? 0 : image.photoType === 'tagged' ? 1 : 2;
+    const resolution = (image: ViewerImage): number => (image.width ?? 0) * (image.height ?? 0);
+
+    return [...images].sort(
+        (left, right) =>
+            typeRank(left) - typeRank(right) ||
+            (right.vote_average ?? 0) - (left.vote_average ?? 0) ||
+            (right.vote_count ?? 0) - (left.vote_count ?? 0) ||
+            resolution(right) - resolution(left) ||
+            (left.file_path ?? '').localeCompare(right.file_path ?? ''),
+    );
 }
