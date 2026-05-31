@@ -7,7 +7,7 @@ videos, photos, episodes, and TMDB account lists from one polished interface.
 
 ![CineKeep home page screenshot](preview.png)
 
-[Live demo](https://app.cinekeep.workers.dev/)
+[Live demo](https://dtoro97.github.io/cinekeep/)
 
 ## Highlights
 
@@ -32,7 +32,7 @@ videos, photos, episodes, and TMDB account lists from one polished interface.
 - RxJS
 - `@ngrx/component-store`
 - Generated Angular clients for TMDB v3 and focused TMDB v4 list/account APIs
-- Angular SSR-capable application build with Cloudflare Worker deployment support
+- Angular SSR-capable application build with GitHub Pages deployment support
 
 ## Notable Implementation Details
 
@@ -43,8 +43,8 @@ videos, photos, episodes, and TMDB account lists from one polished interface.
   models.
 - TMDB account integration supports watchlists, favorites, ratings, and custom
   lists where the runtime has account API access.
-- Separate environment targets support local development, SSR builds,
-  Cloudflare deployment, and GitHub Pages builds.
+- Separate environment targets support local development, SSR builds, and
+  GitHub Pages builds.
 
 ## Getting Started
 
@@ -106,9 +106,6 @@ npm run serve:ssr:cinekeep
 | `npm start`                     | Starts the Angular dev server.                                                   |
 | `npm run build`                 | Creates a local production build.                                                |
 | `npm run serve:ssr:cinekeep`    | Serves the local SSR build output.                                               |
-| `npm run build:cloudflare`      | Builds the Cloudflare Worker deployment bundle.                                  |
-| `npm run preview:cloudflare`    | Builds and previews the Cloudflare Worker locally with Wrangler.                  |
-| `npm run deploy:cloudflare`     | Builds and deploys the Cloudflare Worker.                                        |
 | `npm run build:github-pages`    | Builds the static GitHub Pages bundle.                                           |
 | `npm run deploy:github-pages`   | Builds and deploys the GitHub Pages bundle.                                      |
 | `npm run watch`                 | Builds in watch mode with the development configuration.                         |
@@ -117,13 +114,15 @@ npm run serve:ssr:cinekeep
 
 ## Deployment
 
-The live demo is deployed to Cloudflare Workers. That target uses the
-Cloudflare environment and can read the TMDB token from the `TMDB_API_KEY`
-runtime binding.
+The production build keeps SSR output under `dist/cinekeep` and can be served
+locally after `npm run build`:
 
-The repo also keeps a GitHub Pages build path for static hosting. Its workflow
-replaces the production `${API_KEY}` placeholder from the `API_KEY` secret
-before building:
+```bash
+npm run serve:ssr:cinekeep
+```
+
+The deploy path is GitHub Pages. Its workflow replaces the production
+`${API_KEY}` placeholder from the `API_KEY` secret before building:
 
 ```bash
 npm run build:github-pages

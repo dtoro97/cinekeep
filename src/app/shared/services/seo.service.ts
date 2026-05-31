@@ -2,11 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 
-export type SeoPreviewType =
-    | 'website'
-    | 'profile'
-    | 'video.movie'
-    | 'video.tv_show';
+export type SeoPreviewType = 'website' | 'profile' | 'video.movie' | 'video.tv_show';
 
 export interface SeoMetadata {
     readonly title?: string | null;
@@ -22,7 +18,7 @@ export interface SeoMetadata {
 }
 
 export const CINEKEEP_SITE_NAME = 'CineKeep';
-export const CINEKEEP_SITE_ORIGIN = 'https://app.cinekeep.workers.dev/';
+export const CINEKEEP_SITE_ORIGIN = 'https://dtoro97.github.io/cinekeep/';
 export const CINEKEEP_DEFAULT_DESCRIPTION =
     'Find what to watch next: trending movies and TV series, trailers, cast, photos, reviews, and people in a clean cinematic guide.';
 
@@ -31,6 +27,8 @@ const DEFAULT_PREVIEW_IMAGE_WIDTH = 1200;
 const DEFAULT_PREVIEW_IMAGE_HEIGHT = 630;
 const DEFAULT_ROBOTS = 'index, follow';
 const DESCRIPTION_MAX_LENGTH = 180;
+const CINEKEEP_SITE_URL = new URL(CINEKEEP_SITE_ORIGIN);
+const CINEKEEP_SITE_BASE_PATH = CINEKEEP_SITE_URL.pathname.replace(/\/$/, '');
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {
@@ -43,13 +41,10 @@ export class SeoService {
     setPage(metadata: SeoMetadata = {}): void {
         const pageTitle = this.cleanText(metadata.title) ?? CINEKEEP_SITE_NAME;
         const previewTitle = this.toPreviewTitle(pageTitle);
-        const description =
-            this.normalizeDescription(metadata.description) ??
-            CINEKEEP_DEFAULT_DESCRIPTION;
+        const description = this.normalizeDescription(metadata.description) ?? CINEKEEP_DEFAULT_DESCRIPTION;
         const canonicalUrl = this.resolveCanonicalUrl(metadata);
         const image = this.resolveImageUrl(metadata.image);
-        const imageAlt =
-            this.cleanText(metadata.imageAlt) ?? `${previewTitle} on ${CINEKEEP_SITE_NAME}`;
+        const imageAlt = this.cleanText(metadata.imageAlt) ?? `${previewTitle} on ${CINEKEEP_SITE_NAME}`;
         const robots = this.cleanText(metadata.robots) ?? DEFAULT_ROBOTS;
         const type = metadata.type ?? 'website';
 
@@ -68,19 +63,11 @@ export class SeoService {
         this.updatePropertyTag('og:image:alt', imageAlt);
         this.updateOptionalPropertyTag(
             'og:image:width',
-            this.toDimensionContent(
-                metadata.imageWidth,
-                image,
-                DEFAULT_PREVIEW_IMAGE_WIDTH,
-            ),
+            this.toDimensionContent(metadata.imageWidth, image, DEFAULT_PREVIEW_IMAGE_WIDTH),
         );
         this.updateOptionalPropertyTag(
             'og:image:height',
-            this.toDimensionContent(
-                metadata.imageHeight,
-                image,
-                DEFAULT_PREVIEW_IMAGE_HEIGHT,
-            ),
+            this.toDimensionContent(metadata.imageHeight, image, DEFAULT_PREVIEW_IMAGE_HEIGHT),
         );
         this.updateNameTag('twitter:card', 'summary_large_image');
         this.updateNameTag('twitter:title', previewTitle);
@@ -149,15 +136,11 @@ export class SeoService {
             return String(dimension);
         }
 
-        return image === toAbsoluteSiteUrl(DEFAULT_PREVIEW_IMAGE)
-            ? String(defaultDimension)
-            : null;
+        return image === toAbsoluteSiteUrl(DEFAULT_PREVIEW_IMAGE) ? String(defaultDimension) : null;
     }
 
     private updateCanonical(url: string): void {
-        let link = this.document.querySelector<HTMLLinkElement>(
-            'link[rel="canonical"]',
-        );
+        let link = this.document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
 
         if (!link) {
             link = this.document.createElement('link');
@@ -186,10 +169,7 @@ export class SeoService {
         this.meta.updateTag({ property, content }, `property='${property}'`);
     }
 
-    private updateOptionalPropertyTag(
-        property: string,
-        content: string | null,
-    ): void {
+    private updateOptionalPropertyTag(property: string, content: string | null): void {
         if (content) {
             this.updatePropertyTag(property, content);
             return;
@@ -199,10 +179,7 @@ export class SeoService {
     }
 }
 
-export const buildTmdbImageUrl = (
-    value: string | null | undefined,
-    size = 'w1280',
-): string | null => {
+export const buildTmdbImageUrl = (value: string | null | undefined, size = 'w1280'): string | null => {
     if (!value) {
         return null;
     }
