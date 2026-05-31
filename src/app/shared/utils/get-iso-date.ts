@@ -1,4 +1,11 @@
-export const toISODate = (date: Date): string => date.toISOString().split('T')[0];
+const padDatePart = (value: number): string => value.toString().padStart(2, '0');
+
+export const toISODate = (date: Date): string =>
+    [
+        date.getFullYear(),
+        padDatePart(date.getMonth() + 1),
+        padDatePart(date.getDate()),
+    ].join('-');
 
 export const getISODate = (daysOffset: number): string => {
     const d = new Date();

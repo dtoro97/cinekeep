@@ -84,27 +84,19 @@ const INITIAL_STATE: HomeState = {
 export class HomeStoreService extends ComponentStore<HomeState> {
     readonly homeVM$ = this.select((state) => ({
         spotlight: state.spotlight,
-        whatToWatch:
-            state.selectedWhatToWatchMediaType === 'movie'
-                ? state.whatToWatchMovies
-                : state.whatToWatchTv,
+        whatToWatch: state.selectedWhatToWatchMediaType === 'movie' ? state.whatToWatchMovies : state.whatToWatchTv,
         whatToWatchLoading:
-            (state.selectedWhatToWatchMediaType === 'movie'
-                ? state.whatToWatchMovies
-                : state.whatToWatchTv
-            ).state === 'loading',
+            (state.selectedWhatToWatchMediaType === 'movie' ? state.whatToWatchMovies : state.whatToWatchTv).state ===
+            'loading',
         whatToWatchTopPicks: this.toTopPickGroups(
-            state.selectedWhatToWatchMediaType === 'movie'
-                ? state.whatToWatchMovies
-                : state.whatToWatchTv,
+            state.selectedWhatToWatchMediaType === 'movie' ? state.whatToWatchMovies : state.whatToWatchTv,
         ),
         whatToWatchOptions: WHAT_TO_WATCH_OPTIONS,
         selectedWhatToWatchMediaType: state.selectedWhatToWatchMediaType,
         popularPeople: state.popularPeople,
         trendingToday: state.trendingToday,
         airingToday: state.airingToday,
-        airingTonightPreview:
-            state.airingToday.state === 'success' ? state.airingToday.data.slice(0, 12) : [],
+        airingTonightPreview: state.airingToday.state === 'success' ? state.airingToday.data.slice(0, 12) : [],
         streamingArrivals: this.toStreamingArrivalsFeature(state.streamingArrivals),
         inTheatres: state.inTheatres,
     }));
@@ -146,32 +138,19 @@ export class HomeStoreService extends ComponentStore<HomeState> {
 
         return forkJoin({
             movies: this.movieListService
-                .moviePopularList(
-                    undefined,
-                    1,
-                    this.localeStore.region(),
-                    'body',
-                    undefined,
-                    this.opts,
-                )
+                .moviePopularList(undefined, 1, this.localeStore.region(), 'body', undefined, this.opts)
                 .pipe(
                     map((response) =>
-                        (response.results ?? [])
-                            .map((item) => toCardItem(item, 'movie'))
-                            .slice(0, TOP_PICKS_MAX_ITEMS),
+                        (response.results ?? []).map((item) => toCardItem(item, 'movie')).slice(0, TOP_PICKS_MAX_ITEMS),
                     ),
                     catchError(() => of([] as CardItem[])),
                 ),
-            tv: this.tvListService
-                .tvSeriesPopularList(undefined, 1, 'body', undefined, this.opts)
-                .pipe(
-                    map((response) =>
-                        (response.results ?? [])
-                            .map((item) => toCardItem(item, 'tv'))
-                            .slice(0, TOP_PICKS_MAX_ITEMS),
-                    ),
-                    catchError(() => of([] as CardItem[])),
+            tv: this.tvListService.tvSeriesPopularList(undefined, 1, 'body', undefined, this.opts).pipe(
+                map((response) =>
+                    (response.results ?? []).map((item) => toCardItem(item, 'tv')).slice(0, TOP_PICKS_MAX_ITEMS),
                 ),
+                catchError(() => of([] as CardItem[])),
+            ),
         }).pipe(
             tap((whatToWatch) =>
                 this.patchState({
@@ -290,9 +269,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
             )
             .pipe(
                 map((response) =>
-                    (response.results ?? [])
-                        .map((item) => this.toAiringTodayItem(item))
-                        .slice(0, PAGE_SIZE),
+                    (response.results ?? []).map((item) => this.toAiringTodayItem(item)).slice(0, PAGE_SIZE),
                 ),
                 catchError(() => of([] as AiringTodayItem[])),
                 tap((airingToday) =>
@@ -401,7 +378,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
                 this.localeStore.region(),
                 releaseDateGte,
                 releaseDateLte,
-                toTmdbDiscoverSort('movie', 'release_date', 'asc'),
+                toTmdbDiscoverSort('movie', 'popularity', 'desc'),
                 undefined,
                 undefined,
                 undefined,
@@ -486,15 +463,12 @@ export class HomeStoreService extends ComponentStore<HomeState> {
         };
     }
 
-    private toStreamingArrivalsFeature(
-        items: RemoteData<CardItem[]>,
-    ): StreamingArrivalsFeature {
+    private toStreamingArrivalsFeature(items: RemoteData<CardItem[]>): StreamingArrivalsFeature {
         const month = getCurrentMonthName();
 
         return {
             title: `What's streaming in ${month}`,
-            description:
-                'Popular TV series premieres and returning seasons from major streaming services.',
+            description: 'Popular TV series premieres and returning seasons from major streaming services.',
             ctaLabel: `Browse ${month} TV series arrivals`,
             items,
         };
