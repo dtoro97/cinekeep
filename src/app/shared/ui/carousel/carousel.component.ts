@@ -6,14 +6,21 @@ import {
     ContentChild,
     ElementRef,
     HostBinding,
+    Inject,
     Input,
     OnChanges,
     OnDestroy,
+    PLATFORM_ID,
     TemplateRef,
     ViewChild,
 } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
+import { isPlatformBrowser, NgTemplateOutlet } from '@angular/common';
 import { OverlayIconButtonComponent } from '../overlay-icon-button/overlay-icon-button.component';
+
+type CarouselItemContext = {
+    $implicit: unknown;
+    index: number;
+};
 
 @Component({
     selector: 'app-carousel',
@@ -27,14 +34,11 @@ export class CarouselComponent
 {
     @Input() items: unknown[] = [];
     @Input() ariaLabel = 'Carousel';
-    @Input() columns: number | null = null;
-
+    @Input()
     @HostBinding('attr.data-columns')
-    get hostColumns(): number | null {
-        return this.columns;
-    }
+    columns: number | null = null;
 
-    @ContentChild(TemplateRef) itemTemplate!: TemplateRef<HTMLElement>;
+    @ContentChild(TemplateRef) itemTemplate!: TemplateRef<CarouselItemContext>;
     @ViewChild('viewport') viewportEl!: ElementRef<HTMLElement>;
     @ViewChild('track') trackEl!: ElementRef<HTMLElement>;
 
@@ -44,24 +48,36 @@ export class CarouselComponent
 
     private resizeObserver: ResizeObserver | null = null;
     private removeScrollListener: (() => void) | null = null;
+    private removeResizeListener: (() => void) | null = null;
 
     hasOverflow = false;
     canPrev = false;
     canNext = false;
 
-    constructor(private cdr: ChangeDetectorRef) {}
+    private readonly isBrowser: boolean;
+
+    constructor(
+        private cdr: ChangeDetectorRef,
+        @Inject(PLATFORM_ID) platformId: object
+    ) {
+        this.isBrowser = isPlatformBrowser(platformId);
+    }
 
     ngOnChanges(): void {
         this.scheduleSyncState();
     }
 
     ngAfterViewInit(): void {
+        if (!this.isBrowser) {
+            return;
+        }
+
         const viewport = this.viewportEl.nativeElement;
         this.viewportElRef = viewport;
         this.trackElRef = this.trackEl.nativeElement;
 
         const onScroll = (): void => {
-            this.syncState();
+            this.scheduleSyncState();
         };
 
         viewport.addEventListener('scroll', onScroll, { passive: true });
@@ -70,21 +86,32 @@ export class CarouselComponent
 
         this.scheduleSyncState();
 
-        this.resizeObserver = new ResizeObserver(() => {
-            this.scheduleSyncState();
-        });
-        this.resizeObserver.observe(viewport);
+        if (typeof ResizeObserver === 'function') {
+            this.resizeObserver = new ResizeObserver(() => {
+                this.scheduleSyncState();
+            });
+            this.resizeObserver.observe(viewport);
 
-        if (this.trackElRef) {
-            this.resizeObserver.observe(this.trackElRef);
+            if (this.trackElRef) {
+                this.resizeObserver.observe(this.trackElRef);
+            }
+        } else {
+            const onResize = (): void => {
+                this.scheduleSyncState();
+            };
+
+            window.addEventListener('resize', onResize, { passive: true });
+            this.removeResizeListener = () =>
+                window.removeEventListener('resize', onResize);
         }
     }
 
     ngOnDestroy(): void {
         this.resizeObserver?.disconnect();
         this.removeScrollListener?.();
+        this.removeResizeListener?.();
 
-        if (this.pendingSyncFrame !== null) {
+        if (this.isBrowser && this.pendingSyncFrame !== null) {
             cancelAnimationFrame(this.pendingSyncFrame);
         }
     }
@@ -116,7 +143,7 @@ export class CarouselComponent
 
     private scrollByPage(direction: 1 | -1): void {
         const el = this.viewportElRef;
-        if (!el) {
+        if (!this.isBrowser || !el) {
             return;
         }
 
@@ -129,7 +156,7 @@ export class CarouselComponent
     }
 
     private scheduleSyncState(): void {
-        if (!this.viewportElRef) {
+        if (!this.isBrowser || !this.viewportElRef) {
             return;
         }
 
@@ -145,14 +172,26 @@ export class CarouselComponent
 
     private syncState(): void {
         const el = this.viewportElRef;
-        if (!el) {
+        if (!this.isBrowser || !el) {
             return;
         }
 
         const maxScrollLeft = Math.max(el.scrollWidth - el.clientWidth, 0);
-        this.hasOverflow = maxScrollLeft > 1;
-        this.canPrev = el.scrollLeft > 1;
-        this.canNext = el.scrollLeft < maxScrollLeft - 1;
+        const hasOverflow = maxScrollLeft > 1;
+        const canPrev = el.scrollLeft > 1;
+        const canNext = el.scrollLeft < maxScrollLeft - 1;
+
+        if (
+            this.hasOverflow === hasOverflow &&
+            this.canPrev === canPrev &&
+            this.canNext === canNext
+        ) {
+            return;
+        }
+
+        this.hasOverflow = hasOverflow;
+        this.canPrev = canPrev;
+        this.canNext = canNext;
         this.cdr.markForCheck();
     }
 }

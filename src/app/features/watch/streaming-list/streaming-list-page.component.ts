@@ -1,13 +1,16 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
+import { tap } from 'rxjs';
 
 import {
     BrowseToolbarComponent,
+    buildTmdbImageUrl,
     EmptyStateComponent,
     MediaListItemComponent,
-    NotFoundComponent,
+    SeoService,
     ToggleGroupComponent,
     RepeatPipe,
     SkeletonComponent,
@@ -24,7 +27,6 @@ import { StreamingListStoreService } from './streaming-list-store.service';
         EmptyStateComponent,
         MediaListItemComponent,
         MatButtonModule,
-        NotFoundComponent,
         ToggleGroupComponent,
         RepeatPipe,
         RouterLink,
@@ -40,7 +42,34 @@ import { StreamingListStoreService } from './streaming-list-store.service';
 export class StreamingListPageComponent {
     readonly vm$ = this.store.vm$;
 
-    constructor(private readonly store: StreamingListStoreService) {}
+    constructor(
+        private readonly store: StreamingListStoreService,
+        private readonly seo: SeoService,
+    ) {
+        this.vm$
+            .pipe(
+                tap((vm) => {
+                    if (!vm.title) {
+                        return;
+                    }
+
+                    const preview =
+                        vm.displayItems.find(({ item }) => !!item.thumb) ??
+                        vm.displayItems[0] ??
+                        null;
+                    const imagePath = preview?.item.thumb ?? null;
+
+                    this.seo.setPage({
+                        title: vm.title,
+                        description: vm.description,
+                        image: buildTmdbImageUrl(imagePath, 'w780'),
+                        imageAlt: `${vm.title} streaming preview`,
+                    });
+                }),
+                takeUntilDestroyed(),
+            )
+            .subscribe();
+    }
 
     onSortChange(value: unknown): void {
         this.store.updateSort(value);

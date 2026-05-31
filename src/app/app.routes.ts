@@ -53,6 +53,12 @@ export const routes: Routes = [
     },
     {
         path: 'search',
+        title: 'Search',
+        data: {
+            seoDescription:
+                'Search CineKeep for movies, TV series, people, trailers, photos, and reviews powered by TMDb.',
+            robots: 'noindex, follow',
+        },
         loadChildren: () =>
             import('./features/search/search.routes').then(
                 (m) => m.searchRoutes,
@@ -60,6 +66,7 @@ export const routes: Routes = [
     },
     {
         path: 'me',
+        data: { robots: 'noindex, nofollow' },
         loadChildren: () =>
             import('./features/user/user.routes').then(
                 (m) => m.userRoutes,
@@ -68,6 +75,7 @@ export const routes: Routes = [
     {
         path: 'lists/:listId',
         canActivate: [v4AccountAccessGuard],
+        data: { robots: 'noindex, nofollow' },
         loadComponent: () =>
             import(
                 './features/user/user-list-detail-page/user-list-detail-page.component'
@@ -83,6 +91,16 @@ export const routes: Routes = [
         loadChildren: () =>
             import('./features/home/home.routes').then((m) => m.homeRoutes),
     },
-    { path: 'not-found', component: NotFoundComponent },
-    { path: '**', component: NotFoundComponent },
+    {
+        path: 'not-found',
+        component: NotFoundComponent,
+        title: 'Page Not Found',
+        data: { robots: 'noindex, nofollow' },
+    },
+    {
+        path: '**',
+        component: NotFoundComponent,
+        title: 'Page Not Found',
+        data: { robots: 'noindex, nofollow' },
+    },
 ];

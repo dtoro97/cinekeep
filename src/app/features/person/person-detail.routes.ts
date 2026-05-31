@@ -7,6 +7,11 @@ export const personDetailRoutes: Routes = [
     {
         path: ':personId',
         component: PersonDetailWrapperComponent,
+        data: {
+            seoDescription:
+                'Explore a person profile, credits, photos, biography, and known-for titles on CineKeep.',
+            seoType: 'profile',
+        },
         children: [
             {
                 path: '',

@@ -11,7 +11,7 @@ import type {
     TaggedImagePage,
 } from '../../api';
 import { PersonRestControllerService } from '../../api';
-import { EMPTY, catchError, delay, map, of, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, map, of, switchMap, tap } from 'rxjs';
 import {
     CardItem,
     ExternalLinks,
@@ -155,7 +155,6 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
         return this.personRestControllerService
             .personDetails(id, 'external_ids,images,tagged_images', undefined, undefined, undefined, API_JSON_OPTIONS)
             .pipe(
-                delay(1000),
                 map((person) => person as PersonWithExternalIds),
                 tap((person) => {
                     this.patchState({

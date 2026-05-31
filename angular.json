@@ -3,7 +3,7 @@
     "version": 1,
     "newProjectRoot": "projects",
     "projects": {
-        "tmdb-client": {
+        "cinekeep": {
             "projectType": "application",
             "schematics": {
                 "@schematics/angular:component": {
@@ -25,11 +25,13 @@
                     "builder": "@angular/build:application",
                     "options": {
                         "outputPath": {
-                            "base": "dist/tmdb-client",
-                            "browser": ""
+                            "base": "dist/cinekeep",
+                            "browser": "browser",
+                            "server": "server"
                         },
                         "index": "src/index.html",
                         "browser": "src/main.ts",
+                        "server": "src/main.server.ts",
                         "polyfills": ["zone.js"],
                         "tsConfig": "tsconfig.app.json",
                         "inlineStyleLanguage": "scss",
@@ -45,6 +47,13 @@
                             "node_modules/@fortawesome/fontawesome-free/css/all.min.css"
                         ],
                         "scripts": [],
+                        "security": {
+                            "allowedHosts": ["localhost", "127.0.0.1"]
+                        },
+                        "outputMode": "server",
+                        "ssr": {
+                            "entry": "src/server.ts"
+                        },
                         "stylePreprocessorOptions": {
                             "includePaths": ["src/styles"]
                         }
@@ -63,13 +72,7 @@
                                     "maximumError": "8mB"
                                 }
                             ],
-                            "outputHashing": "all",
-                            "fileReplacements": [
-                                {
-                                    "replace": "src/environments/environment.development.ts",
-                                    "with": "src/environments/environment.ts"
-                                }
-                            ]
+                            "outputHashing": "all"
                         },
                         "development": {
                             "optimization": false,
@@ -81,6 +84,15 @@
                                     "with": "src/environments/environment.development.ts"
                                 }
                             ]
+                        },
+                        "github-pages": {
+                            "outputPath": {
+                                "base": "dist/github-pages",
+                                "browser": ""
+                            },
+                            "server": false,
+                            "ssr": false,
+                            "outputMode": "static"
                         }
                     },
                     "defaultConfiguration": "production"
@@ -89,36 +101,16 @@
                     "builder": "@angular/build:dev-server",
                     "configurations": {
                         "production": {
-                            "buildTarget": "tmdb-client:build:production"
+                            "buildTarget": "cinekeep:build:production"
                         },
                         "development": {
-                            "buildTarget": "tmdb-client:build:development"
+                            "buildTarget": "cinekeep:build:development"
                         }
                     },
                     "defaultConfiguration": "development"
                 },
                 "extract-i18n": {
                     "builder": "@angular/build:extract-i18n"
-                },
-                "test": {
-                    "builder": "@angular/build:karma",
-                    "options": {
-                        "polyfills": ["zone.js", "zone.js/testing"],
-                        "tsConfig": "tsconfig.spec.json",
-                        "inlineStyleLanguage": "scss",
-                        "assets": [
-                            "src/assets",
-                            {
-                                "glob": "**/*",
-                                "input": "public"
-                            }
-                        ],
-                        "styles": ["src/styles/styles.scss"],
-                        "stylePreprocessorOptions": {
-                            "includePaths": ["src/styles"]
-                        },
-                        "scripts": []
-                    }
                 },
                 "deploy": {
                     "builder": "angular-cli-ghpages:deploy"

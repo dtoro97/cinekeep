@@ -8,6 +8,7 @@ import {
     BrowseToolbarComponent,
     EmptyStateComponent,
     RepeatPipe,
+    SeoService,
     SkeletonComponent,
     SortButtonComponent,
     SubPageHeaderComponent,
@@ -18,9 +19,10 @@ import {
     compareValues,
 } from '../../../shared';
 import { MediaVideoStoreService } from '../media-video-store.service';
-import { Title } from '@angular/platform-browser';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MediaStoreService } from '../media-store.service';
+import { toMediaSectionSeoMetadata } from '../media-seo';
+import { MediaDetails } from '../models/media-details.model';
 
 type SortField = 'published_at' | 'name';
 
@@ -96,7 +98,7 @@ export class VideosPageComponent {
     constructor(
         private readonly mediaStore: MediaStoreService,
         public mediaVideoStoreService: MediaVideoStoreService,
-        private title: Title,
+        private readonly seo: SeoService,
         private route: ActivatedRoute,
     ) {
         this.route.parent!.paramMap
@@ -111,10 +113,14 @@ export class VideosPageComponent {
             )
             .subscribe();
 
-        this.mediaStore.title$
+        this.mediaStore.mediaDetailsState$
             .pipe(
                 takeUntilDestroyed(),
-                tap((title) => this.title.setTitle(`${title} | Videos`)),
+                map((state) => (state.state === 'success' ? state.data : null)),
+                filter((media): media is MediaDetails => !!media),
+                tap((media) =>
+                    this.seo.setPage(toMediaSectionSeoMetadata(media, 'Videos')),
+                ),
             )
             .subscribe();
     }

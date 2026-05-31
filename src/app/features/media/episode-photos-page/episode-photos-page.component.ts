@@ -2,7 +2,6 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
-import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 
 import { combineLatest, distinctUntilChanged, filter, map, tap } from 'rxjs';
@@ -12,6 +11,8 @@ import {
     PhotosBrowserComponent,
     PhotosBrowserSelection,
     PhotosBrowserSkeletonComponent,
+    buildTmdbImageUrl,
+    SeoService,
     SubPageHeaderComponent,
 } from '../../../shared';
 import { EpisodeDetailStoreService } from '../episode-detail-page/episode-detail-store.service';
@@ -56,7 +57,7 @@ export class EpisodePhotosPageComponent {
         private readonly episodeStore: EpisodeDetailStoreService,
         private readonly route: ActivatedRoute,
         private readonly dialog: MatDialog,
-        private readonly title: Title,
+        private readonly seo: SeoService,
     ) {
         const seriesId = Number(this.route.parent!.snapshot.paramMap.get('id'));
         const mediaType = this.route.parent!.snapshot.paramMap.get('type') ?? 'tv';
@@ -100,7 +101,25 @@ export class EpisodePhotosPageComponent {
             .pipe(
                 tap((vm) => {
                     if (vm.media) {
-                        this.title.setTitle(`${vm.media.title} | ${vm.pageTitle}`);
+                        const imagePath =
+                            vm.episode?.still_path ??
+                            vm.media.backdropPath ??
+                            vm.media.posterPath;
+                        const hasWideImage =
+                            !!vm.episode?.still_path || !!vm.media.backdropPath;
+
+                        this.seo.setPage({
+                            title: `${vm.pageTitle} | ${vm.media.title}`,
+                            description: `Photos from ${vm.pageTitle.replace(/ Photos$/, '')} of ${vm.media.title}.`,
+                            image: buildTmdbImageUrl(
+                                imagePath,
+                                hasWideImage ? 'w1280' : 'w780',
+                            ),
+                            imageAlt: `${vm.pageTitle} preview`,
+                            imageWidth: hasWideImage ? 1280 : null,
+                            imageHeight: hasWideImage ? 720 : null,
+                            type: 'video.tv_show',
+                        });
                     }
                 }),
                 takeUntilDestroyed(),

@@ -1,7 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Title } from '@angular/platform-browser';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 
@@ -12,12 +11,15 @@ import {
     PhotoViewerComponent,
     PhotosBrowserComponent,
     PhotosBrowserSelection,
+    SeoService,
     SubPageHeaderComponent,
     PhotosBrowserSkeletonComponent,
     remoteData,
 } from '../../../shared';
 import { MediaImagesStoreService } from '../media-images-store.service';
 import { MediaStoreService } from '../media-store.service';
+import { toMediaSectionSeoMetadata } from '../media-seo';
+import { MediaDetails } from '../models/media-details.model';
 
 @Component({
     selector: 'app-media-photos-page',
@@ -47,7 +49,7 @@ export class MediaPhotosPageComponent {
         private readonly mediaStore: MediaStoreService,
         private readonly mediaImagesStoreService: MediaImagesStoreService,
         private readonly dialog: MatDialog,
-        private readonly title: Title,
+        private readonly seo: SeoService,
         private readonly route: ActivatedRoute,
     ) {
         this.route.parent!.paramMap
@@ -62,10 +64,12 @@ export class MediaPhotosPageComponent {
             )
             .subscribe();
 
-        this.mediaStore.title$
+        this.mediaStore.mediaDetailsState$
             .pipe(
-                tap((mediaTitle) =>
-                    this.title.setTitle(`${mediaTitle} | Photos`),
+                map((state) => (state.state === 'success' ? state.data : null)),
+                filter((media): media is MediaDetails => !!media),
+                tap((media) =>
+                    this.seo.setPage(toMediaSectionSeoMetadata(media, 'Photos')),
                 ),
                 takeUntilDestroyed(),
             )

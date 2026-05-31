@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { afterNextRender, Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { RecentlyViewedItem } from '../models';
@@ -10,14 +10,25 @@ const MAX_RECENTLY_VIEWED_ITEMS = 12;
 @Injectable({ providedIn: 'root' })
 export class RecentlyViewedStoreService {
     private readonly itemsSubject = new BehaviorSubject<RecentlyViewedItem[]>(
-        this.readInitialItems(),
+        [],
     );
+    private hydrated = false;
 
     readonly items$ = this.itemsSubject.asObservable();
 
-    constructor(private readonly browserStorage: BrowserStorageService) {}
+    constructor(private readonly browserStorage: BrowserStorageService) {
+        afterNextRender(() => {
+            this.hydrateFromStorage();
+        });
+    }
 
     addItem(item: RecentlyViewedItem): void {
+        if (!this.browserStorage.isBrowserEnvironment()) {
+            return;
+        }
+
+        this.hydrateFromStorage();
+
         const nextItems = this.normalizeItems([
             item,
             ...this.itemsSubject.getValue(),
@@ -30,8 +41,22 @@ export class RecentlyViewedStoreService {
     }
 
     clearAll(): void {
+        if (!this.browserStorage.isBrowserEnvironment()) {
+            return;
+        }
+
+        this.hydrated = true;
         this.itemsSubject.next([]);
         this.browserStorage.removeItem(STORAGE_KEY_RECENTLY_VIEWED);
+    }
+
+    private hydrateFromStorage(): void {
+        if (this.hydrated || !this.browserStorage.isBrowserEnvironment()) {
+            return;
+        }
+
+        this.hydrated = true;
+        this.itemsSubject.next(this.readInitialItems());
     }
 
     private readInitialItems(): RecentlyViewedItem[] {

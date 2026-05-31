@@ -63,7 +63,6 @@ interface StreamingListState {
     readonly pagination: StreamingListPagination;
     readonly totalResults: number;
     readonly resultsState: RemoteData<MediaListItem[]>;
-    readonly notFound: boolean;
 }
 
 interface StreamingListDisplayItem {
@@ -86,7 +85,6 @@ const INITIAL_STATE: StreamingListState = {
     pagination: { ...EMPTY_PAGINATION },
     totalResults: 0,
     resultsState: { state: 'notAsked' },
-    notFound: false,
 };
 
 const MEDIA_TYPE_OPTIONS: Record<MediaType, ToggleGroupOption> = {
@@ -101,7 +99,6 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
         const hasResults = state.resultsState.state === 'success' || state.resultsState.state === 'loading-more';
 
         return {
-            notFound: state.notFound,
             title: state.context?.title ?? '',
             description: state.context?.description ?? '',
             resultsState: state.resultsState,
@@ -308,6 +305,11 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
 
     private handleRouteRequest(request: StreamingListRequest): Observable<void> {
         if (!request.context) {
+            if (!request.pendingProvider) {
+                this.router.navigateByUrl('/not-found', { replaceUrl: true });
+                return EMPTY;
+            }
+
             this.patchState({
                 context: null,
                 mediaType: request.mediaType,
@@ -315,8 +317,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
                 sortDirection: request.sortDirection,
                 pagination: { ...EMPTY_PAGINATION },
                 totalResults: 0,
-                resultsState: request.pendingProvider ? { state: 'loading' } : { state: 'success', data: [] },
-                notFound: !request.pendingProvider,
+                resultsState: { state: 'loading' },
             });
             return of(undefined);
         }
@@ -329,7 +330,6 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
             pagination: { ...EMPTY_PAGINATION },
             totalResults: 0,
             resultsState: { state: 'loading' },
-            notFound: false,
         });
 
         return this.fetchPage$(request, 1);
@@ -339,7 +339,6 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
         const state = this.get();
 
         if (
-            state.notFound ||
             !state.context ||
             state.resultsState.state !== 'success' ||
             state.pagination.page >= state.pagination.totalPages

@@ -1,7 +1,6 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
@@ -27,6 +26,8 @@ import {
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
+    buildTmdbImageUrl,
+    SeoService,
     TmdbSigninDialogService,
     TmdbUserAuthService,
     UserSessionStoreService,
@@ -105,7 +106,7 @@ export class EpisodeDetailComponent {
         private snackbar: SnackbarService,
         private tmdbSigninDialog: TmdbSigninDialogService,
         private tmdbUserAuthService: TmdbUserAuthService,
-        private titleService: Title,
+        private seo: SeoService,
         private userSessionStore: UserSessionStoreService,
         private dialog: MatDialog,
     ) {
@@ -146,10 +147,30 @@ export class EpisodeDetailComponent {
             .pipe(
                 takeUntilDestroyed(),
                 tap((vm) => {
-                    if (vm.episode) {
-                        this.titleService.setTitle(
-                            `${vm.episode.name} | Episode`,
-                        );
+                    if (vm.media && vm.episode) {
+                        const episodeTitle =
+                            vm.episode.name || toEpisodeCode(vm.episode);
+                        const imagePath =
+                            vm.episode.still_path ??
+                            vm.media.backdropPath ??
+                            vm.media.posterPath;
+                        const hasWideImage =
+                            !!vm.episode.still_path || !!vm.media.backdropPath;
+
+                        this.seo.setPage({
+                            title: `${episodeTitle} | ${vm.media.title}`,
+                            description:
+                                vm.episode.overview ||
+                                `Episode details for ${episodeTitle} from ${vm.media.title}.`,
+                            image: buildTmdbImageUrl(
+                                imagePath,
+                                hasWideImage ? 'w1280' : 'w780',
+                            ),
+                            imageAlt: `${episodeTitle} episode still`,
+                            imageWidth: hasWideImage ? 1280 : null,
+                            imageHeight: hasWideImage ? 720 : null,
+                            type: 'video.tv_show',
+                        });
                     }
                 }),
             )
@@ -273,3 +294,10 @@ const isValidEpisodeTarget = (target: {
     target.seasonNumber >= 0 &&
     Number.isInteger(target.episodeNumber) &&
     target.episodeNumber > 0;
+
+const toEpisodeCode = (episode: TvEpisode): string => {
+    const seasonNumber = episode.season_number ?? 0;
+    const episodeNumber = episode.episode_number ?? 0;
+
+    return `S${seasonNumber}E${episodeNumber}`;
+};

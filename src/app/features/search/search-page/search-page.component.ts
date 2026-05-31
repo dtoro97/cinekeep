@@ -2,7 +2,6 @@ import { AsyncPipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Title } from '@angular/platform-browser';
 
 import { combineLatest, map, switchMap, tap } from 'rxjs';
 
@@ -13,6 +12,7 @@ import {
     MediaListComponent,
     ToggleGroupComponent,
     PersonListComponent,
+    SeoService,
     toMediaListEntryState,
     type SelectOption,
 } from '../../../shared';
@@ -80,7 +80,7 @@ export class SearchPageComponent {
     constructor(
         private readonly store: SearchStoreService,
         private readonly route: ActivatedRoute,
-        private readonly titleService: Title,
+        private readonly seo: SeoService,
         private readonly genreService: GenreService,
     ) {
         this.route.queryParamMap
@@ -97,7 +97,13 @@ export class SearchPageComponent {
         this.store.query$
             .pipe(
                 tap((query) => {
-                    this.titleService.setTitle(query ? `Results for "${query}"` : 'Search');
+                    this.seo.setPage({
+                        title: query ? `Results for "${query}"` : 'Search',
+                        description: query
+                            ? `Search results for "${query}" on CineKeep, including movies, TV series, and people.`
+                            : 'Search CineKeep for movies, TV series, people, trailers, photos, and reviews.',
+                        robots: 'noindex, follow',
+                    });
                 }),
                 takeUntilDestroyed(),
             )

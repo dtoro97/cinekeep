@@ -9,7 +9,8 @@
 
 .account-menu {
     &__trigger,
-    &__signin {
+    &__signin,
+    &__placeholder {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -64,6 +65,12 @@
         white-space: nowrap;
     }
 
+    &__placeholder {
+        width: var(--control-height-sm);
+        padding: 0;
+        color: var(--text-muted);
+    }
+
     &__avatar {
         --round-media-sm: var(--control-height-sm);
         --user-avatar-border: var(--color-border);
@@ -78,6 +85,7 @@
     }
 
     &__signin-icon,
+    &__placeholder-icon,
     &__item-icon {
         @include icon-size(1.125rem);
         flex-shrink: 0;

@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import {
+    afterNextRender,
     ChangeDetectionStrategy,
     Component,
     DestroyRef,
@@ -37,6 +38,7 @@ interface HeaderAccountRoute {
 }
 
 interface HeaderAccountMenuViewModel {
+    readonly ready: boolean;
     readonly isAuthenticated: boolean;
     readonly username: string | null;
     readonly displayName: string;
@@ -69,13 +71,16 @@ export class HeaderAccountMenuComponent {
     ];
 
     private readonly busy$ = new BehaviorSubject(false);
+    private readonly ready$ = new BehaviorSubject(false);
 
     readonly vm$ = combineLatest([
+        this.ready$,
         this.userSessionStore.authViewModel$,
         this.busy$,
     ]).pipe(
         map(
-            ([auth, busy]): HeaderAccountMenuViewModel => ({
+            ([ready, auth, busy]): HeaderAccountMenuViewModel => ({
+                ready,
                 isAuthenticated: auth.isAuthenticated,
                 username: auth.username,
                 displayName: auth.displayName,
@@ -93,6 +98,10 @@ export class HeaderAccountMenuComponent {
         private readonly tmdbUserAuthService: TmdbUserAuthService,
         private readonly userSessionStore: UserSessionStoreService,
     ) {
+        afterNextRender(() => {
+            this.ready$.next(true);
+        });
+
         if (
             this.userSessionStore.isAuthenticated() &&
             !this.userSessionStore.hasAccount()

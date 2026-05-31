@@ -5,6 +5,7 @@ import { combineLatest, distinctUntilChanged, filter, map, shareReplay, tap } fr
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import {
+    SeoService,
     ImageComponent,
     PageSectionComponent,
     PhotoViewerComponent,
@@ -16,11 +17,11 @@ import {
     VideosGridComponent,
     ViewerImage,
 } from '../../../shared';
-import { Title } from '@angular/platform-browser';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MediaSeasonsStoreService } from '../media-seasons-store.service';
 import { EpisodeListComponent } from '../episode-list/episode-list.component';
 import { MediaStoreService } from '../media-store.service';
+import { toMediaSectionSeoMetadata } from '../media-seo';
 
 interface SeasonDetailRouteData {
     readonly seriesId: number;
@@ -103,14 +104,25 @@ export class SeasonDetailPageComponent {
         public mediaSeasonsStoreService: MediaSeasonsStoreService,
         private route: ActivatedRoute,
         private router: Router,
-        private title: Title,
+        private seo: SeoService,
         private dialog: MatDialog,
     ) {
-        this.mediaStore.title$
+        this.vm$
             .pipe(
                 takeUntilDestroyed(),
-                tap((title) => {
-                    this.title.setTitle(`${title} | Episodes`);
+                tap((vm) => {
+                    if (!vm.media) {
+                        return;
+                    }
+
+                    const sectionTitle =
+                        vm.selectedSeason === null
+                            ? 'Episodes'
+                            : `Season ${vm.selectedSeason} Episodes`;
+
+                    this.seo.setPage(
+                        toMediaSectionSeoMetadata(vm.media, sectionTitle),
+                    );
                 }),
             )
             .subscribe();

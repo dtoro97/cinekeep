@@ -1,7 +1,6 @@
 import { AsyncPipe, DatePipe, SlicePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
@@ -55,7 +54,6 @@ export class PersonDetailsComponent {
 
     constructor(
         public personDetailStore: PersonDetailStoreService,
-        private titleService: Title,
         private route: ActivatedRoute,
         private dialog: MatDialog,
         private recentlyViewedStore: RecentlyViewedStoreService,
@@ -76,7 +74,6 @@ export class PersonDetailsComponent {
                         return;
                     }
 
-                    this.titleService.setTitle(`${person.name} | People`);
                     this.recentlyViewedStore.addItem({
                         kind: 'person',
                         id: person.id,

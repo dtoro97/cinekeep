@@ -1,7 +1,6 @@
 import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Title } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute } from '@angular/router';
 
@@ -16,10 +15,13 @@ import {
     SnackbarType,
     SubPageHeaderComponent,
     MediaType,
+    SeoService,
 } from '../../../shared';
 import { MediaReviewsStoreService } from '../media-reviews-store.service';
 import { MediaStoreService } from '../media-store.service';
 import { ReviewCardComponent } from '../review-card/review-card.component';
+import { toMediaSectionSeoMetadata } from '../media-seo';
+import { MediaDetails } from '../models/media-details.model';
 
 @Component({
     selector: 'app-media-reviews-page',
@@ -58,7 +60,7 @@ export class MediaReviewsPageComponent {
         private readonly mediaStore: MediaStoreService,
         private readonly mediaReviewsStoreService: MediaReviewsStoreService,
         private readonly snackbar: SnackbarService,
-        private readonly title: Title,
+        private readonly seo: SeoService,
         private readonly route: ActivatedRoute,
     ) {
         this.route.parent!.paramMap
@@ -73,10 +75,12 @@ export class MediaReviewsPageComponent {
             )
             .subscribe();
 
-        this.mediaStore.title$
+        this.mediaStore.mediaDetailsState$
             .pipe(
-                tap((mediaTitle) =>
-                    this.title.setTitle(`${mediaTitle} | Reviews`),
+                map((state) => (state.state === 'success' ? state.data : null)),
+                filter((media): media is MediaDetails => !!media),
+                tap((media) =>
+                    this.seo.setPage(toMediaSectionSeoMetadata(media, 'Reviews')),
                 ),
                 takeUntilDestroyed(),
             )

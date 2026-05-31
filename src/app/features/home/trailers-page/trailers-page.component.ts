@@ -6,7 +6,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { filter, map, switchMap, tap } from 'rxjs';
 
 import { PAGE_SIZE } from '../../../constants';
-import { ToggleGroupComponent, SelectOption, SkeletonComponent, VideoCardComponent } from '../../../shared';
+import {
+    buildTmdbImageUrl,
+    ToggleGroupComponent,
+    SelectOption,
+    SeoService,
+    SkeletonComponent,
+    VideoCardComponent,
+} from '../../../shared';
 import { RepeatPipe } from '../../../shared/pipes/repeat.pipe';
 import { HeroSpotlightComponent } from '../hero-spotlight/hero-spotlight.component';
 import { TrailersPageStoreService } from './trailers-page-store.service';
@@ -44,6 +51,7 @@ export class TrailersPageComponent {
         public readonly store: TrailersPageStoreService,
         private readonly route: ActivatedRoute,
         private readonly router: Router,
+        private readonly seo: SeoService,
     ) {
         this.route.paramMap
             .pipe(
@@ -57,6 +65,27 @@ export class TrailersPageComponent {
                 }),
                 filter(isTrailerFeedType),
                 switchMap((feedType) => this.store.load$(feedType)),
+                takeUntilDestroyed(),
+            )
+            .subscribe();
+
+        this.vm$
+            .pipe(
+                tap((vm) => {
+                    const spotlight = vm.featuredSpotlight?.spotlight ?? null;
+
+                    this.seo.setPage({
+                        title: 'Watch Movie and TV Series Trailers',
+                        description:
+                            'Watch trending and newly released movie and TV series trailers on CineKeep.',
+                        image: buildTmdbImageUrl(spotlight?.backdropPath, 'w1280'),
+                        imageAlt: spotlight
+                            ? `${spotlight.title} trailer preview`
+                            : 'CineKeep trailers preview',
+                        imageWidth: spotlight?.backdropPath ? 1280 : null,
+                        imageHeight: spotlight?.backdropPath ? 720 : null,
+                    });
+                }),
                 takeUntilDestroyed(),
             )
             .subscribe();

@@ -1,7 +1,14 @@
-export function getBrowserCountry(): string {
-    const language =
-        typeof navigator !== 'undefined' ? navigator.language : '';
-    const region = language.split('-')[1]?.toUpperCase();
+import {
+    detectBrowserLocale,
+    type DetectedLocale,
+} from './locale-detection';
 
-    return /^[A-Z]{2}$/.test(region ?? '') ? region! : 'US';
+export type BrowserLocale = DetectedLocale;
+
+export function getBrowserLocale(): BrowserLocale {
+    return detectBrowserLocale();
+}
+
+export function getBrowserCountry(): string {
+    return detectBrowserLocale().region ?? 'US';
 }

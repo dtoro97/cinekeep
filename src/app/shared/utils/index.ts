@@ -9,6 +9,7 @@ export * from './shuffle';
 export * from './sort';
 export * from './tmdb-discover-sort';
 export * from './browser-country';
+export * from './locale-detection';
 export * from './company-display';
 export * from './image-language';
 export * from './youtube';

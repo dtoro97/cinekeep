@@ -1,7 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 
 import { combineLatest, filter, map, switchMap, tap } from 'rxjs';
@@ -10,6 +9,7 @@ import {
     EmptyStateComponent,
     MediaType,
     remoteData,
+    SeoService,
     ToggleGroupComponent,
     SkeletonComponent,
     SubPageHeaderComponent,
@@ -18,6 +18,8 @@ import { CastCrewGridComponent } from '../cast-crew-grid/cast-crew-grid.componen
 import { groupCrewMembers } from '../mappers/cast-crew.mapper';
 import { MediaCreditsStoreService } from '../media-credits-store.service';
 import { MediaStoreService } from '../media-store.service';
+import { toMediaSectionSeoMetadata } from '../media-seo';
+import { MediaDetails } from '../models/media-details.model';
 
 type VisibleSection = 'cast' | 'crew';
 
@@ -65,7 +67,7 @@ export class MediaCastPageComponent {
     constructor(
         private readonly mediaStore: MediaStoreService,
         private readonly mediaCreditsStore: MediaCreditsStoreService,
-        private title: Title,
+        private readonly seo: SeoService,
         private route: ActivatedRoute,
     ) {
         this.route.parent!.paramMap
@@ -80,12 +82,16 @@ export class MediaCastPageComponent {
             )
             .subscribe();
 
-        this.mediaStore.title$
+        this.mediaStore.mediaDetailsState$
             .pipe(
                 takeUntilDestroyed(),
-                tap((title) => {
-                    this.title.setTitle(`${title} | Cast & Crew`);
-                }),
+                map((state) => (state.state === 'success' ? state.data : null)),
+                filter((media): media is MediaDetails => !!media),
+                tap((media) =>
+                    this.seo.setPage(
+                        toMediaSectionSeoMetadata(media, 'Cast & Crew'),
+                    ),
+                ),
             )
             .subscribe();
     }

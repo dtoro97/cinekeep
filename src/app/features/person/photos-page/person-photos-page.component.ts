@@ -1,10 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Title } from '@angular/platform-browser';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
-import { tap } from 'rxjs';
 
 import {
     PhotoViewerComponent,
@@ -30,19 +26,7 @@ export class PersonPhotosPageComponent {
     constructor(
         public personDetailStore: PersonDetailStoreService,
         private dialog: MatDialog,
-        private title: Title,
-    ) {
-        this.personDetailStore.personDetailVm$
-            .pipe(
-                tap((vm) => {
-                    if (vm.person.state === 'success' && vm.person.data) {
-                        this.title.setTitle(`${vm.person.data.name} | Photos`);
-                    }
-                }),
-                takeUntilDestroyed(),
-            )
-            .subscribe();
-    }
+    ) {}
 
     openPhotoViewer(selection: PhotosBrowserSelection): void {
         this.dialog.open(PhotoViewerComponent, {
@@ -56,4 +40,3 @@ export class PersonPhotosPageComponent {
         });
     }
 }
-

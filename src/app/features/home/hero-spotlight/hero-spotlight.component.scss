@@ -116,7 +116,11 @@
     }
 
     .hero {
-        padding-block: var(--space-7) var(--space-6);
+        padding-block: var(--space-8) var(--space-6);
+    }
+
+    .back-link + .hero {
+        padding-top: var(--space-12);
     }
 
     .hero__content,

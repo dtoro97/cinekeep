@@ -1,5 +1,14 @@
 @if (vm$ | async; as vm) {
-    @if (vm.isAuthenticated) {
+    @if (!vm.ready) {
+        <button
+            class="account-menu__placeholder"
+            type="button"
+            disabled
+            aria-label="Account menu loading"
+        >
+            <mat-icon class="account-menu__placeholder-icon" aria-hidden="true">account_circle</mat-icon>
+        </button>
+    } @else if (vm.isAuthenticated) {
         <button
             class="account-menu__trigger"
             type="button"

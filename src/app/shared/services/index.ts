@@ -5,6 +5,8 @@ export * from './locale-store.service';
 export * from './media-rating.service';
 export * from './page-scroll.service';
 export * from './recently-viewed-store.service';
+export * from './seo.service';
+export * from './seo-title-strategy.service';
 export * from './snackbar.service';
 export * from './tmdb-list.service';
 export * from './tmdb-user-account.service';

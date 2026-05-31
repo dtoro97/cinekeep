@@ -1,4 +1,11 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import {
+    Inject,
+    Injectable,
+    Optional,
+    PLATFORM_ID,
+    REQUEST,
+} from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 import {
     ConfigurationRestControllerService,
@@ -29,8 +36,14 @@ export class ConfigStoreService extends ComponentStore<ConfigStoreState> {
     );
     constructor(
         private configRestControllerService: ConfigurationRestControllerService,
+        @Inject(PLATFORM_ID) private readonly platformId: object,
+        @Optional() @Inject(REQUEST) private readonly request: Request | null,
     ) {
         super({});
+
+        if (!this.canLoadAtStartup()) {
+            return;
+        }
 
         this.getLanguages$().subscribe();
         this.getCountries$().subscribe();
@@ -57,5 +70,9 @@ export class ConfigStoreService extends ComponentStore<ConfigStoreState> {
         return this.configRestControllerService
             .configurationDetails(undefined, undefined, API_JSON_OPTIONS)
             .pipe(tap((response) => this.patchState({ config: response })));
+    }
+
+    private canLoadAtStartup(): boolean {
+        return isPlatformBrowser(this.platformId) || !!this.request;
     }
 }

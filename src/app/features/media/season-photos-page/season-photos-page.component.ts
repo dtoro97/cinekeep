@@ -2,7 +2,6 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
-import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 
 import { combineLatest, map, tap } from 'rxjs';
@@ -12,10 +11,12 @@ import {
     PhotosBrowserComponent,
     PhotosBrowserSelection,
     PhotosBrowserSkeletonComponent,
+    SeoService,
     SubPageHeaderComponent,
 } from '../../../shared';
 import { MediaSeasonsStoreService } from '../media-seasons-store.service';
 import { MediaStoreService } from '../media-store.service';
+import { toMediaSectionSeoMetadata } from '../media-seo';
 
 @Component({
     selector: 'app-season-photos-page',
@@ -49,7 +50,7 @@ export class SeasonPhotosPageComponent {
         private readonly mediaSeasonsStoreService: MediaSeasonsStoreService,
         private readonly route: ActivatedRoute,
         private readonly dialog: MatDialog,
-        private readonly title: Title,
+        private readonly seo: SeoService,
     ) {
         const seriesId = Number(this.route.parent!.snapshot.paramMap.get('id'));
         const mediaType = this.route.parent!.snapshot.paramMap.get('type') ?? 'tv';
@@ -63,7 +64,9 @@ export class SeasonPhotosPageComponent {
             .pipe(
                 tap((vm) => {
                     if (vm.media) {
-                        this.title.setTitle(`${vm.media.title} | ${this.pageTitle}`);
+                        this.seo.setPage(
+                            toMediaSectionSeoMetadata(vm.media, this.pageTitle),
+                        );
                     }
                 }),
                 takeUntilDestroyed(),

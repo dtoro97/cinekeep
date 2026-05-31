@@ -1,7 +1,6 @@
 import { AsyncPipe, DatePipe, DecimalPipe, DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, Inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +30,7 @@ import {
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
+    SeoService,
     TmdbSigninDialogService,
     TmdbRatingComponent,
     TmdbUserAuthService,
@@ -53,6 +53,7 @@ import { MediaDetailActionsStore } from '../media-detail-actions-store.service';
 import { MediaDetailStoreService } from '../media-detail-store.service';
 import { MediaTarget } from '../media-target';
 import { ReviewCardComponent } from '../review-card/review-card.component';
+import { toMediaSeoMetadata } from '../media-seo';
 
 interface MediaDetailVideosPreview {
     readonly state: RemoteData<VideoCardItem[]>;
@@ -193,9 +194,9 @@ export class MediaDetailPageComponent {
         private readonly route: ActivatedRoute,
         private readonly router: Router,
         private readonly snackbar: SnackbarService,
+        private readonly seo: SeoService,
         private readonly tmdbSigninDialog: TmdbSigninDialogService,
         private readonly tmdbUserAuthService: TmdbUserAuthService,
-        private readonly title: Title,
         private readonly userSessionStore: UserSessionStoreService,
         @Inject(DOCUMENT) private readonly document: Document,
     ) {
@@ -225,7 +226,7 @@ export class MediaDetailPageComponent {
                     (previous, current) => previous.id === current.id && previous.mediaType === current.mediaType,
                 ),
                 tap((media) => {
-                    this.title.setTitle(`${media.title} | ${media.mediaType === 'tv' ? 'TV series' : 'Movie'}`);
+                    this.seo.setPage(toMediaSeoMetadata(media));
                     this.recentlyViewedStore.addItem({
                         kind: 'media',
                         id: media.id,
