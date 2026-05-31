@@ -21,7 +21,7 @@ import {
 } from '@angular/router';
 
 import { routes } from './app.routes';
-import { provideApi } from './api/provide-api';
+import { Configuration as V3Configuration } from './api/configuration';
 import { Configuration as V4Configuration } from './api-v4/configuration';
 import { environment } from '../environments/environment';
 import {
@@ -54,19 +54,23 @@ export const appConfig: ApplicationConfig = {
             withFetch(),
             withInterceptors([localeInterceptor, delayInterceptor]),
         ),
-        provideApi({
-            basePath: environment.apiUrl,
-            credentials: {
-                bearerAuth: environment.apiKey,
-            },
-        }),
+        {
+            provide: V3Configuration,
+            useFactory: () =>
+                new V3Configuration({
+                    basePath: resolveApiBasePath(environment.apiUrl),
+                    credentials: {
+                        bearerAuth: environment.apiKey,
+                    },
+                }),
+        },
         {
             provide: V4Configuration,
             useFactory: () => {
                 const userSessionStore = inject(UserSessionStoreService);
 
                 return new V4Configuration({
-                    basePath: environment.apiV4Url,
+                    basePath: resolveApiBasePath(environment.apiV4Url),
                     credentials: {
                         bearerAuth: () =>
                             userSessionStore.v4AccessToken() ??
@@ -92,3 +96,13 @@ export const appConfig: ApplicationConfig = {
         //provideServerRendering(withRoutes(serverRoutes)),
     ],
 };
+
+function resolveApiBasePath(basePath: string): string {
+    if (!basePath.startsWith('/')) {
+        return basePath;
+    }
+
+    const request = inject(REQUEST, { optional: true });
+
+    return request ? new URL(basePath, request.url).toString() : basePath;
+}
