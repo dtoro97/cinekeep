@@ -10,6 +10,7 @@ import {
     PLATFORM_ID,
     provideAppInitializer,
     REQUEST,
+    REQUEST_CONTEXT,
     provideZoneChangeDetection,
 } from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -38,6 +39,15 @@ import { TmdbUserAuthService } from './shared/services/tmdb-user-auth.service';
 import { delayInterceptor } from './shared/utils/delay-interceptor';
 import { localeInterceptor } from './shared/utils/locale-interceptor';
 
+interface CloudflareRequestContext {
+    readonly env?: {
+        readonly TMDB_API_KEY?: string;
+    };
+}
+
+const TMDB_V3_ORIGIN = 'https://api.themoviedb.org/3';
+const TMDB_V4_ORIGIN = 'https://api.themoviedb.org/4';
+
 export const appConfig: ApplicationConfig = {
     providers: [
         provideZoneChangeDetection({ eventCoalescing: true }),
@@ -56,24 +66,35 @@ export const appConfig: ApplicationConfig = {
         ),
         {
             provide: V3Configuration,
-            useFactory: () =>
-                new V3Configuration({
-                    basePath: resolveApiBasePath(environment.apiUrl),
+            useFactory: () => {
+                const serverApiKey = resolveServerApiKey();
+
+                return new V3Configuration({
+                    basePath: resolveApiBasePath(
+                        environment.apiUrl,
+                        serverApiKey ? TMDB_V3_ORIGIN : undefined,
+                    ),
                     credentials: {
-                        bearerAuth: environment.apiKey,
+                        bearerAuth: serverApiKey ?? environment.apiKey,
                     },
-                }),
+                });
+            },
         },
         {
             provide: V4Configuration,
             useFactory: () => {
                 const userSessionStore = inject(UserSessionStoreService);
+                const serverApiKey = resolveServerApiKey();
 
                 return new V4Configuration({
-                    basePath: resolveApiBasePath(environment.apiV4Url),
+                    basePath: resolveApiBasePath(
+                        environment.apiV4Url,
+                        serverApiKey ? TMDB_V4_ORIGIN : undefined,
+                    ),
                     credentials: {
                         bearerAuth: () =>
                             userSessionStore.v4AccessToken() ??
+                            serverApiKey ??
                             environment.apiKey,
                     },
                 });
@@ -97,12 +118,59 @@ export const appConfig: ApplicationConfig = {
     ],
 };
 
-function resolveApiBasePath(basePath: string): string {
+function resolveApiBasePath(
+    basePath: string,
+    serverBasePath?: string,
+): string {
+    const request = inject(REQUEST, { optional: true });
+
+    if (request && serverBasePath) {
+        return serverBasePath;
+    }
+
     if (!basePath.startsWith('/')) {
         return basePath;
     }
 
+    if (request) {
+        return new URL(basePath, request.url).toString();
+    }
+
+    return basePath;
+}
+
+function resolveServerApiKey(): string | null {
     const request = inject(REQUEST, { optional: true });
 
-    return request ? new URL(basePath, request.url).toString() : basePath;
+    if (!request) {
+        return null;
+    }
+
+    const context = inject(REQUEST_CONTEXT, { optional: true });
+
+    if (!isCloudflareRequestContext(context)) {
+        return null;
+    }
+
+    const apiKey = context.env?.TMDB_API_KEY?.trim();
+
+    return apiKey || null;
+}
+
+function isCloudflareRequestContext(
+    value: unknown,
+): value is CloudflareRequestContext {
+    if (typeof value !== 'object' || value === null || !('env' in value)) {
+        return false;
+    }
+
+    const env = (value as CloudflareRequestContext).env;
+
+    return (
+        env === undefined ||
+        (typeof env === 'object' &&
+            env !== null &&
+            (env.TMDB_API_KEY === undefined ||
+                typeof env.TMDB_API_KEY === 'string'))
+    );
 }

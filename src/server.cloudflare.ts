@@ -4,6 +4,10 @@ interface CloudflareEnvironment {
     readonly TMDB_API_KEY?: string;
 }
 
+interface CloudflareRequestContext {
+    readonly env: CloudflareEnvironment;
+}
+
 interface CloudflareExecutionContext {
     waitUntil(promise: Promise<unknown>): void;
 }
@@ -165,11 +169,20 @@ export default {
             return tmdbResponse;
         }
 
-        const response = await reqHandler(request);
+        const response = await handleAngularRequest(request, env);
 
         return response ?? new Response('Not found', { status: 404 });
     },
 };
+
+function handleAngularRequest(
+    request: Request,
+    env: CloudflareEnvironment,
+): Promise<Response | null> {
+    const context: CloudflareRequestContext = { env };
+
+    return angularApp.handle(request, context);
+}
 
 function proxyTmdbRequest(
     request: Request,
