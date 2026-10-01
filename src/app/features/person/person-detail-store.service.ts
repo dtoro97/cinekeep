@@ -11,20 +11,22 @@ import type {
     TaggedImagePage,
 } from '../../api';
 import { PersonRestControllerService } from '../../api';
-import { EMPTY, catchError, map, of, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, filter, map, of, switchMap, tap } from 'rxjs';
 import {
     CardItem,
     ExternalLinks,
     RemoteData,
     LocaleStoreService,
+    MEDIA_TYPE_OPTION,
     MediaType,
     SelectOption,
     SortDirection,
     ViewerImage,
     buildExternalLinks,
+    compareValues,
     isPreferredImageLanguage,
 } from '../../shared';
-import { API_JSON_OPTIONS, CAROUSEL_COUNT } from '../../constants';
+import { CAROUSEL_COUNT } from '../../constants';
 
 export interface PersonCreditRow {
     id: number;
@@ -37,6 +39,7 @@ export interface PersonCreditRow {
     posterPath: string | null;
     backdropPath: string | null;
     roleLabel: string;
+    episodeCount: number;
     episodeLabel: string | null;
     mediaTypeLabel: string;
 }
@@ -125,6 +128,24 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
         }),
     );
 
+    /** The loaded person and up to three known-for titles, for page metadata. */
+    readonly seoSource$ = this.personDetailVm$.pipe(
+        map((vm) => ({
+            person: vm.person.state === 'success' ? vm.person.data : null,
+            knownForTitles:
+                vm.knownFor.state === 'success'
+                    ? vm.knownFor.data
+                          .map((item) => item.title)
+                          .filter(Boolean)
+                          .slice(0, 3)
+                    : [],
+        })),
+        filter(
+            (source): source is { readonly person: PersonWithExternalIds; readonly knownForTitles: string[] } =>
+                !!source.person,
+        ),
+    );
+
     constructor(
         private personRestControllerService: PersonRestControllerService,
         private localStore: LocaleStoreService,
@@ -152,7 +173,7 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
         });
 
         return this.personRestControllerService
-            .personDetails(id, 'external_ids,images,tagged_images', undefined, undefined, undefined, API_JSON_OPTIONS)
+            .personDetails({ personId: id, appendToResponse: 'external_ids,images,tagged_images' })
             .pipe(
                 map((person) => person as PersonWithExternalIds),
                 tap((person) => {
@@ -172,7 +193,7 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
 
     private loadCredits$(id: number) {
         return this.personRestControllerService
-            .personCombinedCredits(String(id), undefined, undefined, undefined, API_JSON_OPTIONS)
+            .personCombinedCredits({ personId: String(id) })
             .pipe(
                 catchError(() => of({ cast: [], crew: [] } as PersonCombinedCredits)),
                 tap((raw) => {
@@ -183,7 +204,6 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
                         },
                     });
                 }),
-                map(() => undefined),
             );
     }
 
@@ -334,7 +354,7 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
 
         const mediaType = this.getCreditMediaType(credit);
         const releaseDate = credit.release_date || credit.first_air_date || null;
-        const episodeCount = mediaType === 'tv' ? credit.episode_count : undefined;
+        const episodeCount = mediaType === 'tv' ? (credit.episode_count ?? 0) : 0;
         const roleLabel = this.mergeRoleText('', role);
 
         return {
@@ -350,7 +370,8 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
                 posterPath: credit.poster_path ?? null,
                 backdropPath: credit.backdrop_path ?? null,
                 roleLabel,
-                episodeLabel: mediaType === 'tv' && episodeCount ? `${episodeCount} ep` : null,
+                episodeCount,
+                episodeLabel: toEpisodeLabel(episodeCount),
                 mediaTypeLabel: mediaType === 'tv' ? 'TV series' : 'Movie',
             },
         };
@@ -366,7 +387,8 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
             posterPath: existing.posterPath ?? incoming.posterPath,
             backdropPath: existing.backdropPath ?? incoming.backdropPath,
             roleLabel: this.mergeRoleText(existing.roleLabel, incoming.roleLabel),
-            episodeLabel: this.mergeEpisodeLabels(existing.episodeLabel, incoming.episodeLabel),
+            episodeCount: Math.max(existing.episodeCount, incoming.episodeCount),
+            episodeLabel: toEpisodeLabel(Math.max(existing.episodeCount, incoming.episodeCount)),
         };
     }
 
@@ -403,10 +425,6 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
     }
 
     private buildCreditsDisplay(credits: RemoteData<PersonCreditsState>, ui: PersonCreditsUiState) {
-        if (credits.state === 'loading') {
-            return { state: 'loading' } as const;
-        }
-
         if (credits.state !== 'success') {
             return { state: 'loading' } as const;
         }
@@ -435,11 +453,11 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
         const options: SelectOption<PersonCreditsMediaType>[] = [{ label: 'All media', value: 'all' }];
 
         if (hasMovies) {
-            options.push({ label: 'Movies', value: 'movie' });
+            options.push(MEDIA_TYPE_OPTION.movie);
         }
 
         if (hasTv) {
-            options.push({ label: 'TV series', value: 'tv' });
+            options.push(MEDIA_TYPE_OPTION.tv);
         }
 
         return options;
@@ -485,56 +503,25 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
         };
     }
 
+    /** Missing ratings and dates sort last in either direction; ties fall back to vote count and title. */
     private compareRows(
         left: PersonCreditRow,
         right: PersonCreditRow,
         sortBy: PersonCreditsSortBy,
         direction: SortDirection,
     ): number {
-        if (sortBy === 'title') {
-            const result = left.title.localeCompare(right.title);
-            return direction === 'desc' ? -result : result;
-        }
+        const leftValue = toCreditSortValue(left, sortBy);
+        const rightValue = toCreditSortValue(right, sortBy);
 
-        if (sortBy === 'rating') {
-            return this.compareRatings(left, right, direction);
-        }
-
-        return this.compareDates(left, right, direction);
-    }
-
-    private compareRatings(left: PersonCreditRow, right: PersonCreditRow, direction: SortDirection): number {
-        if (left.rating === null && right.rating === null) {
-            return left.title.localeCompare(right.title);
-        }
-
-        if (left.rating === null) {
-            return 1;
-        }
-
-        if (right.rating === null) {
-            return -1;
+        if (leftValue === null || rightValue === null) {
+            return leftValue === rightValue ? left.title.localeCompare(right.title) : leftValue === null ? 1 : -1;
         }
 
         const result =
-            left.rating - right.rating || left.voteCount - right.voteCount || left.title.localeCompare(right.title);
-        return direction === 'desc' ? -result : result;
-    }
+            compareValues(leftValue, rightValue) ||
+            (sortBy === 'rating' ? left.voteCount - right.voteCount : 0) ||
+            left.title.localeCompare(right.title);
 
-    private compareDates(left: PersonCreditRow, right: PersonCreditRow, direction: SortDirection): number {
-        if (!left.releaseDate && !right.releaseDate) {
-            return left.title.localeCompare(right.title);
-        }
-
-        if (!left.releaseDate) {
-            return 1;
-        }
-
-        if (!right.releaseDate) {
-            return -1;
-        }
-
-        const result = left.releaseDate.localeCompare(right.releaseDate) || left.title.localeCompare(right.title);
         return direction === 'desc' ? -result : result;
     }
 
@@ -554,22 +541,6 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
         return [...new Set(parts)].join(', ');
     }
 
-    private mergeEpisodeLabels(left: string | null, right: string | null): string | null {
-        const leftCount = this.getEpisodeCount(left);
-        const rightCount = this.getEpisodeCount(right);
-        const count = Math.max(leftCount, rightCount);
-
-        return count ? `${count} ep` : null;
-    }
-
-    private getEpisodeCount(label: string | null): number {
-        if (!label) {
-            return 0;
-        }
-
-        return Number.parseInt(label, 10) || 0;
-    }
-
     private buildPersonExternalLinks(person: RemoteData<PersonWithExternalIds | null>): ExternalLinks | null {
         if (person.state !== 'success' || !person.data) {
             return null;
@@ -582,6 +553,16 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
         });
     }
 }
+
+const toEpisodeLabel = (episodeCount: number): string | null => (episodeCount ? `${episodeCount} ep` : null);
+
+const toCreditSortValue = (row: PersonCreditRow, sortBy: PersonCreditsSortBy): string | number | null => {
+    if (sortBy === 'title') {
+        return row.title;
+    }
+
+    return sortBy === 'rating' ? row.rating : row.releaseDate;
+};
 
 function sortPersonPhotos(images: readonly ViewerImage[]): ViewerImage[] {
     const typeRank = (image: ViewerImage): number =>

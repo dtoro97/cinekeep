@@ -3,7 +3,6 @@ import { ComponentStore } from '@ngrx/component-store';
 import { catchError, filter, forkJoin, map, of, switchMap, take, tap } from 'rxjs';
 
 import {
-    API_JSON_OPTIONS,
     DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
     MEDIUM_LIST_COUNT,
     OPENING_SOON_MOVIE_DAYS_AHEAD,
@@ -25,13 +24,14 @@ import {
     getISODate,
     RemoteData,
     LocaleStoreService,
+    MEDIA_TYPE_OPTIONS,
     CardItem,
     MediaType,
     PersonCardItem,
-    ToggleGroupOption,
     pickDailySeededItem,
     toCardItem,
-    toTmdbDiscoverSort,
+    toTmdbMovieDiscoverSort,
+    toTmdbTvDiscoverSort,
     toPersonCardItem,
 } from '../../shared';
 import { SpotlightItem } from './spotlight-item';
@@ -50,11 +50,6 @@ interface StreamingArrivalsFeature {
 
 const TOP_PICKS_MAX_ITEMS = MEDIUM_LIST_COUNT;
 const TOP_PICKS_FEATURED_COUNT = 3;
-
-const WHAT_TO_WATCH_OPTIONS: ToggleGroupOption[] = [
-    { label: 'Movies', value: 'movie' },
-    { label: 'TV series', value: 'tv' },
-];
 
 interface HomeState {
     spotlight: RemoteData<SpotlightItem | null>;
@@ -91,7 +86,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
         whatToWatchTopPicks: this.toTopPickGroups(
             state.selectedWhatToWatchMediaType === 'movie' ? state.whatToWatchMovies : state.whatToWatchTv,
         ),
-        whatToWatchOptions: WHAT_TO_WATCH_OPTIONS,
+        whatToWatchOptions: MEDIA_TYPE_OPTIONS,
         selectedWhatToWatchMediaType: state.selectedWhatToWatchMediaType,
         popularPeople: state.popularPeople,
         trendingToday: state.trendingToday,
@@ -100,8 +95,6 @@ export class HomeStoreService extends ComponentStore<HomeState> {
         streamingArrivals: this.toStreamingArrivalsFeature(state.streamingArrivals),
         inTheatres: state.inTheatres,
     }));
-
-    private readonly opts = API_JSON_OPTIONS;
 
     constructor(
         private readonly tvListService: TvSeriesListRestControllerService,
@@ -138,14 +131,14 @@ export class HomeStoreService extends ComponentStore<HomeState> {
 
         return forkJoin({
             movies: this.movieListService
-                .moviePopularList(undefined, 1, this.localeStore.region(), 'body', undefined, this.opts)
+                .moviePopularList({ page: 1, region: this.localeStore.region() })
                 .pipe(
                     map((response) =>
                         (response.results ?? []).map((item) => toCardItem(item, 'movie')).slice(0, TOP_PICKS_MAX_ITEMS),
                     ),
                     catchError(() => of([] as CardItem[])),
                 ),
-            tv: this.tvListService.tvSeriesPopularList(undefined, 1, 'body', undefined, this.opts).pipe(
+            tv: this.tvListService.tvSeriesPopularList({ page: 1 }).pipe(
                 map((response) =>
                     (response.results ?? []).map((item) => toCardItem(item, 'tv')).slice(0, TOP_PICKS_MAX_ITEMS),
                 ),
@@ -164,7 +157,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
     private loadPopularPeople$() {
         this.patchState({ popularPeople: { state: 'loading' } });
 
-        return this.personListService.personPopularList(undefined, 1, 'body', undefined, this.opts).pipe(
+        return this.personListService.personPopularList({ page: 1 }).pipe(
             map((response) => (response.results ?? []).map((item) => toPersonCardItem(item)).slice(0, PAGE_SIZE)),
             catchError(() => of([] as PersonCardItem[])),
             tap((popularPeople) =>
@@ -181,7 +174,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
             trendingToday: { state: 'loading' },
         });
 
-        return this.trendingService.trendingAll('day', undefined, 'body', undefined, this.opts).pipe(
+        return this.trendingService.trendingAll({ timeWindow: 'day' }).pipe(
             map((response) => {
                 const mediaItems = (response.results ?? []).filter(
                     (item: MultiListItem) => item.media_type === 'movie' || item.media_type === 'tv',
@@ -229,44 +222,15 @@ export class HomeStoreService extends ComponentStore<HomeState> {
         const today = getISODate(0);
 
         return this.discoverService
-            .discoverTv(
-                today,
-                today,
-                undefined,
-                undefined,
-                undefined,
-                false,
-                undefined,
-                undefined,
-                1,
-                undefined,
-                toTmdbDiscoverSort('tv', 'popularity', 'desc'),
-                this.getTimeZone(),
-                undefined,
-                undefined,
-                DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                'body',
-                false,
-                this.opts,
-            )
+            .discoverTv({
+                airDateGte: today,
+                airDateLte: today,
+                includeAdult: false,
+                page: 1,
+                sortBy: toTmdbTvDiscoverSort('popularity', 'desc'),
+                timezone: this.getTimeZone(),
+                voteCountGte: DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
+            })
             .pipe(
                 map((response) =>
                     (response.results ?? []).map((item) => this.toAiringTodayItem(item)).slice(0, PAGE_SIZE),
@@ -297,44 +261,16 @@ export class HomeStoreService extends ComponentStore<HomeState> {
                 const providerFilter = providers.map((provider) => provider.id).join('|') || undefined;
 
                 return this.discoverService
-                    .discoverTv(
-                        dateWindow.from,
-                        dateWindow.to,
-                        undefined,
-                        undefined,
-                        undefined,
-                        false,
-                        undefined,
-                        undefined,
-                        1,
-                        undefined,
-                        toTmdbDiscoverSort('tv', 'popularity', 'desc'),
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        region,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        'flatrate',
-                        providerFilter,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        'body',
-                        undefined,
-                        this.opts,
-                    )
+                    .discoverTv({
+                        airDateGte: dateWindow.from,
+                        airDateLte: dateWindow.to,
+                        includeAdult: false,
+                        page: 1,
+                        sortBy: toTmdbTvDiscoverSort('popularity', 'desc'),
+                        watchRegion: region,
+                        withWatchMonetizationTypes: 'flatrate',
+                        withWatchProviders: providerFilter,
+                    })
                     .pipe(
                         map((response) =>
                             (response.results ?? [])
@@ -363,49 +299,15 @@ export class HomeStoreService extends ComponentStore<HomeState> {
         const releaseDateLte = getISODate(OPENING_SOON_MOVIE_DAYS_AHEAD);
 
         return this.discoverService
-            .discoverMovie(
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                false,
-                undefined,
-                undefined,
-                1,
-                undefined,
-                undefined,
-                undefined,
-                this.localeStore.region(),
+            .discoverMovie({
+                includeAdult: false,
+                page: 1,
+                region: this.localeStore.region(),
                 releaseDateGte,
                 releaseDateLte,
-                toTmdbDiscoverSort('movie', 'popularity', 'desc'),
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                THEATRICAL_MOVIE_RELEASE_TYPE,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                'body',
-                undefined,
-                this.opts,
-            )
+                sortBy: toTmdbMovieDiscoverSort('popularity', 'desc'),
+                withReleaseType: THEATRICAL_MOVIE_RELEASE_TYPE,
+            })
             .pipe(
                 map((response) =>
                     (response.results ?? []).map((item) => toCardItem(item, 'movie')).slice(0, PAGE_SIZE),

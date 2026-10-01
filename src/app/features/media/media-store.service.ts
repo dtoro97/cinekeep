@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
-import { Observable, catchError, filter, map, of, switchMap, take, tap } from 'rxjs';
+import { Observable, filter, map, switchMap } from 'rxjs';
 
 import { ExternalIds, Movie, TvExternalIds, TvSeries } from '../../api';
 import {
@@ -10,6 +10,7 @@ import {
     RemoteData,
     buildExternalLinks,
     isDefined,
+    loadCachedResource$,
     mapRemoteData,
 } from '../../shared';
 import { toMediaDetails } from './mappers/media-details.mapper';
@@ -34,6 +35,9 @@ const INITIAL_STATE: MediaState = {
 @Injectable()
 export class MediaStoreService extends ComponentStore<MediaState> {
     private readonly target$ = this.select((state) => state.target);
+
+    /** The title the media pages show, set by `MediaWrapperComponent` from the route. */
+    readonly currentTarget$ = this.target$.pipe(filter(isDefined));
 
     readonly mediaState$ = this.select((state) => state.media);
 
@@ -64,34 +68,17 @@ export class MediaStoreService extends ComponentStore<MediaState> {
     }
 
     load$(target: MediaTarget): Observable<MediaDetails | null> {
-        const state = this.get();
-
-        if (isSameMediaTarget(state.target, target)) {
-            if (state.media.state === 'success') {
-                return of(this.toMediaDetails(state.media.data, target));
-            }
-
-            if (state.media.state === 'loading') {
-                return this.mediaReady$();
-            }
+        if (!isSameMediaTarget(this.get().target, target)) {
+            this.setState({ ...INITIAL_STATE, target });
         }
 
-        this.setState({
-            ...INITIAL_STATE,
-            target,
-            media: { state: 'loading' },
-        });
-
-        return this.mediaApiService.getDetails$(target).pipe(
-            tap((media) => {
-                this.patchState({ media: { state: 'success', data: media } });
-            }),
-            map((media) => this.toMediaDetails(media, target)),
-            catchError(() => {
-                this.patchState({ media: { state: 'success', data: null } });
-                return of(null);
-            }),
-        );
+        return loadCachedResource$<MediaResponse | null>({
+            current: this.get().media,
+            state$: this.mediaState$,
+            fetch: () => this.mediaApiService.getDetails$(target),
+            patch: (media) => this.patchState({ media }),
+            fallback: null,
+        }).pipe(map((media) => this.toMediaDetails(media, target)));
     }
 
     currentMedia(): MediaResponse | null {
@@ -99,14 +86,8 @@ export class MediaStoreService extends ComponentStore<MediaState> {
         return media.state === 'success' ? media.data : null;
     }
 
-    private mediaReady$(): Observable<MediaDetails | null> {
-        return this.mediaDetailsState$.pipe(
-            filter((state): state is Extract<RemoteData<MediaDetails | null>, { state: 'success' }> =>
-                state.state === 'success',
-            ),
-            take(1),
-            map((state) => state.data),
-        );
+    currentMediaFor(target: MediaTarget): MediaResponse | null {
+        return isSameMediaTarget(this.get().target, target) ? this.currentMedia() : null;
     }
 
     private toMediaDetailsState(

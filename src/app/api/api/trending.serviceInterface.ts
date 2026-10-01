@@ -20,6 +20,26 @@ import { TvSeriesPage } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface TrendingAllRequestParams {
+    timeWindow: 'day' | 'week';
+    language?: string;
+}
+
+export interface TrendingMoviesRequestParams {
+    timeWindow: 'day' | 'week';
+    language?: string;
+}
+
+export interface TrendingPeopleRequestParams {
+    timeWindow: 'day' | 'week';
+    language?: string;
+}
+
+export interface TrendingTvRequestParams {
+    timeWindow: 'day' | 'week';
+    language?: string;
+}
+
 
 export interface TrendingRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -29,36 +49,32 @@ export interface TrendingRestControllerServiceInterface {
      * All
      * Get the trending movies, TV shows and people.
      * @endpoint get /trending/all/{time_window}
-     * @param timeWindow 
-     * @param language &#x60;ISO-639-1&#x60;-&#x60;ISO-3166-1&#x60; code
+* @param requestParameters
      */
-    trendingAll(timeWindow: 'day' | 'week', language?: string, extraHttpRequestParams?: any): Observable<MultiPage>;
+    trendingAll(requestParameters: TrendingAllRequestParams, extraHttpRequestParams?: any): Observable<MultiPage>;
 
     /**
      * Movies
      * Get the trending movies on TMDB.
      * @endpoint get /trending/movie/{time_window}
-     * @param timeWindow 
-     * @param language &#x60;ISO-639-1&#x60;-&#x60;ISO-3166-1&#x60; code
+* @param requestParameters
      */
-    trendingMovies(timeWindow: 'day' | 'week', language?: string, extraHttpRequestParams?: any): Observable<MoviePage>;
+    trendingMovies(requestParameters: TrendingMoviesRequestParams, extraHttpRequestParams?: any): Observable<MoviePage>;
 
     /**
      * People
      * Get the trending people on TMDB.
      * @endpoint get /trending/person/{time_window}
-     * @param timeWindow 
-     * @param language &#x60;ISO-639-1&#x60;-&#x60;ISO-3166-1&#x60; code
+* @param requestParameters
      */
-    trendingPeople(timeWindow: 'day' | 'week', language?: string, extraHttpRequestParams?: any): Observable<PersonPage>;
+    trendingPeople(requestParameters: TrendingPeopleRequestParams, extraHttpRequestParams?: any): Observable<PersonPage>;
 
     /**
      * TV
      * Get the trending TV shows on TMDB.
      * @endpoint get /trending/tv/{time_window}
-     * @param timeWindow 
-     * @param language &#x60;ISO-639-1&#x60;-&#x60;ISO-3166-1&#x60; code
+* @param requestParameters
      */
-    trendingTv(timeWindow: 'day' | 'week', language?: string, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
+    trendingTv(requestParameters: TrendingTvRequestParams, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
 
 }

@@ -55,9 +55,7 @@
         }
     </div>
 
-    @if (userRating !== null) {
-        <app-rating class="media-list-item__score-badge" [value]="userRating" />
-    } @else if (item.rating) {
+    @if (item.rating) {
         <app-rating class="media-list-item__score-badge" [value]="item.rating" />
     }
 

@@ -20,6 +20,7 @@ import {
 } from '../discover-store.service';
 import { DiscoverCardComponent } from '../discover-card/discover-card.component';
 import { DiscoverFilterPanelComponent } from '../discover-filter-panel/discover-filter-panel.component';
+import { DiscoverFilterChange } from '../discover-page-definitions';
 
 @Component({
     selector: 'app-discover-page',
@@ -65,64 +66,8 @@ export class DiscoverPageComponent {
         this.store.toggleSortDirection();
     }
 
-    onGenresChange(value: unknown): void {
-        this.store.updateGenres(value);
-    }
-
-    onKeywordSearchChange(value: string): void {
-        this.store.updateKeywordSearch(value);
-    }
-
-    onKeywordAdd(value: unknown): void {
-        this.store.addKeyword(value);
-    }
-
-    onCompanySearchChange(value: string): void {
-        this.store.updateCompanySearch(value);
-    }
-
-    onCompanyAdd(value: unknown): void {
-        this.store.addCompany(value);
-    }
-
-    onYearFromChange(value: unknown): void {
-        this.store.updateYearFrom(value);
-    }
-
-    onYearToChange(value: unknown): void {
-        this.store.updateYearTo(value);
-    }
-
-    onProvidersChange(value: unknown): void {
-        this.store.updateProviders(value);
-    }
-
-    onWatchRegionChange(value: unknown): void {
-        this.store.updateWatchRegion(value);
-    }
-
-    onCertificationChange(value: unknown): void {
-        this.store.updateCertification(value);
-    }
-
-    onReleaseTypeChange(value: unknown): void {
-        this.store.updateReleaseType(value);
-    }
-
-    onOriginalLanguageChange(value: unknown): void {
-        this.store.updateOriginalLanguage(value);
-    }
-
-    onRatingChange(value: unknown): void {
-        this.store.updateRating(value);
-    }
-
-    onVoteCountChange(value: unknown): void {
-        this.store.updateVoteCount(value);
-    }
-
-    onRuntimeChange(value: unknown): void {
-        this.store.updateRuntime(value);
+    onFilterChange(change: DiscoverFilterChange): void {
+        this.store.updateFilter(change);
     }
 
     clearFilter(filter: DiscoverActiveFilter): void {

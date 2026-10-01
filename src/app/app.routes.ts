@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { NotFoundComponent, v4AccountAccessGuard } from './shared';
+import { NotFoundComponent, authenticatedGuard } from './shared';
 
 export const routes: Routes = [
     {
@@ -74,7 +74,7 @@ export const routes: Routes = [
     },
     {
         path: 'lists/:listId',
-        canActivate: [v4AccountAccessGuard],
+        canActivate: [authenticatedGuard],
         data: { robots: 'noindex, nofollow' },
         loadComponent: () =>
             import(

@@ -34,7 +34,14 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    ListRestControllerServiceInterface
+    ListRestControllerServiceInterface,
+    ListAddMovieRequestParams,
+    ListCheckItemStatusRequestParams,
+    ListClearRequestParams,
+    ListCreateRequestParams,
+    ListDeleteRequestParams,
+    ListDetailsRequestParams,
+    ListRemoveMovieRequestParams
 } from './list.serviceInterface';
 
 
@@ -52,23 +59,24 @@ export class ListRestControllerService extends BaseService implements ListRestCo
      * Add Movie
      * Add a movie to a list.
      * @endpoint post /list/{list_id}/add_item
-     * @param listId 
-     * @param sessionId 
-     * @param listAddMovieRequest 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public listAddMovie(listId: number, sessionId: string, listAddMovieRequest?: ListAddMovieRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
-    public listAddMovie(listId: number, sessionId: string, listAddMovieRequest?: ListAddMovieRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
-    public listAddMovie(listId: number, sessionId: string, listAddMovieRequest?: ListAddMovieRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
-    public listAddMovie(listId: number, sessionId: string, listAddMovieRequest?: ListAddMovieRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public listAddMovie(requestParameters: ListAddMovieRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
+    public listAddMovie(requestParameters: ListAddMovieRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
+    public listAddMovie(requestParameters: ListAddMovieRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
+    public listAddMovie(requestParameters: ListAddMovieRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const listId = requestParameters?.listId;
         if (listId === null || listId === undefined) {
             throw new Error('Required parameter listId was null or undefined when calling listAddMovie.');
         }
+        const sessionId = requestParameters?.sessionId;
         if (sessionId === null || sessionId === undefined) {
             throw new Error('Required parameter sessionId was null or undefined when calling listAddMovie.');
         }
+        const listAddMovieRequest = requestParameters?.listAddMovieRequest;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -139,20 +147,21 @@ export class ListRestControllerService extends BaseService implements ListRestCo
      * Check Item Status
      * Use this method to check if an item has already been added to the list.
      * @endpoint get /list/{list_id}/item_status
-     * @param listId 
-     * @param language 
-     * @param movieId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public listCheckItemStatus(listId: number, language?: string, movieId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ListItemStatus>;
-    public listCheckItemStatus(listId: number, language?: string, movieId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ListItemStatus>>;
-    public listCheckItemStatus(listId: number, language?: string, movieId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ListItemStatus>>;
-    public listCheckItemStatus(listId: number, language?: string, movieId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public listCheckItemStatus(requestParameters: ListCheckItemStatusRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ListItemStatus>;
+    public listCheckItemStatus(requestParameters: ListCheckItemStatusRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ListItemStatus>>;
+    public listCheckItemStatus(requestParameters: ListCheckItemStatusRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ListItemStatus>>;
+    public listCheckItemStatus(requestParameters: ListCheckItemStatusRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const listId = requestParameters?.listId;
         if (listId === null || listId === undefined) {
             throw new Error('Required parameter listId was null or undefined when calling listCheckItemStatus.');
         }
+        const language = requestParameters?.language;
+        const movieId = requestParameters?.movieId;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -222,23 +231,24 @@ export class ListRestControllerService extends BaseService implements ListRestCo
      * Clear
      * Clear all items from a list.
      * @endpoint post /list/{list_id}/clear
-     * @param listId 
-     * @param sessionId 
-     * @param confirm 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public listClear(listId: number, sessionId: string, confirm: boolean, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
-    public listClear(listId: number, sessionId: string, confirm: boolean, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
-    public listClear(listId: number, sessionId: string, confirm: boolean, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
-    public listClear(listId: number, sessionId: string, confirm: boolean, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public listClear(requestParameters: ListClearRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
+    public listClear(requestParameters: ListClearRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
+    public listClear(requestParameters: ListClearRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
+    public listClear(requestParameters: ListClearRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const listId = requestParameters?.listId;
         if (listId === null || listId === undefined) {
             throw new Error('Required parameter listId was null or undefined when calling listClear.');
         }
+        const sessionId = requestParameters?.sessionId;
         if (sessionId === null || sessionId === undefined) {
             throw new Error('Required parameter sessionId was null or undefined when calling listClear.');
         }
+        const confirm = requestParameters?.confirm;
         if (confirm === null || confirm === undefined) {
             throw new Error('Required parameter confirm was null or undefined when calling listClear.');
         }
@@ -311,19 +321,20 @@ export class ListRestControllerService extends BaseService implements ListRestCo
      * Create
      * 
      * @endpoint post /list
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public listCreate(sessionId: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CreateListResponse>;
-    public listCreate(sessionId: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CreateListResponse>>;
-    public listCreate(sessionId: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CreateListResponse>>;
-    public listCreate(sessionId: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public listCreate(requestParameters: ListCreateRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CreateListResponse>;
+    public listCreate(requestParameters: ListCreateRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CreateListResponse>>;
+    public listCreate(requestParameters: ListCreateRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CreateListResponse>>;
+    public listCreate(requestParameters: ListCreateRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const sessionId = requestParameters?.sessionId;
         if (sessionId === null || sessionId === undefined) {
             throw new Error('Required parameter sessionId was null or undefined when calling listCreate.');
         }
+        const accountAddFavoriteRequest = requestParameters?.accountAddFavoriteRequest;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -394,19 +405,20 @@ export class ListRestControllerService extends BaseService implements ListRestCo
      * Delete
      * Delete a list.
      * @endpoint delete /list/{list_id}
-     * @param listId 
-     * @param sessionId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public listDelete(listId: number, sessionId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
-    public listDelete(listId: number, sessionId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
-    public listDelete(listId: number, sessionId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
-    public listDelete(listId: number, sessionId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public listDelete(requestParameters: ListDeleteRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
+    public listDelete(requestParameters: ListDeleteRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
+    public listDelete(requestParameters: ListDeleteRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
+    public listDelete(requestParameters: ListDeleteRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const listId = requestParameters?.listId;
         if (listId === null || listId === undefined) {
             throw new Error('Required parameter listId was null or undefined when calling listDelete.');
         }
+        const sessionId = requestParameters?.sessionId;
         if (sessionId === null || sessionId === undefined) {
             throw new Error('Required parameter sessionId was null or undefined when calling listDelete.');
         }
@@ -470,20 +482,21 @@ export class ListRestControllerService extends BaseService implements ListRestCo
      * Details
      * 
      * @endpoint get /list/{list_id}
-     * @param listId 
-     * @param language 
-     * @param page 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public listDetails(listId: number, language?: string, page?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ListDetails>;
-    public listDetails(listId: number, language?: string, page?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ListDetails>>;
-    public listDetails(listId: number, language?: string, page?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ListDetails>>;
-    public listDetails(listId: number, language?: string, page?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public listDetails(requestParameters: ListDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ListDetails>;
+    public listDetails(requestParameters: ListDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ListDetails>>;
+    public listDetails(requestParameters: ListDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ListDetails>>;
+    public listDetails(requestParameters: ListDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const listId = requestParameters?.listId;
         if (listId === null || listId === undefined) {
             throw new Error('Required parameter listId was null or undefined when calling listDetails.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -553,23 +566,24 @@ export class ListRestControllerService extends BaseService implements ListRestCo
      * Remove Movie
      * Remove a movie from a list.
      * @endpoint post /list/{list_id}/remove_item
-     * @param listId 
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public listRemoveMovie(listId: number, sessionId: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
-    public listRemoveMovie(listId: number, sessionId: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
-    public listRemoveMovie(listId: number, sessionId: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
-    public listRemoveMovie(listId: number, sessionId: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public listRemoveMovie(requestParameters: ListRemoveMovieRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
+    public listRemoveMovie(requestParameters: ListRemoveMovieRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
+    public listRemoveMovie(requestParameters: ListRemoveMovieRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
+    public listRemoveMovie(requestParameters: ListRemoveMovieRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const listId = requestParameters?.listId;
         if (listId === null || listId === undefined) {
             throw new Error('Required parameter listId was null or undefined when calling listRemoveMovie.');
         }
+        const sessionId = requestParameters?.sessionId;
         if (sessionId === null || sessionId === undefined) {
             throw new Error('Required parameter sessionId was null or undefined when calling listRemoveMovie.');
         }
+        const accountAddFavoriteRequest = requestParameters?.accountAddFavoriteRequest;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

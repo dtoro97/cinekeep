@@ -2,38 +2,23 @@
     <section class="profile page-main">
         <aside class="profile__rail" aria-label="Profile summary">
             <div class="profile__identity">
-                @if (vm.profileState.state === 'loading') {
-                    <app-skeleton class="profile__avatar-skeleton" />
-                } @else {
-                    <app-user-avatar
-                        [name]="vm.profileDisplayName"
-                        [avatarPath]="vm.profileState.state === 'success' ? vm.profileState.data.avatarPath : null"
-                        size="lg"
-                    />
-                }
+                <app-user-avatar [name]="vm.displayName" size="lg" />
 
                 <div class="profile__identity-copy">
-                    @if (vm.profileState.state === 'loading') {
-                        <app-skeleton class="profile__name-skeleton" />
-                        <app-skeleton class="profile__handle-skeleton" />
-                    } @else {
-                        <h1 class="text-headline">
-                            {{ vm.profileDisplayName }}
-                        </h1>
+                    <h1 class="text-headline">
+                        {{ vm.displayName }}
+                    </h1>
 
-                        @if (vm.profileState.state === 'success') {
-                            @if (vm.profileState.data.username; as username) {
-                                <p class="text-meta">@{{ username }}</p>
+                    @if (vm.username; as username) {
+                        <p class="text-meta">@{{ username }}</p>
+                    }
+
+                    @if (vm.profileMeta.length) {
+                        <p class="profile__meta text-caption">
+                            @for (item of vm.profileMeta; track item) {
+                                <span>{{ item }}</span>
                             }
-                        }
-
-                        @if (vm.profileMeta.length) {
-                            <p class="profile__meta text-caption">
-                                @for (item of vm.profileMeta; track item) {
-                                    <span>{{ item }}</span>
-                                }
-                            </p>
-                        }
+                        </p>
                     }
                 </div>
             </div>
@@ -71,7 +56,7 @@
                     <div class="profile__section-heading">
                         <h2 id="profile-watchlist-title" class="text-title">Watchlist</h2>
                         <p class="profile__section-count text-caption">
-                            {{ vm.watchlist.total }} title{{ vm.watchlist.total === 1 ? '' : 's' }}
+                            {{ vm.watchlist.total | pluralize: 'title' }}
                         </p>
                     </div>
 
@@ -106,7 +91,7 @@
                     <div class="profile__section-heading">
                         <h2 id="profile-ratings-title" class="text-title">Ratings</h2>
                         <p class="profile__section-count text-caption">
-                            {{ vm.ratings.total }} title{{ vm.ratings.total === 1 ? '' : 's' }}
+                            {{ vm.ratings.total | pluralize: 'title' }}
                         </p>
                     </div>
 
@@ -141,7 +126,7 @@
                     <div class="profile__section-heading">
                         <h2 id="profile-favourites-title" class="text-title">Favorites</h2>
                         <p class="profile__section-count text-caption">
-                            {{ vm.favourites.total }} title{{ vm.favourites.total === 1 ? '' : 's' }}
+                            {{ vm.favourites.total | pluralize: 'title' }}
                         </p>
                     </div>
 
@@ -176,7 +161,7 @@
                     <div class="profile__section-heading">
                         <h2 id="profile-lists-title" class="text-title">Lists</h2>
                         <p class="profile__section-count text-caption">
-                            {{ vm.lists.total }} list{{ vm.lists.total === 1 ? '' : 's' }}
+                            {{ vm.lists.total | pluralize: 'list' }}
                         </p>
                     </div>
 

@@ -17,6 +17,10 @@ import { EpisodeGroupDetails } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface TvEpisodeGroupDetailsRequestParams {
+    tvEpisodeGroupId: string;
+}
+
 
 export interface TvEpisodeGroupRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -26,8 +30,8 @@ export interface TvEpisodeGroupRestControllerServiceInterface {
      * Details
      * Get the details of a TV episode group.
      * @endpoint get /tv/episode_group/{tv_episode_group_id}
-     * @param tvEpisodeGroupId 
+* @param requestParameters
      */
-    tvEpisodeGroupDetails(tvEpisodeGroupId: string, extraHttpRequestParams?: any): Observable<EpisodeGroupDetails>;
+    tvEpisodeGroupDetails(requestParameters: TvEpisodeGroupDetailsRequestParams, extraHttpRequestParams?: any): Observable<EpisodeGroupDetails>;
 
 }

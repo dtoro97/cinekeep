@@ -1,7 +1,16 @@
 import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
-import { Observable, catchError, combineLatest, forkJoin, map, of, switchMap, tap, throwError } from 'rxjs';
+import {
+    Observable,
+    catchError,
+    combineLatest,
+    forkJoin,
+    map,
+    of,
+    switchMap,
+    tap,
+} from 'rxjs';
 
 import {
     CastMember,
@@ -15,7 +24,11 @@ import {
 import {
     LocaleStoreService,
     MediaRatingService,
+    EpisodeSnapshotRequest,
     RemoteData,
+    UserRatingState,
+    UserRatingVm,
+    UserSessionStoreService,
     VideoCardItem,
     ViewerImage,
     buildImageLanguageFallback,
@@ -25,7 +38,11 @@ import {
     normalizeRatingValue,
     remoteData,
     toVideoCardItems,
-    toYoutubeVideoState,
+    toYoutubeVideos,
+    toEpisodeSnapshotRequest,
+    toMediaSnapshotRequest,
+    toUserRatingVm,
+    writeUserRating$,
 } from '../../../shared';
 import { groupCrewMembers } from '../mappers/cast-crew.mapper';
 import { EpisodeTarget, isSameEpisodeTarget } from '../media-target';
@@ -34,26 +51,19 @@ import { GroupedCrew } from '../models/cast-crew.model';
 import { MediaDetails } from '../models/media-details.model';
 
 interface EpisodeDetailState {
-    readonly target: EpisodeRatingTarget | null;
+    readonly target: EpisodeTarget | null;
     readonly episode: RemoteData<TvEpisode | null>;
     readonly episodeImages: RemoteData<TvEpisodeImages | null>;
     readonly episodeVideos: RemoteData<VideoList | null>;
-    readonly rating: EpisodeRatingResource;
+    readonly rating: UserRatingState;
 }
 
-interface EpisodeRatingResource {
-    readonly userRating: RemoteData<number | null>;
-    readonly ratingPending: boolean;
-}
-
-export type EpisodeRatingTarget = EpisodeTarget;
-
-const EMPTY_RATING_RESOURCE: EpisodeRatingResource = {
+const EMPTY_RATING_RESOURCE: UserRatingState = {
     userRating: { state: 'notAsked' },
     ratingPending: false,
 };
 
-const loadingRatingResource = (): EpisodeRatingResource => ({
+const loadingRatingResource = (): UserRatingState => ({
     userRating: { state: 'loading' },
     ratingPending: false,
 });
@@ -71,12 +81,7 @@ export interface EpisodeDetailVm {
     episode: TvEpisode | null;
     isLoading: boolean;
     canRateEpisode: boolean;
-    userRating: {
-        readonly currentRating: number | null;
-        readonly disabled: boolean;
-        readonly loading: boolean;
-        readonly pending: boolean;
-    };
+    userRating: UserRatingVm;
     headerCrew: {
         readonly director: CrewMember | null;
         readonly writer: CrewMember | null;
@@ -100,18 +105,8 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
 
     readonly episodeState$ = this.select((state) => state.episode);
 
-    readonly userRatingState$ = this.activeRating$.pipe(map((rating) => rating.userRating));
-
-    readonly userRatingVm$ = this.select(
-        this.userRatingState$,
-        this.activeRating$.pipe(map((rating) => rating.ratingPending)),
-        this.target$,
-        (value, pending, target) => ({
-            currentRating: value.state === 'success' ? value.data : null,
-            disabled: target === null || pending || value.state === 'loading',
-            loading: value.state === 'loading',
-            pending,
-        }),
+    readonly userRatingVm$ = this.select(this.activeRating$, this.target$, (rating, target) =>
+        toUserRatingVm(rating, target !== null),
     );
 
     readonly allStillsState$ = this.episodeImagesState$.pipe(
@@ -141,14 +136,7 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         map((videos): RemoteData<Video[]> =>
             videos.state === 'notAsked'
                 ? { state: 'loading' }
-                : mapRemoteData(videos, (data) => {
-                      const youtubeVideos = toYoutubeVideoState({
-                          state: 'success',
-                          data: data?.results ?? [],
-                      });
-
-                      return youtubeVideos.state === 'success' ? youtubeVideos.data : [];
-                  }),
+                : mapRemoteData(videos, (data) => toYoutubeVideos(data?.results ?? [])),
         ),
     );
 
@@ -211,6 +199,7 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         private readonly mediaRatingService: MediaRatingService,
         private readonly mediaStore: MediaStoreService,
         private readonly tvEpisodeService: TvEpisodeRestControllerService,
+        private readonly userSessionStore: UserSessionStoreService,
     ) {
         super(INITIAL_STATE);
     }
@@ -250,53 +239,36 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         target$.pipe(switchMap((target) => this.loadPhotos$(target))),
     );
 
-    submitUserRating$(target: EpisodeRatingTarget, value: number): Observable<unknown> {
-        this.patchState((state) =>
-            isSameEpisodeTarget(state.target, target)
-                ? { rating: { ...state.rating, ratingPending: true } }
-                : {},
-        );
-
-        return this.mediaRatingService.rateEpisode$(target.seriesId, target.seasonNumber, target.episodeNumber, value).pipe(
-            tap(() => {
-                this.patchRating(target, {
-                    userRating: {
-                        state: 'success',
-                        data: normalizeRatingValue(value),
-                    },
-                    ratingPending: false,
-                });
-            }),
-            catchError((error) => {
-                this.patchRating(target, { ratingPending: false });
-                return throwError(() => error);
-            }),
+    submitUserRating$(target: EpisodeTarget, value: number): Observable<unknown> {
+        return writeUserRating$(
+            this.mediaRatingService.rateEpisode$(
+                target.seriesId,
+                target.seasonNumber,
+                target.episodeNumber,
+                value,
+                this.loadedEpisodeSnapshot(target),
+            ),
+            normalizeRatingValue(value),
+            (patch) => this.patchRating(target, patch),
         );
     }
 
-    deleteUserRating$(target: EpisodeRatingTarget): Observable<unknown> {
-        this.patchState((state) =>
-            isSameEpisodeTarget(state.target, target)
-                ? { rating: { ...state.rating, ratingPending: true } }
-                : {},
-        );
-
-        return this.mediaRatingService.deleteEpisodeRating$(target.seriesId, target.seasonNumber, target.episodeNumber).pipe(
-            tap(() => {
-                this.patchRating(target, {
-                    userRating: { state: 'success', data: null },
-                    ratingPending: false,
-                });
-            }),
-            catchError((error) => {
-                this.patchRating(target, { ratingPending: false });
-                return throwError(() => error);
-            }),
+    deleteUserRating$(target: EpisodeTarget): Observable<unknown> {
+        return writeUserRating$(
+            this.mediaRatingService.deleteEpisodeRating$(target.seriesId, target.seasonNumber, target.episodeNumber),
+            null,
+            (patch) => this.patchRating(target, patch),
         );
     }
 
-    private readonly fetchEpisodeRatingEffect = this.effect<EpisodeRatingTarget>((target$) =>
-        target$.pipe(switchMap((target) => this.fetchEpisodeRating$(target))),
+    private readonly fetchEpisodeRatingEffect = this.effect<EpisodeTarget>((target$) =>
+        target$.pipe(
+            switchMap((target) =>
+                this.userSessionStore.settledIsAuthenticated$.pipe(
+                    switchMap((isAuthenticated) => this.fetchEpisodeRating$(target, isAuthenticated)),
+                ),
+            ),
+        ),
     );
 
     private loadPhotos$(target: EpisodeTarget): Observable<unknown> {
@@ -327,38 +299,49 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
                     episodeImages: { state: 'success', data: images },
                 });
             }),
-            map(() => undefined),
         );
     }
 
     private fetchEpisode$(target: EpisodeTarget): Observable<TvEpisode | null> {
-        return this.tvEpisodeService.tvEpisodeDetails(target.seriesId, target.seasonNumber, target.episodeNumber).pipe(
+        return this.tvEpisodeService.tvEpisodeDetails({
+            seriesId: target.seriesId,
+            seasonNumber: target.seasonNumber,
+            episodeNumber: target.episodeNumber,
+        }).pipe(
             catchError(() => of(null)),
         );
     }
 
     private fetchEpisodeImages$(target: EpisodeTarget): Observable<TvEpisodeImages | null> {
         return this.tvEpisodeService
-            .tvEpisodeImages(
-                target.seriesId,
-                target.seasonNumber,
-                target.episodeNumber,
-                buildImageLanguageFallback(),
-                this.localeStore.language(),
-            )
+            .tvEpisodeImages({
+                seriesId: target.seriesId,
+                seasonNumber: target.seasonNumber,
+                episodeNumber: target.episodeNumber,
+                includeImageLanguage: buildImageLanguageFallback(),
+                language: this.localeStore.language(),
+            })
             .pipe(
                 catchError(() => of(null)),
             );
     }
 
     private fetchEpisodeVideos$(target: EpisodeTarget): Observable<VideoList | null> {
-        return this.tvEpisodeService.tvEpisodeVideos(target.seriesId, target.seasonNumber, target.episodeNumber).pipe(
+        return this.tvEpisodeService.tvEpisodeVideos({
+            seriesId: target.seriesId,
+            seasonNumber: target.seasonNumber,
+            episodeNumber: target.episodeNumber,
+        }).pipe(
             catchError(() => of({ results: [] })),
         );
     }
 
-    private fetchEpisodeRating$(target: EpisodeRatingTarget): Observable<unknown> {
-        return this.mediaRatingService.getEpisodeRating$(target.seriesId, target.seasonNumber, target.episodeNumber).pipe(
+    private fetchEpisodeRating$(target: EpisodeTarget, isAuthenticated: boolean): Observable<unknown> {
+        const rating$ = isAuthenticated
+            ? this.mediaRatingService.getEpisodeRating$(target.seriesId, target.seasonNumber, target.episodeNumber)
+            : of(null);
+
+        return rating$.pipe(
             tap((rating) => {
                 this.patchRating(target, {
                     userRating: { state: 'success', data: rating },
@@ -375,7 +358,22 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         );
     }
 
-    private patchRating(target: EpisodeRatingTarget, patch: Partial<EpisodeRatingResource>): void {
+    private loadedEpisodeSnapshot(target: EpisodeTarget): EpisodeSnapshotRequest | undefined {
+        const state = this.get();
+        const series = this.mediaStore.currentMediaFor({ id: target.seriesId, type: 'tv' });
+
+        if (!isSameEpisodeTarget(state.target, target) || state.episode.state !== 'success' || !state.episode.data || !series) {
+            return undefined;
+        }
+
+        return toEpisodeSnapshotRequest(
+            state.episode.data,
+            target.episodeNumber,
+            toMediaSnapshotRequest(series, 'tv'),
+        );
+    }
+
+    private patchRating(target: EpisodeTarget, patch: Partial<UserRatingState>): void {
         this.patchState((state) =>
             isSameEpisodeTarget(state.target, target)
                 ? {

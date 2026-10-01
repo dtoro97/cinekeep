@@ -28,7 +28,11 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    MovieListRestControllerServiceInterface
+    MovieListRestControllerServiceInterface,
+    MovieNowPlayingListRequestParams,
+    MoviePopularListRequestParams,
+    MovieTopRatedListRequestParams,
+    MovieUpcomingListRequestParams
 } from './movieList.serviceInterface';
 
 
@@ -102,17 +106,18 @@ export class MovieListRestControllerService extends BaseService implements Movie
      * Now Playing
      * Get a list of movies that are currently in theatres.
      * @endpoint get /movie/now_playing
-     * @param language 
-     * @param page 
-     * @param region ISO-3166-1 code
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieNowPlayingList(language?: string, page?: number, region?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePageWithDates>;
-    public movieNowPlayingList(language?: string, page?: number, region?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePageWithDates>>;
-    public movieNowPlayingList(language?: string, page?: number, region?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePageWithDates>>;
-    public movieNowPlayingList(language?: string, page?: number, region?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieNowPlayingList(requestParameters?: MovieNowPlayingListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePageWithDates>;
+    public movieNowPlayingList(requestParameters?: MovieNowPlayingListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePageWithDates>>;
+    public movieNowPlayingList(requestParameters?: MovieNowPlayingListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePageWithDates>>;
+    public movieNowPlayingList(requestParameters?: MovieNowPlayingListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const region = requestParameters?.region;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -191,17 +196,18 @@ export class MovieListRestControllerService extends BaseService implements Movie
      * Popular
      * Get a list of movies ordered by popularity.
      * @endpoint get /movie/popular
-     * @param language 
-     * @param page 
-     * @param region ISO-3166-1 code
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public moviePopularList(language?: string, page?: number, region?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
-    public moviePopularList(language?: string, page?: number, region?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
-    public moviePopularList(language?: string, page?: number, region?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
-    public moviePopularList(language?: string, page?: number, region?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public moviePopularList(requestParameters?: MoviePopularListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
+    public moviePopularList(requestParameters?: MoviePopularListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
+    public moviePopularList(requestParameters?: MoviePopularListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
+    public moviePopularList(requestParameters?: MoviePopularListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const region = requestParameters?.region;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -280,17 +286,18 @@ export class MovieListRestControllerService extends BaseService implements Movie
      * Top Rated
      * Get a list of movies ordered by rating.
      * @endpoint get /movie/top_rated
-     * @param language 
-     * @param page 
-     * @param region ISO-3166-1 code
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieTopRatedList(language?: string, page?: number, region?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
-    public movieTopRatedList(language?: string, page?: number, region?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
-    public movieTopRatedList(language?: string, page?: number, region?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
-    public movieTopRatedList(language?: string, page?: number, region?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieTopRatedList(requestParameters?: MovieTopRatedListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
+    public movieTopRatedList(requestParameters?: MovieTopRatedListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
+    public movieTopRatedList(requestParameters?: MovieTopRatedListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
+    public movieTopRatedList(requestParameters?: MovieTopRatedListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const region = requestParameters?.region;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -369,17 +376,18 @@ export class MovieListRestControllerService extends BaseService implements Movie
      * Upcoming
      * Get a list of movies that are being released soon.
      * @endpoint get /movie/upcoming
-     * @param language 
-     * @param page 
-     * @param region ISO-3166-1 code
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieUpcomingList(language?: string, page?: number, region?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePageWithDates>;
-    public movieUpcomingList(language?: string, page?: number, region?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePageWithDates>>;
-    public movieUpcomingList(language?: string, page?: number, region?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePageWithDates>>;
-    public movieUpcomingList(language?: string, page?: number, region?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieUpcomingList(requestParameters?: MovieUpcomingListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePageWithDates>;
+    public movieUpcomingList(requestParameters?: MovieUpcomingListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePageWithDates>>;
+    public movieUpcomingList(requestParameters?: MovieUpcomingListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePageWithDates>>;
+    public movieUpcomingList(requestParameters?: MovieUpcomingListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const region = requestParameters?.region;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

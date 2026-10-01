@@ -1,7 +1,7 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, input, numberAttribute, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -10,21 +10,22 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { EMPTY, Observable, catchError, distinctUntilChanged, map, switchMap, take, tap } from 'rxjs';
+import { EMPTY, Observable, catchError, distinctUntilChanged, switchMap, tap } from 'rxjs';
 
-import { V4ListSortBy } from '../../../api-v4';
+
 import {
     ConfirmationDialogService,
     EmptyStateComponent,
     IconButtonComponent,
     PageScrollService,
+    PluralizePipe,
     RepeatPipe,
     SeoService,
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
     SubPageHeaderComponent,
-    UserAvatarComponent,
+    UserListSortBy,
 } from '../../../shared';
 import { AccountMediaItemComponent } from '../account-media-item/account-media-item.component';
 import {
@@ -47,12 +48,12 @@ import { USER_LIST_SORT_OPTIONS } from '../user-list-sort-options';
         MatFormFieldModule,
         MatPaginatorModule,
         MatSelectModule,
+        PluralizePipe,
         MatTooltipModule,
         AccountMediaItemComponent,
         IconButtonComponent,
         RepeatPipe,
         SubPageHeaderComponent,
-        UserAvatarComponent,
     ],
     templateUrl: './user-list-detail-page.component.html',
     styleUrl: './user-list-detail-page.component.scss',
@@ -60,6 +61,7 @@ import { USER_LIST_SORT_OPTIONS } from '../user-list-sort-options';
     providers: [UserListDetailStore],
 })
 export class UserListDetailPageComponent {
+    readonly listId = input.required({ transform: numberAttribute });
     readonly vm$ = this.store.userListDetailVm$;
     readonly backLink = ['/', 'me', 'lists'];
     readonly initialSkeletonCount = 6;
@@ -72,15 +74,13 @@ export class UserListDetailPageComponent {
         private readonly confirmationDialog: ConfirmationDialogService,
         private readonly dialog: MatDialog,
         private readonly pageScroll: PageScrollService,
-        private readonly route: ActivatedRoute,
         private readonly router: Router,
         private readonly seo: SeoService,
         private readonly snackbar: SnackbarService,
         private readonly store: UserListDetailStore,
     ) {
-        this.route.paramMap
+        toObservable(this.listId)
             .pipe(
-                map((params) => Number(params.get('listId'))),
                 distinctUntilChanged(),
                 switchMap((listId) => this.store.loadList$(listId)),
                 catchError(() => {
@@ -121,20 +121,19 @@ export class UserListDetailPageComponent {
         this.store
             .loadPage$(event.pageIndex)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load list items.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
     }
 
-    onAddTitles(listId: number, existingKeys: readonly string[]): void {
+    onAddTitles(listId: number): void {
         this.dialog
             .open<UserListAddItemsDialogComponent, UserListAddItemsDialogData, true | undefined>(
                 UserListAddItemsDialogComponent,
                 {
                     autoFocus: false,
-                    data: { listId, existingKeys },
+                    data: { listId },
                     maxWidth: '42rem',
                     panelClass: ['media-list-dialog-panel', 'user-list-add-items-dialog-panel'],
                     width: '100%',
@@ -142,7 +141,6 @@ export class UserListDetailPageComponent {
             )
             .afterClosed()
             .pipe(
-                take(1),
                 switchMap((changed) => (changed ? this.store.reload$() : EMPTY)),
                 catchError(() => this.showError('Could not refresh this list.')),
                 takeUntilDestroyed(this.destroyRef),
@@ -150,7 +148,7 @@ export class UserListDetailPageComponent {
             .subscribe();
     }
 
-    onEditDetails(header: UserListDetailHeader, isPublic: boolean, defaultSortBy: V4ListSortBy): void {
+    onEditDetails(header: UserListDetailHeader, isPublic: boolean, defaultSortBy: UserListSortBy): void {
         this.dialog
             .open<UserListEditDialogComponent, UserListEditDialogData>(UserListEditDialogComponent, {
                 autoFocus: false,
@@ -166,7 +164,6 @@ export class UserListDetailPageComponent {
             })
             .afterClosed()
             .pipe(
-                take(1),
                 switchMap((result) => {
                     if (!result) {
                         return EMPTY;
@@ -193,7 +190,7 @@ export class UserListDetailPageComponent {
             .subscribe();
     }
 
-    onSortChange(sortBy: V4ListSortBy): void {
+    onSortChange(sortBy: UserListSortBy): void {
         if (!this.sortOptions.some((option) => option.value === sortBy)) {
             return;
         }
@@ -201,7 +198,6 @@ export class UserListDetailPageComponent {
         this.store
             .setSortBy$(sortBy)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not update list sorting.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -297,7 +293,6 @@ export class UserListDetailPageComponent {
         this.store
             .updateItemComment$(item, comment)
             .pipe(
-                take(1),
                 tap(() => {
                     this.onCancelComment();
                     this.showSuccess('Comment updated.');

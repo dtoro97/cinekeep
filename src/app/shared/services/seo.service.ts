@@ -177,23 +177,6 @@ export class SeoService {
     }
 }
 
-export const buildTmdbImageUrl = (value: string | null | undefined, size = 'w1280'): string | null => {
-    if (!value) {
-        return null;
-    }
-
-    if (value.startsWith('/http://') || value.startsWith('/https://')) {
-        return value.slice(1);
-    }
-
-    if (value.startsWith('http://') || value.startsWith('https://')) {
-        return value;
-    }
-
-    const normalizedValue = value.startsWith('/') ? value : `/${value}`;
-    return `https://image.tmdb.org/t/p/${size}${normalizedValue}`;
-};
-
 export const toAbsoluteSiteUrl = (value: string): string => {
     const cleaned = value.split('#')[0] || '/';
     return new URL(cleaned, CINEKEEP_SITE_ORIGIN).toString();

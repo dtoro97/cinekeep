@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { MatDialog } from '@angular/material/dialog';
 
-import { Observable, map, take } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import {
     ConfirmationDialogComponent,
@@ -28,7 +28,6 @@ export class ConfirmationDialogService {
             })
             .afterClosed()
             .pipe(
-                take(1),
                 map((result) => result === true),
             );
     }

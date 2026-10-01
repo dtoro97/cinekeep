@@ -6,7 +6,7 @@ import {
     HeroSurfaceComponent,
     RatingComponent,
     SkeletonComponent,
-    WatchlistToggleComponent,
+    LibraryToggleComponent,
 } from '../../../shared';
 import type { SpotlightItem } from '../spotlight-item';
 
@@ -18,7 +18,7 @@ import type { SpotlightItem } from '../spotlight-item';
         HeroSurfaceComponent,
         RatingComponent,
         SkeletonComponent,
-        WatchlistToggleComponent,
+        LibraryToggleComponent,
     ],
     templateUrl: './hero-spotlight.component.html',
     styleUrl: './hero-spotlight.component.scss',

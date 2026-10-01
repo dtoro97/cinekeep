@@ -20,12 +20,3 @@ export const CAROUSEL_COUNT = 6;
 export const TRAILERS_PAGE_SEED_COUNT = 60;
 export const RELATED_COUNT = 12;
 export const PHOTOS_SKELETON_COUNT = 9;
-
-export const API_JSON_OPTIONS = {
-    httpHeaderAccept: 'application/json' as const,
-};
-
-export const API_PRIVATE_JSON_OPTIONS = {
-    httpHeaderAccept: 'application/json' as const,
-    transferCache: false,
-};

@@ -13,7 +13,7 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
 export class SubPageHeaderComponent {
     @Input() backdropPath: string | null = null;
     @Input() parentTitle: string | null = null;
-    @Input() backLink: string | readonly string[] | null = ['../'];
+    @Input() backLink: string | readonly (string | number)[] | null = ['../'];
     @Input() pageTitle: string | null = null;
     @Input() subtitle: string | null = null;
     @Input() titleIconClass: string | null = null;

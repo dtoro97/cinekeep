@@ -1,5 +1,6 @@
 import {
     buildTmdbImageUrl,
+    formatTitleWithYear,
     SeoMetadata,
     SeoPreviewType,
 } from '../../shared';
@@ -18,7 +19,7 @@ export const toMediaSeoMetadata = (
     const titleSuffix = options.titleSuffix ?? mediaLabel;
     const imagePath = media.backdropPath ?? media.posterPath;
     const hasBackdrop = !!media.backdropPath && imagePath === media.backdropPath;
-    const displayTitle = toMediaDisplayTitle(media);
+    const displayTitle = formatTitleWithYear(media.title, media.year);
     const fallbackDescription = `Explore cast, trailers, photos, reviews, ratings, and more for ${displayTitle}.`;
 
     return {
@@ -44,14 +45,11 @@ export const toMediaSectionSeoMetadata = (
 const getMediaSeoType = (mediaType: MediaDetails['mediaType']): SeoPreviewType =>
     mediaType === 'tv' ? 'video.tv_show' : 'video.movie';
 
-const toMediaDisplayTitle = (media: MediaDetails): string =>
-    media.year ? `${media.title} (${media.year})` : media.title;
-
 const toMediaSectionDescription = (
     media: MediaDetails,
     sectionTitle: string,
 ): string => {
-    const displayTitle = toMediaDisplayTitle(media);
+    const displayTitle = formatTitleWithYear(media.title, media.year);
 
     switch (sectionTitle) {
         case 'Cast & Crew':

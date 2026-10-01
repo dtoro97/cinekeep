@@ -26,6 +26,80 @@ import { VideoList } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface TvEpisodeAccountStatesRequestParams {
+    seriesId: number;
+    seasonNumber: number;
+    episodeNumber: number;
+    sessionId?: string;
+    guestSessionId?: string;
+}
+
+export interface TvEpisodeAddRatingRequestParams {
+    seriesId: number;
+    contentType: string;
+    seasonNumber: number;
+    episodeNumber: number;
+    guestSessionId?: string;
+    sessionId?: string;
+    accountAddFavoriteRequest?: AccountAddFavoriteRequest;
+}
+
+export interface TvEpisodeChangesByIdRequestParams {
+    episodeId: number;
+}
+
+export interface TvEpisodeCreditsRequestParams {
+    seriesId: number;
+    seasonNumber: number;
+    episodeNumber: number;
+    language?: string;
+}
+
+export interface TvEpisodeDeleteRatingRequestParams {
+    seriesId: number;
+    seasonNumber: number;
+    episodeNumber: number;
+    contentType?: string;
+    guestSessionId?: string;
+    sessionId?: string;
+}
+
+export interface TvEpisodeDetailsRequestParams {
+    seriesId: number;
+    seasonNumber: number;
+    episodeNumber: number;
+    appendToResponse?: string;
+    language?: string;
+}
+
+export interface TvEpisodeExternalIdsRequestParams {
+    seriesId: number;
+    seasonNumber: number;
+    episodeNumber: string;
+}
+
+export interface TvEpisodeImagesRequestParams {
+    seriesId: number;
+    seasonNumber: number;
+    episodeNumber: number;
+    includeImageLanguage?: string;
+    language?: string;
+}
+
+export interface TvEpisodeTranslationsRequestParams {
+    seriesId: number;
+    seasonNumber: number;
+    episodeNumber: number;
+}
+
+export interface TvEpisodeVideosRequestParams {
+    seriesId: number;
+    seasonNumber: number;
+    episodeNumber: number;
+    includeVideoLanguage?: string;
+    language?: string;
+}
+
 
 export interface TvEpisodeRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -35,114 +109,80 @@ export interface TvEpisodeRestControllerServiceInterface {
      * Account States
      * Get the rating, watchlist and favourite status.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/account_states
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param sessionId 
-     * @param guestSessionId 
+* @param requestParameters
      */
-    tvEpisodeAccountStates(seriesId: number, seasonNumber: number, episodeNumber: number, sessionId?: string, guestSessionId?: string, extraHttpRequestParams?: any): Observable<AccountStates>;
+    tvEpisodeAccountStates(requestParameters: TvEpisodeAccountStatesRequestParams, extraHttpRequestParams?: any): Observable<AccountStates>;
 
     /**
      * Add Rating
      * Rate a TV episode and save it to your rated list.
      * @endpoint post /tv/{series_id}/season/{season_number}/episode/{episode_number}/rating
-     * @param seriesId 
-     * @param contentType 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param guestSessionId 
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+* @param requestParameters
      */
-    tvEpisodeAddRating(seriesId: number, contentType: string, seasonNumber: number, episodeNumber: number, guestSessionId?: string, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, extraHttpRequestParams?: any): Observable<StatusResponse>;
+    tvEpisodeAddRating(requestParameters: TvEpisodeAddRatingRequestParams, extraHttpRequestParams?: any): Observable<StatusResponse>;
 
     /**
      * Changes
      * Get the recent changes for a TV episode.
      * @endpoint get /tv/episode/{episode_id}/changes
-     * @param episodeId 
+* @param requestParameters
      */
-    tvEpisodeChangesById(episodeId: number, extraHttpRequestParams?: any): Observable<ChangeList>;
+    tvEpisodeChangesById(requestParameters: TvEpisodeChangesByIdRequestParams, extraHttpRequestParams?: any): Observable<ChangeList>;
 
     /**
      * Credits
      * 
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/credits
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param language 
+* @param requestParameters
      */
-    tvEpisodeCredits(seriesId: number, seasonNumber: number, episodeNumber: number, language?: string, extraHttpRequestParams?: any): Observable<TvEpisodeCredits>;
+    tvEpisodeCredits(requestParameters: TvEpisodeCreditsRequestParams, extraHttpRequestParams?: any): Observable<TvEpisodeCredits>;
 
     /**
      * Delete Rating
      * Delete your rating on a TV episode.
      * @endpoint delete /tv/{series_id}/season/{season_number}/episode/{episode_number}/rating
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param contentType 
-     * @param guestSessionId 
-     * @param sessionId 
+* @param requestParameters
      */
-    tvEpisodeDeleteRating(seriesId: number, seasonNumber: number, episodeNumber: number, contentType?: string, guestSessionId?: string, sessionId?: string, extraHttpRequestParams?: any): Observable<StatusResponse>;
+    tvEpisodeDeleteRating(requestParameters: TvEpisodeDeleteRatingRequestParams, extraHttpRequestParams?: any): Observable<StatusResponse>;
 
     /**
      * Details
      * Query the details of a TV episode.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param appendToResponse comma separated list of endpoints within this namespace, 20 items max
-     * @param language 
+* @param requestParameters
      */
-    tvEpisodeDetails(seriesId: number, seasonNumber: number, episodeNumber: number, appendToResponse?: string, language?: string, extraHttpRequestParams?: any): Observable<TvEpisode>;
+    tvEpisodeDetails(requestParameters: TvEpisodeDetailsRequestParams, extraHttpRequestParams?: any): Observable<TvEpisode>;
 
     /**
      * External IDs
      * Get a list of external IDs that have been added to a TV episode.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/external_ids
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
+* @param requestParameters
      */
-    tvEpisodeExternalIds(seriesId: number, seasonNumber: number, episodeNumber: string, extraHttpRequestParams?: any): Observable<TvEpisodeExternalIds>;
+    tvEpisodeExternalIds(requestParameters: TvEpisodeExternalIdsRequestParams, extraHttpRequestParams?: any): Observable<TvEpisodeExternalIds>;
 
     /**
      * Images
      * Get the images that belong to a TV episode.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/images
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param includeImageLanguage specify a comma separated list of ISO-639-1 values to query, for example: &#x60;en-US,null&#x60;
-     * @param language 
+* @param requestParameters
      */
-    tvEpisodeImages(seriesId: number, seasonNumber: number, episodeNumber: number, includeImageLanguage?: string, language?: string, extraHttpRequestParams?: any): Observable<TvEpisodeImages>;
+    tvEpisodeImages(requestParameters: TvEpisodeImagesRequestParams, extraHttpRequestParams?: any): Observable<TvEpisodeImages>;
 
     /**
      * Translations
      * Get the translations that have been added to a TV episode.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/translations
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
+* @param requestParameters
      */
-    tvEpisodeTranslations(seriesId: number, seasonNumber: number, episodeNumber: number, extraHttpRequestParams?: any): Observable<TranslationList>;
+    tvEpisodeTranslations(requestParameters: TvEpisodeTranslationsRequestParams, extraHttpRequestParams?: any): Observable<TranslationList>;
 
     /**
      * Videos
      * Get the videos that belong to a TV episode.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/videos
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param includeVideoLanguage filter the list results by language, supports more than one value by using a comma
-     * @param language 
+* @param requestParameters
      */
-    tvEpisodeVideos(seriesId: number, seasonNumber: number, episodeNumber: number, includeVideoLanguage?: string, language?: string, extraHttpRequestParams?: any): Observable<VideoList>;
+    tvEpisodeVideos(requestParameters: TvEpisodeVideosRequestParams, extraHttpRequestParams?: any): Observable<VideoList>;
 
 }

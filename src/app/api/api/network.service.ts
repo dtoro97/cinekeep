@@ -28,7 +28,10 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    NetworkRestControllerServiceInterface
+    NetworkRestControllerServiceInterface,
+    AlternativeNamesCopyRequestParams,
+    DetailsCopyRequestParams,
+    NetworkDetailsRequestParams
 } from './network.serviceInterface';
 
 
@@ -46,15 +49,16 @@ export class NetworkRestControllerService extends BaseService implements Network
      * Images
      * Get the TV network logos by id.
      * @endpoint get /network/{network_id}/images
-     * @param networkId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public alternativeNamesCopy(networkId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<NetworkImages>;
-    public alternativeNamesCopy(networkId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<NetworkImages>>;
-    public alternativeNamesCopy(networkId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<NetworkImages>>;
-    public alternativeNamesCopy(networkId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public alternativeNamesCopy(requestParameters: AlternativeNamesCopyRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<NetworkImages>;
+    public alternativeNamesCopy(requestParameters: AlternativeNamesCopyRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<NetworkImages>>;
+    public alternativeNamesCopy(requestParameters: AlternativeNamesCopyRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<NetworkImages>>;
+    public alternativeNamesCopy(requestParameters: AlternativeNamesCopyRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const networkId = requestParameters?.networkId;
         if (networkId === null || networkId === undefined) {
             throw new Error('Required parameter networkId was null or undefined when calling alternativeNamesCopy.');
         }
@@ -106,15 +110,16 @@ export class NetworkRestControllerService extends BaseService implements Network
      * Alternative Names
      * Get the alternative names of a network.
      * @endpoint get /network/{network_id}/alternative_names
-     * @param networkId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public detailsCopy(networkId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AlternativeNameList>;
-    public detailsCopy(networkId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AlternativeNameList>>;
-    public detailsCopy(networkId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AlternativeNameList>>;
-    public detailsCopy(networkId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public detailsCopy(requestParameters: DetailsCopyRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AlternativeNameList>;
+    public detailsCopy(requestParameters: DetailsCopyRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AlternativeNameList>>;
+    public detailsCopy(requestParameters: DetailsCopyRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AlternativeNameList>>;
+    public detailsCopy(requestParameters: DetailsCopyRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const networkId = requestParameters?.networkId;
         if (networkId === null || networkId === undefined) {
             throw new Error('Required parameter networkId was null or undefined when calling detailsCopy.');
         }
@@ -166,15 +171,16 @@ export class NetworkRestControllerService extends BaseService implements Network
      * Details
      * 
      * @endpoint get /network/{network_id}
-     * @param networkId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public networkDetails(networkId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<NetworkDetails>;
-    public networkDetails(networkId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<NetworkDetails>>;
-    public networkDetails(networkId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<NetworkDetails>>;
-    public networkDetails(networkId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public networkDetails(requestParameters: NetworkDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<NetworkDetails>;
+    public networkDetails(requestParameters: NetworkDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<NetworkDetails>>;
+    public networkDetails(requestParameters: NetworkDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<NetworkDetails>>;
+    public networkDetails(requestParameters: NetworkDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const networkId = requestParameters?.networkId;
         if (networkId === null || networkId === undefined) {
             throw new Error('Required parameter networkId was null or undefined when calling networkDetails.');
         }

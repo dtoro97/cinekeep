@@ -5,7 +5,7 @@ import { ComponentStore } from '@ngrx/component-store';
 import { catchError, EMPTY, forkJoin, map, Observable, of, tap } from 'rxjs';
 
 import { SearchRestControllerService } from '../../api';
-import { API_JSON_OPTIONS, PAGE_SIZE, SMALL_LIST_COUNT } from '../../constants';
+import { PAGE_SIZE, SMALL_LIST_COUNT } from '../../constants';
 import {
     RemoteData,
     MediaListItem,
@@ -91,7 +91,7 @@ export class SearchStoreService extends ComponentStore<SearchState> {
         super(INITIAL_STATE);
     }
 
-    search$(query: string, type: SearchType): Observable<void> {
+    search$(query: string, type: SearchType): Observable<unknown> {
         const trimmedQuery = query.trim();
 
         if (!trimmedQuery) {
@@ -135,10 +135,10 @@ export class SearchStoreService extends ComponentStore<SearchState> {
             this.fetchMovies$(trimmedQuery, 1, initialVisible),
             this.fetchTv$(trimmedQuery, 1, initialVisible),
             this.fetchPeople$(trimmedQuery, 1, initialVisible),
-        ]).pipe(map(() => undefined));
+        ]);
     }
 
-    loadMoreMovies$(): Observable<void> {
+    loadMoreMovies$(): Observable<unknown> {
         const { movies, query } = this.get();
         if (!query) {
             return of(undefined);
@@ -166,7 +166,7 @@ export class SearchStoreService extends ComponentStore<SearchState> {
         return this.fetchMovies$(query, movies.page + 1, movies.results.length + PAGE_SIZE);
     }
 
-    loadMoreTv$(): Observable<void> {
+    loadMoreTv$(): Observable<unknown> {
         const { tv, query } = this.get();
         if (!query) {
             return of(undefined);
@@ -194,7 +194,7 @@ export class SearchStoreService extends ComponentStore<SearchState> {
         return this.fetchTv$(query, tv.page + 1, tv.results.length + PAGE_SIZE);
     }
 
-    loadMorePeople$(): Observable<void> {
+    loadMorePeople$(): Observable<unknown> {
         const { people, query } = this.get();
         if (!query) {
             return of(undefined);
@@ -240,20 +240,9 @@ export class SearchStoreService extends ComponentStore<SearchState> {
         });
     }
 
-    private fetchMovies$(query: string, page: number, visible: number): Observable<void> {
+    private fetchMovies$(query: string, page: number, visible: number) {
         return this.searchService
-            .searchMovie(
-                query,
-                undefined,
-                undefined,
-                undefined,
-                page,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                API_JSON_OPTIONS,
-            )
+            .searchMovie({ query, page })
             .pipe(
                 tap((result) => {
                     const mapped = (result.results ?? []).map((item) => toMediaListItem(item, 'movie', 'year'));
@@ -272,7 +261,6 @@ export class SearchStoreService extends ComponentStore<SearchState> {
                         },
                     });
                 }),
-                map(() => undefined),
                 catchError(() => {
                     const currentState = this.get().movieResultsState;
                     this.patchState({
@@ -286,9 +274,9 @@ export class SearchStoreService extends ComponentStore<SearchState> {
             );
     }
 
-    private fetchTv$(query: string, page: number, visible: number): Observable<void> {
+    private fetchTv$(query: string, page: number, visible: number) {
         return this.searchService
-            .searchTv(query, undefined, undefined, undefined, page, undefined, undefined, undefined, API_JSON_OPTIONS)
+            .searchTv({ query, page })
             .pipe(
                 tap((result) => {
                     const mapped = (result.results ?? []).map((item) => toMediaListItem(item, 'tv', 'year'));
@@ -307,7 +295,6 @@ export class SearchStoreService extends ComponentStore<SearchState> {
                         },
                     });
                 }),
-                map(() => undefined),
                 catchError(() => {
                     const currentState = this.get().tvResultsState;
                     this.patchState({
@@ -321,9 +308,9 @@ export class SearchStoreService extends ComponentStore<SearchState> {
             );
     }
 
-    private fetchPeople$(query: string, page: number, visible: number): Observable<void> {
+    private fetchPeople$(query: string, page: number, visible: number) {
         return this.searchService
-            .searchPerson(query, undefined, undefined, page, undefined, undefined, API_JSON_OPTIONS)
+            .searchPerson({ query, page })
             .pipe(
                 tap((result) => {
                     const mapped = (result.results ?? []).map((item) => toPersonListItem(item));
@@ -342,7 +329,6 @@ export class SearchStoreService extends ComponentStore<SearchState> {
                         },
                     });
                 }),
-                map(() => undefined),
                 catchError(() => {
                     const currentState = this.get().personResultsState;
                     this.patchState({

@@ -39,22 +39,6 @@
         gap: var(--space-1);
     }
 
-    &__avatar-skeleton {
-        width: 7rem;
-        height: 7rem;
-        --skeleton-radius: var(--radius-full);
-    }
-
-    &__name-skeleton {
-        width: min(10rem, 100%);
-        height: 1.75rem;
-    }
-
-    &__handle-skeleton {
-        width: min(7rem, 80%);
-        height: 1rem;
-    }
-
     &__meta {
         display: flex;
         flex-wrap: wrap;
@@ -212,11 +196,6 @@
 
         &__identity {
             align-items: flex-start;
-        }
-
-        &__avatar-skeleton {
-            width: 5.5rem;
-            height: 5.5rem;
         }
 
         &__main {

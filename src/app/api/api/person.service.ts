@@ -40,7 +40,16 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    PersonRestControllerServiceInterface
+    PersonRestControllerServiceInterface,
+    PersonChangesRequestParams,
+    PersonCombinedCreditsRequestParams,
+    PersonDetailsRequestParams,
+    PersonExternalIdsRequestParams,
+    PersonImagesRequestParams,
+    PersonMovieCreditsRequestParams,
+    PersonTaggedImagesRequestParams,
+    PersonTvCreditsRequestParams,
+    TranslationsRequestParams
 } from './person.serviceInterface';
 
 
@@ -58,21 +67,22 @@ export class PersonRestControllerService extends BaseService implements PersonRe
      * Changes
      * Get the recent changes for a person.
      * @endpoint get /person/{person_id}/changes
-     * @param personId 
-     * @param endDate 
-     * @param page 
-     * @param startDate 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public personChanges(personId: number, endDate?: string, page?: number, startDate?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ChangeList>;
-    public personChanges(personId: number, endDate?: string, page?: number, startDate?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChangeList>>;
-    public personChanges(personId: number, endDate?: string, page?: number, startDate?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChangeList>>;
-    public personChanges(personId: number, endDate?: string, page?: number, startDate?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public personChanges(requestParameters: PersonChangesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ChangeList>;
+    public personChanges(requestParameters: PersonChangesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChangeList>>;
+    public personChanges(requestParameters: PersonChangesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChangeList>>;
+    public personChanges(requestParameters: PersonChangesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const personId = requestParameters?.personId;
         if (personId === null || personId === undefined) {
             throw new Error('Required parameter personId was null or undefined when calling personChanges.');
         }
+        const endDate = requestParameters?.endDate;
+        const page = requestParameters?.page;
+        const startDate = requestParameters?.startDate;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -151,19 +161,20 @@ export class PersonRestControllerService extends BaseService implements PersonRe
      * Combined Credits
      * Get the combined movie and TV credits that belong to a person.
      * @endpoint get /person/{person_id}/combined_credits
-     * @param personId 
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public personCombinedCredits(personId: string, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonCombinedCredits>;
-    public personCombinedCredits(personId: string, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonCombinedCredits>>;
-    public personCombinedCredits(personId: string, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonCombinedCredits>>;
-    public personCombinedCredits(personId: string, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public personCombinedCredits(requestParameters: PersonCombinedCreditsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonCombinedCredits>;
+    public personCombinedCredits(requestParameters: PersonCombinedCreditsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonCombinedCredits>>;
+    public personCombinedCredits(requestParameters: PersonCombinedCreditsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonCombinedCredits>>;
+    public personCombinedCredits(requestParameters: PersonCombinedCreditsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const personId = requestParameters?.personId;
         if (personId === null || personId === undefined) {
             throw new Error('Required parameter personId was null or undefined when calling personCombinedCredits.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -224,20 +235,21 @@ export class PersonRestControllerService extends BaseService implements PersonRe
      * Details
      * Query the top level details of a person.
      * @endpoint get /person/{person_id}
-     * @param personId 
-     * @param appendToResponse comma separated list of endpoints within this namespace, 20 items max
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public personDetails(personId: number, appendToResponse?: string, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Person>;
-    public personDetails(personId: number, appendToResponse?: string, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Person>>;
-    public personDetails(personId: number, appendToResponse?: string, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Person>>;
-    public personDetails(personId: number, appendToResponse?: string, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public personDetails(requestParameters: PersonDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Person>;
+    public personDetails(requestParameters: PersonDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Person>>;
+    public personDetails(requestParameters: PersonDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Person>>;
+    public personDetails(requestParameters: PersonDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const personId = requestParameters?.personId;
         if (personId === null || personId === undefined) {
             throw new Error('Required parameter personId was null or undefined when calling personDetails.');
         }
+        const appendToResponse = requestParameters?.appendToResponse;
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -307,15 +319,16 @@ export class PersonRestControllerService extends BaseService implements PersonRe
      * External IDs
      * Get the external ID\&#39;s that belong to a person.
      * @endpoint get /person/{person_id}/external_ids
-     * @param personId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public personExternalIds(personId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonExternalIds>;
-    public personExternalIds(personId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonExternalIds>>;
-    public personExternalIds(personId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonExternalIds>>;
-    public personExternalIds(personId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public personExternalIds(requestParameters: PersonExternalIdsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonExternalIds>;
+    public personExternalIds(requestParameters: PersonExternalIdsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonExternalIds>>;
+    public personExternalIds(requestParameters: PersonExternalIdsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonExternalIds>>;
+    public personExternalIds(requestParameters: PersonExternalIdsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const personId = requestParameters?.personId;
         if (personId === null || personId === undefined) {
             throw new Error('Required parameter personId was null or undefined when calling personExternalIds.');
         }
@@ -367,15 +380,16 @@ export class PersonRestControllerService extends BaseService implements PersonRe
      * Images
      * Get the profile images that belong to a person.
      * @endpoint get /person/{person_id}/images
-     * @param personId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public personImages(personId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonImages>;
-    public personImages(personId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonImages>>;
-    public personImages(personId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonImages>>;
-    public personImages(personId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public personImages(requestParameters: PersonImagesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonImages>;
+    public personImages(requestParameters: PersonImagesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonImages>>;
+    public personImages(requestParameters: PersonImagesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonImages>>;
+    public personImages(requestParameters: PersonImagesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const personId = requestParameters?.personId;
         if (personId === null || personId === undefined) {
             throw new Error('Required parameter personId was null or undefined when calling personImages.');
         }
@@ -427,19 +441,20 @@ export class PersonRestControllerService extends BaseService implements PersonRe
      * Movie Credits
      * Get the movie credits for a person.
      * @endpoint get /person/{person_id}/movie_credits
-     * @param personId 
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public personMovieCredits(personId: number, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonMovieCredits>;
-    public personMovieCredits(personId: number, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonMovieCredits>>;
-    public personMovieCredits(personId: number, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonMovieCredits>>;
-    public personMovieCredits(personId: number, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public personMovieCredits(requestParameters: PersonMovieCreditsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonMovieCredits>;
+    public personMovieCredits(requestParameters: PersonMovieCreditsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonMovieCredits>>;
+    public personMovieCredits(requestParameters: PersonMovieCreditsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonMovieCredits>>;
+    public personMovieCredits(requestParameters: PersonMovieCreditsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const personId = requestParameters?.personId;
         if (personId === null || personId === undefined) {
             throw new Error('Required parameter personId was null or undefined when calling personMovieCredits.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -500,19 +515,20 @@ export class PersonRestControllerService extends BaseService implements PersonRe
      * Tagged Images
      * Get the tagged images for a person.
      * @endpoint get /person/{person_id}/tagged_images
-     * @param personId 
-     * @param page 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public personTaggedImages(personId: number, page?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TaggedImagePage>;
-    public personTaggedImages(personId: number, page?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TaggedImagePage>>;
-    public personTaggedImages(personId: number, page?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TaggedImagePage>>;
-    public personTaggedImages(personId: number, page?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public personTaggedImages(requestParameters: PersonTaggedImagesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TaggedImagePage>;
+    public personTaggedImages(requestParameters: PersonTaggedImagesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TaggedImagePage>>;
+    public personTaggedImages(requestParameters: PersonTaggedImagesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TaggedImagePage>>;
+    public personTaggedImages(requestParameters: PersonTaggedImagesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const personId = requestParameters?.personId;
         if (personId === null || personId === undefined) {
             throw new Error('Required parameter personId was null or undefined when calling personTaggedImages.');
         }
+        const page = requestParameters?.page;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -573,19 +589,20 @@ export class PersonRestControllerService extends BaseService implements PersonRe
      * TV Credits
      * Get the TV credits that belong to a person.
      * @endpoint get /person/{person_id}/tv_credits
-     * @param personId 
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public personTvCredits(personId: number, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonTvCredits>;
-    public personTvCredits(personId: number, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonTvCredits>>;
-    public personTvCredits(personId: number, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonTvCredits>>;
-    public personTvCredits(personId: number, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public personTvCredits(requestParameters: PersonTvCreditsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonTvCredits>;
+    public personTvCredits(requestParameters: PersonTvCreditsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonTvCredits>>;
+    public personTvCredits(requestParameters: PersonTvCreditsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonTvCredits>>;
+    public personTvCredits(requestParameters: PersonTvCreditsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const personId = requestParameters?.personId;
         if (personId === null || personId === undefined) {
             throw new Error('Required parameter personId was null or undefined when calling personTvCredits.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -646,15 +663,16 @@ export class PersonRestControllerService extends BaseService implements PersonRe
      * Translations
      * Get the translations that belong to a person.
      * @endpoint get /person/{person_id}/translations
-     * @param personId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public translations(personId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonTranslationList>;
-    public translations(personId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonTranslationList>>;
-    public translations(personId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonTranslationList>>;
-    public translations(personId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public translations(requestParameters: TranslationsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonTranslationList>;
+    public translations(requestParameters: TranslationsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonTranslationList>>;
+    public translations(requestParameters: TranslationsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonTranslationList>>;
+    public translations(requestParameters: TranslationsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const personId = requestParameters?.personId;
         if (personId === null || personId === undefined) {
             throw new Error('Required parameter personId was null or undefined when calling translations.');
         }

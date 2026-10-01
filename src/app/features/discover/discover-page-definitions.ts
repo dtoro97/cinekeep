@@ -1,4 +1,4 @@
-import type { MediaType, SortDirection, TmdbDiscoverSortKey } from '../../shared';
+import type { MediaType, SelectOption, SortDirection, TmdbDiscoverSortKey } from '../../shared';
 import {
     DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
     DEFAULT_DISCOVER_VOTE_COUNT_GTE,
@@ -73,6 +73,55 @@ export interface DiscoverFilterState {
     readonly voteAverageGte: number | null;
     readonly voteCountGte: number | null;
     readonly runtimePreset: DiscoverRuntimePreset;
+}
+
+/** A change from the filter panel; the search keys carry the typed text. */
+export type DiscoverFilterChange =
+    | { readonly key: 'keywordSearch' | 'companySearch'; readonly value: string }
+    | {
+          readonly key:
+              | 'genres'
+              | 'keyword'
+              | 'company'
+              | 'yearFrom'
+              | 'yearTo'
+              | 'watchRegion'
+              | 'providers'
+              | 'certification'
+              | 'releaseType'
+              | 'language'
+              | 'rating'
+              | 'votes'
+              | 'runtime';
+          readonly value: unknown;
+      };
+
+/** Everything the filter panel renders: which filters show, their options, and the current values. */
+export interface DiscoverFilters {
+    readonly activeFilterCount: number;
+    readonly visible: DiscoverFilterVisibility;
+    readonly genreOptions: readonly SelectOption<number>[];
+    readonly selectedGenreIds: readonly number[];
+    readonly keywordSuggestions: readonly SelectOption<number>[];
+    readonly companySuggestions: readonly SelectOption<number>[];
+    readonly yearFrom: number | null;
+    readonly yearTo: number | null;
+    readonly watchRegionOptions: readonly SelectOption<string>[];
+    readonly watchRegion: string;
+    readonly providerOptions: readonly SelectOption<number>[];
+    readonly selectedProviderIds: readonly number[];
+    readonly certificationOptions: readonly SelectOption<string | null>[];
+    readonly certification: string | null;
+    readonly releaseTypeOptions: readonly SelectOption<DiscoverMovieReleaseType | null>[];
+    readonly releaseType: DiscoverMovieReleaseType | null;
+    readonly languageOptions: readonly SelectOption<string>[];
+    readonly language: string | null;
+    readonly ratingOptions: readonly SelectOption<number | null>[];
+    readonly rating: number | null;
+    readonly voteCountOptions: readonly SelectOption<number | null>[];
+    readonly voteCount: number | null;
+    readonly runtimeOptions: readonly SelectOption<DiscoverRuntimePreset>[];
+    readonly runtime: DiscoverRuntimePreset;
 }
 
 export interface DiscoverQueryState extends DiscoverFilterState {
@@ -282,11 +331,6 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
         lockedFilters: [{ id: 'on-the-air', label: 'On TV this week' }],
     },
 };
-
-export const MEDIA_TYPE_OPTIONS = [
-    { label: 'Movies', value: 'movie' },
-    { label: 'TV series', value: 'tv' },
-] as const;
 
 export const RATING_FILTER_OPTIONS = [
     { label: 'Any rating', value: null },

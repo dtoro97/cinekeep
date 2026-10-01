@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import { catchError, forkJoin, map, of, tap } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, shareReplay, tap } from 'rxjs';
 
-import { WatchProviderCatalog, WatchProviderRestControllerService } from '../../api';
-import { API_JSON_OPTIONS } from '../../constants';
+import { WatchProviderRestControllerService } from '../../api';
+import type { MediaType } from '../types';
 import { LocaleStoreService } from './locale-store.service';
 
 export interface WatchProviderOption {
@@ -42,6 +42,7 @@ export class WatchProviderStoreService extends ComponentStore<WatchProviderStore
     readonly loaded$ = this.select((state) => state.loaded);
     private loadingRegion: string | null = null;
     private loadedRegion: string | null = null;
+    private readonly catalogRequests = new Map<string, Observable<WatchProviderOption[]>>();
 
     readonly topMovieProviders$ = this.select(this.movieProviders$, (providers) => providers.slice(0, 3));
 
@@ -67,19 +68,11 @@ export class WatchProviderStoreService extends ComponentStore<WatchProviderStore
 
         this.loadingRegion = region;
 
-        forkJoin([
-            this.watchProviderService
-                .watchProvidersMovieList(undefined, region, 'body', false, API_JSON_OPTIONS)
-                .pipe(catchError(() => of({ results: [] }))),
-            this.watchProviderService
-                .watchProviderTvList(undefined, region, 'body', false, API_JSON_OPTIONS)
-                .pipe(catchError(() => of({ results: [] }))),
-        ])
+        forkJoin({
+            movieProviders: this.providers$('movie', region),
+            tvProviders: this.providers$('tv', region),
+        })
             .pipe(
-                map(([movieCatalog, tvCatalog]) => ({
-                    movieProviders: this.mapProviders(movieCatalog.results ?? []),
-                    tvProviders: this.mapProviders(tvCatalog.results ?? []),
-                })),
                 tap((result) => {
                     this.loadedRegion = region;
                     this.loadingRegion = null;
@@ -91,6 +84,33 @@ export class WatchProviderStoreService extends ComponentStore<WatchProviderStore
             )
             .subscribe();
     }
+    /** The providers for one media type and region, fetched once per session; failures yield none. */
+    providers$(mediaType: MediaType, region: string): Observable<WatchProviderOption[]> {
+        const key = `${mediaType}:${region}`;
+        const cached$ = this.catalogRequests.get(key);
+
+        if (cached$) {
+            return cached$;
+        }
+
+        const catalog$ =
+            mediaType === 'movie'
+                ? this.watchProviderService.watchProvidersMovieList({ watchRegion: region })
+                : this.watchProviderService.watchProviderTvList({ watchRegion: region });
+
+        const providers$ = catalog$.pipe(
+            map((catalog) => this.mapProviders(catalog.results ?? [])),
+            catchError(() => {
+                this.catalogRequests.delete(key);
+                return of([]);
+            }),
+            shareReplay(1),
+        );
+
+        this.catalogRequests.set(key, providers$);
+        return providers$;
+    }
+
     private mapProviders(
         items: readonly {
             provider_id?: number;

@@ -1,9 +1,9 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute, Router } from '@angular/router';
-import { filter, map, switchMap, tap } from 'rxjs';
+import { Router } from '@angular/router';
+import { filter, switchMap, tap } from 'rxjs';
 
 import { PAGE_SIZE } from '../../../constants';
 import {
@@ -17,7 +17,7 @@ import {
 import { RepeatPipe } from '../../../shared/pipes/repeat.pipe';
 import { HeroSpotlightComponent } from '../hero-spotlight/hero-spotlight.component';
 import { TrailersPageStoreService } from './trailers-page-store.service';
-import type { TrailerFeedType } from '../trailer-data-store.service';
+import type { TrailerFeedType } from '../trailer-data.service';
 
 const toTrailerFeedType = (value: unknown): TrailerFeedType => (value === 'new' ? 'new' : 'trending');
 
@@ -44,18 +44,17 @@ export class TrailersPageComponent {
         { label: 'Trending trailers', value: 'trending' },
         { label: 'New trailers', value: 'new' },
     ];
+    readonly feedType = input.required<string>();
     readonly vm$ = this.store.vm$;
     readonly skeletonCount = PAGE_SIZE;
 
     constructor(
         public readonly store: TrailersPageStoreService,
-        private readonly route: ActivatedRoute,
         private readonly router: Router,
         private readonly seo: SeoService,
     ) {
-        this.route.paramMap
+        toObservable(this.feedType)
             .pipe(
-                map((params) => params.get('feedType')),
                 tap((feedType) => {
                     if (!isTrailerFeedType(feedType)) {
                         this.router.navigate(['/trailers', 'trending'], {

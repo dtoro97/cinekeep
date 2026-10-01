@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -8,12 +8,12 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { IconButtonComponent } from '../../../shared';
+import { IconButtonComponent, PluralizePipe } from '../../../shared';
 import { UserListSummaryItem } from '../user-lists-store.service';
 
 @Component({
     selector: 'app-user-list-card',
-    imports: [DatePipe, DecimalPipe, IconButtonComponent, RouterLink],
+    imports: [DatePipe, IconButtonComponent, PluralizePipe, RouterLink],
     templateUrl: './user-list-card.component.html',
     styleUrl: './user-list-card.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

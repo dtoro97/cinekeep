@@ -22,19 +22,19 @@ import {
 
 import { routes } from './app.routes';
 import { Configuration as V3Configuration } from './api/configuration';
-import { Configuration as V4Configuration } from './api-v4/configuration';
+import { Configuration as BackendConfiguration } from './api-cinekeep/configuration';
 import { environment } from '../environments/environment';
 import {
     provideClientHydration,
     withEventReplay,
+    withHttpTransferCacheOptions,
 } from '@angular/platform-browser';
-import { firstValueFrom } from 'rxjs';
 import {
+    AuthService,
     SeoTitleStrategy,
-    UserSessionStoreService,
     WatchProviderStoreService,
 } from './shared';
-import { TmdbUserAuthService } from './shared/services/tmdb-user-auth.service';
+import { authInterceptor, isBackendApiRequest } from './shared/utils/auth-interceptor';
 import { delayInterceptor } from './shared/utils/delay-interceptor';
 import { localeInterceptor } from './shared/utils/locale-interceptor';
 
@@ -52,7 +52,11 @@ export const appConfig: ApplicationConfig = {
         provideAnimationsAsync(),
         provideHttpClient(
             withFetch(),
-            withInterceptors([localeInterceptor, delayInterceptor]),
+            withInterceptors([
+                localeInterceptor,
+                authInterceptor,
+                delayInterceptor,
+            ]),
         ),
         {
             provide: V3Configuration,
@@ -66,23 +70,19 @@ export const appConfig: ApplicationConfig = {
             },
         },
         {
-            provide: V4Configuration,
-            useFactory: () => {
-                const userSessionStore = inject(UserSessionStoreService);
-
-                return new V4Configuration({
-                    basePath: resolveApiBasePath(environment.apiV4Url),
-                    credentials: {
-                        bearerAuth: () =>
-                            userSessionStore.v4AccessToken() ??
-                            environment.apiKey,
-                    },
-                });
-            },
+            provide: BackendConfiguration,
+            useFactory: () =>
+                new BackendConfiguration({
+                    basePath: environment.backendApiUrl,
+                    // Needed when dev calls the backend cross-origin, so the refresh cookie is
+                    // stored and sent. Harmless for same-origin production calls.
+                    withCredentials: true,
+                }),
         },
-        provideAppInitializer(() =>
-            firstValueFrom(inject(TmdbUserAuthService).tryCompleteLoginFromUrl$()),
-        ),
+        // Not awaited: routes and the header wait on the session status instead of blocking boot.
+        provideAppInitializer(() => {
+            inject(AuthService).restoreSession$().subscribe();
+        }),
         provideAppInitializer(() => {
             const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
             const request = inject(REQUEST, { optional: true });
@@ -93,7 +93,12 @@ export const appConfig: ApplicationConfig = {
 
             inject(WatchProviderStoreService).load();
         }),
-        provideClientHydration(withEventReplay()),
+        provideClientHydration(
+            withEventReplay(),
+            withHttpTransferCacheOptions({
+                filter: (req) => !isBackendApiRequest(req.url),
+            }),
+        ),
         //provideServerRendering(withRoutes(serverRoutes)),
     ],
 };

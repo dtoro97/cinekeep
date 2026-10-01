@@ -5,86 +5,58 @@
                 parentTitle="lists"
                 [backLink]="backLink"
                 [pageTitle]="vm.header.data.name"
-                [subtitle]="
-                    vm.header.data.itemCount +
-                    ' title' +
-                    (vm.header.data.itemCount === 1 ? '' : 's')
-                "
+                [subtitle]="vm.header.data.itemCount | pluralize: 'title'"
                 [titleIconClass]="vm.isPublic ? 'fa-regular fa-eye' : 'fa-solid fa-lock'"
                 [titleIconLabel]="(vm.isPublic ? 'Public' : 'Private') + ' list'"
             />
 
             <main class="page-main detail__main">
-                @if (
-                    vm.header.data.description ||
-                    vm.header.data.createdBy ||
-                    vm.ownedByCurrentUser
-                ) {
-                    <section
-                        class="detail__summary"
-                        aria-label="List details"
-                    >
-                        @if (!vm.ownedByCurrentUser && vm.header.data.createdBy) {
-                            <div class="detail__owner-summary">
-                                <app-user-avatar
-                                    [name]="vm.header.data.createdBy"
-                                />
-                                <div class="detail__owner-copy">
-                                    <span class="text-caption">
-                                        {{ vm.header.data.createdBy }}
-                                    </span>
-                                    @if (vm.header.data.description) {
-                                        <p class="detail__description text-body-sm">
-                                            {{ vm.header.data.description }}
-                                        </p>
-                                    }
-                                </div>
-                            </div>
-                        } @else if (vm.header.data.description) {
-                            <p class="detail__description text-body-sm">
-                                {{ vm.header.data.description }}
-                            </p>
-                        }
+                <section
+                    class="detail__summary"
+                    aria-label="List details"
+                >
+                    @if (vm.header.data.description) {
+                        <p class="detail__description text-body-sm">
+                            {{ vm.header.data.description }}
+                        </p>
+                    }
 
-                        @if (vm.ownedByCurrentUser) {
-                            <div
-                                class="detail__actions"
-                                role="group"
-                                aria-label="List actions"
-                            >
-                                <button
-                                    matButton="filled"
-                                    type="button"
-                                    (click)="onAddTitles(vm.header.data.id, vm.existingItemKeys)"
-                                >
-                                    Add movies or TV series
-                                </button>
-                                <button
-                                    mat-stroked-button
-                                    type="button"
-                                    (click)="onEditDetails(vm.header.data, vm.isPublic, vm.defaultSortBy)"
-                                >
-                                    Edit list
-                                </button>
-                                <button
-                                    mat-stroked-button
-                                    type="button"
-                                    (click)="onClearList()"
-                                >
-                                    Clear list
-                                </button>
-                                <button
-                                    class="detail__danger-button"
-                                    mat-stroked-button
-                                    type="button"
-                                    (click)="onDeleteList()"
-                                >
-                                    Delete list
-                                </button>
-                            </div>
-                        }
-                    </section>
-                }
+                    <div
+                        class="detail__actions"
+                        role="group"
+                        aria-label="List actions"
+                    >
+                        <button
+                            matButton="filled"
+                            type="button"
+                            (click)="onAddTitles(vm.header.data.id)"
+                        >
+                            Add movies or TV series
+                        </button>
+                        <button
+                            mat-stroked-button
+                            type="button"
+                            (click)="onEditDetails(vm.header.data, vm.isPublic, vm.defaultSortBy)"
+                        >
+                            Edit list
+                        </button>
+                        <button
+                            mat-stroked-button
+                            type="button"
+                            (click)="onClearList()"
+                        >
+                            Clear list
+                        </button>
+                        <button
+                            class="detail__danger-button"
+                            mat-stroked-button
+                            type="button"
+                            (click)="onDeleteList()"
+                        >
+                            Delete list
+                        </button>
+                    </div>
+                </section>
 
                 <section class="detail__toolbar">
                     <div>
@@ -124,34 +96,32 @@
                                     [item]="item.mediaItem"
                                     [link]="item.link"
                                 >
-                                    @if (vm.ownedByCurrentUser) {
-                                        <div
-                                            account-media-item-action
-                                            class="detail__item-actions"
+                                    <div
+                                        account-media-item-action
+                                        class="detail__item-actions"
+                                    >
+                                        <app-icon-button
+                                            matTooltip="Edit comment"
+                                            ariaLabel="Edit comment"
+                                            (onClick)="onStartComment(item)"
                                         >
-                                            <app-icon-button
-                                                matTooltip="Edit comment"
-                                                ariaLabel="Edit comment"
-                                                (onClick)="onStartComment(item)"
-                                            >
-                                                <i
-                                                    class="fa-regular fa-comment"
-                                                    aria-hidden="true"
-                                                ></i>
-                                            </app-icon-button>
-                                            <app-icon-button
-                                                tone="danger"
-                                                matTooltip="Remove from list"
-                                                ariaLabel="Remove from list"
-                                                (onClick)="onRemoveItem(item)"
-                                            >
-                                                <i
-                                                    class="fa-regular fa-trash-can"
-                                                    aria-hidden="true"
-                                                ></i>
-                                            </app-icon-button>
-                                        </div>
-                                    }
+                                            <i
+                                                class="fa-regular fa-comment"
+                                                aria-hidden="true"
+                                            ></i>
+                                        </app-icon-button>
+                                        <app-icon-button
+                                            tone="danger"
+                                            matTooltip="Remove from list"
+                                            ariaLabel="Remove from list"
+                                            (onClick)="onRemoveItem(item)"
+                                        >
+                                            <i
+                                                class="fa-regular fa-trash-can"
+                                                aria-hidden="true"
+                                            ></i>
+                                        </app-icon-button>
+                                    </div>
 
                                     @if (item.comment) {
                                         <p
@@ -166,10 +136,7 @@
                                         </p>
                                     }
 
-                                    @if (
-                                        vm.ownedByCurrentUser &&
-                                        editingCommentKey() === item.key
-                                    ) {
+                                    @if (editingCommentKey() === item.key) {
                                         <div
                                             account-media-item-note
                                             class="detail__comment-editor"
@@ -219,21 +186,15 @@
                             <app-empty-state
                                 iconClass="fa-solid fa-list"
                                 title="This list is empty"
-                                [text]="
-                                    vm.ownedByCurrentUser
-                                        ? 'Add a movie or TV series to start building it.'
-                                        : 'There are no titles to show here yet.'
-                                "
+                                text="Add a movie or TV series to start building it."
                             />
-                            @if (vm.ownedByCurrentUser) {
-                                <button
-                                    matButton="filled"
-                                    type="button"
-                                    (click)="onAddTitles(vm.header.data.id, vm.existingItemKeys)"
-                                >
-                                    Add movies or TV series
-                                </button>
-                            }
+                            <button
+                                matButton="filled"
+                                type="button"
+                                (click)="onAddTitles(vm.header.data.id)"
+                            >
+                                Add movies or TV series
+                            </button>
                         </section>
                     }
                 }

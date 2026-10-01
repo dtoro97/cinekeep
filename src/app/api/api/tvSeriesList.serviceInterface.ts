@@ -18,6 +18,28 @@ import { TvSeriesPage } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface TvSeriesAiringTodayListRequestParams {
+    language?: string;
+    page?: number;
+    timezone?: string;
+}
+
+export interface TvSeriesOnTheAirListRequestParams {
+    language?: string;
+    page?: number;
+    timezone?: string;
+}
+
+export interface TvSeriesPopularListRequestParams {
+    language?: string;
+    page?: number;
+}
+
+export interface TvSeriesTopRatedListRequestParams {
+    language?: string;
+    page?: number;
+}
+
 
 export interface TvSeriesListRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -27,45 +49,39 @@ export interface TvSeriesListRestControllerServiceInterface {
      * Airing Today
      * Get a list of TV shows airing today.
      * @endpoint get /tv/airing_today
-     * @param language 
-     * @param page 
-     * @param timezone 
+* @param requestParameters
      */
-    tvSeriesAiringTodayList(language?: string, page?: number, timezone?: string, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
+    tvSeriesAiringTodayList(requestParameters: TvSeriesAiringTodayListRequestParams, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
 
     /**
      * Latest
      * Get the newest TV show ID.
      * @endpoint get /tv/latest
-     */
+*/
     tvSeriesLatestId(extraHttpRequestParams?: any): Observable<TvSeries>;
 
     /**
      * On The Air
      * Get a list of TV shows that air in the next 7 days.
      * @endpoint get /tv/on_the_air
-     * @param language 
-     * @param page 
-     * @param timezone 
+* @param requestParameters
      */
-    tvSeriesOnTheAirList(language?: string, page?: number, timezone?: string, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
+    tvSeriesOnTheAirList(requestParameters: TvSeriesOnTheAirListRequestParams, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
 
     /**
      * Popular
      * Get a list of TV shows ordered by popularity.
      * @endpoint get /tv/popular
-     * @param language 
-     * @param page 
+* @param requestParameters
      */
-    tvSeriesPopularList(language?: string, page?: number, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
+    tvSeriesPopularList(requestParameters: TvSeriesPopularListRequestParams, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
 
     /**
      * Top Rated
      * Get a list of TV shows ordered by rating.
      * @endpoint get /tv/top_rated
-     * @param language 
-     * @param page 
+* @param requestParameters
      */
-    tvSeriesTopRatedList(language?: string, page?: number, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
+    tvSeriesTopRatedList(requestParameters: TvSeriesTopRatedListRequestParams, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
 
 }

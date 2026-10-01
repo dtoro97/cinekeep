@@ -18,6 +18,20 @@ import { WatchProviderRegionList } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface WatchProviderTvListRequestParams {
+    language?: string;
+    watchRegion?: string;
+}
+
+export interface WatchProvidersAvailableRegionsRequestParams {
+    language?: string;
+}
+
+export interface WatchProvidersMovieListRequestParams {
+    language?: string;
+    watchRegion?: string;
+}
+
 
 export interface WatchProviderRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -27,26 +41,24 @@ export interface WatchProviderRestControllerServiceInterface {
      * TV Providers
      * Get the list of streaming providers we have for TV shows.
      * @endpoint get /watch/providers/tv
-     * @param language 
-     * @param watchRegion 
+* @param requestParameters
      */
-    watchProviderTvList(language?: string, watchRegion?: string, extraHttpRequestParams?: any): Observable<WatchProviderCatalog>;
+    watchProviderTvList(requestParameters: WatchProviderTvListRequestParams, extraHttpRequestParams?: any): Observable<WatchProviderCatalog>;
 
     /**
      * Available Regions
      * Get the list of the countries we have watch provider (OTT/streaming) data for.
      * @endpoint get /watch/providers/regions
-     * @param language 
+* @param requestParameters
      */
-    watchProvidersAvailableRegions(language?: string, extraHttpRequestParams?: any): Observable<WatchProviderRegionList>;
+    watchProvidersAvailableRegions(requestParameters: WatchProvidersAvailableRegionsRequestParams, extraHttpRequestParams?: any): Observable<WatchProviderRegionList>;
 
     /**
      * Movie Providers
      * Get the list of streaming providers we have for movies.
      * @endpoint get /watch/providers/movie
-     * @param language 
-     * @param watchRegion 
+* @param requestParameters
      */
-    watchProvidersMovieList(language?: string, watchRegion?: string, extraHttpRequestParams?: any): Observable<WatchProviderCatalog>;
+    watchProvidersMovieList(requestParameters: WatchProvidersMovieListRequestParams, extraHttpRequestParams?: any): Observable<WatchProviderCatalog>;
 
 }

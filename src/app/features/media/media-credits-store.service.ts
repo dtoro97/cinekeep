@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
-import { Observable, catchError, filter, map, of, take, tap } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import { AggregateCastMember, AggregateCredits, AggregateCrewMember, Credits } from '../../api';
 import { PAGE_SIZE } from '../../constants';
 import {
     PersonCardItem,
     RemoteData,
+    loadCachedResource$,
     mapRemoteData,
     remoteData,
     toCastPersonCardItem,
@@ -55,49 +56,22 @@ export class MediaCreditsStoreService extends ComponentStore<MediaCreditsState> 
     }
 
     load$(target: MediaTarget): Observable<MediaCreditsResource> {
-        const state = this.get();
-
-        if (isSameMediaTarget(state.target, target)) {
-            if (state.credits.state === 'success') {
-                return of(state.credits.data);
-            }
-
-            if (state.credits.state === 'loading') {
-                return this.creditsReady$();
-            }
+        if (!isSameMediaTarget(this.get().target, target)) {
+            this.setState({ ...INITIAL_STATE, target });
         }
-
-        this.setState({
-            ...INITIAL_STATE,
-            target,
-            credits: { state: 'loading' },
-        });
 
         const request$: Observable<MediaCreditsResponse> =
             target.type === 'tv'
                 ? this.mediaApiService.getTvCredits$(target.id)
                 : this.mediaApiService.getMovieCredits$(target.id);
 
-        return request$.pipe(
-            map((credits) => this.toCreditsResource(credits, target.type)),
-            tap((credits) => {
-                this.patchState({ credits: { state: 'success', data: credits } });
-            }),
-            catchError(() => {
-                this.patchState({ credits: { state: 'success', data: EMPTY_CREDITS } });
-                return of(EMPTY_CREDITS);
-            }),
-        );
-    }
-
-    private creditsReady$(): Observable<MediaCreditsResource> {
-        return this.creditsState$.pipe(
-            filter((state): state is Extract<RemoteData<MediaCreditsResource>, { state: 'success' }> =>
-                state.state === 'success',
-            ),
-            take(1),
-            map((state) => state.data),
-        );
+        return loadCachedResource$({
+            current: this.get().credits,
+            state$: this.creditsState$,
+            fetch: () => request$.pipe(map((credits) => this.toCreditsResource(credits, target.type))),
+            patch: (credits) => this.patchState({ credits }),
+            fallback: EMPTY_CREDITS,
+        });
     }
 
     private toTopCastState(state: RemoteData<MediaCreditsResource>): RemoteData<PersonCardItem[]> {

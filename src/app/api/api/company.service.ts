@@ -28,7 +28,10 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    CompanyRestControllerServiceInterface
+    CompanyRestControllerServiceInterface,
+    CompanyAlternativeNamesRequestParams,
+    CompanyDetailsRequestParams,
+    CompanyImagesRequestParams
 } from './company.serviceInterface';
 
 
@@ -46,15 +49,16 @@ export class CompanyRestControllerService extends BaseService implements Company
      * Alternative Names
      * Get the company details by ID.
      * @endpoint get /company/{company_id}/alternative_names
-     * @param companyId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public companyAlternativeNames(companyId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AlternativeNameList>;
-    public companyAlternativeNames(companyId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AlternativeNameList>>;
-    public companyAlternativeNames(companyId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AlternativeNameList>>;
-    public companyAlternativeNames(companyId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public companyAlternativeNames(requestParameters: CompanyAlternativeNamesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AlternativeNameList>;
+    public companyAlternativeNames(requestParameters: CompanyAlternativeNamesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AlternativeNameList>>;
+    public companyAlternativeNames(requestParameters: CompanyAlternativeNamesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AlternativeNameList>>;
+    public companyAlternativeNames(requestParameters: CompanyAlternativeNamesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const companyId = requestParameters?.companyId;
         if (companyId === null || companyId === undefined) {
             throw new Error('Required parameter companyId was null or undefined when calling companyAlternativeNames.');
         }
@@ -106,15 +110,16 @@ export class CompanyRestControllerService extends BaseService implements Company
      * Details
      * Get the company details by ID.
      * @endpoint get /company/{company_id}
-     * @param companyId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public companyDetails(companyId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CompanyDetails>;
-    public companyDetails(companyId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CompanyDetails>>;
-    public companyDetails(companyId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CompanyDetails>>;
-    public companyDetails(companyId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public companyDetails(requestParameters: CompanyDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CompanyDetails>;
+    public companyDetails(requestParameters: CompanyDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CompanyDetails>>;
+    public companyDetails(requestParameters: CompanyDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CompanyDetails>>;
+    public companyDetails(requestParameters: CompanyDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const companyId = requestParameters?.companyId;
         if (companyId === null || companyId === undefined) {
             throw new Error('Required parameter companyId was null or undefined when calling companyDetails.');
         }
@@ -166,15 +171,16 @@ export class CompanyRestControllerService extends BaseService implements Company
      * Images
      * Get the company logos by id.
      * @endpoint get /company/{company_id}/images
-     * @param companyId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public companyImages(companyId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CompanyImages>;
-    public companyImages(companyId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CompanyImages>>;
-    public companyImages(companyId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CompanyImages>>;
-    public companyImages(companyId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public companyImages(requestParameters: CompanyImagesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CompanyImages>;
+    public companyImages(requestParameters: CompanyImagesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CompanyImages>>;
+    public companyImages(requestParameters: CompanyImagesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CompanyImages>>;
+    public companyImages(requestParameters: CompanyImagesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const companyId = requestParameters?.companyId;
         if (companyId === null || companyId === undefined) {
             throw new Error('Required parameter companyId was null or undefined when calling companyImages.');
         }

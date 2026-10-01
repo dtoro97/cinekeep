@@ -7,9 +7,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 
-import { EMPTY, Observable, catchError, combineLatest, distinctUntilChanged, filter, map, switchMap, take, tap } from 'rxjs';
+import { EMPTY, Observable, catchError, distinctUntilChanged, filter, map, switchMap, take, tap } from 'rxjs';
 
-import { Review } from '../../../api';
 import {
     BadgeComponent,
     EpisodeListItemComponent,
@@ -17,32 +16,22 @@ import {
     HeroSurfaceComponent,
     ImageComponent,
     MediaCarouselPanelComponent,
-    MediaRatingDialogData,
-    MediaRatingDialogComponent,
-    MediaRatingDialogResult,
+    MediaRatingDialogService,
     MediaType,
     PageSectionComponent,
     PhotoViewerComponent,
     PhotosPreviewComponent,
     RepeatPipe,
-    RemoteData,
     SkeletonComponent,
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
     SeoService,
-    TmdbSigninDialogService,
     TmdbRatingComponent,
-    TmdbUserAuthService,
     UserRatingComponent,
-    UserSessionStoreService,
-    VideoCardItem,
     VideosGridComponent,
-    ViewerImage,
     buildYoutubeWatchUrl,
     isDefined,
-    remoteData,
-    remoteSuccess,
 } from '../../../shared';
 import { RecentlyViewedStoreService } from '../../../shared/services/recently-viewed-store.service';
 import { MinutesToHours } from '../../../shared/pipes/time.pipe';
@@ -51,26 +40,10 @@ import { MediaCreditsSummaryComponent } from '../media-credits-summary/media-cre
 import { MediaListActionsComponent } from '../media-list-actions/media-list-actions.component';
 import { MediaDetailActionsStore } from '../media-detail-actions-store.service';
 import { MediaDetailStoreService } from '../media-detail-store.service';
+import { MediaStoreService } from '../media-store.service';
 import { MediaTarget } from '../media-target';
 import { ReviewCardComponent } from '../review-card/review-card.component';
 import { toMediaSeoMetadata } from '../media-seo';
-
-interface MediaDetailVideosPreview {
-    readonly state: RemoteData<VideoCardItem[]>;
-    readonly totalCount: number;
-    readonly trailerKey: string | null;
-}
-
-interface MediaDetailPhotosPreview {
-    readonly state: RemoteData<ViewerImage[]>;
-    readonly allPhotos: ViewerImage[];
-    readonly totalCount: number;
-}
-
-interface MediaDetailReviewsPreview {
-    readonly previewReviews: readonly Review[];
-    readonly totalResults: number;
-}
 
 @Component({
     selector: 'app-media-detail-page',
@@ -105,99 +78,22 @@ interface MediaDetailReviewsPreview {
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MediaDetailPageComponent {
-    private readonly target$ = this.route.parent!.paramMap.pipe(
-        map((params) => ({
-            id: Number(params.get('id')),
-            type: (params.get('type') ?? 'movie') as MediaType,
-        })),
-        filter(({ id }) => Number.isInteger(id)),
-    );
+    private readonly target$ = this.mediaStore.currentTarget$;
 
-    readonly vm$ = combineLatest({
-        page: this.mediaDetailStore.pageData$,
-        creditsSummary: this.mediaDetailStore.creditsSummary$,
-        userRating: this.mediaActionsStore.ratingVm$,
-        target: this.target$,
-    }).pipe(
-        map(({ page, creditsSummary, userRating, target }) => {
-            const media = page.media;
-            const photos = remoteData(page.photosState, []);
-            const videoCount = page.videoTotalCount;
-            const trailerKey = page.trailer?.key ?? null;
-            const reviews = page.previewReviews;
-            const videos: RemoteData<MediaDetailVideosPreview | null> =
-                page.videosState.state === 'loading'
-                    ? { state: 'loading' }
-                    : remoteSuccess(
-                          videoCount
-                              ? {
-                                    state: page.videosState,
-                                    totalCount: videoCount,
-                                    trailerKey,
-                                }
-                              : null,
-                      );
-            const photoPreview: RemoteData<MediaDetailPhotosPreview | null> =
-                page.photosState.state === 'loading'
-                    ? { state: 'loading' }
-                    : remoteSuccess(
-                          photos.length
-                              ? {
-                                    state: page.photosState,
-                                    allPhotos: photos,
-                                    totalCount: photos.length,
-                                }
-                              : null,
-                      );
-            const reviewPreview: RemoteData<MediaDetailReviewsPreview | null> =
-                page.reviewsState.state === 'loading'
-                    ? { state: 'loading' }
-                    : remoteSuccess(
-                          reviews.length || page.reviewTotalResults
-                              ? {
-                                    previewReviews: reviews,
-                                    totalResults: page.reviewTotalResults,
-                                }
-                              : null,
-                      );
-
-            return {
-                media,
-                hero: {
-                    tvYearLabel: page.tvYearLabel,
-                    certification: page.certificationState,
-                    canRateTitle: page.canRateTitle,
-                    externalLinks: page.externalLinks,
-                    userRating,
-                    watchProviders: page.watchProviderState.state === 'success' ? page.watchProviderState.data : null,
-                },
-                inCinemas: page.inCinemas,
-                creditsSummary,
-                isMovie: target.type === 'movie',
-                collection: page.collectionState,
-                latestEpisode: media?.lastEpisode ?? null,
-                videos,
-                photos: photoPreview,
-                reviews: reviewPreview,
-                recommendations: page.relatedState,
-                keywords: page.keywordsState,
-            };
-        }),
-    );
+    readonly vm$ = this.mediaDetailStore.vm$;
 
     constructor(
         private readonly destroyRef: DestroyRef,
         private readonly dialog: MatDialog,
         private readonly mediaDetailStore: MediaDetailStoreService,
         private readonly mediaActionsStore: MediaDetailActionsStore,
+        private readonly mediaStore: MediaStoreService,
+        private readonly ratingDialog: MediaRatingDialogService,
         private readonly recentlyViewedStore: RecentlyViewedStoreService,
         private readonly route: ActivatedRoute,
         private readonly router: Router,
         private readonly snackbar: SnackbarService,
         private readonly seo: SeoService,
-        private readonly tmdbSigninDialog: TmdbSigninDialogService,
-        private readonly tmdbUserAuthService: TmdbUserAuthService,
-        private readonly userSessionStore: UserSessionStoreService,
         @Inject(DOCUMENT) private readonly document: Document,
     ) {
         this.mediaDetailStore.openOverview(
@@ -287,60 +183,24 @@ export class MediaDetailPageComponent {
         this.mediaActionsStore.ratingVm$
             .pipe(
                 take(1),
-                switchMap((rating) => {
-                    if (rating.disabled) {
-                        return EMPTY;
-                    }
-
-                    return this.dialog
-                        .open<MediaRatingDialogComponent, MediaRatingDialogData, MediaRatingDialogResult>(
-                            MediaRatingDialogComponent,
-                            {
-                                data: {
-                                    title,
-                                    currentRating: rating.currentRating,
-                                    authMode: this.userSessionStore.mode(),
-                                },
-                                maxWidth: '36rem',
-                                width: '100%',
-                            },
-                        )
-                        .afterClosed()
-                        .pipe(
-                            take(1),
-                            switchMap((result) => this.handleRatingDialogResult(target, result)),
-                        );
-                }),
+                filter((rating) => !rating.disabled),
+                switchMap((rating) =>
+                    this.ratingDialog.open$({
+                        title,
+                        currentRating: rating.currentRating,
+                        save: (value) =>
+                            this.mediaActionsStore
+                                .submitUserRating$(target, value)
+                                .pipe(catchError(() => this.showError('Could not save your rating.'))),
+                        remove: () =>
+                            this.mediaActionsStore
+                                .deleteUserRating$(target)
+                                .pipe(catchError(() => this.showError('Could not remove your rating.'))),
+                    }),
+                ),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
-    }
-
-    private handleRatingDialogResult(
-        target: MediaTarget,
-        result: MediaRatingDialogResult | undefined,
-    ): Observable<unknown> {
-        if (result === undefined) {
-            return EMPTY;
-        }
-
-        if (result.action === 'remove') {
-            return this.mediaActionsStore
-                .deleteUserRating$(target)
-                .pipe(catchError(() => this.showError('Could not remove your rating.')));
-        }
-
-        if (result.action === 'login') {
-            return this.tmdbSigninDialog.open$().pipe(catchError(() => this.showError('Could not start sign-in.')));
-        }
-
-        const save$ = result.saveAsGuest
-            ? this.tmdbUserAuthService
-                  .ensureGuestSession$()
-                  .pipe(switchMap(() => this.mediaActionsStore.submitUserRating$(target, result.value)))
-            : this.mediaActionsStore.submitUserRating$(target, result.value);
-
-        return save$.pipe(catchError(() => this.showError('Could not save your rating.')));
     }
 
     private showError(message: string): Observable<never> {

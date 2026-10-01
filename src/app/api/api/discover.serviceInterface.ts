@@ -18,6 +18,83 @@ import { TvSeriesPage } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface DiscoverMovieRequestParams {
+    certification?: string;
+    certificationGte?: string;
+    certificationLte?: string;
+    certificationCountry?: string;
+    includeAdult?: boolean;
+    includeVideo?: boolean;
+    language?: string;
+    page?: number;
+    primaryReleaseYear?: number;
+    primaryReleaseDateGte?: string;
+    primaryReleaseDateLte?: string;
+    region?: string;
+    releaseDateGte?: string;
+    releaseDateLte?: string;
+    sortBy?: 'original_title.asc' | 'original_title.desc' | 'popularity.asc' | 'popularity.desc' | 'revenue.asc' | 'revenue.desc' | 'primary_release_date.asc' | 'title.asc' | 'title.desc' | 'primary_release_date.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc';
+    voteAverageGte?: number;
+    voteAverageLte?: number;
+    voteCountGte?: number;
+    voteCountLte?: number;
+    watchRegion?: string;
+    withCast?: string;
+    withCompanies?: string;
+    withCrew?: string;
+    withGenres?: string;
+    withKeywords?: string;
+    withOriginCountry?: string;
+    withOriginalLanguage?: string;
+    withPeople?: string;
+    withReleaseType?: number;
+    withRuntimeGte?: number;
+    withRuntimeLte?: number;
+    withWatchMonetizationTypes?: string;
+    withWatchProviders?: string;
+    withoutCompanies?: string;
+    withoutGenres?: string;
+    withoutKeywords?: string;
+    withoutWatchProviders?: string;
+    year?: number;
+}
+
+export interface DiscoverTvRequestParams {
+    airDateGte?: string;
+    airDateLte?: string;
+    firstAirDateYear?: number;
+    firstAirDateGte?: string;
+    firstAirDateLte?: string;
+    includeAdult?: boolean;
+    includeNullFirstAirDates?: boolean;
+    language?: string;
+    page?: number;
+    screenedTheatrically?: boolean;
+    sortBy?: 'first_air_date.asc' | 'first_air_date.desc' | 'name.asc' | 'name.desc' | 'original_name.asc' | 'original_name.desc' | 'popularity.asc' | 'popularity.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc';
+    timezone?: string;
+    voteAverageGte?: number;
+    voteAverageLte?: number;
+    voteCountGte?: number;
+    voteCountLte?: number;
+    watchRegion?: string;
+    withCompanies?: string;
+    withGenres?: string;
+    withKeywords?: string;
+    withNetworks?: number;
+    withOriginCountry?: string;
+    withOriginalLanguage?: string;
+    withRuntimeGte?: number;
+    withRuntimeLte?: number;
+    withStatus?: string;
+    withWatchMonetizationTypes?: string;
+    withWatchProviders?: string;
+    withoutCompanies?: string;
+    withoutGenres?: string;
+    withoutKeywords?: string;
+    withoutWatchProviders?: string;
+    withType?: string;
+}
+
 
 export interface DiscoverRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -27,85 +104,16 @@ export interface DiscoverRestControllerServiceInterface {
      * Movie
      * Find movies using over 30 filters and sort options.
      * @endpoint get /discover/movie
-     * @param certification use in conjunction with &#x60;region&#x60;
-     * @param certificationGte use in conjunction with &#x60;region&#x60;
-     * @param certificationLte use in conjunction with &#x60;region&#x60;
-     * @param certificationCountry use in conjunction with the &#x60;certification&#x60;, &#x60;certification.gte&#x60; and &#x60;certification.lte&#x60; filters
-     * @param includeAdult 
-     * @param includeVideo 
-     * @param language 
-     * @param page 
-     * @param primaryReleaseYear 
-     * @param primaryReleaseDateGte 
-     * @param primaryReleaseDateLte 
-     * @param region 
-     * @param releaseDateGte 
-     * @param releaseDateLte 
-     * @param sortBy 
-     * @param voteAverageGte 
-     * @param voteAverageLte 
-     * @param voteCountGte 
-     * @param voteCountLte 
-     * @param watchRegion use in conjunction with &#x60;with_watch_monetization_types &#x60; or &#x60;with_watch_providers &#x60;
-     * @param withCast can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withCompanies can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withCrew can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withGenres can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withKeywords can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withOriginCountry 
-     * @param withOriginalLanguage 
-     * @param withPeople can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withReleaseType possible values are: [1, 2, 3, 4, 5, 6] can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query, can be used in conjunction with &#x60;region&#x60;
-     * @param withRuntimeGte 
-     * @param withRuntimeLte 
-     * @param withWatchMonetizationTypes possible values are: [flatrate, free, ads, rent, buy] use in conjunction with &#x60;watch_region&#x60;, can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withWatchProviders use in conjunction with &#x60;watch_region&#x60;, can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withoutCompanies 
-     * @param withoutGenres 
-     * @param withoutKeywords 
-     * @param withoutWatchProviders 
-     * @param year 
+* @param requestParameters
      */
-    discoverMovie(certification?: string, certificationGte?: string, certificationLte?: string, certificationCountry?: string, includeAdult?: boolean, includeVideo?: boolean, language?: string, page?: number, primaryReleaseYear?: number, primaryReleaseDateGte?: string, primaryReleaseDateLte?: string, region?: string, releaseDateGte?: string, releaseDateLte?: string, sortBy?: 'original_title.asc' | 'original_title.desc' | 'popularity.asc' | 'popularity.desc' | 'revenue.asc' | 'revenue.desc' | 'primary_release_date.asc' | 'title.asc' | 'title.desc' | 'primary_release_date.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc', voteAverageGte?: number, voteAverageLte?: number, voteCountGte?: number, voteCountLte?: number, watchRegion?: string, withCast?: string, withCompanies?: string, withCrew?: string, withGenres?: string, withKeywords?: string, withOriginCountry?: string, withOriginalLanguage?: string, withPeople?: string, withReleaseType?: number, withRuntimeGte?: number, withRuntimeLte?: number, withWatchMonetizationTypes?: string, withWatchProviders?: string, withoutCompanies?: string, withoutGenres?: string, withoutKeywords?: string, withoutWatchProviders?: string, year?: number, extraHttpRequestParams?: any): Observable<MoviePage>;
+    discoverMovie(requestParameters: DiscoverMovieRequestParams, extraHttpRequestParams?: any): Observable<MoviePage>;
 
     /**
      * TV
      * Find TV shows using over 30 filters and sort options.
      * @endpoint get /discover/tv
-     * @param airDateGte 
-     * @param airDateLte 
-     * @param firstAirDateYear 
-     * @param firstAirDateGte 
-     * @param firstAirDateLte 
-     * @param includeAdult 
-     * @param includeNullFirstAirDates 
-     * @param language 
-     * @param page 
-     * @param screenedTheatrically 
-     * @param sortBy 
-     * @param timezone 
-     * @param voteAverageGte 
-     * @param voteAverageLte 
-     * @param voteCountGte 
-     * @param voteCountLte 
-     * @param watchRegion use in conjunction with &#x60;with_watch_monetization_types &#x60; or &#x60;with_watch_providers &#x60;
-     * @param withCompanies can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withGenres can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withKeywords can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withNetworks 
-     * @param withOriginCountry 
-     * @param withOriginalLanguage 
-     * @param withRuntimeGte 
-     * @param withRuntimeLte 
-     * @param withStatus possible values are: [0, 1, 2, 3, 4, 5], can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withWatchMonetizationTypes possible values are: [flatrate, free, ads, rent, buy] use in conjunction with &#x60;watch_region&#x60;, can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withWatchProviders use in conjunction with &#x60;watch_region&#x60;, can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withoutCompanies 
-     * @param withoutGenres 
-     * @param withoutKeywords 
-     * @param withoutWatchProviders 
-     * @param withType possible values are: [0, 1, 2, 3, 4, 5, 6], can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
+* @param requestParameters
      */
-    discoverTv(airDateGte?: string, airDateLte?: string, firstAirDateYear?: number, firstAirDateGte?: string, firstAirDateLte?: string, includeAdult?: boolean, includeNullFirstAirDates?: boolean, language?: string, page?: number, screenedTheatrically?: boolean, sortBy?: 'first_air_date.asc' | 'first_air_date.desc' | 'name.asc' | 'name.desc' | 'original_name.asc' | 'original_name.desc' | 'popularity.asc' | 'popularity.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc', timezone?: string, voteAverageGte?: number, voteAverageLte?: number, voteCountGte?: number, voteCountLte?: number, watchRegion?: string, withCompanies?: string, withGenres?: string, withKeywords?: string, withNetworks?: number, withOriginCountry?: string, withOriginalLanguage?: string, withRuntimeGte?: number, withRuntimeLte?: number, withStatus?: string, withWatchMonetizationTypes?: string, withWatchProviders?: string, withoutCompanies?: string, withoutGenres?: string, withoutKeywords?: string, withoutWatchProviders?: string, withType?: string, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
+    discoverTv(requestParameters: DiscoverTvRequestParams, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
 
 }

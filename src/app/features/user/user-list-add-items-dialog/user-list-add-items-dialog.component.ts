@@ -8,14 +8,12 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { take } from 'rxjs';
 
 import { BadgeComponent, ImageComponent, SkeletonComponent } from '../../../shared';
 import { UserListAddItemsDialogStore, UserListAddItemsSearchResult } from './user-list-add-items-dialog-store.service';
 
 export interface UserListAddItemsDialogData {
     readonly listId: number;
-    readonly existingKeys: readonly string[];
 }
 
 @Component({
@@ -48,12 +46,12 @@ export class UserListAddItemsDialogComponent {
         private readonly store: UserListAddItemsDialogStore,
     ) {
         this.queryControl = this.formBuilder.control('');
-        this.store.initialize(this.data);
+        this.store.initialize(this.data.listId);
         this.queryControl.valueChanges.pipe(takeUntilDestroyed()).subscribe((query) => this.store.updateQuery(query));
     }
 
     addItem(item: UserListAddItemsSearchResult): void {
-        this.store.addItem$(item).pipe(take(1)).subscribe();
+        this.store.addItem$(item).subscribe();
     }
 
     close(): void {

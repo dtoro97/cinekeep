@@ -28,7 +28,10 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    GuestSessionRestControllerServiceInterface
+    GuestSessionRestControllerServiceInterface,
+    GuestSessionRatedMoviesRequestParams,
+    GuestSessionRatedTvRequestParams,
+    GuestSessionRatedTvEpisodesRequestParams
 } from './guestSession.serviceInterface';
 
 
@@ -46,21 +49,22 @@ export class GuestSessionRestControllerService extends BaseService implements Gu
      * Rated Movies
      * Get the rated movies for a guest session.
      * @endpoint get /guest_session/{guest_session_id}/rated/movies
-     * @param guestSessionId 
-     * @param language 
-     * @param page 
-     * @param sortBy 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public guestSessionRatedMovies(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedMoviePage>;
-    public guestSessionRatedMovies(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedMoviePage>>;
-    public guestSessionRatedMovies(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedMoviePage>>;
-    public guestSessionRatedMovies(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public guestSessionRatedMovies(requestParameters: GuestSessionRatedMoviesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedMoviePage>;
+    public guestSessionRatedMovies(requestParameters: GuestSessionRatedMoviesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedMoviePage>>;
+    public guestSessionRatedMovies(requestParameters: GuestSessionRatedMoviesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedMoviePage>>;
+    public guestSessionRatedMovies(requestParameters: GuestSessionRatedMoviesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const guestSessionId = requestParameters?.guestSessionId;
         if (guestSessionId === null || guestSessionId === undefined) {
             throw new Error('Required parameter guestSessionId was null or undefined when calling guestSessionRatedMovies.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const sortBy = requestParameters?.sortBy;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -139,21 +143,22 @@ export class GuestSessionRestControllerService extends BaseService implements Gu
      * Rated TV
      * Get the rated TV shows for a guest session.
      * @endpoint get /guest_session/{guest_session_id}/rated/tv
-     * @param guestSessionId 
-     * @param language 
-     * @param page 
-     * @param sortBy 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public guestSessionRatedTv(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedTvSeriesPage>;
-    public guestSessionRatedTv(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedTvSeriesPage>>;
-    public guestSessionRatedTv(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedTvSeriesPage>>;
-    public guestSessionRatedTv(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public guestSessionRatedTv(requestParameters: GuestSessionRatedTvRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedTvSeriesPage>;
+    public guestSessionRatedTv(requestParameters: GuestSessionRatedTvRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedTvSeriesPage>>;
+    public guestSessionRatedTv(requestParameters: GuestSessionRatedTvRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedTvSeriesPage>>;
+    public guestSessionRatedTv(requestParameters: GuestSessionRatedTvRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const guestSessionId = requestParameters?.guestSessionId;
         if (guestSessionId === null || guestSessionId === undefined) {
             throw new Error('Required parameter guestSessionId was null or undefined when calling guestSessionRatedTv.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const sortBy = requestParameters?.sortBy;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -232,21 +237,22 @@ export class GuestSessionRestControllerService extends BaseService implements Gu
      * Rated TV Episodes
      * Get the rated TV episodes for a guest session.
      * @endpoint get /guest_session/{guest_session_id}/rated/tv/episodes
-     * @param guestSessionId 
-     * @param language 
-     * @param page 
-     * @param sortBy 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public guestSessionRatedTvEpisodes(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedTvEpisodePage>;
-    public guestSessionRatedTvEpisodes(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedTvEpisodePage>>;
-    public guestSessionRatedTvEpisodes(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedTvEpisodePage>>;
-    public guestSessionRatedTvEpisodes(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public guestSessionRatedTvEpisodes(requestParameters: GuestSessionRatedTvEpisodesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedTvEpisodePage>;
+    public guestSessionRatedTvEpisodes(requestParameters: GuestSessionRatedTvEpisodesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedTvEpisodePage>>;
+    public guestSessionRatedTvEpisodes(requestParameters: GuestSessionRatedTvEpisodesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedTvEpisodePage>>;
+    public guestSessionRatedTvEpisodes(requestParameters: GuestSessionRatedTvEpisodesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const guestSessionId = requestParameters?.guestSessionId;
         if (guestSessionId === null || guestSessionId === undefined) {
             throw new Error('Required parameter guestSessionId was null or undefined when calling guestSessionRatedTvEpisodes.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const sortBy = requestParameters?.sortBy;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

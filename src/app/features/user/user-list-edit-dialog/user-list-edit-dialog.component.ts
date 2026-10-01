@@ -21,21 +21,22 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
-import { V4ListSortBy } from '../../../api-v4';
+
+import { UserListSortBy } from '../../../shared';
 import { DEFAULT_USER_LIST_SORT_BY, USER_LIST_SORT_OPTIONS } from '../user-list-sort-options';
 
 export interface UserListEditDialogData {
     readonly name: string;
     readonly description: string | null;
     readonly isPublic: boolean;
-    readonly sortBy?: V4ListSortBy;
+    readonly sortBy?: UserListSortBy;
 }
 
 export interface UserListEditDialogResult {
     readonly name: string;
     readonly description: string;
     readonly isPublic: boolean;
-    readonly sortBy?: V4ListSortBy;
+    readonly sortBy?: UserListSortBy;
 }
 
 const trimmedRequiredValidator: ValidatorFn = (
@@ -73,7 +74,7 @@ export class UserListEditDialogComponent {
         name: FormControl<string>;
         description: FormControl<string>;
         isPublic: FormControl<boolean>;
-        sortBy: FormControl<V4ListSortBy>;
+        sortBy: FormControl<UserListSortBy>;
     }>;
 
     constructor(

@@ -1,10 +1,9 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute } from '@angular/router';
 
-import { combineLatest, map, tap } from 'rxjs';
+import { combineLatest, filter, map, tap } from 'rxjs';
 
 import {
     PhotoViewerComponent,
@@ -13,9 +12,12 @@ import {
     PhotosBrowserSkeletonComponent,
     SeoService,
     SubPageHeaderComponent,
+    formatTitleWithYear,
+    parseBoundedIntegerParam,
 } from '../../../shared';
 import { MediaSeasonsStoreService } from '../media-seasons-store.service';
 import { MediaStoreService } from '../media-store.service';
+import { MediaTarget } from '../media-target';
 import { toMediaSectionSeoMetadata } from '../media-seo';
 
 @Component({
@@ -26,21 +28,36 @@ import { toMediaSectionSeoMetadata } from '../media-seo';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SeasonPhotosPageComponent {
-    readonly pageTitle: string;
-    readonly backLink: readonly string[];
+    readonly seasonNumber = input.required<string>();
+
+    private readonly season$ = combineLatest([
+        this.mediaStore.currentTarget$,
+        toObservable(this.seasonNumber).pipe(map((value) => parseBoundedIntegerParam(value, 0, Number.MAX_SAFE_INTEGER))),
+    ]).pipe(
+        filter((season): season is [MediaTarget, number] => season[1] !== null),
+        map(([target, seasonNumber]) => ({
+            target,
+            seasonNumber,
+            pageTitle: `Season ${seasonNumber} Photos`,
+            backLink: ['/title', target.id, target.type, 'episodes', seasonNumber],
+        })),
+    );
 
     readonly vm$ = combineLatest({
+        season: this.season$,
         mediaState: this.mediaStore.mediaDetailsState$,
         photosState: this.mediaSeasonsStoreService.seasonImagesState$,
     }).pipe(
-        map(({ mediaState, photosState }) => {
+        map(({ season, mediaState, photosState }) => {
             const media = mediaState.state === 'success' ? mediaState.data : null;
 
             return {
                 media,
                 photosState,
+                pageTitle: season.pageTitle,
+                backLink: season.backLink,
                 showSkeleton: mediaState.state === 'loading' || photosState.state === 'loading',
-                subtitle: media?.title ? `${media.title}${media.year ? ` (${media.year})` : ''}` : null,
+                subtitle: media?.title ? formatTitleWithYear(media.title, media.year) : null,
             };
         }),
     );
@@ -48,24 +65,24 @@ export class SeasonPhotosPageComponent {
     constructor(
         private readonly mediaStore: MediaStoreService,
         private readonly mediaSeasonsStoreService: MediaSeasonsStoreService,
-        private readonly route: ActivatedRoute,
         private readonly dialog: MatDialog,
         private readonly seo: SeoService,
     ) {
-        const seriesId = Number(this.route.parent!.snapshot.paramMap.get('id'));
-        const mediaType = this.route.parent!.snapshot.paramMap.get('type') ?? 'tv';
-        const seasonNumber = Number(this.route.snapshot.paramMap.get('seasonNumber'));
-
-        this.pageTitle = `Season ${seasonNumber} Photos`;
-        this.backLink = ['/title', String(seriesId), mediaType, 'episodes', String(seasonNumber)];
-        this.mediaSeasonsStoreService.openSeason({ seriesId, seasonNumber });
+        this.season$
+            .pipe(
+                tap(({ target, seasonNumber }) =>
+                    this.mediaSeasonsStoreService.openSeason({ seriesId: target.id, seasonNumber }),
+                ),
+                takeUntilDestroyed(),
+            )
+            .subscribe();
 
         this.vm$
             .pipe(
                 tap((vm) => {
                     if (vm.media) {
                         this.seo.setPage(
-                            toMediaSectionSeoMetadata(vm.media, this.pageTitle),
+                            toMediaSectionSeoMetadata(vm.media, vm.pageTitle),
                         );
                     }
                 }),

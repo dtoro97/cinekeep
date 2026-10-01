@@ -1,8 +1,7 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
-import { ActivatedRoute } from '@angular/router';
 
 import { combineLatest, distinctUntilChanged, filter, map, tap } from 'rxjs';
 
@@ -12,11 +11,15 @@ import {
     PhotosBrowserSelection,
     PhotosBrowserSkeletonComponent,
     buildTmdbImageUrl,
+    formatEpisodeCode,
+    formatTitleWithYear,
+    isDefined,
     SeoService,
     SubPageHeaderComponent,
 } from '../../../shared';
 import { EpisodeDetailStoreService } from '../episode-detail-page/episode-detail-store.service';
 import { MediaStoreService } from '../media-store.service';
+import { isSameEpisodeTarget, toEpisodeTarget } from '../media-target';
 
 @Component({
     selector: 'app-episode-photos-page',
@@ -26,21 +29,34 @@ import { MediaStoreService } from '../media-store.service';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EpisodePhotosPageComponent {
-    readonly episodeCode: string;
-    readonly backLink: readonly string[];
+    readonly seasonNumber = input.required<string>();
+    readonly episodeNumber = input.required<string>();
+
+    private readonly episodeTarget$ = combineLatest([
+        this.mediaStore.currentTarget$,
+        toObservable(this.seasonNumber),
+        toObservable(this.episodeNumber),
+    ]).pipe(
+        map(([target, seasonNumber, episodeNumber]) => toEpisodeTarget(target.id, seasonNumber, episodeNumber)),
+        filter(isDefined),
+        distinctUntilChanged(isSameEpisodeTarget),
+    );
 
     readonly vm$ = combineLatest({
+        target: this.mediaStore.currentTarget$,
+        episodeTarget: this.episodeTarget$,
         mediaState: this.mediaStore.mediaDetailsState$,
         episodeState: this.episodeStore.episodeState$,
         photosState: this.episodeStore.allStillsState$,
     }).pipe(
-        map(({ mediaState, episodeState, photosState }) => {
+        map(({ target, episodeTarget, mediaState, episodeState, photosState }) => {
             const media = mediaState.state === 'success' ? mediaState.data : null;
             const episode = episodeState.state === 'success' ? episodeState.data : null;
-            const pageTitle = episode?.name ? `${episode.name} Photos` : `${this.episodeCode} Photos`;
+            const episodeCode = formatEpisodeCode(episodeTarget.seasonNumber, episodeTarget.episodeNumber);
+            const pageTitle = episode?.name ? `${episode.name} Photos` : `${episodeCode} Photos`;
             const subtitle = media?.title
-                ? `${media.title}${media.year ? ` (${media.year})` : ''} - ${this.episodeCode}`
-                : this.episodeCode;
+                ? `${formatTitleWithYear(media.title, media.year)} - ${episodeCode}`
+                : episodeCode;
 
             return {
                 media,
@@ -48,6 +64,14 @@ export class EpisodePhotosPageComponent {
                 photosState,
                 pageTitle,
                 subtitle,
+                backLink: [
+                    '/title',
+                    target.id,
+                    target.type,
+                    'episodes',
+                    episodeTarget.seasonNumber,
+                    episodeTarget.episodeNumber,
+                ],
             };
         }),
     );
@@ -55,53 +79,16 @@ export class EpisodePhotosPageComponent {
     constructor(
         private readonly mediaStore: MediaStoreService,
         private readonly episodeStore: EpisodeDetailStoreService,
-        private readonly route: ActivatedRoute,
         private readonly dialog: MatDialog,
         private readonly seo: SeoService,
     ) {
-        const seriesId = Number(this.route.parent!.snapshot.paramMap.get('id'));
-        const mediaType = this.route.parent!.snapshot.paramMap.get('type') ?? 'tv';
-        const seasonNumber = Number(this.route.snapshot.paramMap.get('seasonNumber'));
-        const episodeNumber = Number(this.route.snapshot.paramMap.get('episodeNumber'));
-
-        this.episodeCode = `S${seasonNumber}E${episodeNumber}`;
-        this.backLink = [
-            '/title',
-            String(seriesId),
-            mediaType,
-            'episodes',
-            String(seasonNumber),
-            String(episodeNumber),
-        ];
-
-        this.episodeStore.loadPhotos(
-            combineLatest([this.route.paramMap, this.route.parent!.paramMap]).pipe(
-                map(([params, parentParams]) => ({
-                    seriesId: Number(parentParams.get('id')),
-                    seasonNumber: Number(params.get('seasonNumber')),
-                    episodeNumber: Number(params.get('episodeNumber')),
-                })),
-                filter(
-                    ({ seriesId, seasonNumber, episodeNumber }) =>
-                        Number.isInteger(seriesId) &&
-                        Number.isInteger(seasonNumber) &&
-                        Number.isInteger(episodeNumber),
-                ),
-                distinctUntilChanged(
-                    (previous, current) =>
-                        previous.seriesId === current.seriesId &&
-                        previous.seasonNumber === current.seasonNumber &&
-                        previous.episodeNumber === current.episodeNumber,
-                ),
-                takeUntilDestroyed(),
-            ),
-        );
+        this.episodeStore.loadPhotos(this.episodeTarget$.pipe(takeUntilDestroyed()));
 
         this.vm$
             .pipe(
                 tap((vm) => {
                     if (vm.media) {
-                        const mediaTitle = toMediaDisplayTitle(vm.media);
+                        const mediaTitle = formatTitleWithYear(vm.media.title, vm.media.year);
                         const imagePath =
                             vm.episode?.still_path ??
                             vm.media.backdropPath ??
@@ -140,6 +127,3 @@ export class EpisodePhotosPageComponent {
         });
     }
 }
-
-const toMediaDisplayTitle = (media: { readonly title: string; readonly year: string }): string =>
-    media.year ? `${media.title} (${media.year})` : media.title;

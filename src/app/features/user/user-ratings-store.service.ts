@@ -1,51 +1,32 @@
 import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
-import {
-    EMPTY,
-    catchError,
-    forkJoin,
-    map,
-    switchMap,
-    tap,
-    throwError,
-} from 'rxjs';
+import { EMPTY, Observable, catchError, map, switchMap, tap, throwError } from 'rxjs';
 
 import {
-    AccountRestControllerService,
-    RatedMovieListItem,
-    RatedMoviePage,
-    RatedTvEpisodeListItem,
-    RatedTvEpisodePage,
-    RatedTvSeriesListItem,
-    RatedTvSeriesPage,
-} from '../../api';
-import { API_JSON_OPTIONS, PAGE_SIZE } from '../../constants';
+    EpisodeRatingControllerService,
+    EpisodeRatingResponse,
+    PageResponseEpisodeRatingResponse,
+    PageResponseRatingResponse,
+    RatingControllerService,
+} from '../../api-cinekeep';
+import { PAGE_SIZE } from '../../constants';
 import {
-    CardItem,
+    EpisodeSnapshotRequest,
     EpisodeListItemData,
     RemoteData,
-    LocaleStoreService,
     MediaRatingService,
     MediaListItem,
     MediaType,
     SortDirection,
-    TmdbUserAccountService,
     isDefined,
-    toCardItem,
+    pluralize,
+    toSnapshotMediaListItem,
 } from '../../shared';
-import { remoteSuccess } from '../../shared/utils';
+import { remoteSuccess, updateRemoteData } from '../../shared/utils';
+import { toRatedEpisodeRef, toTotalAfterMediaRemoval } from './user-account-media.helpers';
 import {
-    toTotalAfterMediaRemoval,
-    toUserAccountMediaListItem,
-} from './user-account-media.helpers';
-import {
-    DEFAULT_USER_ACCOUNT_SORT_BY,
     DEFAULT_USER_ACCOUNT_SORT_DIRECTION,
-    DEFAULT_USER_ACCOUNT_SORT_FIELD,
-    toUserAccountSortBy,
-    UserAccountSortBy,
-    UserAccountSortField,
 } from './user-list-sort-options';
 
 export type UserRatingContentType = MediaType | 'episode';
@@ -60,45 +41,47 @@ export interface UserRatedEpisodeItem {
     readonly item: EpisodeListItemData;
 }
 
+type UserRatingsPageResult =
+    | {
+          readonly contentType: 'episode';
+          readonly items: UserRatedEpisodeItem[];
+          readonly page: number;
+          readonly totalResults: number;
+      }
+    | {
+          readonly contentType: MediaType;
+          readonly items: MediaListItem[];
+          readonly page: number;
+          readonly totalResults: number;
+      };
+
 interface UserRatingsState {
-    readonly items: RemoteData<CardItem[]>;
-    readonly totalResults: number;
     readonly pageItems: RemoteData<MediaListItem[]>;
     readonly episodePageItems: RemoteData<UserRatedEpisodeItem[]>;
     readonly contentType: UserRatingContentType;
     readonly page: number;
     readonly pageTotalResults: number;
-    readonly sortField: UserAccountSortField;
     readonly sortDirection: SortDirection;
 }
 
 interface UserRatingsPageChanges {
     readonly contentType?: UserRatingContentType;
-    readonly sortField?: UserAccountSortField;
     readonly sortDirection?: SortDirection;
 }
 
 const INITIAL_PAGE = 1;
 
 const INITIAL_STATE: UserRatingsState = {
-    items: { state: 'notAsked' },
-    totalResults: 0,
     pageItems: { state: 'notAsked' },
     episodePageItems: { state: 'notAsked' },
     contentType: 'movie',
     page: INITIAL_PAGE,
     pageTotalResults: 0,
-    sortField: DEFAULT_USER_ACCOUNT_SORT_FIELD,
     sortDirection: DEFAULT_USER_ACCOUNT_SORT_DIRECTION,
 };
 
 @Injectable()
 export class UserRatingsStore extends ComponentStore<UserRatingsState> {
-    readonly ratingsViewModel$ = this.select((state) => ({
-        state: state.items,
-        total: state.totalResults,
-    }));
-
     readonly ratingsPageViewModel$ = this.select((state) => ({
         contentType: state.contentType,
         mediaItems: state.pageItems,
@@ -109,7 +92,6 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
                 : state.pageItems.state,
         page: state.page - 1,
         pageSize: PAGE_SIZE,
-        sortField: state.sortField,
         sortDirection: state.sortDirection,
         total: state.pageTotalResults,
         emptyState: this.toEmptyState(state.contentType),
@@ -117,47 +99,23 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
     }));
 
     constructor(
-        private readonly accountService: AccountRestControllerService,
-        private readonly localeStore: LocaleStoreService,
+        private readonly episodeRatingController: EpisodeRatingControllerService,
         private readonly mediaRatingService: MediaRatingService,
-        private readonly tmdbUserAccountService: TmdbUserAccountService,
+        private readonly ratingController: RatingControllerService,
     ) {
         super(INITIAL_STATE);
-    }
-
-    load$() {
-        const previousState = this.get();
-
-        this.patchState({
-            items: { state: 'loading' },
-        });
-
-        return this.fetchRatedTitles$().pipe(
-            tap((result) => {
-                this.patchState({
-                    items: remoteSuccess(result.items),
-                    totalResults: result.totalResults,
-                });
-            }),
-            catchError((error: unknown) => {
-                this.setState(previousState);
-                return throwError(() => error);
-            }),
-        );
     }
 
     loadPage$(pageIndex: number, changes: UserRatingsPageChanges = {}) {
         const previousState = this.get();
         const page = pageIndex + 1;
         const contentType = changes.contentType ?? previousState.contentType;
-        const sortField = changes.sortField ?? previousState.sortField;
         const sortDirection =
             changes.sortDirection ?? previousState.sortDirection;
 
         this.patchState({
             contentType,
             page,
-            sortField,
             sortDirection,
         });
 
@@ -167,11 +125,7 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
             this.patchState({ pageItems: { state: 'loading' } });
         }
 
-        return this.fetchRatingsPage$(
-            contentType,
-            page,
-            toUserAccountSortBy(sortField, sortDirection),
-        ).pipe(
+        return this.fetchRatingsPage$(contentType, page, sortDirection).pipe(
             tap((result) => {
                 if (result.contentType === 'episode') {
                     this.patchState({
@@ -201,18 +155,6 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
         }
 
         return this.loadPage$(0, { contentType });
-    }
-
-    setSortField$(sortField: unknown) {
-        if (sortField !== DEFAULT_USER_ACCOUNT_SORT_FIELD) {
-            return EMPTY;
-        }
-
-        if (this.get().sortField === sortField) {
-            return EMPTY;
-        }
-
-        return this.loadPage$(0, { sortField });
     }
 
     toggleSortDirection$() {
@@ -247,8 +189,9 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
             );
     }
 
+    /** CineKeep keeps stored snapshot fields that are not sent, so the title alone is enough. */
     updateMediaRating$(item: MediaListItem, value: number) {
-        return this.mediaRatingService.rateMedia$(item.id, item.mediaType, value).pipe(
+        return this.mediaRatingService.rateMedia$(item.id, item.mediaType, value, { title: item.title }).pipe(
             tap(() => this.patchRatedMediaItemRating(item, value)),
         );
     }
@@ -289,168 +232,60 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
                 item.seasonNumber,
                 item.episodeNumber,
                 value,
+                this.toEpisodeSnapshot(item),
             )
             .pipe(tap(() => this.patchRatedEpisodeItemRating(item, value)));
-    }
-
-    private fetchRatedTitles$() {
-        return this.tmdbUserAccountService.ensureAccount$().pipe(
-            switchMap(({ accountId, sessionId }) => {
-                const language = this.localeStore.language();
-
-                return forkJoin({
-                    movies: this.accountService.accountRatedMovies(
-                        accountId,
-                        language,
-                        1,
-                        sessionId,
-                        DEFAULT_USER_ACCOUNT_SORT_BY,
-                        'body',
-                        false,
-                        API_JSON_OPTIONS,
-                    ),
-                    tv: this.accountService.accountRatedTv(
-                        accountId,
-                        language,
-                        1,
-                        sessionId,
-                        DEFAULT_USER_ACCOUNT_SORT_BY,
-                        'body',
-                        false,
-                        API_JSON_OPTIONS,
-                    ),
-                    episodes: this.accountService.accountRatedTvEpisodes(
-                        accountId,
-                        language,
-                        1,
-                        sessionId,
-                        DEFAULT_USER_ACCOUNT_SORT_BY,
-                        'body',
-                        false,
-                        API_JSON_OPTIONS,
-                    ),
-                });
-            }),
-            map(({ movies, tv, episodes }) => {
-                const movieItems = (movies.results ?? []).map((item) => ({
-                    ...toCardItem(item, 'movie'),
-                    rating: item.rating ?? null,
-                }));
-                const tvItems = (tv.results ?? []).map((item) => ({
-                    ...toCardItem(item, 'tv'),
-                    rating: item.rating ?? null,
-                }));
-                const episodeItems = (episodes.results ?? [])
-                    .map((item) => this.toRatedEpisodeCardItem(item))
-                    .filter(isDefined);
-
-                return {
-                    items: [...movieItems, ...tvItems, ...episodeItems],
-                    totalResults:
-                        (movies.total_results ?? movieItems.length) +
-                        (tv.total_results ?? tvItems.length) +
-                        (episodes.total_results ?? episodeItems.length),
-                };
-            }),
-        );
     }
 
     private fetchRatingsPage$(
         contentType: UserRatingContentType,
         page: number,
-        sortBy: UserAccountSortBy,
-    ) {
-        return this.tmdbUserAccountService.ensureAccount$().pipe(
-            switchMap(({ accountId, sessionId }) => {
-                const language = this.localeStore.language();
-
-                if (contentType === 'episode') {
-                    return this.accountService.accountRatedTvEpisodes(
-                        accountId,
-                        language,
-                        page,
-                        sessionId,
-                        sortBy,
-                        'body',
-                        false,
-                        API_JSON_OPTIONS,
-                    );
-                }
-
-                if (contentType === 'movie') {
-                    return this.accountService.accountRatedMovies(
-                        accountId,
-                        language,
-                        page,
-                        sessionId,
-                        sortBy,
-                        'body',
-                        false,
-                        API_JSON_OPTIONS,
-                    );
-                }
-
-                return this.accountService.accountRatedTv(
-                    accountId,
-                    language,
-                    page,
-                    sessionId,
-                    sortBy,
-                    'body',
-                    false,
-                    API_JSON_OPTIONS,
-                );
-            }),
-            map((result) => this.toRatingsPage(result, contentType, page)),
-        );
-    }
-
-    private toRatingsPage(
-        result: RatedMoviePage | RatedTvSeriesPage | RatedTvEpisodePage,
-        contentType: UserRatingContentType,
-        requestedPage: number,
-    ) {
+        sortDirection: SortDirection,
+    ): Observable<UserRatingsPageResult> {
         if (contentType === 'episode') {
-            return {
-                contentType,
-                items: ((result as RatedTvEpisodePage).results ?? [])
-                    .map((item) => this.toRatedEpisodeItem(item))
-                    .filter(isDefined),
-                page: result.page ?? requestedPage,
-                totalResults: result.total_results ?? 0,
-            };
+            return this.episodeRatingController
+                .getEpisodeRatings({ page: page - 1, size: PAGE_SIZE, sortDirection })
+                .pipe(map((result) => this.toEpisodeRatingsPage(result, page)));
         }
 
+        return this.ratingController
+            .getRatings({ mediaType: contentType, page: page - 1, size: PAGE_SIZE, sortDirection })
+            .pipe(map((result) => this.toMediaRatingsPage(result, contentType, page)));
+    }
+
+    private toEpisodeRatingsPage(
+        result: PageResponseEpisodeRatingResponse,
+        requestedPage: number,
+    ): UserRatingsPageResult {
         return {
-            contentType,
-            items: (
-                (result as RatedMoviePage | RatedTvSeriesPage).results ?? []
-            )
-                .map((item) => this.toRatedMediaItem(item, contentType))
-                .filter(isDefined),
-            page: result.page ?? requestedPage,
-            totalResults: result.total_results ?? 0,
+            contentType: 'episode',
+            items: (result.content ?? []).map((item) => this.toRatedEpisodeItem(item)).filter(isDefined),
+            page: requestedPage,
+            totalResults: result.totalElements ?? 0,
         };
     }
 
-    private toRatedMediaItem(
-        item: RatedMovieListItem | RatedTvSeriesListItem,
-        mediaType: MediaType,
-    ): MediaListItem | null {
-        return toUserAccountMediaListItem(item, mediaType, item.rating ?? null);
+    private toMediaRatingsPage(
+        result: PageResponseRatingResponse,
+        contentType: MediaType,
+        requestedPage: number,
+    ): UserRatingsPageResult {
+        return {
+            contentType,
+            items: (result.content ?? []).map((item) => toSnapshotMediaListItem(item, item.value ?? null)).filter(isDefined),
+            page: requestedPage,
+            totalResults: result.totalElements ?? 0,
+        };
     }
 
-    private toRatedEpisodeItem(
-        item: RatedTvEpisodeListItem,
-    ): UserRatedEpisodeItem | null {
-        const seriesId = item.show_id ?? null;
-        const seasonNumber = item.season_number ?? null;
-        const episodeNumber = item.episode_number ?? null;
-        const title = item.name?.trim() || 'Untitled episode';
+    private toRatedEpisodeItem(item: EpisodeRatingResponse): UserRatedEpisodeItem | null {
+        const episode = toRatedEpisodeRef(item);
 
-        if (seriesId === null || seasonNumber === null || episodeNumber === null) {
+        if (!episode) {
             return null;
         }
+
+        const { seriesId, seasonNumber, episodeNumber, title } = episode;
 
         return {
             key: `${seriesId}-${seasonNumber}-${episodeNumber}`,
@@ -458,59 +293,38 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
             seasonNumber,
             episodeNumber,
             title,
-            rating: item.rating ?? null,
+            rating: item.value ?? null,
             item: {
                 name: title,
-                subtitle: null,
-                overview: item.overview?.trim() ?? '',
-                stillPath: item.still_path ?? null,
+                subtitle: item.seriesTitle?.trim() || null,
+                overview: '',
+                stillPath: item.stillPath ?? null,
                 seasonNumber,
                 episodeNumber,
-                airDate: item.air_date ?? null,
-                runtime: item.runtime ?? null,
-                voteAverage: item.rating ?? null,
-                routeCommands: [
-                    '/title',
-                    seriesId,
-                    'tv',
-                    'episodes',
-                    seasonNumber,
-                    episodeNumber,
-                ],
+                airDate: item.airDate ?? null,
+                runtime: null,
+                voteAverage: item.value ?? null,
+                routeCommands: ['/title', seriesId, 'tv', 'episodes', seasonNumber, episodeNumber],
             },
         };
     }
 
-    private toRatedEpisodeCardItem(
-        item: RatedTvEpisodeListItem,
-    ): CardItem | null {
-        const seriesId = item.show_id ?? null;
-        const seasonNumber = item.season_number ?? null;
-        const episodeNumber = item.episode_number ?? null;
-        const title = item.name?.trim() || 'Untitled episode';
+    /**
+     * A rating update overwrites the episode fields, so they are re-sent as stored. The series
+     * only needs its title; without one, the snapshot is fetched from TMDb instead.
+     */
+    private toEpisodeSnapshot(item: UserRatedEpisodeItem): EpisodeSnapshotRequest | undefined {
+        const seriesTitle = item.item.subtitle;
 
-        if (seriesId === null || seasonNumber === null || episodeNumber === null) {
-            return null;
+        if (!seriesTitle) {
+            return undefined;
         }
 
         return {
-            id: seriesId,
-            mediaType: 'tv',
-            title,
-            imagePath: item.still_path ?? null,
-            backdropPath: null,
-            rating: item.rating ?? null,
-            date: item.air_date ?? '',
-            overview: item.overview?.trim() ?? '',
-            role: `S${seasonNumber}E${episodeNumber}`,
-            routeCommands: [
-                '/title',
-                seriesId,
-                'tv',
-                'episodes',
-                seasonNumber,
-                episodeNumber,
-            ],
+            episodeName: item.title,
+            stillPath: item.item.stillPath ?? undefined,
+            airDate: item.item.airDate ?? undefined,
+            series: { title: seriesTitle },
         };
     }
 
@@ -519,14 +333,14 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
         totalResults: number,
     ): string {
         if (contentType === 'episode') {
-            return `${totalResults} episode rating${totalResults === 1 ? '' : 's'}`;
+            return pluralize(totalResults, 'episode rating');
         }
 
         if (contentType === 'tv') {
-            return `${totalResults} TV series rating${totalResults === 1 ? '' : 's'}`;
+            return pluralize(totalResults, 'TV series rating');
         }
 
-        return `${totalResults} movie rating${totalResults === 1 ? '' : 's'}`;
+        return pluralize(totalResults, 'movie rating');
     }
 
     private toEmptyState(contentType: UserRatingContentType) {
@@ -575,51 +389,26 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
     }
 
     private patchRatedMediaItemRating(item: MediaListItem, value: number): void {
-        const state = this.get();
-
-        if (state.pageItems.state !== 'success') {
-            return;
-        }
-
-        this.patchState({
-            pageItems: {
-                state: 'success',
-                data: state.pageItems.data.map((pageItem) =>
-                    pageItem.id === item.id &&
-                    pageItem.mediaType === item.mediaType
+        this.patchState((state) => ({
+            pageItems: updateRemoteData(state.pageItems, (items) =>
+                items.map((pageItem) =>
+                    pageItem.id === item.id && pageItem.mediaType === item.mediaType
                         ? { ...pageItem, rating: value }
                         : pageItem,
                 ),
-            },
-        });
+            ),
+        }));
     }
 
-    private patchRatedEpisodeItemRating(
-        item: UserRatedEpisodeItem,
-        value: number,
-    ): void {
-        const state = this.get();
-
-        if (state.episodePageItems.state !== 'success') {
-            return;
-        }
-
-        this.patchState({
-            episodePageItems: {
-                state: 'success',
-                data: state.episodePageItems.data.map((pageItem) =>
+    private patchRatedEpisodeItemRating(item: UserRatedEpisodeItem, value: number): void {
+        this.patchState((state) => ({
+            episodePageItems: updateRemoteData(state.episodePageItems, (items) =>
+                items.map((pageItem) =>
                     pageItem.key === item.key
-                        ? {
-                              ...pageItem,
-                              rating: value,
-                              item: {
-                                  ...pageItem.item,
-                                  voteAverage: value,
-                              },
-                          }
+                        ? { ...pageItem, rating: value, item: { ...pageItem.item, voteAverage: value } }
                         : pageItem,
                 ),
-            },
-        });
+            ),
+        }));
     }
 }

@@ -53,7 +53,8 @@
 
                 <div class="actions">
                     <ng-content />
-                    <app-watchlist-toggle
+                    <app-library-toggle
+                        flag="watchlist"
                         [mediaId]="spotlight.id"
                         [mediaType]="spotlight.mediaType"
                         [title]="spotlight.title"

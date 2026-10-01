@@ -24,7 +24,8 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    TvEpisodeGroupRestControllerServiceInterface
+    TvEpisodeGroupRestControllerServiceInterface,
+    TvEpisodeGroupDetailsRequestParams
 } from './tvEpisodeGroup.serviceInterface';
 
 
@@ -42,15 +43,16 @@ export class TvEpisodeGroupRestControllerService extends BaseService implements 
      * Details
      * Get the details of a TV episode group.
      * @endpoint get /tv/episode_group/{tv_episode_group_id}
-     * @param tvEpisodeGroupId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvEpisodeGroupDetails(tvEpisodeGroupId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<EpisodeGroupDetails>;
-    public tvEpisodeGroupDetails(tvEpisodeGroupId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<EpisodeGroupDetails>>;
-    public tvEpisodeGroupDetails(tvEpisodeGroupId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<EpisodeGroupDetails>>;
-    public tvEpisodeGroupDetails(tvEpisodeGroupId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvEpisodeGroupDetails(requestParameters: TvEpisodeGroupDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<EpisodeGroupDetails>;
+    public tvEpisodeGroupDetails(requestParameters: TvEpisodeGroupDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<EpisodeGroupDetails>>;
+    public tvEpisodeGroupDetails(requestParameters: TvEpisodeGroupDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<EpisodeGroupDetails>>;
+    public tvEpisodeGroupDetails(requestParameters: TvEpisodeGroupDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const tvEpisodeGroupId = requestParameters?.tvEpisodeGroupId;
         if (tvEpisodeGroupId === null || tvEpisodeGroupId === undefined) {
             throw new Error('Required parameter tvEpisodeGroupId was null or undefined when calling tvEpisodeGroupDetails.');
         }

@@ -1,6 +1,6 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { combineLatest, distinctUntilChanged, filter, map, shareReplay, tap } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
@@ -17,10 +17,11 @@ import {
     VideosGridComponent,
     ViewerImage,
 } from '../../../shared';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MediaSeasonsStoreService } from '../media-seasons-store.service';
 import { EpisodeListComponent } from '../episode-list/episode-list.component';
 import { MediaStoreService } from '../media-store.service';
+import { MediaTarget } from '../media-target';
 import { toMediaSectionSeoMetadata } from '../media-seo';
 
 interface SeasonDetailRouteData {
@@ -53,9 +54,14 @@ interface SeasonDetailRouteData {
     styleUrl: './season-detail-page.component.scss',
 })
 export class SeasonDetailPageComponent {
-    private readonly routeData$ = combineLatest([this.route.parent!.paramMap, this.route.paramMap]).pipe(
-        map(([parentParams, params]) => readSeasonDetailRoute(parentParams, params)),
-        filter(({ seriesId }) => Number.isInteger(seriesId)),
+    /** Absent on the `episodes` route, which opens the default season. */
+    readonly seasonNumber = input<string>();
+
+    private readonly routeData$ = combineLatest([
+        this.mediaStore.currentTarget$,
+        toObservable(this.seasonNumber),
+    ]).pipe(
+        map(([target, seasonNumber]) => readSeasonDetailRoute(target, seasonNumber)),
         distinctUntilChanged(isSameSeasonDetailRoute),
         shareReplay({ bufferSize: 1, refCount: true }),
     );
@@ -102,7 +108,6 @@ export class SeasonDetailPageComponent {
     constructor(
         public mediaStore: MediaStoreService,
         public mediaSeasonsStoreService: MediaSeasonsStoreService,
-        private route: ActivatedRoute,
         private router: Router,
         private seo: SeoService,
         private dialog: MatDialog,
@@ -175,13 +180,7 @@ export class SeasonDetailPageComponent {
             return;
         }
 
-        const { mediaType, seriesId } = routeData;
-
-        if (!Number.isInteger(seriesId)) {
-            return;
-        }
-
-        this.router.navigate(['/title', seriesId, mediaType, 'episodes', seasonNumber]);
+        this.router.navigate(['/title', routeData.seriesId, routeData.mediaType, 'episodes', seasonNumber]);
     }
 
     openPhotoViewer(index: number, images: ViewerImage[]): void {
@@ -205,28 +204,19 @@ export class SeasonDetailPageComponent {
             return;
         }
 
-        const { mediaType, seriesId } = routeData;
-
-        if (!Number.isInteger(seriesId)) {
-            return;
-        }
-
-        this.router.navigate(['/title', seriesId, mediaType, 'episodes', seasonNumber, 'photos']);
+        this.router.navigate(['/title', routeData.seriesId, routeData.mediaType, 'episodes', seasonNumber, 'photos']);
     }
 }
 
-const readSeasonDetailRoute = (parentParams: ParamMap, params: ParamMap): SeasonDetailRouteData => {
-    const seriesId = Number(parentParams.get('id'));
-    const mediaType = parentParams.get('type') ?? 'tv';
-    const rawSeasonNumber = params.get('seasonNumber');
+const readSeasonDetailRoute = (target: MediaTarget, rawSeasonNumber: string | undefined): SeasonDetailRouteData => {
     const seasonNumber = parseRouteNumber(rawSeasonNumber);
 
     return {
-        seriesId,
-        mediaType,
+        seriesId: target.id,
+        mediaType: target.type,
         seasonNumber,
-        seasonParamValid: rawSeasonNumber === null || seasonNumber !== null,
-        routePrefix: ['/title', seriesId, mediaType, 'episodes'],
+        seasonParamValid: rawSeasonNumber === undefined || seasonNumber !== null,
+        routePrefix: ['/title', target.id, target.type, 'episodes'],
     };
 };
 
@@ -236,8 +226,8 @@ const isSameSeasonDetailRoute = (left: SeasonDetailRouteData, right: SeasonDetai
     left.seasonNumber === right.seasonNumber &&
     left.seasonParamValid === right.seasonParamValid;
 
-const parseRouteNumber = (value: string | null): number | null => {
-    if (value === null || value.trim() === '') {
+const parseRouteNumber = (value: string | undefined): number | null => {
+    if (value === undefined || value.trim() === '') {
         return null;
     }
 

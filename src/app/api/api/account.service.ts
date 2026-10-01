@@ -40,7 +40,18 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    AccountRestControllerServiceInterface
+    AccountRestControllerServiceInterface,
+    AccountAddFavoriteRequestParams,
+    AccountAddToWatchlistRequestParams,
+    AccountDetailsRequestParams,
+    AccountFavoriteTvRequestParams,
+    AccountGetFavoritesRequestParams,
+    AccountListsRequestParams,
+    AccountRatedMoviesRequestParams,
+    AccountRatedTvRequestParams,
+    AccountRatedTvEpisodesRequestParams,
+    AccountWatchlistMoviesRequestParams,
+    AccountWatchlistTvRequestParams
 } from './account.serviceInterface';
 
 
@@ -58,20 +69,21 @@ export class AccountRestControllerService extends BaseService implements Account
      * Add Favorite
      * Mark a movie or TV show as a favourite.
      * @endpoint post /account/{account_id}/favorite
-     * @param accountId 
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public accountAddFavorite(accountId: number, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
-    public accountAddFavorite(accountId: number, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
-    public accountAddFavorite(accountId: number, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
-    public accountAddFavorite(accountId: number, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public accountAddFavorite(requestParameters: AccountAddFavoriteRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
+    public accountAddFavorite(requestParameters: AccountAddFavoriteRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
+    public accountAddFavorite(requestParameters: AccountAddFavoriteRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
+    public accountAddFavorite(requestParameters: AccountAddFavoriteRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountId = requestParameters?.accountId;
         if (accountId === null || accountId === undefined) {
             throw new Error('Required parameter accountId was null or undefined when calling accountAddFavorite.');
         }
+        const sessionId = requestParameters?.sessionId;
+        const accountAddFavoriteRequest = requestParameters?.accountAddFavoriteRequest;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -142,20 +154,21 @@ export class AccountRestControllerService extends BaseService implements Account
      * Add To Watchlist
      * Add a movie or TV show to your watchlist.
      * @endpoint post /account/{account_id}/watchlist
-     * @param accountId 
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public accountAddToWatchlist(accountId: number, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
-    public accountAddToWatchlist(accountId: number, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
-    public accountAddToWatchlist(accountId: number, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
-    public accountAddToWatchlist(accountId: number, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public accountAddToWatchlist(requestParameters: AccountAddToWatchlistRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
+    public accountAddToWatchlist(requestParameters: AccountAddToWatchlistRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
+    public accountAddToWatchlist(requestParameters: AccountAddToWatchlistRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
+    public accountAddToWatchlist(requestParameters: AccountAddToWatchlistRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountId = requestParameters?.accountId;
         if (accountId === null || accountId === undefined) {
             throw new Error('Required parameter accountId was null or undefined when calling accountAddToWatchlist.');
         }
+        const sessionId = requestParameters?.sessionId;
+        const accountAddFavoriteRequest = requestParameters?.accountAddFavoriteRequest;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -226,19 +239,20 @@ export class AccountRestControllerService extends BaseService implements Account
      * Details
      * Get the public details of an account on TMDB.
      * @endpoint get /account/{account_id}
-     * @param accountId 
-     * @param sessionId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public accountDetails(accountId: number, sessionId?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AccountDetails>;
-    public accountDetails(accountId: number, sessionId?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AccountDetails>>;
-    public accountDetails(accountId: number, sessionId?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AccountDetails>>;
-    public accountDetails(accountId: number, sessionId?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public accountDetails(requestParameters: AccountDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AccountDetails>;
+    public accountDetails(requestParameters: AccountDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AccountDetails>>;
+    public accountDetails(requestParameters: AccountDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AccountDetails>>;
+    public accountDetails(requestParameters: AccountDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountId = requestParameters?.accountId;
         if (accountId === null || accountId === undefined) {
             throw new Error('Required parameter accountId was null or undefined when calling accountDetails.');
         }
+        const sessionId = requestParameters?.sessionId;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -299,22 +313,23 @@ export class AccountRestControllerService extends BaseService implements Account
      * Favorite TV
      * Get a users list of favourite TV shows.
      * @endpoint get /account/{account_id}/favorite/tv
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public accountFavoriteTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
-    public accountFavoriteTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
-    public accountFavoriteTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
-    public accountFavoriteTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public accountFavoriteTv(requestParameters: AccountFavoriteTvRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
+    public accountFavoriteTv(requestParameters: AccountFavoriteTvRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
+    public accountFavoriteTv(requestParameters: AccountFavoriteTvRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
+    public accountFavoriteTv(requestParameters: AccountFavoriteTvRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountId = requestParameters?.accountId;
         if (accountId === null || accountId === undefined) {
             throw new Error('Required parameter accountId was null or undefined when calling accountFavoriteTv.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const sessionId = requestParameters?.sessionId;
+        const sortBy = requestParameters?.sortBy;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -402,22 +417,23 @@ export class AccountRestControllerService extends BaseService implements Account
      * Favorite Movies
      * Get a users list of favourite movies.
      * @endpoint get /account/{account_id}/favorite/movies
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public accountGetFavorites(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
-    public accountGetFavorites(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
-    public accountGetFavorites(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
-    public accountGetFavorites(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public accountGetFavorites(requestParameters: AccountGetFavoritesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
+    public accountGetFavorites(requestParameters: AccountGetFavoritesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
+    public accountGetFavorites(requestParameters: AccountGetFavoritesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
+    public accountGetFavorites(requestParameters: AccountGetFavoritesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountId = requestParameters?.accountId;
         if (accountId === null || accountId === undefined) {
             throw new Error('Required parameter accountId was null or undefined when calling accountGetFavorites.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const sessionId = requestParameters?.sessionId;
+        const sortBy = requestParameters?.sortBy;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -505,20 +521,21 @@ export class AccountRestControllerService extends BaseService implements Account
      * Lists
      * Get a users list of custom lists.
      * @endpoint get /account/{account_id}/lists
-     * @param accountId 
-     * @param page 
-     * @param sessionId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public accountLists(accountId: number, page?: number, sessionId?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AccountListPage>;
-    public accountLists(accountId: number, page?: number, sessionId?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AccountListPage>>;
-    public accountLists(accountId: number, page?: number, sessionId?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AccountListPage>>;
-    public accountLists(accountId: number, page?: number, sessionId?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public accountLists(requestParameters: AccountListsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AccountListPage>;
+    public accountLists(requestParameters: AccountListsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AccountListPage>>;
+    public accountLists(requestParameters: AccountListsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AccountListPage>>;
+    public accountLists(requestParameters: AccountListsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountId = requestParameters?.accountId;
         if (accountId === null || accountId === undefined) {
             throw new Error('Required parameter accountId was null or undefined when calling accountLists.');
         }
+        const page = requestParameters?.page;
+        const sessionId = requestParameters?.sessionId;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -588,22 +605,23 @@ export class AccountRestControllerService extends BaseService implements Account
      * Rated Movies
      * Get a users list of rated movies.
      * @endpoint get /account/{account_id}/rated/movies
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public accountRatedMovies(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedMoviePage>;
-    public accountRatedMovies(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedMoviePage>>;
-    public accountRatedMovies(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedMoviePage>>;
-    public accountRatedMovies(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public accountRatedMovies(requestParameters: AccountRatedMoviesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedMoviePage>;
+    public accountRatedMovies(requestParameters: AccountRatedMoviesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedMoviePage>>;
+    public accountRatedMovies(requestParameters: AccountRatedMoviesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedMoviePage>>;
+    public accountRatedMovies(requestParameters: AccountRatedMoviesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountId = requestParameters?.accountId;
         if (accountId === null || accountId === undefined) {
             throw new Error('Required parameter accountId was null or undefined when calling accountRatedMovies.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const sessionId = requestParameters?.sessionId;
+        const sortBy = requestParameters?.sortBy;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -691,22 +709,23 @@ export class AccountRestControllerService extends BaseService implements Account
      * Rated TV
      * Get a users list of rated TV shows.
      * @endpoint get /account/{account_id}/rated/tv
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public accountRatedTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedTvSeriesPage>;
-    public accountRatedTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedTvSeriesPage>>;
-    public accountRatedTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedTvSeriesPage>>;
-    public accountRatedTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public accountRatedTv(requestParameters: AccountRatedTvRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedTvSeriesPage>;
+    public accountRatedTv(requestParameters: AccountRatedTvRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedTvSeriesPage>>;
+    public accountRatedTv(requestParameters: AccountRatedTvRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedTvSeriesPage>>;
+    public accountRatedTv(requestParameters: AccountRatedTvRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountId = requestParameters?.accountId;
         if (accountId === null || accountId === undefined) {
             throw new Error('Required parameter accountId was null or undefined when calling accountRatedTv.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const sessionId = requestParameters?.sessionId;
+        const sortBy = requestParameters?.sortBy;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -794,22 +813,23 @@ export class AccountRestControllerService extends BaseService implements Account
      * Rated TV Episodes
      * Get a users list of rated TV episodes.
      * @endpoint get /account/{account_id}/rated/tv/episodes
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public accountRatedTvEpisodes(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedTvEpisodePage>;
-    public accountRatedTvEpisodes(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedTvEpisodePage>>;
-    public accountRatedTvEpisodes(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedTvEpisodePage>>;
-    public accountRatedTvEpisodes(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public accountRatedTvEpisodes(requestParameters: AccountRatedTvEpisodesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<RatedTvEpisodePage>;
+    public accountRatedTvEpisodes(requestParameters: AccountRatedTvEpisodesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<RatedTvEpisodePage>>;
+    public accountRatedTvEpisodes(requestParameters: AccountRatedTvEpisodesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<RatedTvEpisodePage>>;
+    public accountRatedTvEpisodes(requestParameters: AccountRatedTvEpisodesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountId = requestParameters?.accountId;
         if (accountId === null || accountId === undefined) {
             throw new Error('Required parameter accountId was null or undefined when calling accountRatedTvEpisodes.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const sessionId = requestParameters?.sessionId;
+        const sortBy = requestParameters?.sortBy;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -897,22 +917,23 @@ export class AccountRestControllerService extends BaseService implements Account
      * Watchlist Movies
      * Get a list of movies added to a users watchlist.
      * @endpoint get /account/{account_id}/watchlist/movies
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public accountWatchlistMovies(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
-    public accountWatchlistMovies(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
-    public accountWatchlistMovies(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
-    public accountWatchlistMovies(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public accountWatchlistMovies(requestParameters: AccountWatchlistMoviesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
+    public accountWatchlistMovies(requestParameters: AccountWatchlistMoviesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
+    public accountWatchlistMovies(requestParameters: AccountWatchlistMoviesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
+    public accountWatchlistMovies(requestParameters: AccountWatchlistMoviesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountId = requestParameters?.accountId;
         if (accountId === null || accountId === undefined) {
             throw new Error('Required parameter accountId was null or undefined when calling accountWatchlistMovies.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const sessionId = requestParameters?.sessionId;
+        const sortBy = requestParameters?.sortBy;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -1000,22 +1021,23 @@ export class AccountRestControllerService extends BaseService implements Account
      * Watchlist TV
      * Get a list of TV shows added to a users watchlist.
      * @endpoint get /account/{account_id}/watchlist/tv
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public accountWatchlistTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
-    public accountWatchlistTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
-    public accountWatchlistTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
-    public accountWatchlistTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public accountWatchlistTv(requestParameters: AccountWatchlistTvRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
+    public accountWatchlistTv(requestParameters: AccountWatchlistTvRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
+    public accountWatchlistTv(requestParameters: AccountWatchlistTvRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
+    public accountWatchlistTv(requestParameters: AccountWatchlistTvRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountId = requestParameters?.accountId;
         if (accountId === null || accountId === undefined) {
             throw new Error('Required parameter accountId was null or undefined when calling accountWatchlistTv.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const sessionId = requestParameters?.sessionId;
+        const sortBy = requestParameters?.sortBy;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

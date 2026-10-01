@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { EMPTY, catchError, finalize, of, switchMap, take, tap } from 'rxjs';
+import { EMPTY, catchError, finalize, of, switchMap, tap } from 'rxjs';
 
 import {
     IconButtonComponent,
@@ -14,8 +14,8 @@ import {
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
-    TmdbListService,
-    TmdbSigninDialogService,
+    UserLibraryService,
+    SigninDialogService,
     UserSessionStoreService,
 } from '../../../shared';
 import { MediaDetailActionsStore } from '../media-detail-actions-store.service';
@@ -45,19 +45,18 @@ export class MediaListActionsComponent {
         private readonly mediaDetailActionsStore: MediaDetailActionsStore,
         private readonly router: Router,
         private readonly snackbar: SnackbarService,
-        private readonly tmdbListService: TmdbListService,
-        private readonly tmdbSigninDialog: TmdbSigninDialogService,
+        private readonly userLibraryService: UserLibraryService,
+        private readonly signinDialog: SigninDialogService,
         private readonly userSessionStore: UserSessionStoreService,
     ) {}
 
     toggleWatchlist() {
         const action$ = this.userSessionStore.isAuthenticated()
-            ? this.mediaDetailActionsStore.toggleWatchlist$()
+            ? this.mediaDetailActionsStore.toggleLibraryFlag$('watchlist')
             : this.openSigninDialog();
 
         action$
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not update your watchlist.')),
             )
             .subscribe();
@@ -65,12 +64,11 @@ export class MediaListActionsComponent {
 
     toggleFavorite() {
         const action$ = this.userSessionStore.isAuthenticated()
-            ? this.mediaDetailActionsStore.toggleFavorite$()
+            ? this.mediaDetailActionsStore.toggleLibraryFlag$('favorite')
             : this.openSigninDialog();
 
         action$
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not update your favorites.')),
             )
             .subscribe();
@@ -83,10 +81,9 @@ export class MediaListActionsComponent {
 
         this.listDialogPending.set(true);
 
-        if (!this.userSessionStore.hasV4AccountAccess()) {
+        if (!this.userSessionStore.isAuthenticated()) {
             this.openSigninDialog()
                 .pipe(
-                    take(1),
                     catchError(() => this.showError('Could not update your list.')),
                     finalize(() => this.listDialogPending.set(false)),
                 )
@@ -94,10 +91,9 @@ export class MediaListActionsComponent {
             return;
         }
 
-        this.tmdbListService
+        this.userLibraryService
             .getUserLists$(this.mediaId, this.mediaType)
             .pipe(
-                take(1),
                 catchError(() => of([] as MediaUserListSummary[])),
                 switchMap((lists) => this.openListsDialog(lists)),
                 catchError(() => this.showError('Could not update your list.')),
@@ -117,13 +113,12 @@ export class MediaListActionsComponent {
             })
             .afterClosed()
             .pipe(
-                take(1),
                 switchMap((result) => this.handleListsDialogResult(result)),
             );
     }
 
     private openSigninDialog() {
-        return this.tmdbSigninDialog.open$();
+        return this.signinDialog.open$();
     }
 
     private handleListsDialogResult(result: MediaListDialogResult | undefined) {

@@ -37,13 +37,16 @@
     </a>
 
     <div class="discover-card__actions" role="group" [attr.aria-label]="'Actions for ' + item.title">
-        <app-favorite-toggle
+        <app-library-toggle
+            flag="favorite"
             [mediaId]="item.id"
             [mediaType]="item.mediaType"
             [title]="item.title"
+            [iconOnly]="true"
         />
 
-        <app-watchlist-toggle
+        <app-library-toggle
+            flag="watchlist"
             [mediaId]="item.id"
             [mediaType]="item.mediaType"
             [title]="item.title"

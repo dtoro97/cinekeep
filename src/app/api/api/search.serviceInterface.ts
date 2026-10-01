@@ -23,6 +23,57 @@ import { TvSeriesPage } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface SearchCollectionRequestParams {
+    query: string;
+    includeAdult?: boolean;
+    language?: string;
+    page?: number;
+    region?: string;
+}
+
+export interface SearchCompanyRequestParams {
+    query: string;
+    page?: number;
+}
+
+export interface SearchKeywordRequestParams {
+    query: string;
+    page?: number;
+}
+
+export interface SearchMovieRequestParams {
+    query: string;
+    includeAdult?: boolean;
+    language?: string;
+    primaryReleaseYear?: string;
+    page?: number;
+    region?: string;
+    year?: string;
+}
+
+export interface SearchMultiRequestParams {
+    query: string;
+    includeAdult?: boolean;
+    language?: string;
+    page?: number;
+}
+
+export interface SearchPersonRequestParams {
+    query: string;
+    includeAdult?: boolean;
+    language?: string;
+    page?: number;
+}
+
+export interface SearchTvRequestParams {
+    query: string;
+    firstAirDateYear?: number;
+    includeAdult?: boolean;
+    language?: string;
+    page?: number;
+    year?: number;
+}
+
 
 export interface SearchRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -32,79 +83,56 @@ export interface SearchRestControllerServiceInterface {
      * Collection
      * Search for collections by their original, translated and alternative names.
      * @endpoint get /search/collection
-     * @param query 
-     * @param includeAdult 
-     * @param language 
-     * @param page 
-     * @param region 
+* @param requestParameters
      */
-    searchCollection(query: string, includeAdult?: boolean, language?: string, page?: number, region?: string, extraHttpRequestParams?: any): Observable<CollectionPage>;
+    searchCollection(requestParameters: SearchCollectionRequestParams, extraHttpRequestParams?: any): Observable<CollectionPage>;
 
     /**
      * Company
      * Search for companies by their original and alternative names.
      * @endpoint get /search/company
-     * @param query 
-     * @param page 
+* @param requestParameters
      */
-    searchCompany(query: string, page?: number, extraHttpRequestParams?: any): Observable<CompanyPage>;
+    searchCompany(requestParameters: SearchCompanyRequestParams, extraHttpRequestParams?: any): Observable<CompanyPage>;
 
     /**
      * Keyword
      * Search for keywords by their name.
      * @endpoint get /search/keyword
-     * @param query 
-     * @param page 
+* @param requestParameters
      */
-    searchKeyword(query: string, page?: number, extraHttpRequestParams?: any): Observable<KeywordPage>;
+    searchKeyword(requestParameters: SearchKeywordRequestParams, extraHttpRequestParams?: any): Observable<KeywordPage>;
 
     /**
      * Movie
      * Search for movies by their original, translated and alternative titles.
      * @endpoint get /search/movie
-     * @param query 
-     * @param includeAdult 
-     * @param language 
-     * @param primaryReleaseYear 
-     * @param page 
-     * @param region 
-     * @param year 
+* @param requestParameters
      */
-    searchMovie(query: string, includeAdult?: boolean, language?: string, primaryReleaseYear?: string, page?: number, region?: string, year?: string, extraHttpRequestParams?: any): Observable<MoviePage>;
+    searchMovie(requestParameters: SearchMovieRequestParams, extraHttpRequestParams?: any): Observable<MoviePage>;
 
     /**
      * Multi
      * Use multi search when you want to search for movies, TV shows and people in a single request.
      * @endpoint get /search/multi
-     * @param query 
-     * @param includeAdult 
-     * @param language 
-     * @param page 
+* @param requestParameters
      */
-    searchMulti(query: string, includeAdult?: boolean, language?: string, page?: number, extraHttpRequestParams?: any): Observable<MultiPage>;
+    searchMulti(requestParameters: SearchMultiRequestParams, extraHttpRequestParams?: any): Observable<MultiPage>;
 
     /**
      * Person
      * Search for people by their name and also known as names.
      * @endpoint get /search/person
-     * @param query 
-     * @param includeAdult 
-     * @param language 
-     * @param page 
+* @param requestParameters
      */
-    searchPerson(query: string, includeAdult?: boolean, language?: string, page?: number, extraHttpRequestParams?: any): Observable<PersonPage>;
+    searchPerson(requestParameters: SearchPersonRequestParams, extraHttpRequestParams?: any): Observable<PersonPage>;
 
     /**
      * TV
      * Search for TV shows by their original, translated and also known as names.
      * @endpoint get /search/tv
-     * @param query 
-     * @param firstAirDateYear Search only the first air date. Valid values are: 1000..9999
-     * @param includeAdult 
-     * @param language 
-     * @param page 
-     * @param year Search the first air date and all episode air dates. Valid values are: 1000..9999
+* @param requestParameters
      */
-    searchTv(query: string, firstAirDateYear?: number, includeAdult?: boolean, language?: string, page?: number, year?: number, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
+    searchTv(requestParameters: SearchTvRequestParams, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
 
 }

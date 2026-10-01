@@ -3,28 +3,25 @@ import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 
-import { EMPTY, Observable, catchError, combineLatest, defer, map, merge, switchMap } from 'rxjs';
+import { EMPTY, Observable, catchError, combineLatest, defer, map, merge } from 'rxjs';
 
 import {
     EmptyStateComponent,
     LocaleStoreService,
     MediaCarouselPanelComponent,
-    SkeletonComponent,
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
-    TmdbUserAccountService,
+    PluralizePipe,
     UserAvatarComponent,
+    UserSessionStoreService,
     RepeatPipe,
     isDefined,
 } from '../../../shared';
 import { UserListCardComponent } from '../user-list-card/user-list-card.component';
 import { UserListCardSkeletonComponent } from '../user-list-card-skeleton/user-list-card-skeleton.component';
-import { UserFavouritesStore } from '../user-favourites-store.service';
 import { UserListsStore } from '../user-lists-store.service';
-import { UserProfileStore } from '../user-profile-store.service';
-import { UserRatingsStore } from '../user-ratings-store.service';
-import { UserWatchlistStore } from '../user-watchlist-store.service';
+import { UserProfilePreviewStore } from './user-profile-preview-store.service';
 
 @Component({
     selector: 'app-user-profile',
@@ -34,34 +31,35 @@ import { UserWatchlistStore } from '../user-watchlist-store.service';
         RouterLink,
         EmptyStateComponent,
         MediaCarouselPanelComponent,
-        SkeletonComponent,
-        UserAvatarComponent,
+            UserAvatarComponent,
         UserListCardComponent,
         UserListCardSkeletonComponent,
+        PluralizePipe,
         RepeatPipe,
     ],
     templateUrl: './user-profile.component.html',
     styleUrl: './user-profile.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [UserFavouritesStore, UserProfileStore, UserRatingsStore, UserWatchlistStore],
+    providers: [UserProfilePreviewStore],
 })
 export class UserProfileComponent {
     readonly previewCarouselColumns = 5;
     readonly previewPosterImageParams = 'w185';
 
     readonly vm$ = combineLatest([
-        this.profileStore.userProfileVm$,
-        this.favouritesStore.favouritesViewModel$,
-        this.watchlistStore.watchlistViewModel$,
-        this.ratingsStore.ratingsViewModel$,
+        this.userSessionStore.user$,
+        this.previewStore.favourites$,
+        this.previewStore.watchlist$,
+        this.previewStore.ratings$,
         this.listsStore.listsViewModel$,
     ]).pipe(
-        map(([profile, favourites, watchlist, ratings, lists]) => {
+        map(([user, favourites, watchlist, ratings, lists]) => {
             const language = this.localeStore.language();
             const region = this.localeStore.region();
 
             return {
-                ...profile,
+                username: user?.username ?? null,
+                displayName: user?.username ?? 'Member',
                 favourites,
                 watchlist,
                 ratings,
@@ -76,30 +74,19 @@ export class UserProfileComponent {
 
     constructor(
         private readonly destroyRef: DestroyRef,
-        private readonly favouritesStore: UserFavouritesStore,
         private readonly listsStore: UserListsStore,
         private readonly localeStore: LocaleStoreService,
-        private readonly profileStore: UserProfileStore,
-        private readonly ratingsStore: UserRatingsStore,
+        private readonly previewStore: UserProfilePreviewStore,
         private readonly snackbar: SnackbarService,
-        private readonly tmdbUserAccountService: TmdbUserAccountService,
-        private readonly watchlistStore: UserWatchlistStore,
+        private readonly userSessionStore: UserSessionStoreService,
     ) {
-        this.tmdbUserAccountService
-            .ensureAccountIdentity$()
-            .pipe(
-                switchMap(() =>
-                    merge(
-                        this.loadSection$(() => this.profileStore.load$(), 'Could not load your profile summary.'),
-                        this.loadSection$(() => this.watchlistStore.load$(), 'Could not load your watchlist.'),
-                        this.loadSection$(() => this.ratingsStore.load$(), 'Could not load your ratings.'),
-                        this.loadSection$(() => this.favouritesStore.load$(), 'Could not load your favorites.'),
-                        this.loadSection$(() => this.listsStore.load$(), 'Could not load your lists.'),
-                    ),
-                ),
-                catchError(() => this.showError('Could not load your profile.')),
-                takeUntilDestroyed(this.destroyRef),
-            )
+        merge(
+            this.loadSection$(() => this.previewStore.loadWatchlist$(), 'Could not load your watchlist.'),
+            this.loadSection$(() => this.previewStore.loadRatings$(), 'Could not load your ratings.'),
+            this.loadSection$(() => this.previewStore.loadFavourites$(), 'Could not load your favorites.'),
+            this.loadSection$(() => this.listsStore.load$(), 'Could not load your lists.'),
+        )
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe();
     }
 

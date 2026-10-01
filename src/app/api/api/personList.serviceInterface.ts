@@ -18,6 +18,11 @@ import { PersonPage } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface PersonPopularListRequestParams {
+    language?: string;
+    page?: number;
+}
+
 
 export interface PersonListRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -27,16 +32,15 @@ export interface PersonListRestControllerServiceInterface {
      * Latest
      * Get the newest created person. This is a live response and will continuously change.
      * @endpoint get /person/latest
-     */
+*/
     personLatestId(extraHttpRequestParams?: any): Observable<Person>;
 
     /**
      * Popular
      * Get a list of people ordered by popularity.
      * @endpoint get /person/popular
-     * @param language 
-     * @param page 
+* @param requestParameters
      */
-    personPopularList(language?: string, page?: number, extraHttpRequestParams?: any): Observable<PersonPage>;
+    personPopularList(requestParameters: PersonPopularListRequestParams, extraHttpRequestParams?: any): Observable<PersonPage>;
 
 }

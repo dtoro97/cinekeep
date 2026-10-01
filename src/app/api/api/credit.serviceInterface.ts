@@ -17,6 +17,11 @@ import { CreditDetails } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface CreditDetailsRequestParams {
+    creditId: string;
+    language?: string;
+}
+
 
 export interface CreditRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -26,9 +31,8 @@ export interface CreditRestControllerServiceInterface {
      * Details
      * Get a movie or TV credit details by ID.
      * @endpoint get /credit/{credit_id}
-     * @param creditId 
-     * @param language 
+* @param requestParameters
      */
-    creditDetails(creditId: string, language?: string, extraHttpRequestParams?: any): Observable<CreditDetails>;
+    creditDetails(requestParameters: CreditDetailsRequestParams, extraHttpRequestParams?: any): Observable<CreditDetails>;
 
 }

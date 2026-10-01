@@ -1,10 +1,8 @@
 <div class="media-rating-dialog">
     <header class="media-rating-dialog__header">
         <h2 class="text-title">Rate {{ data.title }}</h2>
-        @if (data.authMode === 'anonymous') {
-            <p class="text-body-sm">Save as a guest, or sign in to keep it on your account.</p>
-        } @else if (data.authMode === 'guest') {
-            <p class="text-body-sm">Saved to this browser's guest session.</p>
+        @if (!data.isAuthenticated) {
+            <p class="text-body-sm">Sign in to save ratings to your CineKeep account.</p>
         }
     </header>
 
@@ -21,16 +19,12 @@
         </mat-slider>
     </div>
 
-    @if (data.authMode === 'anonymous') {
-        <div class="media-rating-dialog__actions media-rating-dialog__actions--anonymous" mat-dialog-actions>
+    @if (!data.isAuthenticated) {
+        <div class="media-rating-dialog__actions" mat-dialog-actions>
             <div class="media-rating-dialog__primary-actions">
                 <button matButton class="text-button" type="button" mat-dialog-close (click)="cancel()">Cancel</button>
-                <button matButton="filled" type="button" (click)="saveAsGuest()">Save as guest</button>
+                <button matButton="filled" type="button" (click)="loginToSave()">Sign in to rate</button>
             </div>
-
-            <button class="media-rating-dialog__login-link" type="button" (click)="loginToSave()">
-                Sign in to save it to your account
-            </button>
         </div>
     } @else {
         <div class="media-rating-dialog__actions" mat-dialog-actions>

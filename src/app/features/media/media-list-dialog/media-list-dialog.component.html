@@ -1,18 +1,12 @@
 <div class="media-list-dialog">
     <header class="media-list-dialog__header">
         <h2 class="text-title">Add to a list</h2>
-        <p class="text-body-sm media-list-dialog__subtitle">
-            Choose a list for {{ data.title }}.
-        </p>
+        <p class="text-body-sm media-list-dialog__subtitle">Choose a list for {{ data.title }}.</p>
     </header>
 
     <mat-dialog-content class="media-list-dialog__content">
         @if (data.customLists.length) {
-            <div
-                class="media-list-dialog__list"
-                role="listbox"
-                aria-label="Your lists"
-            >
+            <div class="media-list-dialog__list" role="listbox" aria-label="Your lists">
                 @for (list of data.customLists; track list.id) {
                     <button
                         class="media-list-dialog__list-item"
@@ -61,17 +55,14 @@
             </div>
         } @else {
             <div class="media-list-dialog__empty">
-                <i
-                    class="media-list-dialog__empty-icon fa-solid fa-list"
-                    aria-hidden="true"
-                ></i>
+                <i class="media-list-dialog__empty-icon fa-solid fa-list" aria-hidden="true"></i>
                 <p class="text-body-sm">You do not have any lists yet.</p>
             </div>
         }
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
-        <button matButton class="text-button" type="button" (click)="cancel()">Close list picker</button>
+        <button matButton class="text-button" type="button" (click)="cancel()">Close</button>
         <button matButton="filled" type="button" (click)="createList()">Create list</button>
     </mat-dialog-actions>
 </div>

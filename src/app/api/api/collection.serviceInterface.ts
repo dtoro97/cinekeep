@@ -19,6 +19,21 @@ import { TranslationList } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface CollectionDetailsRequestParams {
+    collectionId: number;
+    language?: string;
+}
+
+export interface CollectionImagesRequestParams {
+    collectionId: number;
+    includeImageLanguage?: string;
+    language?: string;
+}
+
+export interface CollectionTranslationsRequestParams {
+    collectionId: number;
+}
+
 
 export interface CollectionRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -28,27 +43,24 @@ export interface CollectionRestControllerServiceInterface {
      * Details
      * Get collection details by ID.
      * @endpoint get /collection/{collection_id}
-     * @param collectionId 
-     * @param language 
+* @param requestParameters
      */
-    collectionDetails(collectionId: number, language?: string, extraHttpRequestParams?: any): Observable<CollectionDetails>;
+    collectionDetails(requestParameters: CollectionDetailsRequestParams, extraHttpRequestParams?: any): Observable<CollectionDetails>;
 
     /**
      * Images
      * Get the images that belong to a collection.
      * @endpoint get /collection/{collection_id}/images
-     * @param collectionId 
-     * @param includeImageLanguage specify a comma separated list of ISO-639-1 values to query, for example: &#x60;en-US,null&#x60;
-     * @param language 
+* @param requestParameters
      */
-    collectionImages(collectionId: number, includeImageLanguage?: string, language?: string, extraHttpRequestParams?: any): Observable<CollectionImages>;
+    collectionImages(requestParameters: CollectionImagesRequestParams, extraHttpRequestParams?: any): Observable<CollectionImages>;
 
     /**
      * Translations
      * 
      * @endpoint get /collection/{collection_id}/translations
-     * @param collectionId 
+* @param requestParameters
      */
-    collectionTranslations(collectionId: number, extraHttpRequestParams?: any): Observable<TranslationList>;
+    collectionTranslations(requestParameters: CollectionTranslationsRequestParams, extraHttpRequestParams?: any): Observable<TranslationList>;
 
 }

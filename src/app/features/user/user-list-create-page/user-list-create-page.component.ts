@@ -20,7 +20,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { EMPTY, catchError, finalize, map, of, switchMap, tap } from 'rxjs';
 
-import { V4ListSortBy } from '../../../api-v4';
+
 import {
     MediaType,
     SnackbarComponent,
@@ -28,7 +28,8 @@ import {
     SnackbarService,
     SnackbarType,
     SubPageHeaderComponent,
-    TmdbListService,
+    UserLibraryService,
+    UserListSortBy,
 } from '../../../shared';
 import { DEFAULT_USER_LIST_SORT_BY, USER_LIST_SORT_OPTIONS } from '../user-list-sort-options';
 
@@ -85,7 +86,7 @@ export class UserListCreatePageComponent {
         name: FormControl<string>;
         description: FormControl<string>;
         isPublic: FormControl<boolean>;
-        sortBy: FormControl<V4ListSortBy>;
+        sortBy: FormControl<UserListSortBy>;
     }>;
     private readonly mediaProperties: CreateListMediaProperties | null;
 
@@ -95,7 +96,7 @@ export class UserListCreatePageComponent {
         private readonly route: ActivatedRoute,
         private readonly router: Router,
         private readonly snackbar: SnackbarService,
-        private readonly tmdbListService: TmdbListService,
+        private readonly userLibraryService: UserLibraryService,
     ) {
         this.mediaProperties = this.readMediaProperties();
         this.backLink = this.mediaProperties?.returnUrl ?? '/me/lists';
@@ -109,7 +110,7 @@ export class UserListCreatePageComponent {
             name: ['', [trimmedRequiredValidator, Validators.maxLength(this.nameMaxLength)]],
             description: ['', [Validators.maxLength(this.descriptionMaxLength)]],
             isPublic: [false],
-            sortBy: this.formBuilder.control<V4ListSortBy>(DEFAULT_USER_LIST_SORT_BY),
+            sortBy: this.formBuilder.control<UserListSortBy>(DEFAULT_USER_LIST_SORT_BY),
         });
     }
 
@@ -128,7 +129,7 @@ export class UserListCreatePageComponent {
         this.pending.set(true);
         this.form.disable({ emitEvent: false });
 
-        this.tmdbListService
+        this.userLibraryService
             .createList$(name.trim(), description.trim(), isPublic, sortBy)
             .pipe(
                 switchMap((listId) => this.addMediaToCreatedList$(listId)),
@@ -169,7 +170,7 @@ export class UserListCreatePageComponent {
             return of({ listId, addToListState: 'not-requested' });
         }
 
-        return this.tmdbListService
+        return this.userLibraryService
             .addToList$(listId, this.mediaProperties.mediaId, this.mediaProperties.mediaType)
             .pipe(
                 map(() => ({ listId, addToListState: 'added' })),

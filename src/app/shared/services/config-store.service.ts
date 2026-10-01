@@ -13,7 +13,6 @@ import {
     Language,
     TmdbConfiguration,
 } from '../../api';
-import { API_JSON_OPTIONS } from '../../constants';
 import { filter, tap } from 'rxjs';
 import { isDefined } from '../utils';
 
@@ -56,19 +55,19 @@ export class ConfigStoreService extends ComponentStore<ConfigStoreState> {
 
     getLanguages$() {
         return this.configRestControllerService
-            .configurationLanguages(undefined, undefined, API_JSON_OPTIONS)
+            .configurationLanguages()
             .pipe(tap((response) => this.patchState({ languages: response })));
     }
 
     getCountries$() {
         return this.configRestControllerService
-            .configurationCountries(undefined, undefined, undefined, API_JSON_OPTIONS)
+            .configurationCountries()
             .pipe(tap((response) => this.patchState({ countries: response })));
     }
 
     getConfiguration$() {
         return this.configRestControllerService
-            .configurationDetails(undefined, undefined, API_JSON_OPTIONS)
+            .configurationDetails()
             .pipe(tap((response) => this.patchState({ config: response })));
     }
 

@@ -18,6 +18,17 @@ import { KeywordMoviePage } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface KeywordDetailsRequestParams {
+    keywordId: number;
+}
+
+export interface KeywordMoviesRequestParams {
+    keywordId: string;
+    includeAdult?: boolean;
+    language?: string;
+    page?: number;
+}
+
 
 export interface KeywordRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -27,19 +38,16 @@ export interface KeywordRestControllerServiceInterface {
      * Details
      * 
      * @endpoint get /keyword/{keyword_id}
-     * @param keywordId 
+* @param requestParameters
      */
-    keywordDetails(keywordId: number, extraHttpRequestParams?: any): Observable<Keyword>;
+    keywordDetails(requestParameters: KeywordDetailsRequestParams, extraHttpRequestParams?: any): Observable<Keyword>;
 
     /**
      * Movies
      * 
      * @endpoint get /keyword/{keyword_id}/movies
-     * @param keywordId 
-     * @param includeAdult 
-     * @param language 
-     * @param page 
+* @param requestParameters
      */
-    keywordMovies(keywordId: string, includeAdult?: boolean, language?: string, page?: number, extraHttpRequestParams?: any): Observable<KeywordMoviePage>;
+    keywordMovies(requestParameters: KeywordMoviesRequestParams, extraHttpRequestParams?: any): Observable<KeywordMoviePage>;
 
 }

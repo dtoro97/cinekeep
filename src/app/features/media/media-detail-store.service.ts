@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
-import { Observable, catchError, filter, forkJoin, map, of, switchMap, take, tap } from 'rxjs';
+import { Observable, combineLatest, forkJoin, map, of, switchMap } from 'rxjs';
 
 import {
     CollectionDetails,
@@ -27,16 +27,22 @@ import {
     MediaType,
     PersonCardItem,
     RemoteData,
+    UserRatingVm,
     VideoCardItem,
     ViewerImage,
     getISODate,
     hasRemoteData,
+    loadCachedResource$,
+    whenSuccess$,
     mapRemoteData,
+    remoteData,
     remoteSuccess,
+    toOptionalSection,
     toCardItem,
     toVideoCardItems,
 } from '../../shared';
 import { MediaCreditsStoreService } from './media-credits-store.service';
+import { MediaDetailActionsStore } from './media-detail-actions-store.service';
 import { MediaCreditsResource } from './media-credits-store.service';
 import { MediaImagesStoreService } from './media-images-store.service';
 import { MediaApiService } from './media-api.service';
@@ -47,7 +53,7 @@ import { MediaVideoStoreService } from './media-video-store.service';
 import { CreditsSummary } from './media-credits-summary/media-credits-summary.model';
 import { MediaDetails } from './models/media-details.model';
 
-export interface MediaDetailPageData {
+interface MediaDetailPageData {
     readonly media: MediaDetails | null;
     readonly tvYearLabel: string | null;
     readonly canRateTitle: boolean;
@@ -68,6 +74,23 @@ export interface MediaDetailPageData {
     readonly previewReviews: readonly Review[];
     readonly reviewTotalResults: number;
     readonly relatedState: RemoteData<MediaDetailRelatedPreview | null>;
+}
+
+interface MediaDetailVideosPreview {
+    readonly state: RemoteData<VideoCardItem[]>;
+    readonly totalCount: number;
+    readonly trailerKey: string | null;
+}
+
+interface MediaDetailPhotosPreview {
+    readonly state: RemoteData<ViewerImage[]>;
+    readonly allPhotos: ViewerImage[];
+    readonly totalCount: number;
+}
+
+interface MediaDetailReviewsPreview {
+    readonly previewReviews: readonly Review[];
+    readonly totalResults: number;
 }
 
 export interface MediaDetailRelatedPreview {
@@ -130,7 +153,7 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         map((state) => (state.state === 'success' ? state.data.inCinemas : false)),
     );
 
-    readonly creditsSummary$ = this.select(
+    private readonly creditsSummary$ = this.select(
         this.mediaDetailsState$,
         this.creditsState$,
         this.topCastState$,
@@ -138,7 +161,7 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
             this.toCreditsSummary(detailsState, creditsState, topCastState),
     );
 
-    readonly pageData$ = this.select(
+    private readonly pageData$ = this.select(
         this.mediaDetailsState$,
         this.photosState$,
         this.recommendationsState$,
@@ -200,11 +223,23 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         },
     );
 
+    readonly vm$ = combineLatest({
+        page: this.pageData$,
+        creditsSummary: this.creditsSummary$,
+        userRating: this.actionsStore.ratingVm$,
+        target: this.mediaStore.currentTarget$,
+    }).pipe(
+        map(({ page, creditsSummary, userRating, target }) =>
+            this.toPageVm(page, creditsSummary, userRating, target),
+        ),
+    );
+
     readonly openOverview = this.effect<MediaTarget>((target$) =>
         target$.pipe(switchMap((target) => this.loadOverview$(target))),
     );
 
     constructor(
+        private readonly actionsStore: MediaDetailActionsStore,
         private readonly creditsStore: MediaCreditsStoreService,
         private readonly imagesStore: MediaImagesStoreService,
         private readonly localeStore: LocaleStoreService,
@@ -219,17 +254,15 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
     loadOverview$(target: MediaTarget): Observable<unknown> {
         this.prepareTarget(target);
 
-        const collection$ = this.mediaStore.load$(target).pipe(
-            switchMap((details) => {
-                if (!details) {
+        // MediaWrapperComponent loads the title; the collection only waits for it.
+        const collection$ = whenSuccess$(this.mediaStore.mediaState$).pipe(
+            switchMap((media) => {
+                if (!media) {
                     this.patchState({ collectionState: { state: 'success', data: null } });
                     return of(null);
                 }
 
-                const currentMedia = this.mediaStore.currentMedia();
-                const collectionId = this.extractCollectionId(currentMedia, target);
-
-                return this.loadCollection$(target, collectionId, currentMedia);
+                return this.loadCollection$(target, this.extractCollectionId(media, target), media);
             }),
         );
 
@@ -244,7 +277,52 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
             this.loadKeywords$(target),
             this.loadReleaseInfo$(target),
             this.loadWatchProviders$(target),
-        ]).pipe(map(() => undefined));
+        ]);
+    }
+
+    private toPageVm(
+        page: MediaDetailPageData,
+        creditsSummary: RemoteData<CreditsSummary | null>,
+        userRating: UserRatingVm,
+        target: MediaTarget,
+    ) {
+        const photos = remoteData(page.photosState, []);
+
+        return {
+            media: page.media,
+            hero: {
+                tvYearLabel: page.tvYearLabel,
+                certification: page.certificationState,
+                canRateTitle: page.canRateTitle,
+                externalLinks: page.externalLinks,
+                userRating,
+                watchProviders: remoteData(page.watchProviderState, null),
+            },
+            inCinemas: page.inCinemas,
+            creditsSummary,
+            isMovie: target.type === 'movie',
+            collection: page.collectionState,
+            latestEpisode: page.media?.lastEpisode ?? null,
+            videos: toOptionalSection(page.videosState, (): MediaDetailVideosPreview | null =>
+                page.videoTotalCount
+                    ? {
+                          state: page.videosState,
+                          totalCount: page.videoTotalCount,
+                          trailerKey: page.trailer?.key ?? null,
+                      }
+                    : null,
+            ),
+            photos: toOptionalSection(page.photosState, (): MediaDetailPhotosPreview | null =>
+                photos.length ? { state: page.photosState, allPhotos: photos, totalCount: photos.length } : null,
+            ),
+            reviews: toOptionalSection(page.reviewsState, (): MediaDetailReviewsPreview | null =>
+                page.previewReviews.length || page.reviewTotalResults
+                    ? { previewReviews: page.previewReviews, totalResults: page.reviewTotalResults }
+                    : null,
+            ),
+            recommendations: page.relatedState,
+            keywords: page.keywordsState,
+        };
     }
 
     private prepareTarget(target: MediaTarget): void {
@@ -259,138 +337,71 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
     }
 
     private loadRecommendations$(target: MediaTarget): Observable<CardItem[]> {
-        const current = this.get().recommendationsState;
-
-        if (current.state === 'success') {
-            return of(current.data);
-        }
-
-        if (current.state === 'loading') {
-            return this.resourceReady$(this.recommendationsState$);
-        }
-
-        this.patchState({ recommendationsState: { state: 'loading' } });
-
-        return this.mediaApiService.getRecommendations$(target).pipe(
-            map((page) => this.toCardItems(page.results ?? [], target.type)),
-            tap((recommendations) => {
-                this.patchState({ recommendationsState: { state: 'success', data: recommendations } });
-            }),
-            catchError(() => {
-                this.patchState({ recommendationsState: { state: 'success', data: [] } });
-                return of([]);
-            }),
-        );
+        return loadCachedResource$({
+            current: this.get().recommendationsState,
+            state$: this.recommendationsState$,
+            fetch: () =>
+                this.mediaApiService
+                    .getRecommendations$(target)
+                    .pipe(map((page) => this.toCardItems(page.results ?? [], target.type))),
+            patch: (recommendationsState) => this.patchState({ recommendationsState }),
+            fallback: [],
+        });
     }
 
     private loadSimilar$(target: MediaTarget): Observable<CardItem[]> {
-        const current = this.get().similarState;
-
-        if (current.state === 'success') {
-            return of(current.data);
-        }
-
-        if (current.state === 'loading') {
-            return this.resourceReady$(this.similarState$);
-        }
-
-        this.patchState({ similarState: { state: 'loading' } });
-
-        return this.mediaApiService.getSimilar$(target).pipe(
-            map((page) => this.toCardItems(page.results ?? [], target.type)),
-            tap((similar) => {
-                this.patchState({ similarState: { state: 'success', data: similar } });
-            }),
-            catchError(() => {
-                this.patchState({ similarState: { state: 'success', data: [] } });
-                return of([]);
-            }),
-        );
+        return loadCachedResource$({
+            current: this.get().similarState,
+            state$: this.similarState$,
+            fetch: () =>
+                this.mediaApiService
+                    .getSimilar$(target)
+                    .pipe(map((page) => this.toCardItems(page.results ?? [], target.type))),
+            patch: (similarState) => this.patchState({ similarState }),
+            fallback: [],
+        });
     }
 
     private loadKeywords$(target: MediaTarget): Observable<KeywordListItem[]> {
-        const current = this.get().keywordsState;
-
-        if (current.state === 'success') {
-            return of(current.data);
-        }
-
-        if (current.state === 'loading') {
-            return this.resourceReady$(this.keywordsState$);
-        }
-
-        this.patchState({ keywordsState: { state: 'loading' } });
-
-        return this.mediaApiService.getKeywords$(target).pipe(
-            map((response) => this.extractKeywords(response)),
-            tap((keywords) => {
-                this.patchState({ keywordsState: { state: 'success', data: keywords } });
-            }),
-            catchError(() => {
-                this.patchState({ keywordsState: { state: 'success', data: [] } });
-                return of([]);
-            }),
-        );
+        return loadCachedResource$({
+            current: this.get().keywordsState,
+            state$: this.keywordsState$,
+            fetch: () => this.mediaApiService.getKeywords$(target).pipe(map((response) => this.extractKeywords(response))),
+            patch: (keywordsState) => this.patchState({ keywordsState }),
+            fallback: [],
+        });
     }
 
     private loadReleaseInfo$(target: MediaTarget): Observable<MediaReleaseInfo> {
-        const current = this.get().releaseInfoState;
-
-        if (current.state === 'success') {
-            return of(current.data);
-        }
-
-        if (current.state === 'loading') {
-            return this.resourceReady$(this.releaseInfoState$);
-        }
-
-        this.patchState({ releaseInfoState: { state: 'loading' } });
-
-        const request$: Observable<ContentRatingList | ReleaseDateList> =
+        const request$: Observable<MediaReleaseInfo> =
             target.type === 'tv'
-                ? this.mediaApiService.getTvContentRatings$(target.id)
-                : this.mediaApiService.getMovieReleaseDates$(target.id);
+                ? this.mediaApiService
+                      .getTvContentRatings$(target.id)
+                      .pipe(map((response) => this.toTvReleaseInfo(response)))
+                : this.mediaApiService
+                      .getMovieReleaseDates$(target.id)
+                      .pipe(map((response) => this.toMovieReleaseInfo(response)));
 
-        return request$.pipe(
-            map((response) =>
-                target.type === 'tv'
-                    ? this.toTvReleaseInfo(response as ContentRatingList)
-                    : this.toMovieReleaseInfo(response as ReleaseDateList),
-            ),
-            tap((releaseInfo) => {
-                this.patchState({ releaseInfoState: { state: 'success', data: releaseInfo } });
-            }),
-            catchError(() => {
-                const releaseInfo = this.toTvReleaseInfo(null);
-                this.patchState({ releaseInfoState: { state: 'success', data: releaseInfo } });
-                return of(releaseInfo);
-            }),
-        );
+        return loadCachedResource$({
+            current: this.get().releaseInfoState,
+            state$: this.releaseInfoState$,
+            fetch: () => request$,
+            patch: (releaseInfoState) => this.patchState({ releaseInfoState }),
+            fallback: this.toTvReleaseInfo(null),
+        });
     }
 
     private loadWatchProviders$(target: MediaTarget): Observable<MediaDetailProviderPreview | null> {
-        const current = this.get().watchProviderState;
-
-        if (current.state === 'success') {
-            return of(current.data);
-        }
-
-        if (current.state === 'loading') {
-            return this.resourceReady$(this.watchProviderState$);
-        }
-
-        this.patchState({ watchProviderState: { state: 'loading' } });
-
-        return this.mediaApiService.getWatchProviders$(target).pipe(
-            map((response) => this.extractWatchProviderPreview(response)),
-            tap((watchProvider) => {
-                this.patchState({ watchProviderState: { state: 'success', data: watchProvider } });
-            }),
-            catchError(() => {
-                this.patchState({ watchProviderState: { state: 'success', data: null } });
-                return of(null);
-            }),
-        );
+        return loadCachedResource$<MediaDetailProviderPreview | null>({
+            current: this.get().watchProviderState,
+            state$: this.watchProviderState$,
+            fetch: () =>
+                this.mediaApiService
+                    .getWatchProviders$(target)
+                    .pipe(map((response) => this.extractWatchProviderPreview(response))),
+            patch: (watchProviderState) => this.patchState({ watchProviderState }),
+            fallback: null,
+        });
     }
 
     private loadCollection$(
@@ -398,36 +409,21 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         collectionId: number | null,
         media: Movie | TvSeries | null,
     ): Observable<CollectionDetails | null> {
-        const current = this.get().collectionState;
-
-        if (current.state === 'success') {
-            return of(current.data);
-        }
-
-        if (current.state === 'loading') {
-            return this.resourceReady$(this.collectionState$);
-        }
-
-        if (target.type !== 'movie' || !collectionId) {
-            this.patchState({ collectionState: { state: 'success', data: null } });
-            return of(null);
-        }
-
-        this.patchState({ collectionState: { state: 'loading' } });
-
-        return this.mediaApiService.getCollectionDetails$(collectionId).pipe(
-            map((collection) => ({
-                ...collection,
-                backdrop_path: collection.backdrop_path ?? media?.backdrop_path ?? null,
-            })),
-            tap((collection) => {
-                this.patchState({ collectionState: { state: 'success', data: collection } });
-            }),
-            catchError(() => {
-                this.patchState({ collectionState: { state: 'success', data: null } });
-                return of(null);
-            }),
-        );
+        return loadCachedResource$<CollectionDetails | null>({
+            current: this.get().collectionState,
+            state$: this.collectionState$,
+            fetch: () =>
+                target.type !== 'movie' || !collectionId
+                    ? of(null)
+                    : this.mediaApiService.getCollectionDetails$(collectionId).pipe(
+                          map((collection) => ({
+                              ...collection,
+                              backdrop_path: collection.backdrop_path ?? media?.backdrop_path ?? null,
+                          })),
+                      ),
+            patch: (collectionState) => this.patchState({ collectionState }),
+            fallback: null,
+        });
     }
 
     private toVideoItemsState(
@@ -471,14 +467,6 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
     private canRateTitle(media: MediaDetails): boolean {
         const primaryReleaseDate = media.releaseDate ?? media.firstAirDate ?? null;
         return !primaryReleaseDate || primaryReleaseDate <= getISODate(0);
-    }
-
-    private resourceReady$<T>(state$: Observable<RemoteData<T>>): Observable<T> {
-        return state$.pipe(
-            filter((state): state is Extract<RemoteData<T>, { state: 'success' }> => state.state === 'success'),
-            take(1),
-            map((state) => state.data),
-        );
     }
 
     private toCardItems(items: RelatedMediaResult[], mediaType: MediaType): CardItem[] {

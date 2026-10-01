@@ -10,13 +10,7 @@
             <div class="list-card__meta-row text-caption">
                 @if (item.numberOfItems !== null) {
                     <span class="list-card__meta u-nowrap">
-                        {{ item.numberOfItems }} item{{ item.numberOfItems === 1 ? '' : 's' }}
-                    </span>
-                }
-                @if (item.averageRating) {
-                    <span class="list-card__meta u-nowrap">
-                        <i class="fa-solid fa-star" aria-hidden="true"></i>
-                        {{ item.averageRating | number: '1.1-1' }}
+                        {{ item.numberOfItems | pluralize: 'item' }}
                     </span>
                 }
             </div>

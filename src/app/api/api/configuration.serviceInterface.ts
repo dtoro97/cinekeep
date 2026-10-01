@@ -21,6 +21,10 @@ import { TmdbConfiguration } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface ConfigurationCountriesRequestParams {
+    language?: string;
+}
+
 
 export interface ConfigurationRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -30,43 +34,43 @@ export interface ConfigurationRestControllerServiceInterface {
      * Countries
      * Get the list of countries (ISO 3166-1 tags) used throughout TMDB.
      * @endpoint get /configuration/countries
-     * @param language 
+* @param requestParameters
      */
-    configurationCountries(language?: string, extraHttpRequestParams?: any): Observable<Array<Country>>;
+    configurationCountries(requestParameters: ConfigurationCountriesRequestParams, extraHttpRequestParams?: any): Observable<Array<Country>>;
 
     /**
      * Details
      * Query the API configuration details.
      * @endpoint get /configuration
-     */
+*/
     configurationDetails(extraHttpRequestParams?: any): Observable<TmdbConfiguration>;
 
     /**
      * Jobs
      * Get the list of the jobs and departments we use on TMDB.
      * @endpoint get /configuration/jobs
-     */
+*/
     configurationJobs(extraHttpRequestParams?: any): Observable<Array<Job>>;
 
     /**
      * Languages
      * Get the list of languages (ISO 639-1 tags) used throughout TMDB.
      * @endpoint get /configuration/languages
-     */
+*/
     configurationLanguages(extraHttpRequestParams?: any): Observable<Array<Language>>;
 
     /**
      * Primary Translations
      * Get a list of the officially supported translations on TMDB.
      * @endpoint get /configuration/primary_translations
-     */
+*/
     configurationPrimaryTranslations(extraHttpRequestParams?: any): Observable<Array<string>>;
 
     /**
      * Timezones
      * Get the list of timezones used throughout TMDB.
      * @endpoint get /configuration/timezones
-     */
+*/
     configurationTimezones(extraHttpRequestParams?: any): Observable<Array<Timezone>>;
 
 }

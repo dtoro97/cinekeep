@@ -5,17 +5,16 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { MatSliderModule } from '@angular/material/slider';
 
-import { UserSessionMode } from '../../models';
 import { normalizeRatingValue } from '../../utils/rating';
 
 export interface MediaRatingDialogData {
     title: string;
     currentRating: number | null;
-    authMode: UserSessionMode;
+    isAuthenticated: boolean;
 }
 
 export type MediaRatingDialogResult =
-    | { readonly action: 'save'; readonly value: number; readonly saveAsGuest: boolean }
+    | { readonly action: 'save'; readonly value: number }
     | { readonly action: 'remove' }
     | { readonly action: 'login' };
 
@@ -43,7 +42,6 @@ export class MediaRatingDialogComponent {
         this.dialogRef.close({
             action: 'save',
             value: normalizeRatingValue(this.value()),
-            saveAsGuest: false,
         });
     }
 
@@ -53,14 +51,6 @@ export class MediaRatingDialogComponent {
 
     loginToSave(): void {
         this.dialogRef.close({ action: 'login' });
-    }
-
-    saveAsGuest(): void {
-        this.dialogRef.close({
-            action: 'save',
-            value: normalizeRatingValue(this.value()),
-            saveAsGuest: true,
-        });
     }
 
     updateValue(value: number): void {

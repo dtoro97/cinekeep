@@ -1,13 +1,11 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
 
 import { combineLatest, filter, map, switchMap, tap } from 'rxjs';
 
 import {
     EmptyStateComponent,
-    MediaType,
     remoteData,
     SeoService,
     ToggleGroupComponent,
@@ -68,15 +66,9 @@ export class MediaCastPageComponent {
         private readonly mediaStore: MediaStoreService,
         private readonly mediaCreditsStore: MediaCreditsStoreService,
         private readonly seo: SeoService,
-        private route: ActivatedRoute,
     ) {
-        this.route.parent!.paramMap
+        this.mediaStore.currentTarget$
             .pipe(
-                map((params) => ({
-                    id: Number(params.get('id')),
-                    type: (params.get('type') ?? 'movie') as MediaType,
-                })),
-                filter(({ id }) => Number.isInteger(id)),
                 switchMap((target) => this.mediaCreditsStore.load$(target)),
                 takeUntilDestroyed(),
             )

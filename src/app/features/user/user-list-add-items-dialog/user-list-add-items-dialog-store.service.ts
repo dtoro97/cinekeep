@@ -7,22 +7,24 @@ import {
     catchError,
     debounceTime,
     distinctUntilChanged,
-    forkJoin,
+    filter,
     map,
     of,
     switchMap,
+    take,
     tap,
     throwError,
 } from 'rxjs';
 
 import { MultiListItem, SearchRestControllerService } from '../../../api';
-import { API_JSON_OPTIONS } from '../../../constants';
 import {
+    MediaSnapshotRequest,
     RemoteData,
     LocaleStoreService,
     MediaType,
-    TmdbListService,
+    UserLibraryService,
     isDefined,
+    toMediaSnapshotRequest,
     updateRemoteData,
 } from '../../../shared';
 import { remoteSuccess } from '../../../shared/utils';
@@ -35,11 +37,13 @@ export interface UserListAddItemsSearchResult {
     readonly year: string;
     readonly posterPath: string | null;
     readonly isAdded: boolean;
+    readonly snapshot: MediaSnapshotRequest;
 }
 
 interface UserListAddItemsDialogState {
     readonly listId: number | null;
-    readonly addedKeys: readonly string[];
+    /** `null` while the list's keys are loading. */
+    readonly addedKeys: ReadonlySet<string> | null;
     readonly query: string;
     readonly resultsState: RemoteData<UserListAddItemsSearchResult[]>;
     readonly errorMessage: string | null;
@@ -48,7 +52,7 @@ interface UserListAddItemsDialogState {
 
 const INITIAL_STATE: UserListAddItemsDialogState = {
     listId: null,
-    addedKeys: [],
+    addedKeys: null,
     query: '',
     resultsState: { state: 'notAsked' },
     errorMessage: null,
@@ -64,6 +68,17 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
     }));
 
     private readonly query$ = this.select((state) => state.query);
+    private readonly addedKeys$ = this.select((state) => state.addedKeys);
+
+    // Without the keys, duplicates are still rejected by the backend when added.
+    private readonly loadListKeys = this.effect((listId$: Observable<number>) =>
+        listId$.pipe(
+            switchMap((listId) =>
+                this.userLibraryService.getListItemKeys$(listId).pipe(catchError(() => of(new Set<string>()))),
+            ),
+            tap((addedKeys) => this.patchState({ addedKeys })),
+        ),
+    );
     private readonly searchTitles = this.effect((query$: Observable<string>) =>
         query$.pipe(
             debounceTime(350),
@@ -97,17 +112,15 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
     constructor(
         private readonly localeStore: LocaleStoreService,
         private readonly searchService: SearchRestControllerService,
-        private readonly tmdbListService: TmdbListService,
+        private readonly userLibraryService: UserLibraryService,
     ) {
         super(INITIAL_STATE);
         this.searchTitles(this.query$);
     }
 
-    initialize(data: { readonly listId: number; readonly existingKeys: readonly string[] }): void {
-        this.patchState({
-            listId: data.listId,
-            addedKeys: [...data.existingKeys],
-        });
+    initialize(listId: number): void {
+        this.patchState({ listId });
+        this.loadListKeys(listId);
     }
 
     updateQuery(query: string): void {
@@ -120,7 +133,7 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
         });
     }
 
-    addItem$(item: UserListAddItemsSearchResult) {
+    addItem$(item: UserListAddItemsSearchResult): Observable<unknown> {
         const { listId } = this.get();
 
         if (item.isAdded) {
@@ -131,11 +144,11 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
             return throwError(() => new Error('List detail is not loaded yet.'));
         }
 
-        return this.tmdbListService.addToList$(listId, item.id, item.mediaType).pipe(
+        return this.userLibraryService.addToList$(listId, item.id, item.mediaType, item.snapshot).pipe(
             tap(() => {
                 this.patchState((state) => ({
                     hasChanges: true,
-                    addedKeys: [...state.addedKeys, item.key],
+                    addedKeys: new Set([...(state.addedKeys ?? []), item.key]),
                     resultsState: updateRemoteData(state.resultsState, (items) =>
                         items.map((result) => (result.key === item.key ? { ...result, isAdded: true } : result)),
                     ),
@@ -154,33 +167,21 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
 
     private search$(query: string) {
         return this.searchService
-            .searchMulti(query, undefined, this.localeStore.language(), 1, 'body', false, API_JSON_OPTIONS)
+            .searchMulti({ query, language: this.localeStore.language(), page: 1 })
             .pipe(
                 map((page) =>
                     (page.results ?? [])
                         .map((item) => this.toSearchResult(item))
                         .filter(isDefined),
                 ),
-                switchMap((results) => this.addListStatusToResults$(results)),
+                switchMap((results) =>
+                    this.addedKeys$.pipe(
+                        filter(isDefined),
+                        take(1),
+                        map((keys) => results.map((item) => ({ ...item, isAdded: keys.has(item.key) }))),
+                    ),
+                ),
             );
-    }
-
-    private addListStatusToResults$(results: readonly UserListAddItemsSearchResult[]) {
-        const { listId } = this.get();
-
-        if (listId === null || results.length === 0) {
-            return of([] as UserListAddItemsSearchResult[]);
-        }
-
-        return forkJoin(
-            results.map((item) =>
-                this.get().addedKeys.includes(item.key)
-                    ? of({ ...item, isAdded: true })
-                    : this.tmdbListService
-                          .getListItemStatus$(listId, item.id, item.mediaType)
-                          .pipe(map((isAdded) => ({ ...item, isAdded }))),
-            ),
-        );
     }
 
     private toSearchResult(item: MultiListItem): UserListAddItemsSearchResult | null {
@@ -208,7 +209,8 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
             title,
             year: date.slice(0, 4),
             posterPath: item.poster_path ?? null,
-            isAdded: this.get().addedKeys.includes(key),
+            isAdded: false,
+            snapshot: toMediaSnapshotRequest(item, mediaType),
         };
     }
 }

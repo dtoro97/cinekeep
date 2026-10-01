@@ -1,3 +1,5 @@
+import { parseLanguageTag } from './locale-detection';
+
 const ENGLISH_LANGUAGE = 'en';
 const NEUTRAL_IMAGE_LANGUAGE = 'null';
 
@@ -9,15 +11,11 @@ export function isPreferredImageLanguage(
     imageLanguage: string | null | undefined,
     preferredLanguage: string | null | undefined,
 ): boolean {
-    const preferred = normalizeLanguage(preferredLanguage);
+    const preferred = parseLanguageTag(preferredLanguage);
 
     return (
         imageLanguage === null ||
         imageLanguage === ENGLISH_LANGUAGE ||
         (!!preferred && imageLanguage === preferred)
     );
-}
-
-function normalizeLanguage(language: string | null | undefined): string {
-    return language?.split('-')[0]?.trim().toLowerCase() ?? '';
 }

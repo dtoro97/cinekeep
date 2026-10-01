@@ -26,14 +26,14 @@ export interface CertificationRestControllerServiceInterface {
      * Movie Certifications
      * Get an up to date list of the officially supported movie certifications on TMDB.
      * @endpoint get /certification/movie/list
-     */
+*/
     certificationMovieList(extraHttpRequestParams?: any): Observable<CertificationList>;
 
     /**
      * TV Certifications
      * 
      * @endpoint get /certification/tv/list
-     */
+*/
     certificationsTvList(extraHttpRequestParams?: any): Observable<CertificationList>;
 
 }

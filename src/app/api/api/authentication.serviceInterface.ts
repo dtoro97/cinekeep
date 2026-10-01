@@ -22,6 +22,22 @@ import { TokenResponse } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface AuthenticationCreateSessionRequestParams {
+    accountAddFavoriteRequest?: AccountAddFavoriteRequest;
+}
+
+export interface AuthenticationCreateSessionFromLoginRequestParams {
+    accountAddFavoriteRequest?: AccountAddFavoriteRequest;
+}
+
+export interface AuthenticationCreateSessionFromV4TokenRequestParams {
+    accountAddFavoriteRequest?: AccountAddFavoriteRequest;
+}
+
+export interface AuthenticationDeleteSessionRequestParams {
+    accountAddFavoriteRequest?: AccountAddFavoriteRequest;
+}
+
 
 export interface AuthenticationRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -31,53 +47,53 @@ export interface AuthenticationRestControllerServiceInterface {
      * Create Guest Session
      * 
      * @endpoint get /authentication/guest_session/new
-     */
+*/
     authenticationCreateGuestSession(extraHttpRequestParams?: any): Observable<GuestSessionResponse>;
 
     /**
      * Create Request Token
      * 
      * @endpoint get /authentication/token/new
-     */
+*/
     authenticationCreateRequestToken(extraHttpRequestParams?: any): Observable<TokenResponse>;
 
     /**
      * Create Session
      * 
      * @endpoint post /authentication/session/new
-     * @param accountAddFavoriteRequest 
+* @param requestParameters
      */
-    authenticationCreateSession(accountAddFavoriteRequest?: AccountAddFavoriteRequest, extraHttpRequestParams?: any): Observable<SessionResponse>;
+    authenticationCreateSession(requestParameters: AuthenticationCreateSessionRequestParams, extraHttpRequestParams?: any): Observable<SessionResponse>;
 
     /**
      * Create Session (with login)
      * This method allows an application to validate a request token by entering a username and password.
      * @endpoint post /authentication/token/validate_with_login
-     * @param accountAddFavoriteRequest 
+* @param requestParameters
      */
-    authenticationCreateSessionFromLogin(accountAddFavoriteRequest?: AccountAddFavoriteRequest, extraHttpRequestParams?: any): Observable<TokenResponse>;
+    authenticationCreateSessionFromLogin(requestParameters: AuthenticationCreateSessionFromLoginRequestParams, extraHttpRequestParams?: any): Observable<TokenResponse>;
 
     /**
      * Create Session (from v4 token)
      * 
      * @endpoint post /authentication/session/convert/4
-     * @param accountAddFavoriteRequest 
+* @param requestParameters
      */
-    authenticationCreateSessionFromV4Token(accountAddFavoriteRequest?: AccountAddFavoriteRequest, extraHttpRequestParams?: any): Observable<SessionResponse>;
+    authenticationCreateSessionFromV4Token(requestParameters: AuthenticationCreateSessionFromV4TokenRequestParams, extraHttpRequestParams?: any): Observable<SessionResponse>;
 
     /**
      * Delete Session
      * 
      * @endpoint delete /authentication/session
-     * @param accountAddFavoriteRequest 
+* @param requestParameters
      */
-    authenticationDeleteSession(accountAddFavoriteRequest?: AccountAddFavoriteRequest, extraHttpRequestParams?: any): Observable<DeleteSessionResponse>;
+    authenticationDeleteSession(requestParameters: AuthenticationDeleteSessionRequestParams, extraHttpRequestParams?: any): Observable<DeleteSessionResponse>;
 
     /**
      * Validate Key
      * Test your API Key to see if it\&#39;s valid.
      * @endpoint get /authentication
-     */
+*/
     authenticationValidateKey(extraHttpRequestParams?: any): Observable<StatusResponse>;
 
 }

@@ -6,7 +6,7 @@ import {
     DestroyRef,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,15 +20,13 @@ import {
     finalize,
     map,
     switchMap,
-    take,
     tap,
 } from 'rxjs';
 
-import { TmdbUserAccountService } from '../../../services/tmdb-user-account.service';
-import { TmdbUserAuthService } from '../../../services/tmdb-user-auth.service';
+import { AuthService } from '../../../services/auth.service';
 import { UserSessionStoreService } from '../../../services/user-session-store.service';
 import { ConfirmationDialogService } from '../../confirmation-dialog/confirmation-dialog.service';
-import { TmdbSigninDialogService } from '../../tmdb-signin-dialog/tmdb-signin-dialog.service';
+import { SigninDialogService } from '../../signin-dialog/signin-dialog.service';
 import { UserAvatarComponent } from '../../user-avatar/user-avatar.component';
 
 interface HeaderAccountRoute {
@@ -42,7 +40,6 @@ interface HeaderAccountMenuViewModel {
     readonly isAuthenticated: boolean;
     readonly username: string | null;
     readonly displayName: string;
-    readonly avatarPath: string | null;
     readonly busy: boolean;
 }
 
@@ -80,11 +77,11 @@ export class HeaderAccountMenuComponent {
     ]).pipe(
         map(
             ([ready, auth, busy]): HeaderAccountMenuViewModel => ({
-                ready,
+                // Stays a placeholder until hydration and the session restore have both settled.
+                ready: ready && auth.resolved,
                 isAuthenticated: auth.isAuthenticated,
                 username: auth.username,
                 displayName: auth.displayName,
-                avatarPath: auth.avatarPath,
                 busy,
             }),
         ),
@@ -93,28 +90,14 @@ export class HeaderAccountMenuComponent {
     constructor(
         private readonly destroyRef: DestroyRef,
         private readonly confirmationDialog: ConfirmationDialogService,
-        private readonly tmdbSigninDialog: TmdbSigninDialogService,
-        private readonly tmdbUserAccountService: TmdbUserAccountService,
-        private readonly tmdbUserAuthService: TmdbUserAuthService,
+        private readonly signinDialog: SigninDialogService,
+        private readonly authService: AuthService,
         private readonly userSessionStore: UserSessionStoreService,
+        private readonly router: Router,
     ) {
         afterNextRender(() => {
             this.ready$.next(true);
         });
-
-        if (
-            this.userSessionStore.isAuthenticated() &&
-            !this.userSessionStore.hasAccount()
-        ) {
-            this.tmdbUserAccountService
-                .loadAccount$()
-                .pipe(
-                    take(1),
-                    catchError(() => EMPTY),
-                    takeUntilDestroyed(this.destroyRef),
-                )
-                .subscribe();
-        }
     }
 
     startLogin(): void {
@@ -124,7 +107,7 @@ export class HeaderAccountMenuComponent {
 
         this.busy$.next(true);
 
-        this.tmdbSigninDialog
+        this.signinDialog
             .open$()
             .pipe(
                 catchError(() => EMPTY),
@@ -155,9 +138,12 @@ export class HeaderAccountMenuComponent {
 
                     this.busy$.next(true);
 
-                    return this.tmdbUserAuthService.signOut$().pipe(
+                    return this.authService.signOut$().pipe(
                         tap(() => {
-                            window.location.reload();
+                            // Session state updates the UI on its own; only leave account-only pages.
+                            if (this.isOnAccountPage()) {
+                                void this.router.navigateByUrl('/');
+                            }
                         }),
                         catchError(() => EMPTY),
                         finalize(() => this.busy$.next(false)),
@@ -166,5 +152,11 @@ export class HeaderAccountMenuComponent {
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
+    }
+
+    private isOnAccountPage(): boolean {
+        const segments = this.router.parseUrl(this.router.url).root.children['primary']?.segments;
+
+        return segments?.[0]?.path === 'me';
     }
 }

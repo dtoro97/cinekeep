@@ -1,6 +1,6 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, input } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
@@ -20,17 +20,15 @@ import {
 
 import { TvEpisode } from '../../../api';
 import {
-    MediaRatingDialogData,
-    MediaRatingDialogComponent,
-    MediaRatingDialogResult,
+    MediaRatingDialogService,
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
     buildTmdbImageUrl,
+    formatEpisodeCode,
+    formatTitleWithYear,
+    isDefined,
     SeoService,
-    TmdbSigninDialogService,
-    TmdbUserAuthService,
-    UserSessionStoreService,
     ViewerImage,
 } from '../../../shared';
 import {
@@ -46,7 +44,9 @@ import {
 } from '../../../shared';
 import { MinutesToHours } from '../../../shared/pipes/time.pipe';
 import { CastCrewGridComponent } from '../cast-crew-grid/cast-crew-grid.component';
-import { EpisodeDetailStoreService, EpisodeRatingTarget } from './episode-detail-store.service';
+import { EpisodeTarget, isSameEpisodeTarget, toEpisodeTarget } from '../media-target';
+import { MediaStoreService } from '../media-store.service';
+import { EpisodeDetailStoreService } from './episode-detail-store.service';
 
 @Component({
     selector: 'app-episode-detail',
@@ -71,65 +71,49 @@ import { EpisodeDetailStoreService, EpisodeRatingTarget } from './episode-detail
     styleUrl: './episode-detail.component.scss',
 })
 export class EpisodeDetailComponent {
+    readonly seasonNumber = input.required<string>();
+    readonly episodeNumber = input.required<string>();
+
+    /** `null` when the season or episode param is not a valid number. */
+    private readonly episodeTarget$ = combineLatest([
+        this.mediaStore.currentTarget$,
+        toObservable(this.seasonNumber),
+        toObservable(this.episodeNumber),
+    ]).pipe(map(([target, seasonNumber, episodeNumber]) => toEpisodeTarget(target.id, seasonNumber, episodeNumber)));
+
     readonly vm$ = combineLatest({
         detail: this.episodeStore.vm$,
-        routeMeta: this.route.parent!.paramMap.pipe(
-            map((params) => ({
-                seriesId: Number(params.get('id')),
-                mediaType: params.get('type') ?? 'tv',
-            })),
-        ),
-        routeParams: this.route.paramMap.pipe(
-            map((params) => ({
-                seasonNumber: Number(params.get('seasonNumber')),
-            })),
-        ),
+        target: this.mediaStore.currentTarget$,
+        episodeTarget: this.episodeTarget$.pipe(filter(isDefined)),
     }).pipe(
-        map(({ detail, routeMeta, routeParams }) => ({
+        map(({ detail, target, episodeTarget }) => ({
             ...detail,
-            seriesId: routeMeta.seriesId,
-            episodesLink: [
-                '/title',
-                routeMeta.seriesId,
-                routeMeta.mediaType,
-                'episodes',
-                routeParams.seasonNumber,
-            ] as const,
+            seriesId: target.id,
+            episodesLink: ['/title', target.id, target.type, 'episodes', episodeTarget.seasonNumber] as const,
         })),
     );
 
     constructor(
         private readonly destroyRef: DestroyRef,
         public episodeStore: EpisodeDetailStoreService,
+        private readonly mediaStore: MediaStoreService,
         private route: ActivatedRoute,
         private router: Router,
         private snackbar: SnackbarService,
-        private tmdbSigninDialog: TmdbSigninDialogService,
-        private tmdbUserAuthService: TmdbUserAuthService,
         private seo: SeoService,
-        private userSessionStore: UserSessionStoreService,
         private dialog: MatDialog,
+        private readonly ratingDialog: MediaRatingDialogService,
     ) {
         this.episodeStore.load(
-            combineLatest([this.route.paramMap, this.route.parent!.paramMap]).pipe(
+            this.episodeTarget$.pipe(
                 takeUntilDestroyed(),
-                map(([params, parentParams]) => ({
-                    seriesId: Number(parentParams.get('id')),
-                    seasonNumber: Number(params.get('seasonNumber')),
-                    episodeNumber: Number(params.get('episodeNumber')),
-                })),
                 tap((target) => {
-                    if (!isValidEpisodeTarget(target)) {
+                    if (!target) {
                         this.router.navigate(['/not-found'], { replaceUrl: true });
                     }
                 }),
-                filter((target): target is EpisodeRatingTarget => isValidEpisodeTarget(target)),
-                distinctUntilChanged(
-                    (previous, current) =>
-                        previous.seriesId === current.seriesId &&
-                        previous.seasonNumber === current.seasonNumber &&
-                        previous.episodeNumber === current.episodeNumber,
-                ),
+                filter(isDefined),
+                distinctUntilChanged(isSameEpisodeTarget),
             ),
         );
 
@@ -148,14 +132,12 @@ export class EpisodeDetailComponent {
                 takeUntilDestroyed(),
                 tap((vm) => {
                     if (vm.media && vm.episode) {
-                        const episodeTitle =
-                            vm.episode.name || toEpisodeCode(vm.episode);
-                        const episodeCode = toEpisodeCode(vm.episode);
-                        const episodeLabel =
-                            episodeTitle === episodeCode
-                                ? episodeTitle
-                                : `${episodeTitle} (${episodeCode})`;
-                        const mediaTitle = toMediaDisplayTitle(vm.media);
+                        const episodeCode = formatEpisodeCode(
+                            vm.episode.season_number ?? 0,
+                            vm.episode.episode_number ?? 0,
+                        );
+                        const episodeLabel = vm.episode.name ? `${vm.episode.name} (${episodeCode})` : episodeCode;
+                        const mediaTitle = formatTitleWithYear(vm.media.title, vm.media.year);
                         const imagePath =
                             vm.episode.still_path ??
                             vm.media.backdropPath ??
@@ -172,7 +154,7 @@ export class EpisodeDetailComponent {
                                 imagePath,
                                 hasWideImage ? 'w1280' : 'w780',
                             ),
-                            imageAlt: `${episodeTitle} episode still`,
+                            imageAlt: `${vm.episode.name || episodeCode} episode still`,
                             imageWidth: hasWideImage ? 1280 : null,
                             imageHeight: hasWideImage ? 720 : null,
                             type: 'video.tv_show',
@@ -213,7 +195,7 @@ export class EpisodeDetailComponent {
             return;
         }
 
-        const target: EpisodeRatingTarget = {
+        const target: EpisodeTarget = {
             seriesId,
             seasonNumber,
             episodeNumber,
@@ -223,60 +205,24 @@ export class EpisodeDetailComponent {
         this.episodeStore.userRatingVm$
             .pipe(
                 take(1),
-                switchMap((rating) => {
-                    if (rating.disabled) {
-                        return EMPTY;
-                    }
-
-                    return this.dialog
-                        .open<MediaRatingDialogComponent, MediaRatingDialogData, MediaRatingDialogResult>(
-                            MediaRatingDialogComponent,
-                            {
-                                data: {
-                                    title,
-                                    currentRating: rating.currentRating,
-                                    authMode: this.userSessionStore.mode(),
-                                },
-                                maxWidth: '36rem',
-                                width: '100%',
-                            },
-                        )
-                        .afterClosed()
-                        .pipe(
-                            take(1),
-                            switchMap((result) => this.handleRatingDialogResult(target, result)),
-                        );
-                }),
+                filter((rating) => !rating.disabled),
+                switchMap((rating) =>
+                    this.ratingDialog.open$({
+                        title,
+                        currentRating: rating.currentRating,
+                        save: (value) =>
+                            this.episodeStore
+                                .submitUserRating$(target, value)
+                                .pipe(catchError(() => this.showError('Could not save your rating.'))),
+                        remove: () =>
+                            this.episodeStore
+                                .deleteUserRating$(target)
+                                .pipe(catchError(() => this.showError('Could not remove your rating.'))),
+                    }),
+                ),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
-    }
-
-    private handleRatingDialogResult(
-        target: EpisodeRatingTarget,
-        result: MediaRatingDialogResult | undefined,
-    ): Observable<unknown> {
-        if (result === undefined) {
-            return EMPTY;
-        }
-
-        if (result.action === 'remove') {
-            return this.episodeStore
-                .deleteUserRating$(target)
-                .pipe(catchError(() => this.showError('Could not remove your rating.')));
-        }
-
-        if (result.action === 'login') {
-            return this.tmdbSigninDialog.open$().pipe(catchError(() => this.showError('Could not start sign-in.')));
-        }
-
-        const save$ = result.saveAsGuest
-            ? this.tmdbUserAuthService
-                  .ensureGuestSession$()
-                  .pipe(switchMap(() => this.episodeStore.submitUserRating$(target, result.value)))
-            : this.episodeStore.submitUserRating$(target, result.value);
-
-        return save$.pipe(catchError(() => this.showError('Could not save your rating.')));
     }
 
     private showError(message: string): Observable<never> {
@@ -288,25 +234,3 @@ export class EpisodeDetailComponent {
         return EMPTY;
     }
 }
-
-const isValidEpisodeTarget = (target: {
-    readonly seriesId: number;
-    readonly seasonNumber: number;
-    readonly episodeNumber: number;
-}): boolean =>
-    Number.isInteger(target.seriesId) &&
-    target.seriesId > 0 &&
-    Number.isInteger(target.seasonNumber) &&
-    target.seasonNumber >= 0 &&
-    Number.isInteger(target.episodeNumber) &&
-    target.episodeNumber > 0;
-
-const toEpisodeCode = (episode: TvEpisode): string => {
-    const seasonNumber = episode.season_number ?? 0;
-    const episodeNumber = episode.episode_number ?? 0;
-
-    return `S${seasonNumber}E${episodeNumber}`;
-};
-
-const toMediaDisplayTitle = (media: { readonly title: string; readonly year: string }): string =>
-    media.year ? `${media.title} (${media.year})` : media.title;

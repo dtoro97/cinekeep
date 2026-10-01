@@ -26,7 +26,9 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    KeywordRestControllerServiceInterface
+    KeywordRestControllerServiceInterface,
+    KeywordDetailsRequestParams,
+    KeywordMoviesRequestParams
 } from './keyword.serviceInterface';
 
 
@@ -44,15 +46,16 @@ export class KeywordRestControllerService extends BaseService implements Keyword
      * Details
      * 
      * @endpoint get /keyword/{keyword_id}
-     * @param keywordId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public keywordDetails(keywordId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Keyword>;
-    public keywordDetails(keywordId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Keyword>>;
-    public keywordDetails(keywordId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Keyword>>;
-    public keywordDetails(keywordId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public keywordDetails(requestParameters: KeywordDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Keyword>;
+    public keywordDetails(requestParameters: KeywordDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Keyword>>;
+    public keywordDetails(requestParameters: KeywordDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Keyword>>;
+    public keywordDetails(requestParameters: KeywordDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const keywordId = requestParameters?.keywordId;
         if (keywordId === null || keywordId === undefined) {
             throw new Error('Required parameter keywordId was null or undefined when calling keywordDetails.');
         }
@@ -104,21 +107,22 @@ export class KeywordRestControllerService extends BaseService implements Keyword
      * Movies
      * 
      * @endpoint get /keyword/{keyword_id}/movies
-     * @param keywordId 
-     * @param includeAdult 
-     * @param language 
-     * @param page 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public keywordMovies(keywordId: string, includeAdult?: boolean, language?: string, page?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<KeywordMoviePage>;
-    public keywordMovies(keywordId: string, includeAdult?: boolean, language?: string, page?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<KeywordMoviePage>>;
-    public keywordMovies(keywordId: string, includeAdult?: boolean, language?: string, page?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<KeywordMoviePage>>;
-    public keywordMovies(keywordId: string, includeAdult?: boolean, language?: string, page?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public keywordMovies(requestParameters: KeywordMoviesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<KeywordMoviePage>;
+    public keywordMovies(requestParameters: KeywordMoviesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<KeywordMoviePage>>;
+    public keywordMovies(requestParameters: KeywordMoviesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<KeywordMoviePage>>;
+    public keywordMovies(requestParameters: KeywordMoviesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const keywordId = requestParameters?.keywordId;
         if (keywordId === null || keywordId === undefined) {
             throw new Error('Required parameter keywordId was null or undefined when calling keywordMovies.');
         }
+        const includeAdult = requestParameters?.includeAdult;
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

@@ -20,5 +20,4 @@ export class MediaListItemComponent {
     @Input({ required: true }) link!: readonly (string | number)[];
     @Input() index: number | null = null;
     @Input() genreNames: readonly string[] = [];
-    @Input() userRating: number | null = null;
 }
