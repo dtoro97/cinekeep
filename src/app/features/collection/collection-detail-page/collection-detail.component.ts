@@ -1,7 +1,6 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, input, numberAttribute } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 
 import { switchMap, tap } from 'rxjs';
 
@@ -33,18 +32,15 @@ import { CollectionStoreService } from '../collection-store.service';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CollectionDetailComponent {
+    readonly collectionId = input.required({ transform: numberAttribute });
+
     constructor(
         public store: CollectionStoreService,
-        private route: ActivatedRoute,
         private seo: SeoService,
     ) {
-        this.route.paramMap
+        toObservable(this.collectionId)
             .pipe(
-                switchMap((params) =>
-                    this.store.getCollection$(
-                        Number(params.get('collectionId')),
-                    ),
-                ),
+                switchMap((collectionId) => this.store.getCollection$(collectionId)),
                 takeUntilDestroyed(),
             )
             .subscribe();

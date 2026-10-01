@@ -25,6 +25,51 @@ import { TaggedImagePage } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface PersonChangesRequestParams {
+    personId: number;
+    endDate?: string;
+    page?: number;
+    startDate?: string;
+}
+
+export interface PersonCombinedCreditsRequestParams {
+    personId: string;
+    language?: string;
+}
+
+export interface PersonDetailsRequestParams {
+    personId: number;
+    appendToResponse?: string;
+    language?: string;
+}
+
+export interface PersonExternalIdsRequestParams {
+    personId: number;
+}
+
+export interface PersonImagesRequestParams {
+    personId: number;
+}
+
+export interface PersonMovieCreditsRequestParams {
+    personId: number;
+    language?: string;
+}
+
+export interface PersonTaggedImagesRequestParams {
+    personId: number;
+    page?: number;
+}
+
+export interface PersonTvCreditsRequestParams {
+    personId: number;
+    language?: string;
+}
+
+export interface TranslationsRequestParams {
+    personId: number;
+}
+
 
 export interface PersonRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -34,81 +79,72 @@ export interface PersonRestControllerServiceInterface {
      * Changes
      * Get the recent changes for a person.
      * @endpoint get /person/{person_id}/changes
-     * @param personId 
-     * @param endDate 
-     * @param page 
-     * @param startDate 
+* @param requestParameters
      */
-    personChanges(personId: number, endDate?: string, page?: number, startDate?: string, extraHttpRequestParams?: any): Observable<ChangeList>;
+    personChanges(requestParameters: PersonChangesRequestParams, extraHttpRequestParams?: any): Observable<ChangeList>;
 
     /**
      * Combined Credits
      * Get the combined movie and TV credits that belong to a person.
      * @endpoint get /person/{person_id}/combined_credits
-     * @param personId 
-     * @param language 
+* @param requestParameters
      */
-    personCombinedCredits(personId: string, language?: string, extraHttpRequestParams?: any): Observable<PersonCombinedCredits>;
+    personCombinedCredits(requestParameters: PersonCombinedCreditsRequestParams, extraHttpRequestParams?: any): Observable<PersonCombinedCredits>;
 
     /**
      * Details
      * Query the top level details of a person.
      * @endpoint get /person/{person_id}
-     * @param personId 
-     * @param appendToResponse comma separated list of endpoints within this namespace, 20 items max
-     * @param language 
+* @param requestParameters
      */
-    personDetails(personId: number, appendToResponse?: string, language?: string, extraHttpRequestParams?: any): Observable<Person>;
+    personDetails(requestParameters: PersonDetailsRequestParams, extraHttpRequestParams?: any): Observable<Person>;
 
     /**
      * External IDs
      * Get the external ID\&#39;s that belong to a person.
      * @endpoint get /person/{person_id}/external_ids
-     * @param personId 
+* @param requestParameters
      */
-    personExternalIds(personId: number, extraHttpRequestParams?: any): Observable<PersonExternalIds>;
+    personExternalIds(requestParameters: PersonExternalIdsRequestParams, extraHttpRequestParams?: any): Observable<PersonExternalIds>;
 
     /**
      * Images
      * Get the profile images that belong to a person.
      * @endpoint get /person/{person_id}/images
-     * @param personId 
+* @param requestParameters
      */
-    personImages(personId: number, extraHttpRequestParams?: any): Observable<PersonImages>;
+    personImages(requestParameters: PersonImagesRequestParams, extraHttpRequestParams?: any): Observable<PersonImages>;
 
     /**
      * Movie Credits
      * Get the movie credits for a person.
      * @endpoint get /person/{person_id}/movie_credits
-     * @param personId 
-     * @param language 
+* @param requestParameters
      */
-    personMovieCredits(personId: number, language?: string, extraHttpRequestParams?: any): Observable<PersonMovieCredits>;
+    personMovieCredits(requestParameters: PersonMovieCreditsRequestParams, extraHttpRequestParams?: any): Observable<PersonMovieCredits>;
 
     /**
      * Tagged Images
      * Get the tagged images for a person.
      * @endpoint get /person/{person_id}/tagged_images
-     * @param personId 
-     * @param page 
+* @param requestParameters
      */
-    personTaggedImages(personId: number, page?: number, extraHttpRequestParams?: any): Observable<TaggedImagePage>;
+    personTaggedImages(requestParameters: PersonTaggedImagesRequestParams, extraHttpRequestParams?: any): Observable<TaggedImagePage>;
 
     /**
      * TV Credits
      * Get the TV credits that belong to a person.
      * @endpoint get /person/{person_id}/tv_credits
-     * @param personId 
-     * @param language 
+* @param requestParameters
      */
-    personTvCredits(personId: number, language?: string, extraHttpRequestParams?: any): Observable<PersonTvCredits>;
+    personTvCredits(requestParameters: PersonTvCreditsRequestParams, extraHttpRequestParams?: any): Observable<PersonTvCredits>;
 
     /**
      * Translations
      * Get the translations that belong to a person.
      * @endpoint get /person/{person_id}/translations
-     * @param personId 
+* @param requestParameters
      */
-    translations(personId: number, extraHttpRequestParams?: any): Observable<PersonTranslationList>;
+    translations(requestParameters: TranslationsRequestParams, extraHttpRequestParams?: any): Observable<PersonTranslationList>;
 
 }

@@ -26,7 +26,10 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    WatchProviderRestControllerServiceInterface
+    WatchProviderRestControllerServiceInterface,
+    WatchProviderTvListRequestParams,
+    WatchProvidersAvailableRegionsRequestParams,
+    WatchProvidersMovieListRequestParams
 } from './watchProvider.serviceInterface';
 
 
@@ -44,16 +47,17 @@ export class WatchProviderRestControllerService extends BaseService implements W
      * TV Providers
      * Get the list of streaming providers we have for TV shows.
      * @endpoint get /watch/providers/tv
-     * @param language 
-     * @param watchRegion 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public watchProviderTvList(language?: string, watchRegion?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<WatchProviderCatalog>;
-    public watchProviderTvList(language?: string, watchRegion?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<WatchProviderCatalog>>;
-    public watchProviderTvList(language?: string, watchRegion?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<WatchProviderCatalog>>;
-    public watchProviderTvList(language?: string, watchRegion?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public watchProviderTvList(requestParameters?: WatchProviderTvListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<WatchProviderCatalog>;
+    public watchProviderTvList(requestParameters?: WatchProviderTvListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<WatchProviderCatalog>>;
+    public watchProviderTvList(requestParameters?: WatchProviderTvListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<WatchProviderCatalog>>;
+    public watchProviderTvList(requestParameters?: WatchProviderTvListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
+        const watchRegion = requestParameters?.watchRegion;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -123,15 +127,16 @@ export class WatchProviderRestControllerService extends BaseService implements W
      * Available Regions
      * Get the list of the countries we have watch provider (OTT/streaming) data for.
      * @endpoint get /watch/providers/regions
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public watchProvidersAvailableRegions(language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<WatchProviderRegionList>;
-    public watchProvidersAvailableRegions(language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<WatchProviderRegionList>>;
-    public watchProvidersAvailableRegions(language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<WatchProviderRegionList>>;
-    public watchProvidersAvailableRegions(language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public watchProvidersAvailableRegions(requestParameters?: WatchProvidersAvailableRegionsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<WatchProviderRegionList>;
+    public watchProvidersAvailableRegions(requestParameters?: WatchProvidersAvailableRegionsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<WatchProviderRegionList>>;
+    public watchProvidersAvailableRegions(requestParameters?: WatchProvidersAvailableRegionsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<WatchProviderRegionList>>;
+    public watchProvidersAvailableRegions(requestParameters?: WatchProvidersAvailableRegionsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -192,16 +197,17 @@ export class WatchProviderRestControllerService extends BaseService implements W
      * Movie Providers
      * Get the list of streaming providers we have for movies.
      * @endpoint get /watch/providers/movie
-     * @param language 
-     * @param watchRegion 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public watchProvidersMovieList(language?: string, watchRegion?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<WatchProviderCatalog>;
-    public watchProvidersMovieList(language?: string, watchRegion?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<WatchProviderCatalog>>;
-    public watchProvidersMovieList(language?: string, watchRegion?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<WatchProviderCatalog>>;
-    public watchProvidersMovieList(language?: string, watchRegion?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public watchProvidersMovieList(requestParameters?: WatchProvidersMovieListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<WatchProviderCatalog>;
+    public watchProvidersMovieList(requestParameters?: WatchProvidersMovieListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<WatchProviderCatalog>>;
+    public watchProvidersMovieList(requestParameters?: WatchProvidersMovieListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<WatchProviderCatalog>>;
+    public watchProvidersMovieList(requestParameters?: WatchProvidersMovieListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
+        const watchRegion = requestParameters?.watchRegion;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

@@ -3,20 +3,21 @@ import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 import { catchError, map, of, switchMap, tap, throwError } from 'rxjs';
 
-import { AccountService as AccountV4Service, V4AccountListSummary } from '../../api-v4';
-import { API_JSON_OPTIONS, PAGE_SIZE } from '../../constants';
-import { RemoteData, TmdbListService, UserSessionStoreService, isDefined } from '../../shared';
+import { UserListControllerService, UserListResponse } from '../../api-cinekeep';
+import { PAGE_SIZE } from '../../constants';
+import { RemoteData, UserLibraryService, UserListSortBy, isDefined } from '../../shared';
 import { remoteSuccess, toPageItemRange, updateRemoteData } from '../../shared/utils';
+import { DEFAULT_USER_LIST_SORT_BY } from './user-list-sort-options';
 
 export interface UserListSummaryItem {
     readonly id: number;
     readonly name: string;
     readonly description: string | null;
     readonly isPublic: boolean;
+    readonly sortBy: UserListSortBy;
     readonly createdAt: string | null;
     readonly updatedAt: string | null;
     readonly numberOfItems: number | null;
-    readonly averageRating: number | null;
 }
 
 interface UserListsState {
@@ -56,9 +57,8 @@ export class UserListsStore extends ComponentStore<UserListsState> {
     });
 
     constructor(
-        private readonly accountV4Service: AccountV4Service,
-        private readonly tmdbListService: TmdbListService,
-        private readonly userSessionStore: UserSessionStoreService,
+        private readonly userLibraryService: UserLibraryService,
+        private readonly userListController: UserListControllerService,
     ) {
         super(INITIAL_STATE);
     }
@@ -98,13 +98,15 @@ export class UserListsStore extends ComponentStore<UserListsState> {
             readonly name: string;
             readonly description: string;
             readonly isPublic: boolean;
+            readonly sortBy: UserListSortBy;
         },
     ) {
-        return this.tmdbListService
+        return this.userLibraryService
             .updateList$(listId, {
                 name: request.name,
                 description: request.description,
-                public: request.isPublic,
+                isPublic: request.isPublic,
+                sortBy: request.sortBy,
             })
             .pipe(
                 tap(() => {
@@ -117,6 +119,7 @@ export class UserListsStore extends ComponentStore<UserListsState> {
                                           name: request.name,
                                           description: request.description || null,
                                           isPublic: request.isPublic,
+                                          sortBy: request.sortBy,
                                       }
                                     : item,
                             ),
@@ -127,7 +130,7 @@ export class UserListsStore extends ComponentStore<UserListsState> {
     }
 
     deleteList$(listId: number) {
-        return this.tmdbListService.deleteList$(listId).pipe(
+        return this.userLibraryService.deleteList$(listId).pipe(
             switchMap(() => {
                 const state = this.get();
                 const totalResults = Math.max(0, state.totalResults - 1);
@@ -155,23 +158,17 @@ export class UserListsStore extends ComponentStore<UserListsState> {
     }
 
     private fetchListsPage$(page: number) {
-        const { v4AccountId } = this.userSessionStore.requireV4AccountAccess();
-
-        return this.accountV4Service
-            .accountV4Lists(v4AccountId, page, 'body', false, API_JSON_OPTIONS)
-            .pipe(
-                map((result) => ({
-                    items: (result.results ?? [])
-                        .map((item) => this.toUserListSummaryItem(item))
-                        .filter(isDefined),
-                    page: result.page ?? INITIAL_PAGE,
-                    totalPages: result.total_pages ?? INITIAL_PAGE,
-                    totalResults: result.total_results ?? 0,
-                })),
-            );
+        return this.userListController.getLists({ page: page - 1, size: PAGE_SIZE }).pipe(
+            map((result) => ({
+                items: (result.content ?? []).map((item) => this.toUserListSummaryItem(item)).filter(isDefined),
+                page,
+                totalPages: Math.max(INITIAL_PAGE, result.totalPages ?? INITIAL_PAGE),
+                totalResults: result.totalElements ?? 0,
+            })),
+        );
     }
 
-    private toUserListSummaryItem(item: V4AccountListSummary): UserListSummaryItem | null {
+    private toUserListSummaryItem(item: UserListResponse): UserListSummaryItem | null {
         const name = item.name?.trim();
 
         if (!item.id || !name) {
@@ -182,11 +179,11 @@ export class UserListsStore extends ComponentStore<UserListsState> {
             id: item.id,
             name,
             description: item.description?.trim() || null,
-            isPublic: item.public === V4AccountListSummary.PublicEnum.NUMBER_1,
-            createdAt: item.created_at ?? null,
-            updatedAt: item.updated_at ?? null,
-            numberOfItems: item.number_of_items ?? null,
-            averageRating: item.average_rating ?? null,
+            isPublic: item.isPublic === true,
+            sortBy: item.sortBy ?? DEFAULT_USER_LIST_SORT_BY,
+            createdAt: item.createdAt ?? null,
+            updatedAt: item.updatedAt ?? null,
+            numberOfItems: item.itemCount ?? null,
         };
     }
 }

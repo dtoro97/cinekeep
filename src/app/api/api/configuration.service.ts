@@ -32,7 +32,8 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    ConfigurationRestControllerServiceInterface
+    ConfigurationRestControllerServiceInterface,
+    ConfigurationCountriesRequestParams
 } from './configuration.serviceInterface';
 
 
@@ -50,15 +51,16 @@ export class ConfigurationRestControllerService extends BaseService implements C
      * Countries
      * Get the list of countries (ISO 3166-1 tags) used throughout TMDB.
      * @endpoint get /configuration/countries
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public configurationCountries(language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Country>>;
-    public configurationCountries(language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Country>>>;
-    public configurationCountries(language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Country>>>;
-    public configurationCountries(language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public configurationCountries(requestParameters?: ConfigurationCountriesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<Country>>;
+    public configurationCountries(requestParameters?: ConfigurationCountriesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<Country>>>;
+    public configurationCountries(requestParameters?: ConfigurationCountriesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<Country>>>;
+    public configurationCountries(requestParameters?: ConfigurationCountriesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

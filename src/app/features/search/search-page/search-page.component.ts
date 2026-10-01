@@ -1,7 +1,6 @@
 import { AsyncPipe } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 import { combineLatest, map, switchMap, tap } from 'rxjs';
 
@@ -12,9 +11,9 @@ import {
     MediaListComponent,
     ToggleGroupComponent,
     PersonListComponent,
+    SEARCH_TYPE_OPTIONS,
     SeoService,
     toMediaListEntryState,
-    type SelectOption,
 } from '../../../shared';
 import { GenreService } from '../../../shared/services';
 import { SearchStoreService, SearchType } from '../search-store.service';
@@ -35,12 +34,14 @@ import { SearchStoreService, SearchType } from '../search-store.service';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchPageComponent {
-    readonly typeOptions: SelectOption<SearchType>[] = [
-        { label: 'All', value: 'all' },
-        { label: 'Movies', value: 'movie' },
-        { label: 'TV series', value: 'tv' },
-        { label: 'People', value: 'person' },
-    ];
+    readonly query = input<string>();
+    readonly type = input<string>();
+    readonly typeOptions = SEARCH_TYPE_OPTIONS;
+
+    private readonly searchRequest = computed(() => ({
+        query: this.query() ?? '',
+        type: this.normalizeType(this.type()),
+    }));
 
     readonly vm$ = combineLatest({
         query: this.store.query$,
@@ -62,16 +63,8 @@ export class SearchPageComponent {
                 ...vm,
                 hasQuery,
                 pageTitle: hasQuery ? `Results for "${vm.query}"` : 'Search',
-                movieListState: toMediaListEntryState(vm.movieState, {
-                    genreMap: vm.movieGenreMap,
-                    routeType: 'movie',
-                    showIndex: true,
-                }),
-                tvListState: toMediaListEntryState(vm.tvState, {
-                    genreMap: vm.tvGenreMap,
-                    routeType: 'tv',
-                    showIndex: true,
-                }),
+                movieListState: toMediaListEntryState(vm.movieState, vm.movieGenreMap),
+                tvListState: toMediaListEntryState(vm.tvState, vm.tvGenreMap),
                 listSkeletonCount: vm.type === 'all' ? SMALL_LIST_COUNT : PAGE_SIZE,
             };
         }),
@@ -79,17 +72,12 @@ export class SearchPageComponent {
 
     constructor(
         private readonly store: SearchStoreService,
-        private readonly route: ActivatedRoute,
         private readonly seo: SeoService,
         private readonly genreService: GenreService,
     ) {
-        this.route.queryParamMap
+        toObservable(this.searchRequest)
             .pipe(
-                switchMap((params) => {
-                    const query = params.get('query') ?? '';
-                    const type = this.normalizeType(params.get('type'));
-                    return this.store.search$(query, type);
-                }),
+                switchMap(({ query, type }) => this.store.search$(query, type)),
                 takeUntilDestroyed(),
             )
             .subscribe();
@@ -126,7 +114,7 @@ export class SearchPageComponent {
         this.store.updateType(type as SearchType);
     }
 
-    private normalizeType(value: string | null): SearchType {
+    private normalizeType(value: string | undefined): SearchType {
         if (value === 'movie' || value === 'tv' || value === 'person') {
             return value;
         }

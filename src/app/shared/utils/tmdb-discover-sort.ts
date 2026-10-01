@@ -73,32 +73,8 @@ export function getTmdbDiscoverSortOptions(
         : TMDB_DISCOVER_TV_SORT_OPTIONS;
 }
 
-export function toTmdbDiscoverSort(
-    mediaType: 'movie',
-    sortKey: TmdbDiscoverSortKey,
-    direction: SortDirection,
-): TmdbMovieDiscoverSort;
-export function toTmdbDiscoverSort(
-    mediaType: 'tv',
-    sortKey: TmdbDiscoverSortKey,
-    direction: SortDirection,
-): TmdbTvDiscoverSort;
-export function toTmdbDiscoverSort(
-    mediaType: MediaType,
-    sortKey: TmdbDiscoverSortKey,
-    direction: SortDirection,
-): TmdbMovieDiscoverSort | TmdbTvDiscoverSort;
-export function toTmdbDiscoverSort(
-    mediaType: MediaType,
-    sortKey: TmdbDiscoverSortKey,
-    direction: SortDirection,
-): TmdbMovieDiscoverSort | TmdbTvDiscoverSort {
-    const fields =
-        mediaType === 'movie'
-            ? TMDB_MOVIE_DISCOVER_SORT_FIELDS
-            : TMDB_TV_DISCOVER_SORT_FIELDS;
+export const toTmdbMovieDiscoverSort = (sortKey: TmdbDiscoverSortKey, direction: SortDirection): TmdbMovieDiscoverSort =>
+    `${TMDB_MOVIE_DISCOVER_SORT_FIELDS[sortKey]}.${direction}`;
 
-    return `${fields[sortKey]}.${direction}` as
-        | TmdbMovieDiscoverSort
-        | TmdbTvDiscoverSort;
-}
+export const toTmdbTvDiscoverSort = (sortKey: TmdbDiscoverSortKey, direction: SortDirection): TmdbTvDiscoverSort =>
+    `${TMDB_TV_DISCOVER_SORT_FIELDS[sortKey]}.${direction}`;

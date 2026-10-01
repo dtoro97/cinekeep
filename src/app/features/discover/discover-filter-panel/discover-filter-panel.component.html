@@ -1,11 +1,13 @@
+@let panel = filters();
+
 <div class="discover-filter-panel">
-    @if (showHeader) {
+    @if (showHeader()) {
         <header class="discover-filter-panel__header">
             <div class="discover-filter-panel__heading">
                 <h2 class="text-title">Filters</h2>
-                @if (activeFilterCount) {
+                @if (panel.activeFilterCount) {
                     <span class="discover-filter-panel__count text-caption">
-                        {{ activeFilterCount }}
+                        {{ panel.activeFilterCount }}
                     </span>
                 }
             </div>
@@ -26,19 +28,19 @@
         </header>
     }
 
-    @if (showGenreFilter) {
+    @if (panel.visible.genres) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Genres</h2>
             <app-toggle-group
-                [options]="genreOptions"
-                [selectedValues]="selectedGenreIds"
+                [options]="panel.genreOptions"
+                [selectedValues]="panel.selectedGenreIds"
                 [multiple]="true"
-                (selected)="genresChange.emit($event)"
+                (selected)="change('genres', $event)"
             />
         </section>
     }
 
-    @if (showKeywordFilter) {
+    @if (panel.visible.keywords) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Keywords</h2>
             <mat-form-field class="discover-filter-panel__select-field" appearance="outline" subscriptSizing="dynamic">
@@ -50,7 +52,7 @@
                     (input)="onKeywordSearch($event)"
                 />
                 <mat-autocomplete #keywordAuto="matAutocomplete" (optionSelected)="onKeywordAdd($event.option.value)">
-                    @for (option of keywordSuggestions; track option.value) {
+                    @for (option of panel.keywordSuggestions; track option.value) {
                         <mat-option [value]="option.value">
                             {{ option.label }}
                         </mat-option>
@@ -60,7 +62,7 @@
         </section>
     }
 
-    @if (showCompanyFilter) {
+    @if (panel.visible.companies) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Production companies</h2>
             <mat-form-field class="discover-filter-panel__select-field" appearance="outline" subscriptSizing="dynamic">
@@ -72,7 +74,7 @@
                     (input)="onCompanySearch($event)"
                 />
                 <mat-autocomplete #companyAuto="matAutocomplete" (optionSelected)="onCompanyAdd($event.option.value)">
-                    @for (option of companySuggestions; track option.value) {
+                    @for (option of panel.companySuggestions; track option.value) {
                         <mat-option [value]="option.value">
                             {{ option.label }}
                         </mat-option>
@@ -82,41 +84,41 @@
         </section>
     }
 
-    @if (showYearRangeFilter) {
+    @if (panel.visible.yearRange) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Year range</h2>
             <div class="discover-filter-panel__range-row">
                 <app-stepper-input
-                    [value]="selectedYearFrom"
+                    [value]="panel.yearFrom"
                     [step]="1"
                     [min]="1874"
                     [max]="2100"
                     placeholder="From"
-                    (valueChanged)="yearFromChange.emit($event)"
+                    (valueChanged)="change('yearFrom', $event)"
                 />
                 <span class="discover-filter-panel__range-separator text-caption">to</span>
                 <app-stepper-input
-                    [value]="selectedYearTo"
+                    [value]="panel.yearTo"
                     [step]="1"
                     [min]="1874"
                     [max]="2100"
                     placeholder="To"
-                    (valueChanged)="yearToChange.emit($event)"
+                    (valueChanged)="change('yearTo', $event)"
                 />
             </div>
         </section>
     }
 
-    @if (showWatchRegionFilter) {
+    @if (panel.visible.watchRegion) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Region</h2>
             <mat-form-field class="discover-filter-panel__select-field" appearance="outline" subscriptSizing="dynamic">
                 <mat-select
                     aria-label="Region"
-                    [value]="watchRegion"
-                    (selectionChange)="watchRegionChange.emit($event.value)"
+                    [value]="panel.watchRegion"
+                    (selectionChange)="change('watchRegion', $event.value)"
                 >
-                    @for (option of watchRegionOptions; track option.value) {
+                    @for (option of panel.watchRegionOptions; track option.value) {
                         <mat-option [value]="option.value">
                             {{ option.label }}
                         </mat-option>
@@ -126,7 +128,7 @@
         </section>
     }
 
-    @if (showProviderFilter) {
+    @if (panel.visible.providers) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Where to watch</h2>
             <mat-form-field class="discover-filter-panel__select-field" appearance="outline" subscriptSizing="dynamic">
@@ -134,13 +136,13 @@
                     multiple
                     aria-label="Where to watch"
                     placeholder="Any provider"
-                    [value]="selectedProviderIds"
-                    (selectionChange)="providersChange.emit($event.value)"
+                    [value]="panel.selectedProviderIds"
+                    (selectionChange)="change('providers', $event.value)"
                 >
-                    @if (!providerOptions.length) {
+                    @if (!panel.providerOptions.length) {
                         <mat-option disabled>No providers available</mat-option>
                     }
-                    @for (option of providerOptions; track option.value) {
+                    @for (option of panel.providerOptions; track option.value) {
                         <mat-option [value]="option.value">
                             {{ option.label }}
                         </mat-option>
@@ -150,37 +152,37 @@
         </section>
     }
 
-    @if (showCertificationFilter) {
+    @if (panel.visible.certification) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Certification</h2>
             <app-toggle-group
-                [options]="certificationToggleOptions()"
-                [selectedValue]="selectedCertification"
-                (selected)="certificationChange.emit($event)"
+                [options]="panel.certificationOptions"
+                [selectedValue]="panel.certification"
+                (selected)="change('certification', $event)"
             />
         </section>
     }
 
-    @if (showReleaseTypeFilter) {
+    @if (panel.visible.releaseType) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Release type</h2>
             <app-toggle-group
-                [options]="releaseTypeOptions"
-                [selectedValue]="selectedReleaseType"
-                (selected)="releaseTypeChange.emit($event)"
+                [options]="panel.releaseTypeOptions"
+                [selectedValue]="panel.releaseType"
+                (selected)="change('releaseType', $event)"
             />
         </section>
     }
 
-    @if (showLanguageFilter) {
+    @if (panel.visible.language) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Original language</h2>
             <mat-form-field class="discover-filter-panel__select-field" appearance="outline" subscriptSizing="dynamic">
                 <mat-select
                     aria-label="Original language"
                     placeholder="Any language"
-                    [value]="selectedOriginalLanguage"
-                    (selectionChange)="originalLanguageChange.emit($event.value)"
+                    [value]="panel.language"
+                    (selectionChange)="change('language', $event.value)"
                 >
                     <mat-option>
                         <ngx-mat-select-search
@@ -201,35 +203,35 @@
         </section>
     }
 
-    @if (showRatingFilter) {
+    @if (panel.visible.rating) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Rating</h2>
             <app-toggle-group
-                [options]="ratingOptions"
-                [selectedValue]="selectedRating"
-                (selected)="ratingChange.emit($event)"
+                [options]="panel.ratingOptions"
+                [selectedValue]="panel.rating"
+                (selected)="change('rating', $event)"
             />
         </section>
     }
 
-    @if (showVoteCountFilter) {
+    @if (panel.visible.votes) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Votes</h2>
             <app-toggle-group
-                [options]="voteCountOptions"
-                [selectedValue]="selectedVoteCount"
-                (selected)="voteCountChange.emit($event)"
+                [options]="panel.voteCountOptions"
+                [selectedValue]="panel.voteCount"
+                (selected)="change('votes', $event)"
             />
         </section>
     }
 
-    @if (showRuntimeFilter) {
+    @if (panel.visible.runtime) {
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-title">Runtime</h2>
             <app-toggle-group
-                [options]="runtimeOptions"
-                [selectedValue]="selectedRuntime"
-                (selected)="runtimeChange.emit($event)"
+                [options]="panel.runtimeOptions"
+                [selectedValue]="panel.runtime"
+                (selected)="change('runtime', $event)"
             />
         </section>
     }

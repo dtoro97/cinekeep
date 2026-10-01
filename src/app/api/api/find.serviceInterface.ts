@@ -17,6 +17,12 @@ import { FindResult } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface FindByIdRequestParams {
+    externalId: string;
+    externalSource: 'imdb_id' | 'facebook_id' | 'instagram_id' | 'tvdb_id' | 'tiktok_id' | 'twitter_id' | 'wikidata_id' | 'youtube_id';
+    language?: string;
+}
+
 
 export interface FindRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -26,10 +32,8 @@ export interface FindRestControllerServiceInterface {
      * Find By ID
      * Find data by external ID\&#39;s.
      * @endpoint get /find/{external_id}
-     * @param externalId 
-     * @param externalSource 
-     * @param language 
+* @param requestParameters
      */
-    findById(externalId: string, externalSource: 'imdb_id' | 'facebook_id' | 'instagram_id' | 'tvdb_id' | 'tiktok_id' | 'twitter_id' | 'wikidata_id' | 'youtube_id', language?: string, extraHttpRequestParams?: any): Observable<FindResult>;
+    findById(requestParameters: FindByIdRequestParams, extraHttpRequestParams?: any): Observable<FindResult>;
 
 }

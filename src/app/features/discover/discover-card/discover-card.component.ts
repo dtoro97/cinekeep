@@ -3,22 +3,20 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import {
-    FavoriteToggleComponent,
     ImageComponent,
     type MediaListItem,
     RatingComponent,
-    WatchlistToggleComponent,
+    LibraryToggleComponent,
 } from '../../../shared';
 
 @Component({
     selector: 'app-discover-card',
     imports: [
         DatePipe,
-        FavoriteToggleComponent,
         ImageComponent,
         RatingComponent,
         RouterLink,
-        WatchlistToggleComponent,
+        LibraryToggleComponent,
     ],
     templateUrl: './discover-card.component.html',
     styleUrl: './discover-card.component.scss',
@@ -26,6 +24,6 @@ import {
 })
 export class DiscoverCardComponent {
     @Input({ required: true }) item!: MediaListItem;
-    @Input({ required: true }) link!: (string | number)[];
-    @Input() genreNames: string[] = [];
+    @Input({ required: true }) link!: readonly (string | number)[];
+    @Input() genreNames: readonly string[] = [];
 }

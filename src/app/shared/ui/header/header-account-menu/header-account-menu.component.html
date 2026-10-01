@@ -20,7 +20,6 @@
             <app-user-avatar
                 class="account-menu__avatar"
                 [name]="vm.username ?? vm.displayName"
-                [avatarPath]="vm.avatarPath"
                 size="sm"
             />
             <mat-icon class="account-menu__chevron" aria-hidden="true">expand_more</mat-icon>
@@ -29,7 +28,7 @@
         <mat-menu #accountMenu="matMenu" xPosition="before">
             <div class="account-menu__panel">
                 <a class="account-menu__identity" routerLink="/me">
-                    <app-user-avatar [name]="vm.username ?? vm.displayName" [avatarPath]="vm.avatarPath" size="sm" />
+                    <app-user-avatar [name]="vm.username ?? vm.displayName" size="sm" />
                     <span class="account-menu__identity-copy">
                         <span class="account-menu__identity-name text-body-sm u-truncate">
                             {{ vm.displayName }}

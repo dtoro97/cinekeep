@@ -56,7 +56,25 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    MovieRestControllerServiceInterface
+    MovieRestControllerServiceInterface,
+    MovieAccountStatesRequestParams,
+    MovieAddRatingRequestParams,
+    MovieAlternativeTitlesRequestParams,
+    MovieChangesRequestParams,
+    MovieCreditsRequestParams,
+    MovieDeleteRatingRequestParams,
+    MovieDetailsRequestParams,
+    MovieExternalIdsRequestParams,
+    MovieImagesRequestParams,
+    MovieKeywordsRequestParams,
+    MovieListsRequestParams,
+    MovieRecommendationsRequestParams,
+    MovieReleaseDatesRequestParams,
+    MovieReviewsRequestParams,
+    MovieSimilarRequestParams,
+    MovieTranslationsRequestParams,
+    MovieVideosRequestParams,
+    MovieWatchProvidersRequestParams
 } from './movie.serviceInterface';
 
 
@@ -74,20 +92,21 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Account States
      * Get the rating, watchlist and favourite status of an account.
      * @endpoint get /movie/{movie_id}/account_states
-     * @param movieId 
-     * @param sessionId 
-     * @param guestSessionId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieAccountStates(movieId: number, sessionId?: string, guestSessionId?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AccountStates>;
-    public movieAccountStates(movieId: number, sessionId?: string, guestSessionId?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AccountStates>>;
-    public movieAccountStates(movieId: number, sessionId?: string, guestSessionId?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AccountStates>>;
-    public movieAccountStates(movieId: number, sessionId?: string, guestSessionId?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieAccountStates(requestParameters: MovieAccountStatesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AccountStates>;
+    public movieAccountStates(requestParameters: MovieAccountStatesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AccountStates>>;
+    public movieAccountStates(requestParameters: MovieAccountStatesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AccountStates>>;
+    public movieAccountStates(requestParameters: MovieAccountStatesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieAccountStates.');
         }
+        const sessionId = requestParameters?.sessionId;
+        const guestSessionId = requestParameters?.guestSessionId;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -157,25 +176,26 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Add Rating
      * Rate a movie and save it to your rated list.
      * @endpoint post /movie/{movie_id}/rating
-     * @param movieId 
-     * @param contentType 
-     * @param guestSessionId 
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieAddRating(movieId: number, contentType: string, guestSessionId?: string, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
-    public movieAddRating(movieId: number, contentType: string, guestSessionId?: string, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
-    public movieAddRating(movieId: number, contentType: string, guestSessionId?: string, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
-    public movieAddRating(movieId: number, contentType: string, guestSessionId?: string, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieAddRating(requestParameters: MovieAddRatingRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
+    public movieAddRating(requestParameters: MovieAddRatingRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
+    public movieAddRating(requestParameters: MovieAddRatingRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
+    public movieAddRating(requestParameters: MovieAddRatingRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieAddRating.');
         }
+        const contentType = requestParameters?.contentType;
         if (contentType === null || contentType === undefined) {
             throw new Error('Required parameter contentType was null or undefined when calling movieAddRating.');
         }
+        const guestSessionId = requestParameters?.guestSessionId;
+        const sessionId = requestParameters?.sessionId;
+        const accountAddFavoriteRequest = requestParameters?.accountAddFavoriteRequest;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -258,19 +278,20 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Alternative Titles
      * Get the alternative titles for a movie.
      * @endpoint get /movie/{movie_id}/alternative_titles
-     * @param movieId 
-     * @param country specify a ISO-3166-1 value to filter the results
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieAlternativeTitles(movieId: number, country?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AlternativeTitleList>;
-    public movieAlternativeTitles(movieId: number, country?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AlternativeTitleList>>;
-    public movieAlternativeTitles(movieId: number, country?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AlternativeTitleList>>;
-    public movieAlternativeTitles(movieId: number, country?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieAlternativeTitles(requestParameters: MovieAlternativeTitlesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AlternativeTitleList>;
+    public movieAlternativeTitles(requestParameters: MovieAlternativeTitlesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AlternativeTitleList>>;
+    public movieAlternativeTitles(requestParameters: MovieAlternativeTitlesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AlternativeTitleList>>;
+    public movieAlternativeTitles(requestParameters: MovieAlternativeTitlesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieAlternativeTitles.');
         }
+        const country = requestParameters?.country;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -331,21 +352,22 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Changes
      * Get the recent changes for a movie.
      * @endpoint get /movie/{movie_id}/changes
-     * @param movieId 
-     * @param endDate 
-     * @param page 
-     * @param startDate 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieChanges(movieId: number, endDate?: string, page?: number, startDate?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ChangeList>;
-    public movieChanges(movieId: number, endDate?: string, page?: number, startDate?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChangeList>>;
-    public movieChanges(movieId: number, endDate?: string, page?: number, startDate?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChangeList>>;
-    public movieChanges(movieId: number, endDate?: string, page?: number, startDate?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieChanges(requestParameters: MovieChangesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ChangeList>;
+    public movieChanges(requestParameters: MovieChangesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChangeList>>;
+    public movieChanges(requestParameters: MovieChangesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChangeList>>;
+    public movieChanges(requestParameters: MovieChangesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieChanges.');
         }
+        const endDate = requestParameters?.endDate;
+        const page = requestParameters?.page;
+        const startDate = requestParameters?.startDate;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -424,19 +446,20 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Credits
      * 
      * @endpoint get /movie/{movie_id}/credits
-     * @param movieId 
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieCredits(movieId: number, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Credits>;
-    public movieCredits(movieId: number, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Credits>>;
-    public movieCredits(movieId: number, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Credits>>;
-    public movieCredits(movieId: number, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieCredits(requestParameters: MovieCreditsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Credits>;
+    public movieCredits(requestParameters: MovieCreditsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Credits>>;
+    public movieCredits(requestParameters: MovieCreditsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Credits>>;
+    public movieCredits(requestParameters: MovieCreditsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieCredits.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -497,21 +520,22 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Delete Rating
      * Delete a user rating.
      * @endpoint delete /movie/{movie_id}/rating
-     * @param movieId 
-     * @param contentType 
-     * @param guestSessionId 
-     * @param sessionId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieDeleteRating(movieId: number, contentType?: string, guestSessionId?: string, sessionId?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
-    public movieDeleteRating(movieId: number, contentType?: string, guestSessionId?: string, sessionId?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
-    public movieDeleteRating(movieId: number, contentType?: string, guestSessionId?: string, sessionId?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
-    public movieDeleteRating(movieId: number, contentType?: string, guestSessionId?: string, sessionId?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieDeleteRating(requestParameters: MovieDeleteRatingRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
+    public movieDeleteRating(requestParameters: MovieDeleteRatingRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
+    public movieDeleteRating(requestParameters: MovieDeleteRatingRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
+    public movieDeleteRating(requestParameters: MovieDeleteRatingRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieDeleteRating.');
         }
+        const contentType = requestParameters?.contentType;
+        const guestSessionId = requestParameters?.guestSessionId;
+        const sessionId = requestParameters?.sessionId;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -584,22 +608,23 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Details
      * Get the top level details of a movie by ID.
      * @endpoint get /movie/{movie_id}
-     * @param movieId 
-     * @param appendToResponse comma separated list of endpoints within this namespace, 20 items max
-     * @param language 
-     * @param sessionId TMDb user session ID
-     * @param guestSessionId TMDb guest session ID
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieDetails(movieId: number, appendToResponse?: string, language?: string, sessionId?: string, guestSessionId?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Movie>;
-    public movieDetails(movieId: number, appendToResponse?: string, language?: string, sessionId?: string, guestSessionId?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Movie>>;
-    public movieDetails(movieId: number, appendToResponse?: string, language?: string, sessionId?: string, guestSessionId?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Movie>>;
-    public movieDetails(movieId: number, appendToResponse?: string, language?: string, sessionId?: string, guestSessionId?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieDetails(requestParameters: MovieDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Movie>;
+    public movieDetails(requestParameters: MovieDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Movie>>;
+    public movieDetails(requestParameters: MovieDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Movie>>;
+    public movieDetails(requestParameters: MovieDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieDetails.');
         }
+        const appendToResponse = requestParameters?.appendToResponse;
+        const language = requestParameters?.language;
+        const sessionId = requestParameters?.sessionId;
+        const guestSessionId = requestParameters?.guestSessionId;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -687,15 +712,16 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * External IDs
      * 
      * @endpoint get /movie/{movie_id}/external_ids
-     * @param movieId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieExternalIds(movieId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ExternalIds>;
-    public movieExternalIds(movieId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ExternalIds>>;
-    public movieExternalIds(movieId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ExternalIds>>;
-    public movieExternalIds(movieId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieExternalIds(requestParameters: MovieExternalIdsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ExternalIds>;
+    public movieExternalIds(requestParameters: MovieExternalIdsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ExternalIds>>;
+    public movieExternalIds(requestParameters: MovieExternalIdsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ExternalIds>>;
+    public movieExternalIds(requestParameters: MovieExternalIdsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieExternalIds.');
         }
@@ -747,20 +773,21 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Images
      * Get the images that belong to a movie.
      * @endpoint get /movie/{movie_id}/images
-     * @param movieId 
-     * @param includeImageLanguage specify a comma separated list of ISO-639-1 values to query, for example: &#x60;en-US,null&#x60;
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieImages(movieId: number, includeImageLanguage?: string, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ImageList>;
-    public movieImages(movieId: number, includeImageLanguage?: string, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ImageList>>;
-    public movieImages(movieId: number, includeImageLanguage?: string, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ImageList>>;
-    public movieImages(movieId: number, includeImageLanguage?: string, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieImages(requestParameters: MovieImagesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ImageList>;
+    public movieImages(requestParameters: MovieImagesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ImageList>>;
+    public movieImages(requestParameters: MovieImagesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ImageList>>;
+    public movieImages(requestParameters: MovieImagesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieImages.');
         }
+        const includeImageLanguage = requestParameters?.includeImageLanguage;
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -830,15 +857,16 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Keywords
      * 
      * @endpoint get /movie/{movie_id}/keywords
-     * @param movieId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieKeywords(movieId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<KeywordList>;
-    public movieKeywords(movieId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<KeywordList>>;
-    public movieKeywords(movieId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<KeywordList>>;
-    public movieKeywords(movieId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieKeywords(requestParameters: MovieKeywordsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<KeywordList>;
+    public movieKeywords(requestParameters: MovieKeywordsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<KeywordList>>;
+    public movieKeywords(requestParameters: MovieKeywordsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<KeywordList>>;
+    public movieKeywords(requestParameters: MovieKeywordsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieKeywords.');
         }
@@ -890,20 +918,21 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Lists
      * Get the lists that a movie has been added to.
      * @endpoint get /movie/{movie_id}/lists
-     * @param movieId 
-     * @param language 
-     * @param page 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieLists(movieId: number, language?: string, page?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MovieListPage>;
-    public movieLists(movieId: number, language?: string, page?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MovieListPage>>;
-    public movieLists(movieId: number, language?: string, page?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MovieListPage>>;
-    public movieLists(movieId: number, language?: string, page?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieLists(requestParameters: MovieListsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MovieListPage>;
+    public movieLists(requestParameters: MovieListsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MovieListPage>>;
+    public movieLists(requestParameters: MovieListsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MovieListPage>>;
+    public movieLists(requestParameters: MovieListsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieLists.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -973,20 +1002,21 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Recommendations
      * 
      * @endpoint get /movie/{movie_id}/recommendations
-     * @param movieId 
-     * @param language 
-     * @param page 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieRecommendations(movieId: number, language?: string, page?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
-    public movieRecommendations(movieId: number, language?: string, page?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
-    public movieRecommendations(movieId: number, language?: string, page?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
-    public movieRecommendations(movieId: number, language?: string, page?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieRecommendations(requestParameters: MovieRecommendationsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
+    public movieRecommendations(requestParameters: MovieRecommendationsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
+    public movieRecommendations(requestParameters: MovieRecommendationsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
+    public movieRecommendations(requestParameters: MovieRecommendationsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieRecommendations.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -1056,15 +1086,16 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Release Dates
      * Get the release dates and certifications for a movie.
      * @endpoint get /movie/{movie_id}/release_dates
-     * @param movieId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieReleaseDates(movieId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ReleaseDateList>;
-    public movieReleaseDates(movieId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ReleaseDateList>>;
-    public movieReleaseDates(movieId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ReleaseDateList>>;
-    public movieReleaseDates(movieId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieReleaseDates(requestParameters: MovieReleaseDatesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ReleaseDateList>;
+    public movieReleaseDates(requestParameters: MovieReleaseDatesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ReleaseDateList>>;
+    public movieReleaseDates(requestParameters: MovieReleaseDatesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ReleaseDateList>>;
+    public movieReleaseDates(requestParameters: MovieReleaseDatesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieReleaseDates.');
         }
@@ -1116,20 +1147,21 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Reviews
      * Get the user reviews for a movie.
      * @endpoint get /movie/{movie_id}/reviews
-     * @param movieId 
-     * @param language 
-     * @param page 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieReviews(movieId: number, language?: string, page?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ReviewPage>;
-    public movieReviews(movieId: number, language?: string, page?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ReviewPage>>;
-    public movieReviews(movieId: number, language?: string, page?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ReviewPage>>;
-    public movieReviews(movieId: number, language?: string, page?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieReviews(requestParameters: MovieReviewsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ReviewPage>;
+    public movieReviews(requestParameters: MovieReviewsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ReviewPage>>;
+    public movieReviews(requestParameters: MovieReviewsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ReviewPage>>;
+    public movieReviews(requestParameters: MovieReviewsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieReviews.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -1199,20 +1231,21 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Similar
      * Get the similar movies based on genres and keywords.
      * @endpoint get /movie/{movie_id}/similar
-     * @param movieId 
-     * @param language 
-     * @param page 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieSimilar(movieId: number, language?: string, page?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
-    public movieSimilar(movieId: number, language?: string, page?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
-    public movieSimilar(movieId: number, language?: string, page?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
-    public movieSimilar(movieId: number, language?: string, page?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieSimilar(requestParameters: MovieSimilarRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
+    public movieSimilar(requestParameters: MovieSimilarRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
+    public movieSimilar(requestParameters: MovieSimilarRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
+    public movieSimilar(requestParameters: MovieSimilarRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieSimilar.');
         }
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -1282,15 +1315,16 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Translations
      * Get the translations for a movie.
      * @endpoint get /movie/{movie_id}/translations
-     * @param movieId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieTranslations(movieId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TranslationList>;
-    public movieTranslations(movieId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TranslationList>>;
-    public movieTranslations(movieId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TranslationList>>;
-    public movieTranslations(movieId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieTranslations(requestParameters: MovieTranslationsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TranslationList>;
+    public movieTranslations(requestParameters: MovieTranslationsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TranslationList>>;
+    public movieTranslations(requestParameters: MovieTranslationsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TranslationList>>;
+    public movieTranslations(requestParameters: MovieTranslationsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieTranslations.');
         }
@@ -1342,19 +1376,20 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Videos
      * 
      * @endpoint get /movie/{movie_id}/videos
-     * @param movieId 
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieVideos(movieId: number, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<VideoList>;
-    public movieVideos(movieId: number, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<VideoList>>;
-    public movieVideos(movieId: number, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<VideoList>>;
-    public movieVideos(movieId: number, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieVideos(requestParameters: MovieVideosRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<VideoList>;
+    public movieVideos(requestParameters: MovieVideosRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<VideoList>>;
+    public movieVideos(requestParameters: MovieVideosRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<VideoList>>;
+    public movieVideos(requestParameters: MovieVideosRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieVideos.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -1415,15 +1450,16 @@ export class MovieRestControllerService extends BaseService implements MovieRest
      * Watch Providers
      * Get the list of streaming providers we have for a movie.
      * @endpoint get /movie/{movie_id}/watch/providers
-     * @param movieId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public movieWatchProviders(movieId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<WatchProviderList>;
-    public movieWatchProviders(movieId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<WatchProviderList>>;
-    public movieWatchProviders(movieId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<WatchProviderList>>;
-    public movieWatchProviders(movieId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public movieWatchProviders(requestParameters: MovieWatchProvidersRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<WatchProviderList>;
+    public movieWatchProviders(requestParameters: MovieWatchProvidersRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<WatchProviderList>>;
+    public movieWatchProviders(requestParameters: MovieWatchProvidersRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<WatchProviderList>>;
+    public movieWatchProviders(requestParameters: MovieWatchProvidersRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const movieId = requestParameters?.movieId;
         if (movieId === null || movieId === undefined) {
             throw new Error('Required parameter movieId was null or undefined when calling movieWatchProviders.');
         }

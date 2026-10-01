@@ -19,6 +19,18 @@ import { CompanyImages } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface CompanyAlternativeNamesRequestParams {
+    companyId: number;
+}
+
+export interface CompanyDetailsRequestParams {
+    companyId: number;
+}
+
+export interface CompanyImagesRequestParams {
+    companyId: number;
+}
+
 
 export interface CompanyRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -28,24 +40,24 @@ export interface CompanyRestControllerServiceInterface {
      * Alternative Names
      * Get the company details by ID.
      * @endpoint get /company/{company_id}/alternative_names
-     * @param companyId 
+* @param requestParameters
      */
-    companyAlternativeNames(companyId: number, extraHttpRequestParams?: any): Observable<AlternativeNameList>;
+    companyAlternativeNames(requestParameters: CompanyAlternativeNamesRequestParams, extraHttpRequestParams?: any): Observable<AlternativeNameList>;
 
     /**
      * Details
      * Get the company details by ID.
      * @endpoint get /company/{company_id}
-     * @param companyId 
+* @param requestParameters
      */
-    companyDetails(companyId: number, extraHttpRequestParams?: any): Observable<CompanyDetails>;
+    companyDetails(requestParameters: CompanyDetailsRequestParams, extraHttpRequestParams?: any): Observable<CompanyDetails>;
 
     /**
      * Images
      * Get the company logos by id.
      * @endpoint get /company/{company_id}/images
-     * @param companyId 
+* @param requestParameters
      */
-    companyImages(companyId: number, extraHttpRequestParams?: any): Observable<CompanyImages>;
+    companyImages(requestParameters: CompanyImagesRequestParams, extraHttpRequestParams?: any): Observable<CompanyImages>;
 
 }

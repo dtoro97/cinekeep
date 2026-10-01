@@ -19,6 +19,18 @@ import { NetworkImages } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface AlternativeNamesCopyRequestParams {
+    networkId: number;
+}
+
+export interface DetailsCopyRequestParams {
+    networkId: number;
+}
+
+export interface NetworkDetailsRequestParams {
+    networkId: number;
+}
+
 
 export interface NetworkRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -28,24 +40,24 @@ export interface NetworkRestControllerServiceInterface {
      * Images
      * Get the TV network logos by id.
      * @endpoint get /network/{network_id}/images
-     * @param networkId 
+* @param requestParameters
      */
-    alternativeNamesCopy(networkId: number, extraHttpRequestParams?: any): Observable<NetworkImages>;
+    alternativeNamesCopy(requestParameters: AlternativeNamesCopyRequestParams, extraHttpRequestParams?: any): Observable<NetworkImages>;
 
     /**
      * Alternative Names
      * Get the alternative names of a network.
      * @endpoint get /network/{network_id}/alternative_names
-     * @param networkId 
+* @param requestParameters
      */
-    detailsCopy(networkId: number, extraHttpRequestParams?: any): Observable<AlternativeNameList>;
+    detailsCopy(requestParameters: DetailsCopyRequestParams, extraHttpRequestParams?: any): Observable<AlternativeNameList>;
 
     /**
      * Details
      * 
      * @endpoint get /network/{network_id}
-     * @param networkId 
+* @param requestParameters
      */
-    networkDetails(networkId: number, extraHttpRequestParams?: any): Observable<NetworkDetails>;
+    networkDetails(requestParameters: NetworkDetailsRequestParams, extraHttpRequestParams?: any): Observable<NetworkDetails>;
 
 }

@@ -1,14 +1,5 @@
-import { MovieListItem, RatedMovieListItem, RatedTvSeriesListItem, TvSeriesListItem } from '../../api';
-import {
-    CardItem,
-    MediaListItem,
-    MediaType,
-    RemoteData,
-    toCardItem,
-    toMediaListItem,
-} from '../../shared';
-
-type UserAccountMediaItem = MovieListItem | TvSeriesListItem | RatedMovieListItem | RatedTvSeriesListItem;
+import { EpisodeRatingResponse } from '../../api-cinekeep';
+import { MediaType, RemoteData, pluralize } from '../../shared';
 
 interface MediaIdentity {
     readonly id: number;
@@ -20,47 +11,7 @@ export function toUserMediaTotalLabel(mediaType: MediaType, totalResults: number
         return `${totalResults} TV series`;
     }
 
-    return `${totalResults} movie${totalResults === 1 ? '' : 's'}`;
-}
-
-export function toUserAccountMediaListItem(
-    item: UserAccountMediaItem,
-    mediaType: MediaType,
-    rating?: number | null,
-): MediaListItem | null {
-    const mediaItem = toMediaListItem(item, mediaType, 'year');
-    const title = mediaItem.title;
-
-    if (!mediaItem.id || !title) {
-        return null;
-    }
-
-    return {
-        ...mediaItem,
-        title,
-        overview: mediaItem.overview,
-        rating: rating === undefined ? mediaItem.rating : rating,
-    };
-}
-
-export function toUserAccountCardItem(
-    item: UserAccountMediaItem,
-    mediaType: MediaType,
-    rating?: number | null,
-): CardItem | null {
-    const cardItem = toCardItem(item, mediaType);
-    const title = cardItem.title;
-
-    if (!cardItem.id || !title) {
-        return null;
-    }
-
-    return {
-        ...cardItem,
-        title,
-        overview: cardItem.overview,
-        rating: rating === undefined ? cardItem.rating : rating,
-    };
+    return pluralize(totalResults, 'movie');
 }
 
 export function toTotalAfterMediaRemoval<T extends MediaIdentity>(
@@ -73,4 +24,27 @@ export function toTotalAfterMediaRemoval<T extends MediaIdentity>(
         itemsState.data.some((pageItem) => pageItem.id === item.id && pageItem.mediaType === item.mediaType);
 
     return itemWasLoaded ? Math.max(0, totalResults - 1) : totalResults;
+}
+
+export interface RatedEpisodeRef {
+    readonly seriesId: number;
+    readonly seasonNumber: number;
+    readonly episodeNumber: number;
+    readonly title: string;
+}
+
+/** `null` when the rating lacks the ids needed to link to its episode. */
+export function toRatedEpisodeRef(item: EpisodeRatingResponse): RatedEpisodeRef | null {
+    const { seriesTmdbId, seasonNumber, episodeNumber } = item;
+
+    if (seriesTmdbId == null || seasonNumber == null || episodeNumber == null) {
+        return null;
+    }
+
+    return {
+        seriesId: seriesTmdbId,
+        seasonNumber,
+        episodeNumber,
+        title: item.episodeName?.trim() || 'Untitled episode',
+    };
 }

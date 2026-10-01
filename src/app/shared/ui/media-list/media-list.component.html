@@ -2,13 +2,12 @@
     @if (state.state === 'loading') {
         <ng-container *ngTemplateOutlet="skeleton; context: { $implicit: skeletonCount }" />
     } @else if (state.state === 'success' || state.state === 'loading-more') {
-        @for (entry of state.data; track entry.item.id) {
+        @for (entry of state.data; track entry.item.id; let position = $index) {
             <app-media-list-item
                 [item]="entry.item"
                 [genreNames]="entry.genreNames"
-                [userRating]="entry.userRating"
                 [link]="entry.routerLink"
-                [index]="entry.index"
+                [index]="showIndex ? position + 1 : null"
             />
         }
         @if (state.state === 'loading-more') {

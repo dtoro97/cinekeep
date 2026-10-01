@@ -2,7 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { EMPTY, catchError, switchMap, take, tap } from 'rxjs';
+import { EMPTY, catchError, switchMap, tap } from 'rxjs';
 
 import {
     ConfirmationDialogService,
@@ -14,7 +14,6 @@ import {
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
-    TmdbUserAccountService,
 } from '../../../shared';
 import { UserListCardComponent } from '../user-list-card/user-list-card.component';
 import { UserListCardSkeletonComponent } from '../user-list-card-skeleton/user-list-card-skeleton.component';
@@ -48,13 +47,11 @@ export class UserListsComponent {
         private readonly dialog: MatDialog,
         private readonly pageScroll: PageScrollService,
         private readonly snackbar: SnackbarService,
-        private readonly tmdbUserAccountService: TmdbUserAccountService,
         private readonly store: UserListsStore,
     ) {
-        this.tmdbUserAccountService
-            .ensureAccountIdentity$()
+        this.store
+            .load$()
             .pipe(
-                switchMap(() => this.store.load$()),
                 catchError(() => this.showError('Could not load your lists.')),
             )
             .subscribe();
@@ -66,7 +63,6 @@ export class UserListsComponent {
         this.store
             .loadPage$(event.pageIndex)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your lists.')),
             )
             .subscribe();
@@ -87,7 +83,6 @@ export class UserListsComponent {
             })
             .afterClosed()
             .pipe(
-                take(1),
                 switchMap((result) => {
                     if (!result) {
                         return EMPTY;
@@ -101,7 +96,9 @@ export class UserListsComponent {
                         return EMPTY;
                     }
 
-                    return this.store.updateList$(item.id, result).pipe(
+                    return this.store
+                        .updateList$(item.id, { ...result, sortBy: result.sortBy ?? item.sortBy })
+                        .pipe(
                         tap(() => {
                             this.showSuccess('List details updated.');
                         }),

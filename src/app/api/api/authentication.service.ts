@@ -34,7 +34,11 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    AuthenticationRestControllerServiceInterface
+    AuthenticationRestControllerServiceInterface,
+    AuthenticationCreateSessionRequestParams,
+    AuthenticationCreateSessionFromLoginRequestParams,
+    AuthenticationCreateSessionFromV4TokenRequestParams,
+    AuthenticationDeleteSessionRequestParams
 } from './authentication.serviceInterface';
 
 
@@ -164,15 +168,16 @@ export class AuthenticationRestControllerService extends BaseService implements 
      * Create Session
      * 
      * @endpoint post /authentication/session/new
-     * @param accountAddFavoriteRequest 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public authenticationCreateSession(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<SessionResponse>;
-    public authenticationCreateSession(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<SessionResponse>>;
-    public authenticationCreateSession(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<SessionResponse>>;
-    public authenticationCreateSession(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public authenticationCreateSession(requestParameters?: AuthenticationCreateSessionRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<SessionResponse>;
+    public authenticationCreateSession(requestParameters?: AuthenticationCreateSessionRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<SessionResponse>>;
+    public authenticationCreateSession(requestParameters?: AuthenticationCreateSessionRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<SessionResponse>>;
+    public authenticationCreateSession(requestParameters?: AuthenticationCreateSessionRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountAddFavoriteRequest = requestParameters?.accountAddFavoriteRequest;
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -231,15 +236,16 @@ export class AuthenticationRestControllerService extends BaseService implements 
      * Create Session (with login)
      * This method allows an application to validate a request token by entering a username and password.
      * @endpoint post /authentication/token/validate_with_login
-     * @param accountAddFavoriteRequest 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public authenticationCreateSessionFromLogin(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TokenResponse>;
-    public authenticationCreateSessionFromLogin(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TokenResponse>>;
-    public authenticationCreateSessionFromLogin(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TokenResponse>>;
-    public authenticationCreateSessionFromLogin(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public authenticationCreateSessionFromLogin(requestParameters?: AuthenticationCreateSessionFromLoginRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TokenResponse>;
+    public authenticationCreateSessionFromLogin(requestParameters?: AuthenticationCreateSessionFromLoginRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TokenResponse>>;
+    public authenticationCreateSessionFromLogin(requestParameters?: AuthenticationCreateSessionFromLoginRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TokenResponse>>;
+    public authenticationCreateSessionFromLogin(requestParameters?: AuthenticationCreateSessionFromLoginRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountAddFavoriteRequest = requestParameters?.accountAddFavoriteRequest;
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -298,15 +304,16 @@ export class AuthenticationRestControllerService extends BaseService implements 
      * Create Session (from v4 token)
      * 
      * @endpoint post /authentication/session/convert/4
-     * @param accountAddFavoriteRequest 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public authenticationCreateSessionFromV4Token(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<SessionResponse>;
-    public authenticationCreateSessionFromV4Token(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<SessionResponse>>;
-    public authenticationCreateSessionFromV4Token(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<SessionResponse>>;
-    public authenticationCreateSessionFromV4Token(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public authenticationCreateSessionFromV4Token(requestParameters?: AuthenticationCreateSessionFromV4TokenRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<SessionResponse>;
+    public authenticationCreateSessionFromV4Token(requestParameters?: AuthenticationCreateSessionFromV4TokenRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<SessionResponse>>;
+    public authenticationCreateSessionFromV4Token(requestParameters?: AuthenticationCreateSessionFromV4TokenRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<SessionResponse>>;
+    public authenticationCreateSessionFromV4Token(requestParameters?: AuthenticationCreateSessionFromV4TokenRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountAddFavoriteRequest = requestParameters?.accountAddFavoriteRequest;
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -365,15 +372,16 @@ export class AuthenticationRestControllerService extends BaseService implements 
      * Delete Session
      * 
      * @endpoint delete /authentication/session
-     * @param accountAddFavoriteRequest 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public authenticationDeleteSession(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<DeleteSessionResponse>;
-    public authenticationDeleteSession(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<DeleteSessionResponse>>;
-    public authenticationDeleteSession(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<DeleteSessionResponse>>;
-    public authenticationDeleteSession(accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public authenticationDeleteSession(requestParameters?: AuthenticationDeleteSessionRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<DeleteSessionResponse>;
+    public authenticationDeleteSession(requestParameters?: AuthenticationDeleteSessionRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<DeleteSessionResponse>>;
+    public authenticationDeleteSession(requestParameters?: AuthenticationDeleteSessionRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<DeleteSessionResponse>>;
+    public authenticationDeleteSession(requestParameters?: AuthenticationDeleteSessionRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const accountAddFavoriteRequest = requestParameters?.accountAddFavoriteRequest;
 
         let localVarHeaders = this.defaultHeaders;
 

@@ -26,7 +26,9 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    DiscoverRestControllerServiceInterface
+    DiscoverRestControllerServiceInterface,
+    DiscoverMovieRequestParams,
+    DiscoverTvRequestParams
 } from './discover.serviceInterface';
 
 
@@ -44,52 +46,53 @@ export class DiscoverRestControllerService extends BaseService implements Discov
      * Movie
      * Find movies using over 30 filters and sort options.
      * @endpoint get /discover/movie
-     * @param certification use in conjunction with &#x60;region&#x60;
-     * @param certificationGte use in conjunction with &#x60;region&#x60;
-     * @param certificationLte use in conjunction with &#x60;region&#x60;
-     * @param certificationCountry use in conjunction with the &#x60;certification&#x60;, &#x60;certification.gte&#x60; and &#x60;certification.lte&#x60; filters
-     * @param includeAdult 
-     * @param includeVideo 
-     * @param language 
-     * @param page 
-     * @param primaryReleaseYear 
-     * @param primaryReleaseDateGte 
-     * @param primaryReleaseDateLte 
-     * @param region 
-     * @param releaseDateGte 
-     * @param releaseDateLte 
-     * @param sortBy 
-     * @param voteAverageGte 
-     * @param voteAverageLte 
-     * @param voteCountGte 
-     * @param voteCountLte 
-     * @param watchRegion use in conjunction with &#x60;with_watch_monetization_types &#x60; or &#x60;with_watch_providers &#x60;
-     * @param withCast can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withCompanies can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withCrew can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withGenres can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withKeywords can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withOriginCountry 
-     * @param withOriginalLanguage 
-     * @param withPeople can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withReleaseType possible values are: [1, 2, 3, 4, 5, 6] can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query, can be used in conjunction with &#x60;region&#x60;
-     * @param withRuntimeGte 
-     * @param withRuntimeLte 
-     * @param withWatchMonetizationTypes possible values are: [flatrate, free, ads, rent, buy] use in conjunction with &#x60;watch_region&#x60;, can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withWatchProviders use in conjunction with &#x60;watch_region&#x60;, can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withoutCompanies 
-     * @param withoutGenres 
-     * @param withoutKeywords 
-     * @param withoutWatchProviders 
-     * @param year 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public discoverMovie(certification?: string, certificationGte?: string, certificationLte?: string, certificationCountry?: string, includeAdult?: boolean, includeVideo?: boolean, language?: string, page?: number, primaryReleaseYear?: number, primaryReleaseDateGte?: string, primaryReleaseDateLte?: string, region?: string, releaseDateGte?: string, releaseDateLte?: string, sortBy?: 'original_title.asc' | 'original_title.desc' | 'popularity.asc' | 'popularity.desc' | 'revenue.asc' | 'revenue.desc' | 'primary_release_date.asc' | 'title.asc' | 'title.desc' | 'primary_release_date.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc', voteAverageGte?: number, voteAverageLte?: number, voteCountGte?: number, voteCountLte?: number, watchRegion?: string, withCast?: string, withCompanies?: string, withCrew?: string, withGenres?: string, withKeywords?: string, withOriginCountry?: string, withOriginalLanguage?: string, withPeople?: string, withReleaseType?: number, withRuntimeGte?: number, withRuntimeLte?: number, withWatchMonetizationTypes?: string, withWatchProviders?: string, withoutCompanies?: string, withoutGenres?: string, withoutKeywords?: string, withoutWatchProviders?: string, year?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
-    public discoverMovie(certification?: string, certificationGte?: string, certificationLte?: string, certificationCountry?: string, includeAdult?: boolean, includeVideo?: boolean, language?: string, page?: number, primaryReleaseYear?: number, primaryReleaseDateGte?: string, primaryReleaseDateLte?: string, region?: string, releaseDateGte?: string, releaseDateLte?: string, sortBy?: 'original_title.asc' | 'original_title.desc' | 'popularity.asc' | 'popularity.desc' | 'revenue.asc' | 'revenue.desc' | 'primary_release_date.asc' | 'title.asc' | 'title.desc' | 'primary_release_date.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc', voteAverageGte?: number, voteAverageLte?: number, voteCountGte?: number, voteCountLte?: number, watchRegion?: string, withCast?: string, withCompanies?: string, withCrew?: string, withGenres?: string, withKeywords?: string, withOriginCountry?: string, withOriginalLanguage?: string, withPeople?: string, withReleaseType?: number, withRuntimeGte?: number, withRuntimeLte?: number, withWatchMonetizationTypes?: string, withWatchProviders?: string, withoutCompanies?: string, withoutGenres?: string, withoutKeywords?: string, withoutWatchProviders?: string, year?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
-    public discoverMovie(certification?: string, certificationGte?: string, certificationLte?: string, certificationCountry?: string, includeAdult?: boolean, includeVideo?: boolean, language?: string, page?: number, primaryReleaseYear?: number, primaryReleaseDateGte?: string, primaryReleaseDateLte?: string, region?: string, releaseDateGte?: string, releaseDateLte?: string, sortBy?: 'original_title.asc' | 'original_title.desc' | 'popularity.asc' | 'popularity.desc' | 'revenue.asc' | 'revenue.desc' | 'primary_release_date.asc' | 'title.asc' | 'title.desc' | 'primary_release_date.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc', voteAverageGte?: number, voteAverageLte?: number, voteCountGte?: number, voteCountLte?: number, watchRegion?: string, withCast?: string, withCompanies?: string, withCrew?: string, withGenres?: string, withKeywords?: string, withOriginCountry?: string, withOriginalLanguage?: string, withPeople?: string, withReleaseType?: number, withRuntimeGte?: number, withRuntimeLte?: number, withWatchMonetizationTypes?: string, withWatchProviders?: string, withoutCompanies?: string, withoutGenres?: string, withoutKeywords?: string, withoutWatchProviders?: string, year?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
-    public discoverMovie(certification?: string, certificationGte?: string, certificationLte?: string, certificationCountry?: string, includeAdult?: boolean, includeVideo?: boolean, language?: string, page?: number, primaryReleaseYear?: number, primaryReleaseDateGte?: string, primaryReleaseDateLte?: string, region?: string, releaseDateGte?: string, releaseDateLte?: string, sortBy?: 'original_title.asc' | 'original_title.desc' | 'popularity.asc' | 'popularity.desc' | 'revenue.asc' | 'revenue.desc' | 'primary_release_date.asc' | 'title.asc' | 'title.desc' | 'primary_release_date.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc', voteAverageGte?: number, voteAverageLte?: number, voteCountGte?: number, voteCountLte?: number, watchRegion?: string, withCast?: string, withCompanies?: string, withCrew?: string, withGenres?: string, withKeywords?: string, withOriginCountry?: string, withOriginalLanguage?: string, withPeople?: string, withReleaseType?: number, withRuntimeGte?: number, withRuntimeLte?: number, withWatchMonetizationTypes?: string, withWatchProviders?: string, withoutCompanies?: string, withoutGenres?: string, withoutKeywords?: string, withoutWatchProviders?: string, year?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public discoverMovie(requestParameters?: DiscoverMovieRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
+    public discoverMovie(requestParameters?: DiscoverMovieRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
+    public discoverMovie(requestParameters?: DiscoverMovieRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
+    public discoverMovie(requestParameters?: DiscoverMovieRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const certification = requestParameters?.certification;
+        const certificationGte = requestParameters?.certificationGte;
+        const certificationLte = requestParameters?.certificationLte;
+        const certificationCountry = requestParameters?.certificationCountry;
+        const includeAdult = requestParameters?.includeAdult;
+        const includeVideo = requestParameters?.includeVideo;
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const primaryReleaseYear = requestParameters?.primaryReleaseYear;
+        const primaryReleaseDateGte = requestParameters?.primaryReleaseDateGte;
+        const primaryReleaseDateLte = requestParameters?.primaryReleaseDateLte;
+        const region = requestParameters?.region;
+        const releaseDateGte = requestParameters?.releaseDateGte;
+        const releaseDateLte = requestParameters?.releaseDateLte;
+        const sortBy = requestParameters?.sortBy;
+        const voteAverageGte = requestParameters?.voteAverageGte;
+        const voteAverageLte = requestParameters?.voteAverageLte;
+        const voteCountGte = requestParameters?.voteCountGte;
+        const voteCountLte = requestParameters?.voteCountLte;
+        const watchRegion = requestParameters?.watchRegion;
+        const withCast = requestParameters?.withCast;
+        const withCompanies = requestParameters?.withCompanies;
+        const withCrew = requestParameters?.withCrew;
+        const withGenres = requestParameters?.withGenres;
+        const withKeywords = requestParameters?.withKeywords;
+        const withOriginCountry = requestParameters?.withOriginCountry;
+        const withOriginalLanguage = requestParameters?.withOriginalLanguage;
+        const withPeople = requestParameters?.withPeople;
+        const withReleaseType = requestParameters?.withReleaseType;
+        const withRuntimeGte = requestParameters?.withRuntimeGte;
+        const withRuntimeLte = requestParameters?.withRuntimeLte;
+        const withWatchMonetizationTypes = requestParameters?.withWatchMonetizationTypes;
+        const withWatchProviders = requestParameters?.withWatchProviders;
+        const withoutCompanies = requestParameters?.withoutCompanies;
+        const withoutGenres = requestParameters?.withoutGenres;
+        const withoutKeywords = requestParameters?.withoutKeywords;
+        const withoutWatchProviders = requestParameters?.withoutWatchProviders;
+        const year = requestParameters?.year;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -483,47 +486,48 @@ export class DiscoverRestControllerService extends BaseService implements Discov
      * TV
      * Find TV shows using over 30 filters and sort options.
      * @endpoint get /discover/tv
-     * @param airDateGte 
-     * @param airDateLte 
-     * @param firstAirDateYear 
-     * @param firstAirDateGte 
-     * @param firstAirDateLte 
-     * @param includeAdult 
-     * @param includeNullFirstAirDates 
-     * @param language 
-     * @param page 
-     * @param screenedTheatrically 
-     * @param sortBy 
-     * @param timezone 
-     * @param voteAverageGte 
-     * @param voteAverageLte 
-     * @param voteCountGte 
-     * @param voteCountLte 
-     * @param watchRegion use in conjunction with &#x60;with_watch_monetization_types &#x60; or &#x60;with_watch_providers &#x60;
-     * @param withCompanies can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withGenres can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withKeywords can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withNetworks 
-     * @param withOriginCountry 
-     * @param withOriginalLanguage 
-     * @param withRuntimeGte 
-     * @param withRuntimeLte 
-     * @param withStatus possible values are: [0, 1, 2, 3, 4, 5], can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withWatchMonetizationTypes possible values are: [flatrate, free, ads, rent, buy] use in conjunction with &#x60;watch_region&#x60;, can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withWatchProviders use in conjunction with &#x60;watch_region&#x60;, can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
-     * @param withoutCompanies 
-     * @param withoutGenres 
-     * @param withoutKeywords 
-     * @param withoutWatchProviders 
-     * @param withType possible values are: [0, 1, 2, 3, 4, 5, 6], can be a comma (&#x60;AND&#x60;) or pipe (&#x60;OR&#x60;) separated query
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public discoverTv(airDateGte?: string, airDateLte?: string, firstAirDateYear?: number, firstAirDateGte?: string, firstAirDateLte?: string, includeAdult?: boolean, includeNullFirstAirDates?: boolean, language?: string, page?: number, screenedTheatrically?: boolean, sortBy?: 'first_air_date.asc' | 'first_air_date.desc' | 'name.asc' | 'name.desc' | 'original_name.asc' | 'original_name.desc' | 'popularity.asc' | 'popularity.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc', timezone?: string, voteAverageGte?: number, voteAverageLte?: number, voteCountGte?: number, voteCountLte?: number, watchRegion?: string, withCompanies?: string, withGenres?: string, withKeywords?: string, withNetworks?: number, withOriginCountry?: string, withOriginalLanguage?: string, withRuntimeGte?: number, withRuntimeLte?: number, withStatus?: string, withWatchMonetizationTypes?: string, withWatchProviders?: string, withoutCompanies?: string, withoutGenres?: string, withoutKeywords?: string, withoutWatchProviders?: string, withType?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
-    public discoverTv(airDateGte?: string, airDateLte?: string, firstAirDateYear?: number, firstAirDateGte?: string, firstAirDateLte?: string, includeAdult?: boolean, includeNullFirstAirDates?: boolean, language?: string, page?: number, screenedTheatrically?: boolean, sortBy?: 'first_air_date.asc' | 'first_air_date.desc' | 'name.asc' | 'name.desc' | 'original_name.asc' | 'original_name.desc' | 'popularity.asc' | 'popularity.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc', timezone?: string, voteAverageGte?: number, voteAverageLte?: number, voteCountGte?: number, voteCountLte?: number, watchRegion?: string, withCompanies?: string, withGenres?: string, withKeywords?: string, withNetworks?: number, withOriginCountry?: string, withOriginalLanguage?: string, withRuntimeGte?: number, withRuntimeLte?: number, withStatus?: string, withWatchMonetizationTypes?: string, withWatchProviders?: string, withoutCompanies?: string, withoutGenres?: string, withoutKeywords?: string, withoutWatchProviders?: string, withType?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
-    public discoverTv(airDateGte?: string, airDateLte?: string, firstAirDateYear?: number, firstAirDateGte?: string, firstAirDateLte?: string, includeAdult?: boolean, includeNullFirstAirDates?: boolean, language?: string, page?: number, screenedTheatrically?: boolean, sortBy?: 'first_air_date.asc' | 'first_air_date.desc' | 'name.asc' | 'name.desc' | 'original_name.asc' | 'original_name.desc' | 'popularity.asc' | 'popularity.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc', timezone?: string, voteAverageGte?: number, voteAverageLte?: number, voteCountGte?: number, voteCountLte?: number, watchRegion?: string, withCompanies?: string, withGenres?: string, withKeywords?: string, withNetworks?: number, withOriginCountry?: string, withOriginalLanguage?: string, withRuntimeGte?: number, withRuntimeLte?: number, withStatus?: string, withWatchMonetizationTypes?: string, withWatchProviders?: string, withoutCompanies?: string, withoutGenres?: string, withoutKeywords?: string, withoutWatchProviders?: string, withType?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
-    public discoverTv(airDateGte?: string, airDateLte?: string, firstAirDateYear?: number, firstAirDateGte?: string, firstAirDateLte?: string, includeAdult?: boolean, includeNullFirstAirDates?: boolean, language?: string, page?: number, screenedTheatrically?: boolean, sortBy?: 'first_air_date.asc' | 'first_air_date.desc' | 'name.asc' | 'name.desc' | 'original_name.asc' | 'original_name.desc' | 'popularity.asc' | 'popularity.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc', timezone?: string, voteAverageGte?: number, voteAverageLte?: number, voteCountGte?: number, voteCountLte?: number, watchRegion?: string, withCompanies?: string, withGenres?: string, withKeywords?: string, withNetworks?: number, withOriginCountry?: string, withOriginalLanguage?: string, withRuntimeGte?: number, withRuntimeLte?: number, withStatus?: string, withWatchMonetizationTypes?: string, withWatchProviders?: string, withoutCompanies?: string, withoutGenres?: string, withoutKeywords?: string, withoutWatchProviders?: string, withType?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public discoverTv(requestParameters?: DiscoverTvRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
+    public discoverTv(requestParameters?: DiscoverTvRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
+    public discoverTv(requestParameters?: DiscoverTvRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
+    public discoverTv(requestParameters?: DiscoverTvRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const airDateGte = requestParameters?.airDateGte;
+        const airDateLte = requestParameters?.airDateLte;
+        const firstAirDateYear = requestParameters?.firstAirDateYear;
+        const firstAirDateGte = requestParameters?.firstAirDateGte;
+        const firstAirDateLte = requestParameters?.firstAirDateLte;
+        const includeAdult = requestParameters?.includeAdult;
+        const includeNullFirstAirDates = requestParameters?.includeNullFirstAirDates;
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const screenedTheatrically = requestParameters?.screenedTheatrically;
+        const sortBy = requestParameters?.sortBy;
+        const timezone = requestParameters?.timezone;
+        const voteAverageGte = requestParameters?.voteAverageGte;
+        const voteAverageLte = requestParameters?.voteAverageLte;
+        const voteCountGte = requestParameters?.voteCountGte;
+        const voteCountLte = requestParameters?.voteCountLte;
+        const watchRegion = requestParameters?.watchRegion;
+        const withCompanies = requestParameters?.withCompanies;
+        const withGenres = requestParameters?.withGenres;
+        const withKeywords = requestParameters?.withKeywords;
+        const withNetworks = requestParameters?.withNetworks;
+        const withOriginCountry = requestParameters?.withOriginCountry;
+        const withOriginalLanguage = requestParameters?.withOriginalLanguage;
+        const withRuntimeGte = requestParameters?.withRuntimeGte;
+        const withRuntimeLte = requestParameters?.withRuntimeLte;
+        const withStatus = requestParameters?.withStatus;
+        const withWatchMonetizationTypes = requestParameters?.withWatchMonetizationTypes;
+        const withWatchProviders = requestParameters?.withWatchProviders;
+        const withoutCompanies = requestParameters?.withoutCompanies;
+        const withoutGenres = requestParameters?.withoutGenres;
+        const withoutKeywords = requestParameters?.withoutKeywords;
+        const withoutWatchProviders = requestParameters?.withoutWatchProviders;
+        const withType = requestParameters?.withType;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

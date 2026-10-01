@@ -19,6 +19,30 @@ import { MoviePageWithDates } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface MovieNowPlayingListRequestParams {
+    language?: string;
+    page?: number;
+    region?: string;
+}
+
+export interface MoviePopularListRequestParams {
+    language?: string;
+    page?: number;
+    region?: string;
+}
+
+export interface MovieTopRatedListRequestParams {
+    language?: string;
+    page?: number;
+    region?: string;
+}
+
+export interface MovieUpcomingListRequestParams {
+    language?: string;
+    page?: number;
+    region?: string;
+}
+
 
 export interface MovieListRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -28,47 +52,39 @@ export interface MovieListRestControllerServiceInterface {
      * Latest
      * Get the newest movie ID.
      * @endpoint get /movie/latest
-     */
+*/
     movieLatestId(extraHttpRequestParams?: any): Observable<Movie>;
 
     /**
      * Now Playing
      * Get a list of movies that are currently in theatres.
      * @endpoint get /movie/now_playing
-     * @param language 
-     * @param page 
-     * @param region ISO-3166-1 code
+* @param requestParameters
      */
-    movieNowPlayingList(language?: string, page?: number, region?: string, extraHttpRequestParams?: any): Observable<MoviePageWithDates>;
+    movieNowPlayingList(requestParameters: MovieNowPlayingListRequestParams, extraHttpRequestParams?: any): Observable<MoviePageWithDates>;
 
     /**
      * Popular
      * Get a list of movies ordered by popularity.
      * @endpoint get /movie/popular
-     * @param language 
-     * @param page 
-     * @param region ISO-3166-1 code
+* @param requestParameters
      */
-    moviePopularList(language?: string, page?: number, region?: string, extraHttpRequestParams?: any): Observable<MoviePage>;
+    moviePopularList(requestParameters: MoviePopularListRequestParams, extraHttpRequestParams?: any): Observable<MoviePage>;
 
     /**
      * Top Rated
      * Get a list of movies ordered by rating.
      * @endpoint get /movie/top_rated
-     * @param language 
-     * @param page 
-     * @param region ISO-3166-1 code
+* @param requestParameters
      */
-    movieTopRatedList(language?: string, page?: number, region?: string, extraHttpRequestParams?: any): Observable<MoviePage>;
+    movieTopRatedList(requestParameters: MovieTopRatedListRequestParams, extraHttpRequestParams?: any): Observable<MoviePage>;
 
     /**
      * Upcoming
      * Get a list of movies that are being released soon.
      * @endpoint get /movie/upcoming
-     * @param language 
-     * @param page 
-     * @param region ISO-3166-1 code
+* @param requestParameters
      */
-    movieUpcomingList(language?: string, page?: number, region?: string, extraHttpRequestParams?: any): Observable<MoviePageWithDates>;
+    movieUpcomingList(requestParameters: MovieUpcomingListRequestParams, extraHttpRequestParams?: any): Observable<MoviePageWithDates>;
 
 }

@@ -30,7 +30,11 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    TrendingRestControllerServiceInterface
+    TrendingRestControllerServiceInterface,
+    TrendingAllRequestParams,
+    TrendingMoviesRequestParams,
+    TrendingPeopleRequestParams,
+    TrendingTvRequestParams
 } from './trending.serviceInterface';
 
 
@@ -48,19 +52,20 @@ export class TrendingRestControllerService extends BaseService implements Trendi
      * All
      * Get the trending movies, TV shows and people.
      * @endpoint get /trending/all/{time_window}
-     * @param timeWindow 
-     * @param language &#x60;ISO-639-1&#x60;-&#x60;ISO-3166-1&#x60; code
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public trendingAll(timeWindow: 'day' | 'week', language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MultiPage>;
-    public trendingAll(timeWindow: 'day' | 'week', language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MultiPage>>;
-    public trendingAll(timeWindow: 'day' | 'week', language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MultiPage>>;
-    public trendingAll(timeWindow: 'day' | 'week', language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public trendingAll(requestParameters: TrendingAllRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MultiPage>;
+    public trendingAll(requestParameters: TrendingAllRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MultiPage>>;
+    public trendingAll(requestParameters: TrendingAllRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MultiPage>>;
+    public trendingAll(requestParameters: TrendingAllRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const timeWindow = requestParameters?.timeWindow;
         if (timeWindow === null || timeWindow === undefined) {
             throw new Error('Required parameter timeWindow was null or undefined when calling trendingAll.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -121,19 +126,20 @@ export class TrendingRestControllerService extends BaseService implements Trendi
      * Movies
      * Get the trending movies on TMDB.
      * @endpoint get /trending/movie/{time_window}
-     * @param timeWindow 
-     * @param language &#x60;ISO-639-1&#x60;-&#x60;ISO-3166-1&#x60; code
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public trendingMovies(timeWindow: 'day' | 'week', language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
-    public trendingMovies(timeWindow: 'day' | 'week', language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
-    public trendingMovies(timeWindow: 'day' | 'week', language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
-    public trendingMovies(timeWindow: 'day' | 'week', language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public trendingMovies(requestParameters: TrendingMoviesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MoviePage>;
+    public trendingMovies(requestParameters: TrendingMoviesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MoviePage>>;
+    public trendingMovies(requestParameters: TrendingMoviesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MoviePage>>;
+    public trendingMovies(requestParameters: TrendingMoviesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const timeWindow = requestParameters?.timeWindow;
         if (timeWindow === null || timeWindow === undefined) {
             throw new Error('Required parameter timeWindow was null or undefined when calling trendingMovies.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -194,19 +200,20 @@ export class TrendingRestControllerService extends BaseService implements Trendi
      * People
      * Get the trending people on TMDB.
      * @endpoint get /trending/person/{time_window}
-     * @param timeWindow 
-     * @param language &#x60;ISO-639-1&#x60;-&#x60;ISO-3166-1&#x60; code
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public trendingPeople(timeWindow: 'day' | 'week', language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonPage>;
-    public trendingPeople(timeWindow: 'day' | 'week', language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonPage>>;
-    public trendingPeople(timeWindow: 'day' | 'week', language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonPage>>;
-    public trendingPeople(timeWindow: 'day' | 'week', language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public trendingPeople(requestParameters: TrendingPeopleRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PersonPage>;
+    public trendingPeople(requestParameters: TrendingPeopleRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PersonPage>>;
+    public trendingPeople(requestParameters: TrendingPeopleRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PersonPage>>;
+    public trendingPeople(requestParameters: TrendingPeopleRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const timeWindow = requestParameters?.timeWindow;
         if (timeWindow === null || timeWindow === undefined) {
             throw new Error('Required parameter timeWindow was null or undefined when calling trendingPeople.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -267,19 +274,20 @@ export class TrendingRestControllerService extends BaseService implements Trendi
      * TV
      * Get the trending TV shows on TMDB.
      * @endpoint get /trending/tv/{time_window}
-     * @param timeWindow 
-     * @param language &#x60;ISO-639-1&#x60;-&#x60;ISO-3166-1&#x60; code
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public trendingTv(timeWindow: 'day' | 'week', language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
-    public trendingTv(timeWindow: 'day' | 'week', language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
-    public trendingTv(timeWindow: 'day' | 'week', language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
-    public trendingTv(timeWindow: 'day' | 'week', language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public trendingTv(requestParameters: TrendingTvRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
+    public trendingTv(requestParameters: TrendingTvRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
+    public trendingTv(requestParameters: TrendingTvRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
+    public trendingTv(requestParameters: TrendingTvRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const timeWindow = requestParameters?.timeWindow;
         if (timeWindow === null || timeWindow === undefined) {
             throw new Error('Required parameter timeWindow was null or undefined when calling trendingTv.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

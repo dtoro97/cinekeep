@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
-import { Observable, catchError, filter, map, of, take, tap, throwError } from 'rxjs';
+import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 
 import { Review, ReviewPage } from '../../api';
-import { RemoteData, mapRemoteData } from '../../shared';
+import { RemoteData, mapRemoteData, whenSuccess$ } from '../../shared';
 import { MediaApiService } from './media-api.service';
 import { MediaTarget, isSameMediaTarget } from './media-target';
 
@@ -73,7 +73,7 @@ export class MediaReviewsStoreService extends ComponentStore<MediaReviewsState> 
             }
 
             if (state.reviewPage.state === 'loading') {
-                return this.reviewPageReady$();
+                return whenSuccess$(this.reviewPageState$);
             }
         }
 
@@ -132,16 +132,6 @@ export class MediaReviewsStoreService extends ComponentStore<MediaReviewsState> 
                 this.patchState({ reviewPage });
                 return throwError(() => error);
             }),
-        );
-    }
-
-    private reviewPageReady$(): Observable<ReviewPage | null> {
-        return this.reviewPageState$.pipe(
-            filter((state): state is Extract<RemoteData<ReviewPage | null>, { state: 'success' }> =>
-                state.state === 'success',
-            ),
-            take(1),
-            map((state) => state.data),
         );
     }
 

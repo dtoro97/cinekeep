@@ -1,7 +1,6 @@
 import { AsyncPipe, DatePipe, SlicePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { ActivatedRoute } from '@angular/router';
 
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -17,6 +16,7 @@ import {
     ExternalLinksComponent,
     MediaCarouselPanelComponent,
     RecentlyViewedStoreService,
+    SeoService,
     SkeletonComponent,
 } from '../../../shared';
 import {
@@ -25,6 +25,7 @@ import {
     PersonCreditsSortBy,
 } from '../person-detail-store.service';
 import { PersonCreditsComponent } from '../person-credits/person-credits.component';
+import { toPersonSeoMetadata } from '../person-seo';
 
 @Component({
     selector: 'app-person-details',
@@ -54,15 +55,20 @@ export class PersonDetailsComponent {
 
     constructor(
         public personDetailStore: PersonDetailStoreService,
-        private route: ActivatedRoute,
         private dialog: MatDialog,
         private recentlyViewedStore: RecentlyViewedStoreService,
         private router: Router,
         private destroyRef: DestroyRef,
+        private readonly seo: SeoService,
     ) {
-        this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-            this.bioExpanded = false;
-        });
+        this.personDetailStore.seoSource$
+            .pipe(
+                tap(({ person, knownForTitles }) =>
+                    this.seo.setPage(toPersonSeoMetadata(person, knownForTitles, 'overview')),
+                ),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe();
 
         this.personDetailStore.personDetailVm$
             .pipe(
@@ -70,6 +76,8 @@ export class PersonDetailsComponent {
                 map((vm) => (vm.person.state === 'success' ? vm.person.data : null)),
                 distinctUntilChanged((previous, current) => previous?.id === current?.id),
                 tap((person) => {
+                    this.bioExpanded = false;
+
                     if (!person || typeof person.id !== 'number') {
                         return;
                     }

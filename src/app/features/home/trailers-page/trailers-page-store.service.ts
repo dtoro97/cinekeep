@@ -5,10 +5,10 @@ import { forkJoin, of, switchMap, tap } from 'rxjs';
 import { PAGE_SIZE } from '../../../constants';
 import { RemoteData, VideoTrailerSeedItem } from '../../../shared';
 import {
-    TrailerDataStoreService,
+    TrailerDataService,
     TrailerFeedType,
     TrailerVideoCardItem,
-} from '../trailer-data-store.service';
+} from '../trailer-data.service';
 
 interface TrailersFeedState {
     readonly trailers: RemoteData<TrailerVideoCardItem[]>;
@@ -67,7 +67,7 @@ export class TrailersPageStoreService extends ComponentStore<TrailersPageState> 
         };
     });
 
-    constructor(private readonly trailerDataStore: TrailerDataStoreService) {
+    constructor(private readonly trailerData: TrailerDataService) {
         super(INITIAL_STATE);
     }
 
@@ -91,9 +91,9 @@ export class TrailersPageStoreService extends ComponentStore<TrailersPageState> 
             featuredTrailer: { state: 'loading' },
         });
 
-        return this.trailerDataStore.getTrailerSeeds$('trending').pipe(
+        return this.trailerData.getTrailerSeeds$('trending').pipe(
             switchMap((trailerSeeds) =>
-                this.trailerDataStore.loadVideoCardsForSeeds$(trailerSeeds.slice(0, 1)),
+                this.trailerData.loadVideoCardsForSeeds$(trailerSeeds.slice(0, 1)),
             ),
             tap((trailers) => {
                 this.patchState({
@@ -118,11 +118,11 @@ export class TrailersPageStoreService extends ComponentStore<TrailersPageState> 
             pendingSeeds: [],
         });
 
-        return this.trailerDataStore.getTrailerSeeds$(feedType).pipe(
+        return this.trailerData.getTrailerSeeds$(feedType).pipe(
             switchMap((trailerSeeds) => {
                 const initialSeeds = trailerSeeds.slice(0, PAGE_SIZE);
 
-                return this.trailerDataStore.loadVideoCardsForSeeds$(initialSeeds).pipe(
+                return this.trailerData.loadVideoCardsForSeeds$(initialSeeds).pipe(
                     tap((nextTrailers) => {
                         this.patchFeedState(feedType, {
                             trailers: {
@@ -153,10 +153,11 @@ export class TrailersPageStoreService extends ComponentStore<TrailersPageState> 
         this.patchFeedState(feedType, {
             trailers: {
                 state: 'loading-more',
-                data: currentTrailers,            } as RemoteData<TrailerVideoCardItem[]>,
+                data: currentTrailers,
+            } as RemoteData<TrailerVideoCardItem[]>,
         });
 
-        return this.trailerDataStore.loadVideoCardsForSeeds$(nextSeeds).pipe(
+        return this.trailerData.loadVideoCardsForSeeds$(nextSeeds).pipe(
             tap((items) =>
                 this.patchFeedState(feedType, {
                     trailers: {

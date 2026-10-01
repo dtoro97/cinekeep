@@ -19,6 +19,27 @@ import { RatedTvSeriesPage } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface GuestSessionRatedMoviesRequestParams {
+    guestSessionId: string;
+    language?: string;
+    page?: number;
+    sortBy?: 'created_at.asc' | 'created_at.desc';
+}
+
+export interface GuestSessionRatedTvRequestParams {
+    guestSessionId: string;
+    language?: string;
+    page?: number;
+    sortBy?: 'created_at.asc' | 'created_at.desc';
+}
+
+export interface GuestSessionRatedTvEpisodesRequestParams {
+    guestSessionId: string;
+    language?: string;
+    page?: number;
+    sortBy?: 'created_at.asc' | 'created_at.desc';
+}
+
 
 export interface GuestSessionRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -28,33 +49,24 @@ export interface GuestSessionRestControllerServiceInterface {
      * Rated Movies
      * Get the rated movies for a guest session.
      * @endpoint get /guest_session/{guest_session_id}/rated/movies
-     * @param guestSessionId 
-     * @param language 
-     * @param page 
-     * @param sortBy 
+* @param requestParameters
      */
-    guestSessionRatedMovies(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', extraHttpRequestParams?: any): Observable<RatedMoviePage>;
+    guestSessionRatedMovies(requestParameters: GuestSessionRatedMoviesRequestParams, extraHttpRequestParams?: any): Observable<RatedMoviePage>;
 
     /**
      * Rated TV
      * Get the rated TV shows for a guest session.
      * @endpoint get /guest_session/{guest_session_id}/rated/tv
-     * @param guestSessionId 
-     * @param language 
-     * @param page 
-     * @param sortBy 
+* @param requestParameters
      */
-    guestSessionRatedTv(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', extraHttpRequestParams?: any): Observable<RatedTvSeriesPage>;
+    guestSessionRatedTv(requestParameters: GuestSessionRatedTvRequestParams, extraHttpRequestParams?: any): Observable<RatedTvSeriesPage>;
 
     /**
      * Rated TV Episodes
      * Get the rated TV episodes for a guest session.
      * @endpoint get /guest_session/{guest_session_id}/rated/tv/episodes
-     * @param guestSessionId 
-     * @param language 
-     * @param page 
-     * @param sortBy 
+* @param requestParameters
      */
-    guestSessionRatedTvEpisodes(guestSessionId: string, language?: string, page?: number, sortBy?: 'created_at.asc' | 'created_at.desc', extraHttpRequestParams?: any): Observable<RatedTvEpisodePage>;
+    guestSessionRatedTvEpisodes(requestParameters: GuestSessionRatedTvEpisodesRequestParams, extraHttpRequestParams?: any): Observable<RatedTvEpisodePage>;
 
 }

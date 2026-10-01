@@ -24,19 +24,22 @@ import {
     KeywordRestControllerService,
     Language,
     SearchRestControllerService,
-    WatchProviderCatalogItem,
-    WatchProviderRestControllerService,
 } from '../../api';
-import { API_JSON_OPTIONS, PAGE_SIZE } from '../../constants';
+import { PAGE_SIZE } from '../../constants';
 import {
     ConfigStoreService,
     DEFAULT_TMDB_DISCOVER_SORT_DIRECTION,
     DEFAULT_TMDB_DISCOVER_SORT_KEY,
     formatCompanyName,
+    isDefined,
     getTmdbDiscoverSortOptions,
     GenreService,
     RemoteData,
+    remoteData,
+    toPageItemRange,
+    WatchProviderStoreService,
     LocaleStoreService,
+    MEDIA_TYPE_OPTIONS,
     MediaListItem,
     MediaType,
     parseBoundedIntegerParam,
@@ -54,19 +57,20 @@ import {
     TMDB_DISCOVER_SORT_DIRECTIONS,
     TMDB_DISCOVER_SORT_KEYS,
     toLanguageOptions,
+    toMediaListEntries,
     toRegionOptions,
 } from '../../shared';
 import {
     DISCOVER_DEFAULT_FILTERS,
     DISCOVER_PAGE_DEFINITIONS,
+    DiscoverFilterChange,
+    DiscoverFilters,
     DiscoverFilterVisibility,
     DiscoverMovieReleaseType,
     DiscoverPageDefinition,
     DiscoverPageKey,
     DiscoverQueryState,
     DiscoverRuntimePreset,
-    DiscoverSortKey,
-    MEDIA_TYPE_OPTIONS,
     MOVIE_RELEASE_TYPE_FILTER_OPTIONS,
     RATING_FILTER_OPTIONS,
     RUNTIME_FILTER_OPTIONS,
@@ -93,17 +97,6 @@ export interface DiscoverActiveFilter {
     readonly label: string;
     readonly type: ActiveFilterType;
     readonly value?: number | string;
-}
-
-export interface DiscoverLockedFilter {
-    readonly id: string;
-    readonly label: string;
-}
-
-interface DiscoverDisplayItem {
-    readonly item: MediaListItem;
-    readonly genreNames: string[];
-    readonly routerLink: (string | number)[];
 }
 
 interface DiscoverPagination {
@@ -171,6 +164,52 @@ const INITIAL_STATE: DiscoverState = {
 
 const DISCOVER_MEDIA_TYPES: readonly MediaType[] = ['movie', 'tv'];
 
+const NO_FILTERS: DiscoverFilterVisibility = {
+    genres: false,
+    keywords: false,
+    companies: false,
+    yearRange: false,
+    watchRegion: false,
+    providers: false,
+    certification: false,
+    releaseType: false,
+    language: false,
+    rating: false,
+    votes: false,
+    runtime: false,
+};
+
+const ANY_CERTIFICATION_OPTION: SelectOption<string | null> = { label: 'Any certification', value: null };
+
+const MIN_LOOKUP_QUERY_LENGTH = 2;
+
+const MAX_LOOKUP_SUGGESTIONS = 8;
+
+interface NamedResult {
+    readonly id?: number;
+    readonly name?: string;
+    readonly origin_country?: string;
+}
+
+type NamedEntity = NamedResult & { readonly id: number; readonly name: string };
+
+/** A searchable filter, keywords or companies, that the user picks by name and the URL stores by id. */
+interface DiscoverLookup {
+    readonly selectedIds: (query: DiscoverQueryState) => readonly number[];
+    readonly search: (query: string) => Observable<{ readonly results?: readonly NamedResult[] }>;
+    readonly details: (id: number) => Observable<NamedResult>;
+    readonly toLabel: (entity: NamedEntity) => string;
+    readonly setSuggestions: (suggestions: readonly SelectOption<number>[]) => void;
+}
+
+const toNamedOptions = (
+    entities: readonly NamedResult[],
+    toLabel: (entity: NamedEntity) => string,
+): SelectOption<number>[] =>
+    entities
+        .filter((entity): entity is NamedEntity => !!entity.id && !!entity.name)
+        .map((entity) => ({ value: entity.id, label: toLabel(entity) }));
+
 const DISCOVER_RUNTIME_PRESETS: readonly DiscoverRuntimePreset[] = ['any', 'short', 'standard', 'long'];
 
 const DISCOVER_MOVIE_RELEASE_TYPES: readonly DiscoverMovieReleaseType[] = [1, 2, 3, 4, 5, 6];
@@ -179,10 +218,15 @@ const DISCOVER_MOVIE_RELEASE_TYPES: readonly DiscoverMovieReleaseType[] = [1, 2,
 export class DiscoverStoreService extends ComponentStore<DiscoverState> {
     readonly vm$ = this.select((state) => {
         const definition = state.definition;
-        const filters = definition?.filters;
         const genreMap = this.getGenreMap(state.query.mediaType, state);
         const hasLoadedResults = state.resultsState.state === 'success' || state.resultsState.state === 'loading-more';
-        const visibleCount = this.getVisibleCount(state.resultsState);
+        const visibleCount = remoteData(state.resultsState, []).length;
+        const resultRange = toPageItemRange({
+            page: Math.max(state.pagination.page, 1),
+            pageSize: PAGE_SIZE,
+            itemCount: visibleCount,
+            totalResults: state.totalResults,
+        });
         const activeFilters = this.toActiveFilters(
             definition,
             state.query,
@@ -198,11 +242,11 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
             title: definition?.title ?? '',
             subtitle: definition?.subtitle ?? '',
             resultsState: state.resultsState,
-            displayItems: this.toDisplayItems(state, genreMap),
+            displayItems: toMediaListEntries(remoteData(state.resultsState, []), genreMap),
             totalResults: state.totalResults,
             visibleCount,
-            resultStart: this.getResultStart(state),
-            resultEnd: this.getResultEnd(state),
+            resultStart: resultRange.start,
+            resultEnd: resultRange.end,
             pageIndex: Math.max(state.pagination.page - 1, 0),
             pageSize: PAGE_SIZE,
             paginatorLength: this.getPaginatorLength(state),
@@ -213,48 +257,14 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
             showFilters: this.showFilters(definition),
             showReset: this.hasResettableFilters(definition, state.query),
             showMediaTypeToggle: definition?.mode === 'advanced',
-            showGenreFilter: !!filters?.genres,
-            showKeywordFilter: !!filters?.keywords,
-            showCompanyFilter: !!filters?.companies,
-            showYearRangeFilter: !!filters?.yearRange,
-            showWatchRegionFilter: !!filters?.watchRegion,
-            showProviderFilter: !!filters?.providers,
-            showCertificationFilter: !!filters?.certification && state.query.mediaType === 'movie',
-            showReleaseTypeFilter: this.showReleaseTypeFilter(definition, state.query.mediaType),
-            showLanguageFilter: !!filters?.language,
-            showRatingFilter: !!filters?.rating,
-            showVoteCountFilter: !!filters?.votes,
-            showRuntimeFilter: !!filters?.runtime,
             mediaType: state.query.mediaType,
-            mediaTypeOptions: [...MEDIA_TYPE_OPTIONS],
+            mediaTypeOptions: MEDIA_TYPE_OPTIONS,
             sortKey: state.query.sortKey,
             sortDirection: state.query.sortDirection,
-            sortOptions: this.getSortOptions(state.query.mediaType),
-            genreOptions: this.toGenreOptions(genreMap),
-            selectedGenreIds: [...state.query.genreIds],
-            keywordSuggestions: [...state.keywordSuggestions],
-            companySuggestions: [...state.companySuggestions],
-            selectedYearFrom: state.query.yearFrom,
-            selectedYearTo: state.query.yearTo,
-            providerOptions: [...state.providerOptions],
-            selectedProviderIds: [...state.query.providerIds],
-            watchRegion: state.query.watchRegion,
-            watchRegionOptions: [...state.regionOptions],
-            certificationOptions: [...state.certificationOptions],
-            selectedCertification: state.query.certification,
-            releaseTypeOptions: [...MOVIE_RELEASE_TYPE_FILTER_OPTIONS],
-            selectedReleaseType: state.query.releaseType,
-            languageOptions: [...state.languageOptions],
-            selectedOriginalLanguage: state.query.originalLanguage,
-            selectedRating: state.query.voteAverageGte,
-            selectedVoteCount: state.query.voteCountGte,
-            selectedRuntime: state.query.runtimePreset,
-            ratingOptions: [...RATING_FILTER_OPTIONS],
-            voteCountOptions: [...VOTE_COUNT_FILTER_OPTIONS],
-            runtimeOptions: [...RUNTIME_FILTER_OPTIONS],
-            lockedFilters: this.toLockedFilters(definition),
+            sortOptions: getTmdbDiscoverSortOptions(state.query.mediaType),
+            filters: this.toDiscoverFilters(state, genreMap, activeFilters.length),
+            lockedFilters: definition?.lockedFilters ?? [],
             activeFilters,
-            activeFilterCount: activeFilters.length,
         };
     });
 
@@ -262,23 +272,25 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         request$.pipe(switchMap((request) => this.handleRouteRequest(request))),
     );
 
-    private readonly keywordSearchEffect = this.effect<string>((query$) =>
-        query$.pipe(
-            debounceTime(250),
-            map((query) => query.trim()),
-            distinctUntilChanged(),
-            switchMap((query) => this.fetchKeywordSuggestions$(query)),
-        ),
-    );
+    private readonly keywordLookup: DiscoverLookup = {
+        selectedIds: (query) => query.keywordIds,
+        search: (query) => this.searchService.searchKeyword({ query, page: 1 }),
+        details: (keywordId) => this.keywordService.keywordDetails({ keywordId }),
+        toLabel: (keyword) => keyword.name,
+        setSuggestions: (keywordSuggestions) => this.patchState({ keywordSuggestions }),
+    };
 
-    private readonly companySearchEffect = this.effect<string>((query$) =>
-        query$.pipe(
-            debounceTime(250),
-            map((query) => query.trim()),
-            distinctUntilChanged(),
-            switchMap((query) => this.fetchCompanySuggestions$(query)),
-        ),
-    );
+    private readonly companyLookup: DiscoverLookup = {
+        selectedIds: (query) => query.companyIds,
+        search: (query) => this.searchService.searchCompany({ query, page: 1 }),
+        details: (companyId) => this.companyService.companyDetails({ companyId }),
+        toLabel: (company) => formatCompanyName(company.name, company.origin_country),
+        setSuggestions: (companySuggestions) => this.patchState({ companySuggestions }),
+    };
+
+    private readonly keywordSearchEffect = this.lookupSearchEffect(this.keywordLookup);
+
+    private readonly companySearchEffect = this.lookupSearchEffect(this.companyLookup);
 
     constructor(
         private readonly route: ActivatedRoute,
@@ -289,12 +301,47 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         private readonly companyService: CompanyRestControllerService,
         private readonly keywordService: KeywordRestControllerService,
         private readonly searchService: SearchRestControllerService,
-        private readonly watchProviderService: WatchProviderRestControllerService,
+        private readonly watchProviderStore: WatchProviderStoreService,
         configStore: ConfigStoreService,
         genreService: GenreService,
     ) {
         super(INITIAL_STATE);
         this.routeRequestEffect(this.routeRequest$(genreService, configStore));
+    }
+
+    updateFilter(change: DiscoverFilterChange): void {
+        switch (change.key) {
+            case 'genres':
+                return this.updateGenres(change.value);
+            case 'keywordSearch':
+                return this.updateKeywordSearch(change.value);
+            case 'keyword':
+                return this.addKeyword(change.value);
+            case 'companySearch':
+                return this.updateCompanySearch(change.value);
+            case 'company':
+                return this.addCompany(change.value);
+            case 'yearFrom':
+                return this.updateYearFrom(change.value);
+            case 'yearTo':
+                return this.updateYearTo(change.value);
+            case 'watchRegion':
+                return this.updateWatchRegion(change.value);
+            case 'providers':
+                return this.updateProviders(change.value);
+            case 'certification':
+                return this.updateCertification(change.value);
+            case 'releaseType':
+                return this.updateReleaseType(change.value);
+            case 'language':
+                return this.updateOriginalLanguage(change.value);
+            case 'rating':
+                return this.updateRating(change.value);
+            case 'votes':
+                return this.updateVoteCount(change.value);
+            case 'runtime':
+                return this.updateRuntime(change.value);
+        }
     }
 
     updateMediaType(value: unknown): void {
@@ -836,7 +883,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         };
     }
 
-    private handleRouteRequest(request: DiscoverRouteRequest): Observable<void> {
+    private handleRouteRequest(request: DiscoverRouteRequest) {
         if (!request.definition) {
             this.router.navigateByUrl('/not-found', { replaceUrl: true });
             return EMPTY;
@@ -878,11 +925,10 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                         certificationOptions,
                     });
                 }),
-                map(() => undefined),
             ),
             forkJoin({
-                keywordLabelMap: this.fetchKeywordLabelMap$(request.query.keywordIds),
-                companyLabelMap: this.fetchCompanyLabelMap$(request.query.companyIds),
+                keywordLabelMap: this.fetchLabelMap$(this.keywordLookup, request.query.keywordIds),
+                companyLabelMap: this.fetchLabelMap$(this.companyLookup, request.query.companyIds),
             }).pipe(
                 tap(({ keywordLabelMap, companyLabelMap }) => {
                     this.patchState({
@@ -890,12 +936,11 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                         companyLabelMap,
                     });
                 }),
-                map(() => undefined),
             ),
         );
     }
 
-    private fetchPage$(definition: DiscoverPageDefinition, query: DiscoverQueryState, page: number): Observable<void> {
+    private fetchPage$(definition: DiscoverPageDefinition, query: DiscoverQueryState, page: number) {
         return this.discoverQuery.list$(definition, query, page).pipe(
             tap((result) => {
                 this.patchState({
@@ -907,7 +952,6 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                     totalResults: result.totalResults,
                 });
             }),
-            map(() => undefined),
             catchError(() => {
                 this.patchState({
                     resultsState: {
@@ -923,27 +967,9 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
     }
 
     private fetchProviderOptions$(mediaType: MediaType, watchRegion: string): Observable<SelectOption<number>[]> {
-        const request$ =
-            mediaType === 'movie'
-                ? this.watchProviderService.watchProvidersMovieList(
-                      undefined,
-                      watchRegion,
-                      'body',
-                      false,
-                      API_JSON_OPTIONS,
-                  )
-                : this.watchProviderService.watchProviderTvList(
-                      undefined,
-                      watchRegion,
-                      'body',
-                      false,
-                      API_JSON_OPTIONS,
-                  );
-
-        return request$.pipe(
-            map((catalog) => this.toProviderOptions(catalog.results ?? [])),
-            catchError(() => of([] as SelectOption<number>[])),
-        );
+        return this.watchProviderStore
+            .providers$(mediaType, watchRegion)
+            .pipe(map((providers) => providers.map((provider) => ({ value: provider.id, label: provider.name }))));
     }
 
     private fetchCertificationOptions$(
@@ -955,7 +981,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
             return of([]);
         }
 
-        return this.certificationService.certificationMovieList('body', false, API_JSON_OPTIONS).pipe(
+        return this.certificationService.certificationMovieList().pipe(
             map((result) => {
                 const certifications = result.certifications?.[watchRegion] ?? result.certifications?.['US'] ?? [];
 
@@ -977,160 +1003,60 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         );
     }
 
-    private fetchKeywordSuggestions$(query: string): Observable<void> {
-        if (query.length < 2) {
-            this.patchState({ keywordSuggestions: [] });
-            return of(undefined);
+    private lookupSearchEffect(lookup: DiscoverLookup) {
+        return this.effect<string>((query$) =>
+            query$.pipe(
+                debounceTime(250),
+                map((query) => query.trim()),
+                distinctUntilChanged(),
+                switchMap((query) => this.fetchSuggestions$(lookup, query)),
+            ),
+        );
+    }
+
+    private fetchSuggestions$(lookup: DiscoverLookup, query: string) {
+        if (query.length < MIN_LOOKUP_QUERY_LENGTH) {
+            lookup.setSuggestions([]);
+            return EMPTY;
         }
 
-        return this.searchService.searchKeyword(query, 1, 'body', false, API_JSON_OPTIONS).pipe(
+        return lookup.search(query).pipe(
             tap((result) => {
-                const selectedIds = new Set(this.get().query.keywordIds);
-                const keywordSuggestions = (result.results ?? [])
-                    .filter(
-                        (keyword): keyword is { id: number; name: string } =>
-                            typeof keyword.id === 'number' &&
-                            typeof keyword.name === 'string' &&
-                            keyword.name.length > 0 &&
-                            !selectedIds.has(keyword.id),
-                    )
-                    .slice(0, 8)
-                    .map((keyword) => ({
-                        value: keyword.id,
-                        label: keyword.name,
-                    }));
+                const selectedIds = new Set(lookup.selectedIds(this.get().query));
 
-                this.patchState({ keywordSuggestions });
+                lookup.setSuggestions(
+                    toNamedOptions(result.results ?? [], lookup.toLabel)
+                        .filter((option) => !selectedIds.has(option.value))
+                        .slice(0, MAX_LOOKUP_SUGGESTIONS),
+                );
             }),
-            map(() => undefined),
             catchError(() => {
-                this.patchState({ keywordSuggestions: [] });
-                return of(undefined);
+                lookup.setSuggestions([]);
+                return EMPTY;
             }),
         );
     }
 
-    private fetchKeywordLabelMap$(keywordIds: readonly number[]): Observable<ReadonlyMap<number, string>> {
-        const uniqueKeywordIds = [...new Set(keywordIds)];
+    /** Labels for the selected ids, so active filter chips show names instead of ids. */
+    private fetchLabelMap$(lookup: DiscoverLookup, ids: readonly number[]): Observable<ReadonlyMap<number, string>> {
+        const uniqueIds = [...new Set(ids)];
 
-        if (!uniqueKeywordIds.length) {
+        if (!uniqueIds.length) {
             return of(new Map<number, string>());
         }
 
-        return forkJoin(
-            uniqueKeywordIds.map((keywordId) =>
-                this.keywordService
-                    .keywordDetails(keywordId, 'body', false, API_JSON_OPTIONS)
-                    .pipe(catchError(() => of(null))),
-            ),
-        ).pipe(
+        return forkJoin(uniqueIds.map((id) => lookup.details(id).pipe(catchError(() => of(null))))).pipe(
             map(
-                (keywords) =>
+                (entities) =>
                     new Map(
-                        keywords
-                            .filter(
-                                (keyword): keyword is { id: number; name: string } =>
-                                    typeof keyword?.id === 'number' &&
-                                    typeof keyword.name === 'string' &&
-                                    keyword.name.length > 0,
-                            )
-                            .map((keyword) => [keyword.id, keyword.name]),
+                        toNamedOptions(entities.filter(isDefined), lookup.toLabel).map((option) => [
+                            option.value,
+                            option.label,
+                        ]),
                     ),
             ),
             catchError(() => of(new Map<number, string>())),
         );
-    }
-
-    private fetchCompanySuggestions$(query: string): Observable<void> {
-        if (query.length < 2) {
-            this.patchState({ companySuggestions: [] });
-            return of(undefined);
-        }
-
-        return this.searchService.searchCompany(query, 1, 'body', false, API_JSON_OPTIONS).pipe(
-            tap((result) => {
-                const selectedIds = new Set(this.get().query.companyIds);
-                const companySuggestions = (result.results ?? [])
-                    .filter(
-                        (company): company is { id: number; name: string; origin_country?: string } =>
-                            !!company.id && !!company.name && !selectedIds.has(company.id),
-                    )
-                    .slice(0, 8)
-                    .map((company) => ({
-                        value: company.id,
-                        label: formatCompanyName(company.name, company.origin_country),
-                    }));
-
-                this.patchState({ companySuggestions });
-            }),
-            map(() => undefined),
-            catchError(() => {
-                this.patchState({ companySuggestions: [] });
-                return of(undefined);
-            }),
-        );
-    }
-
-    private fetchCompanyLabelMap$(companyIds: readonly number[]): Observable<ReadonlyMap<number, string>> {
-        const uniqueCompanyIds = [...new Set(companyIds)];
-
-        if (!uniqueCompanyIds.length) {
-            return of(new Map<number, string>());
-        }
-
-        return forkJoin(
-            uniqueCompanyIds.map((companyId) =>
-                this.companyService
-                    .companyDetails(companyId, 'body', false, API_JSON_OPTIONS)
-                    .pipe(catchError(() => of(null))),
-            ),
-        ).pipe(
-            map(
-                (companies) =>
-                    new Map(
-                        companies
-                            .filter(
-                                (company): company is { id: number; name: string; origin_country?: string } =>
-                                    !!company?.id && !!company.name,
-                            )
-                            .map((company) => [company.id, formatCompanyName(company.name, company.origin_country)]),
-                    ),
-            ),
-            catchError(() => of(new Map<number, string>())),
-        );
-    }
-
-    private toDisplayItems(state: DiscoverState, genreMap: ReadonlyMap<number, string>): DiscoverDisplayItem[] {
-        if (state.resultsState.state !== 'success' && state.resultsState.state !== 'loading-more') {
-            return [];
-        }
-
-        return state.resultsState.data.map((item) => ({
-            item,
-            genreNames: (item.genreIds ?? [])
-                .map((genreId) => genreMap.get(genreId))
-                .filter((genreName): genreName is string => !!genreName)
-                .slice(0, 3),
-            routerLink: ['/title', item.id, item.mediaType],
-        }));
-    }
-
-    private getResultStart(state: DiscoverState): number {
-        const visibleCount = this.getVisibleCount(state.resultsState);
-        if (visibleCount === 0 || state.totalResults === 0) {
-            return 0;
-        }
-
-        return (Math.max(state.pagination.page, 1) - 1) * PAGE_SIZE + 1;
-    }
-
-    private getResultEnd(state: DiscoverState): number {
-        const visibleCount = this.getVisibleCount(state.resultsState);
-        if (visibleCount === 0 || state.totalResults === 0) {
-            return 0;
-        }
-
-        return Math.min(state.totalResults, this.getResultStart(state) + visibleCount - 1);
     }
 
     private getPaginatorLength(state: DiscoverState): number {
@@ -1139,6 +1065,46 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         }
 
         return Math.min(state.totalResults, state.pagination.totalPages * PAGE_SIZE);
+    }
+
+    private toDiscoverFilters(
+        state: DiscoverState,
+        genreMap: ReadonlyMap<number, string>,
+        activeFilterCount: number,
+    ): DiscoverFilters {
+        const { definition, query } = state;
+        const filters = definition?.filters ?? NO_FILTERS;
+
+        return {
+            activeFilterCount,
+            visible: {
+                ...filters,
+                certification: filters.certification && query.mediaType === 'movie',
+                releaseType: this.showReleaseTypeFilter(definition, query.mediaType),
+            },
+            genreOptions: this.toGenreOptions(genreMap),
+            selectedGenreIds: query.genreIds,
+            keywordSuggestions: state.keywordSuggestions,
+            companySuggestions: state.companySuggestions,
+            yearFrom: query.yearFrom,
+            yearTo: query.yearTo,
+            watchRegionOptions: state.regionOptions,
+            watchRegion: query.watchRegion,
+            providerOptions: state.providerOptions,
+            selectedProviderIds: query.providerIds,
+            certificationOptions: [ANY_CERTIFICATION_OPTION, ...state.certificationOptions],
+            certification: query.certification,
+            releaseTypeOptions: MOVIE_RELEASE_TYPE_FILTER_OPTIONS,
+            releaseType: query.releaseType,
+            languageOptions: state.languageOptions,
+            language: query.originalLanguage,
+            ratingOptions: RATING_FILTER_OPTIONS,
+            rating: query.voteAverageGte,
+            voteCountOptions: VOTE_COUNT_FILTER_OPTIONS,
+            voteCount: query.voteCountGte,
+            runtimeOptions: RUNTIME_FILTER_OPTIONS,
+            runtime: query.runtimePreset,
+        };
     }
 
     private toActiveFilters(
@@ -1275,18 +1241,6 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         return activeFilters;
     }
 
-    private toLockedFilters(definition: DiscoverPageDefinition | null): DiscoverLockedFilter[] {
-        return definition?.lockedFilters ? [...definition.lockedFilters] : [];
-    }
-
-    private getVisibleCount(resultsState: RemoteData<MediaListItem[]>): number {
-        if (resultsState.state === 'success' || resultsState.state === 'loading-more') {
-            return resultsState.data.length;
-        }
-
-        return 0;
-    }
-
     private getGenreMap(mediaType: MediaType, state: DiscoverState): ReadonlyMap<number, string> {
         return mediaType === 'movie' ? state.movieGenreMap : state.tvGenreMap;
     }
@@ -1295,25 +1249,6 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         return [...genreMap.entries()]
             .map(([value, label]) => ({ label, value }))
             .sort((left, right) => left.label.localeCompare(right.label));
-    }
-
-    private toProviderOptions(providers: readonly WatchProviderCatalogItem[]): SelectOption<number>[] {
-        return providers
-            .filter(
-                (
-                    provider,
-                ): provider is WatchProviderCatalogItem & {
-                    provider_id: number;
-                    provider_name: string;
-                } => typeof provider.provider_id === 'number' && typeof provider.provider_name === 'string',
-            )
-            .map((provider) => ({
-                value: provider.provider_id,
-                label: provider.provider_name,
-                priority: provider.display_priority ?? 999,
-            }))
-            .sort((left, right) => left.priority - right.priority || left.label.localeCompare(right.label))
-            .map(({ value, label }) => ({ value, label }));
     }
 
     private toYearRangeLabel(yearFrom: number | null, yearTo: number | null): string {
@@ -1336,10 +1271,6 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
     private toReleaseTypeFilterLabel(releaseType: DiscoverMovieReleaseType): string {
         const option = MOVIE_RELEASE_TYPE_FILTER_OPTIONS.find((entry) => entry.value === releaseType);
         return `Release: ${option?.label ?? releaseType}`;
-    }
-
-    private getSortOptions(mediaType: MediaType): SelectOption<DiscoverSortKey>[] {
-        return [...getTmdbDiscoverSortOptions(mediaType)];
     }
 
     private showFilters(definition: DiscoverPageDefinition | null): boolean {

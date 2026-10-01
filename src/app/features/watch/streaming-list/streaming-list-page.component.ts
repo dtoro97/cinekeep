@@ -15,7 +15,7 @@ import {
     RepeatPipe,
     SkeletonComponent,
     SortButtonComponent,
-    WatchlistToggleComponent,
+    LibraryToggleComponent,
 } from '../../../shared';
 import { StreamingListStoreService } from './streaming-list-store.service';
 
@@ -32,7 +32,7 @@ import { StreamingListStoreService } from './streaming-list-store.service';
         RouterLink,
         SkeletonComponent,
         SortButtonComponent,
-        WatchlistToggleComponent,
+        LibraryToggleComponent,
     ],
     providers: [StreamingListStoreService],
     templateUrl: './streaming-list-page.component.html',

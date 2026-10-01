@@ -28,7 +28,10 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    CollectionRestControllerServiceInterface
+    CollectionRestControllerServiceInterface,
+    CollectionDetailsRequestParams,
+    CollectionImagesRequestParams,
+    CollectionTranslationsRequestParams
 } from './collection.serviceInterface';
 
 
@@ -46,19 +49,20 @@ export class CollectionRestControllerService extends BaseService implements Coll
      * Details
      * Get collection details by ID.
      * @endpoint get /collection/{collection_id}
-     * @param collectionId 
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public collectionDetails(collectionId: number, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CollectionDetails>;
-    public collectionDetails(collectionId: number, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CollectionDetails>>;
-    public collectionDetails(collectionId: number, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CollectionDetails>>;
-    public collectionDetails(collectionId: number, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public collectionDetails(requestParameters: CollectionDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CollectionDetails>;
+    public collectionDetails(requestParameters: CollectionDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CollectionDetails>>;
+    public collectionDetails(requestParameters: CollectionDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CollectionDetails>>;
+    public collectionDetails(requestParameters: CollectionDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const collectionId = requestParameters?.collectionId;
         if (collectionId === null || collectionId === undefined) {
             throw new Error('Required parameter collectionId was null or undefined when calling collectionDetails.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -119,20 +123,21 @@ export class CollectionRestControllerService extends BaseService implements Coll
      * Images
      * Get the images that belong to a collection.
      * @endpoint get /collection/{collection_id}/images
-     * @param collectionId 
-     * @param includeImageLanguage specify a comma separated list of ISO-639-1 values to query, for example: &#x60;en-US,null&#x60;
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public collectionImages(collectionId: number, includeImageLanguage?: string, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CollectionImages>;
-    public collectionImages(collectionId: number, includeImageLanguage?: string, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CollectionImages>>;
-    public collectionImages(collectionId: number, includeImageLanguage?: string, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CollectionImages>>;
-    public collectionImages(collectionId: number, includeImageLanguage?: string, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public collectionImages(requestParameters: CollectionImagesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CollectionImages>;
+    public collectionImages(requestParameters: CollectionImagesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CollectionImages>>;
+    public collectionImages(requestParameters: CollectionImagesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CollectionImages>>;
+    public collectionImages(requestParameters: CollectionImagesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const collectionId = requestParameters?.collectionId;
         if (collectionId === null || collectionId === undefined) {
             throw new Error('Required parameter collectionId was null or undefined when calling collectionImages.');
         }
+        const includeImageLanguage = requestParameters?.includeImageLanguage;
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -202,15 +207,16 @@ export class CollectionRestControllerService extends BaseService implements Coll
      * Translations
      * 
      * @endpoint get /collection/{collection_id}/translations
-     * @param collectionId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public collectionTranslations(collectionId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TranslationList>;
-    public collectionTranslations(collectionId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TranslationList>>;
-    public collectionTranslations(collectionId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TranslationList>>;
-    public collectionTranslations(collectionId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public collectionTranslations(requestParameters: CollectionTranslationsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TranslationList>;
+    public collectionTranslations(requestParameters: CollectionTranslationsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TranslationList>>;
+    public collectionTranslations(requestParameters: CollectionTranslationsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TranslationList>>;
+    public collectionTranslations(requestParameters: CollectionTranslationsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const collectionId = requestParameters?.collectionId;
         if (collectionId === null || collectionId === undefined) {
             throw new Error('Required parameter collectionId was null or undefined when calling collectionTranslations.');
         }

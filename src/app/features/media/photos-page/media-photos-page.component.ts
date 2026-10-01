@@ -2,12 +2,10 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
 
 import { combineLatest, filter, map, switchMap, tap } from 'rxjs';
 
 import {
-    MediaType,
     PhotoViewerComponent,
     PhotosBrowserComponent,
     PhotosBrowserSelection,
@@ -50,15 +48,9 @@ export class MediaPhotosPageComponent {
         private readonly mediaImagesStoreService: MediaImagesStoreService,
         private readonly dialog: MatDialog,
         private readonly seo: SeoService,
-        private readonly route: ActivatedRoute,
     ) {
-        this.route.parent!.paramMap
+        this.mediaStore.currentTarget$
             .pipe(
-                map((params) => ({
-                    id: Number(params.get('id')),
-                    type: (params.get('type') ?? 'movie') as MediaType,
-                })),
-                filter(({ id }) => Number.isInteger(id)),
                 switchMap((target) => this.mediaImagesStoreService.load$(target)),
                 takeUntilDestroyed(),
             )

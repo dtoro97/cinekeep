@@ -1,12 +1,17 @@
+import { parseLanguageParam, parseRegionParam } from './route-utils';
+
 export interface DetectedLocale {
     readonly language: string | null;
     readonly region: string | null;
 }
 
-const LANGUAGE_PATTERN = /^[a-z]{2}$/;
-const REGION_PATTERN = /^[A-Z]{2}$/;
 const ACCEPT_LANGUAGE_QUALITY_PATTERN = /;\s*q=([0-9.]+)/i;
 const NON_COUNTRY_REGION_CODES = new Set(['EU', 'XX']);
+
+/** The two-letter language of a locale tag: `en-GB`, `pt_BR` and `EN` give `en`, `pt` and `en`. */
+export function parseLanguageTag(tag: string | null | undefined): string | null {
+    return parseLanguageParam(tag?.replace(/_/g, '-').split('-')[0]);
+}
 
 export function detectBrowserLocale(): DetectedLocale {
     if (typeof navigator === 'undefined') {
@@ -85,7 +90,7 @@ function parseAcceptLanguage(header: string | null): string[] {
 
 function parseLocaleTag(localeTag: string | null | undefined): DetectedLocale {
     const parts = localeTag?.trim().replace(/_/g, '-').split('-') ?? [];
-    const language = normalizeLanguage(parts[0]);
+    const language = parseLanguageParam(parts[0]);
     const region = parts
         .slice(1)
         .map((part) => normalizeRegion(part))
@@ -94,20 +99,10 @@ function parseLocaleTag(localeTag: string | null | undefined): DetectedLocale {
     return { language, region };
 }
 
-function normalizeLanguage(language: string | null | undefined): string | null {
-    const normalized = language?.trim().toLowerCase();
-
-    return normalized && LANGUAGE_PATTERN.test(normalized) ? normalized : null;
-}
-
 function normalizeRegion(region: string | null | undefined): string | null {
-    const normalized = region?.trim().toUpperCase();
+    const normalized = parseRegionParam(region, '');
 
-    return normalized &&
-        REGION_PATTERN.test(normalized) &&
-        !NON_COUNTRY_REGION_CODES.has(normalized)
-        ? normalized
-        : null;
+    return normalized && !NON_COUNTRY_REGION_CODES.has(normalized) ? normalized : null;
 }
 
 const EMPTY_LOCALE: DetectedLocale = {

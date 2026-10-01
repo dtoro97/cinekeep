@@ -1,15 +1,16 @@
 import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
-import { Observable, catchError, filter, map, of, take, tap } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import { Video } from '../../api';
 import {
     RemoteData,
+    loadCachedResource$,
     pickBestYoutubeTrailer,
     remoteData,
     toVideoCardItems,
-    toYoutubeVideoState,
+    toYoutubeVideos,
 } from '../../shared';
 import { MediaApiService } from './media-api.service';
 import { MediaTarget, isSameMediaTarget } from './media-target';
@@ -50,50 +51,18 @@ export class MediaVideoStoreService extends ComponentStore<MediaVideoState> {
     }
 
     load$(target: MediaTarget): Observable<Video[]> {
-        const state = this.get();
-
-        if (isSameMediaTarget(state.target, target)) {
-            if (state.videos.state === 'success') {
-                return of(state.videos.data);
-            }
-
-            if (state.videos.state === 'loading') {
-                return this.videosReady$();
-            }
+        if (!isSameMediaTarget(this.get().target, target)) {
+            this.setState({ ...INITIAL_STATE, target });
         }
 
-        this.setState({
-            ...INITIAL_STATE,
-            target,
-            videos: { state: 'loading' },
+        return loadCachedResource$({
+            current: this.get().videos,
+            state$: this.videosState$,
+            fetch: () =>
+                this.mediaApiService.getVideos$(target).pipe(map((videos) => toYoutubeVideos(videos.results ?? []))),
+            patch: (videos) => this.patchState({ videos }),
+            fallback: [],
         });
-
-        return this.mediaApiService.getVideos$(target).pipe(
-            map((videos) => this.toYoutubeVideos(videos.results ?? [])),
-            tap((videos) => {
-                this.patchState({ videos: { state: 'success', data: videos } });
-            }),
-            catchError(() => {
-                this.patchState({ videos: { state: 'success', data: [] } });
-                return of([]);
-            }),
-        );
-    }
-
-    private videosReady$(): Observable<Video[]> {
-        return this.videosState$.pipe(
-            filter(
-                (state): state is Extract<RemoteData<Video[]>, { state: 'success' }> =>
-                    state.state === 'success',
-            ),
-            take(1),
-            map((state) => state.data),
-        );
-    }
-
-    private toYoutubeVideos(videos: readonly Video[]): Video[] {
-        const state = toYoutubeVideoState({ state: 'success', data: [...videos] });
-        return state.state === 'success' ? state.data : [];
     }
 
     private toVideoItems(videos: readonly Video[], mediaState: RemoteData<MediaDetails | null>) {

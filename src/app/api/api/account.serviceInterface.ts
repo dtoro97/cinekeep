@@ -25,6 +25,85 @@ import { TvSeriesPage } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface AccountAddFavoriteRequestParams {
+    accountId: number;
+    sessionId?: string;
+    accountAddFavoriteRequest?: AccountAddFavoriteRequest;
+}
+
+export interface AccountAddToWatchlistRequestParams {
+    accountId: number;
+    sessionId?: string;
+    accountAddFavoriteRequest?: AccountAddFavoriteRequest;
+}
+
+export interface AccountDetailsRequestParams {
+    accountId: number;
+    sessionId?: string;
+}
+
+export interface AccountFavoriteTvRequestParams {
+    accountId: number;
+    language?: string;
+    page?: number;
+    sessionId?: string;
+    sortBy?: 'created_at.asc' | 'created_at.desc';
+}
+
+export interface AccountGetFavoritesRequestParams {
+    accountId: number;
+    language?: string;
+    page?: number;
+    sessionId?: string;
+    sortBy?: 'created_at.asc' | 'created_at.desc';
+}
+
+export interface AccountListsRequestParams {
+    accountId: number;
+    page?: number;
+    sessionId?: string;
+}
+
+export interface AccountRatedMoviesRequestParams {
+    accountId: number;
+    language?: string;
+    page?: number;
+    sessionId?: string;
+    sortBy?: 'created_at.asc' | 'created_at.desc';
+}
+
+export interface AccountRatedTvRequestParams {
+    accountId: number;
+    language?: string;
+    page?: number;
+    sessionId?: string;
+    sortBy?: 'created_at.asc' | 'created_at.desc';
+}
+
+export interface AccountRatedTvEpisodesRequestParams {
+    accountId: number;
+    language?: string;
+    page?: number;
+    sessionId?: string;
+    sortBy?: 'created_at.asc' | 'created_at.desc';
+}
+
+export interface AccountWatchlistMoviesRequestParams {
+    accountId: number;
+    language?: string;
+    page?: number;
+    sessionId?: string;
+    sortBy?: 'created_at.asc' | 'created_at.desc';
+}
+
+export interface AccountWatchlistTvRequestParams {
+    accountId: number;
+    language?: string;
+    page?: number;
+    sessionId?: string;
+    sortBy?: 'created_at.asc' | 'created_at.desc';
+}
+
 
 export interface AccountRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -34,123 +113,88 @@ export interface AccountRestControllerServiceInterface {
      * Add Favorite
      * Mark a movie or TV show as a favourite.
      * @endpoint post /account/{account_id}/favorite
-     * @param accountId 
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+* @param requestParameters
      */
-    accountAddFavorite(accountId: number, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, extraHttpRequestParams?: any): Observable<StatusResponse>;
+    accountAddFavorite(requestParameters: AccountAddFavoriteRequestParams, extraHttpRequestParams?: any): Observable<StatusResponse>;
 
     /**
      * Add To Watchlist
      * Add a movie or TV show to your watchlist.
      * @endpoint post /account/{account_id}/watchlist
-     * @param accountId 
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+* @param requestParameters
      */
-    accountAddToWatchlist(accountId: number, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, extraHttpRequestParams?: any): Observable<StatusResponse>;
+    accountAddToWatchlist(requestParameters: AccountAddToWatchlistRequestParams, extraHttpRequestParams?: any): Observable<StatusResponse>;
 
     /**
      * Details
      * Get the public details of an account on TMDB.
      * @endpoint get /account/{account_id}
-     * @param accountId 
-     * @param sessionId 
+* @param requestParameters
      */
-    accountDetails(accountId: number, sessionId?: string, extraHttpRequestParams?: any): Observable<AccountDetails>;
+    accountDetails(requestParameters: AccountDetailsRequestParams, extraHttpRequestParams?: any): Observable<AccountDetails>;
 
     /**
      * Favorite TV
      * Get a users list of favourite TV shows.
      * @endpoint get /account/{account_id}/favorite/tv
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+* @param requestParameters
      */
-    accountFavoriteTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', extraHttpRequestParams?: any): Observable<TvSeriesPage>;
+    accountFavoriteTv(requestParameters: AccountFavoriteTvRequestParams, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
 
     /**
      * Favorite Movies
      * Get a users list of favourite movies.
      * @endpoint get /account/{account_id}/favorite/movies
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+* @param requestParameters
      */
-    accountGetFavorites(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', extraHttpRequestParams?: any): Observable<MoviePage>;
+    accountGetFavorites(requestParameters: AccountGetFavoritesRequestParams, extraHttpRequestParams?: any): Observable<MoviePage>;
 
     /**
      * Lists
      * Get a users list of custom lists.
      * @endpoint get /account/{account_id}/lists
-     * @param accountId 
-     * @param page 
-     * @param sessionId 
+* @param requestParameters
      */
-    accountLists(accountId: number, page?: number, sessionId?: string, extraHttpRequestParams?: any): Observable<AccountListPage>;
+    accountLists(requestParameters: AccountListsRequestParams, extraHttpRequestParams?: any): Observable<AccountListPage>;
 
     /**
      * Rated Movies
      * Get a users list of rated movies.
      * @endpoint get /account/{account_id}/rated/movies
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+* @param requestParameters
      */
-    accountRatedMovies(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', extraHttpRequestParams?: any): Observable<RatedMoviePage>;
+    accountRatedMovies(requestParameters: AccountRatedMoviesRequestParams, extraHttpRequestParams?: any): Observable<RatedMoviePage>;
 
     /**
      * Rated TV
      * Get a users list of rated TV shows.
      * @endpoint get /account/{account_id}/rated/tv
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+* @param requestParameters
      */
-    accountRatedTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', extraHttpRequestParams?: any): Observable<RatedTvSeriesPage>;
+    accountRatedTv(requestParameters: AccountRatedTvRequestParams, extraHttpRequestParams?: any): Observable<RatedTvSeriesPage>;
 
     /**
      * Rated TV Episodes
      * Get a users list of rated TV episodes.
      * @endpoint get /account/{account_id}/rated/tv/episodes
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+* @param requestParameters
      */
-    accountRatedTvEpisodes(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', extraHttpRequestParams?: any): Observable<RatedTvEpisodePage>;
+    accountRatedTvEpisodes(requestParameters: AccountRatedTvEpisodesRequestParams, extraHttpRequestParams?: any): Observable<RatedTvEpisodePage>;
 
     /**
      * Watchlist Movies
      * Get a list of movies added to a users watchlist.
      * @endpoint get /account/{account_id}/watchlist/movies
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+* @param requestParameters
      */
-    accountWatchlistMovies(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', extraHttpRequestParams?: any): Observable<MoviePage>;
+    accountWatchlistMovies(requestParameters: AccountWatchlistMoviesRequestParams, extraHttpRequestParams?: any): Observable<MoviePage>;
 
     /**
      * Watchlist TV
      * Get a list of TV shows added to a users watchlist.
      * @endpoint get /account/{account_id}/watchlist/tv
-     * @param accountId 
-     * @param language 
-     * @param page 
-     * @param sessionId 
-     * @param sortBy 
+* @param requestParameters
      */
-    accountWatchlistTv(accountId: number, language?: string, page?: number, sessionId?: string, sortBy?: 'created_at.asc' | 'created_at.desc', extraHttpRequestParams?: any): Observable<TvSeriesPage>;
+    accountWatchlistTv(requestParameters: AccountWatchlistTvRequestParams, extraHttpRequestParams?: any): Observable<TvSeriesPage>;
 
 }

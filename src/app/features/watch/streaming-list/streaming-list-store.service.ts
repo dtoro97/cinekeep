@@ -11,6 +11,8 @@ import {
     getTmdbDiscoverSortOptions,
     parseEnumParam,
     RemoteData,
+    remoteData,
+    MEDIA_TYPE_OPTION,
     MediaListItem,
     MediaType,
     ToggleGroupOption,
@@ -87,15 +89,10 @@ const INITIAL_STATE: StreamingListState = {
     resultsState: { state: 'notAsked' },
 };
 
-const MEDIA_TYPE_OPTIONS: Record<MediaType, ToggleGroupOption> = {
-    movie: { label: 'Movies', value: 'movie' },
-    tv: { label: 'TV series', value: 'tv' },
-};
-
 @Injectable()
 export class StreamingListStoreService extends ComponentStore<StreamingListState> {
     readonly vm$ = this.select((state) => {
-        const visibleCount = this.getVisibleCount(state.resultsState);
+        const visibleCount = remoteData(state.resultsState, []).length;
         const hasResults = state.resultsState.state === 'success' || state.resultsState.state === 'loading-more';
 
         return {
@@ -303,7 +300,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
         };
     }
 
-    private handleRouteRequest(request: StreamingListRequest): Observable<void> {
+    private handleRouteRequest(request: StreamingListRequest) {
         if (!request.context) {
             if (!request.pendingProvider) {
                 this.router.navigateByUrl('/not-found', { replaceUrl: true });
@@ -335,7 +332,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
         return this.fetchPage$(request, 1);
     }
 
-    private handleLoadMoreRequest(): Observable<void> {
+    private handleLoadMoreRequest() {
         const state = this.get();
 
         if (
@@ -349,7 +346,8 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
         this.patchState({
             resultsState: {
                 state: 'loading-more',
-                data: state.resultsState.data,            },
+                data: state.resultsState.data,
+            },
         });
 
         return this.fetchPage$(
@@ -364,7 +362,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
         );
     }
 
-    private fetchPage$(request: StreamingListRequest, page: number): Observable<void> {
+    private fetchPage$(request: StreamingListRequest, page: number) {
         if (!request.context) {
             return of(undefined);
         }
@@ -373,7 +371,6 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
             .list$(request.context.baseQuery, request.mediaType, request.sortKey, request.sortDirection, page)
             .pipe(
                 tap((result) => this.patchLoadedResults(result, page)),
-                map(() => undefined),
                 catchError(() => this.handleResultsError()),
             );
     }
@@ -425,10 +422,6 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
         }
 
         return query.mediaTypes.includes('tv') ? 'tv' : (query.mediaTypes[0] ?? 'movie');
-    }
-
-    private getVisibleCount(state: RemoteData<MediaListItem[]>): number {
-        return state.state === 'success' || state.state === 'loading-more' ? state.data.length : 0;
     }
 
     private toDisplayItems(
@@ -497,7 +490,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
             .filter((mediaType): mediaType is MediaType =>
                 mediaType === 'movie' || mediaType === 'tv',
             )
-            .map((mediaType) => MEDIA_TYPE_OPTIONS[mediaType]);
+            .map((mediaType) => MEDIA_TYPE_OPTION[mediaType]);
     }
 
     private normalizeSortKey(value: unknown, fallback: StreamingSortKey): StreamingSortKey {

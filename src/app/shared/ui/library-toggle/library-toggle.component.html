@@ -1,0 +1,30 @@
+@if (iconOnly()) {
+    <app-icon-button [ariaLabel]="ariaLabel()" [disabled]="pending()" [selected]="active()" (onClick)="toggle()">
+        <i
+            class="library-toggle__icon library-toggle__icon--only"
+            [class]="iconClass()"
+            [class.fa-solid]="active()"
+            [class.fa-regular]="!active()"
+            aria-hidden="true"
+        ></i>
+    </app-icon-button>
+} @else {
+    <button
+        mat-stroked-button
+        type="button"
+        class="library-toggle"
+        [class.library-toggle--active]="active()"
+        [disabled]="pending()"
+        [attr.aria-label]="ariaLabel()"
+        (click)="toggle($event)"
+    >
+        <i
+            class="library-toggle__icon"
+            [class]="iconClass()"
+            [class.fa-solid]="active()"
+            [class.fa-regular]="!active()"
+            aria-hidden="true"
+        ></i>
+        <span class="library-toggle__label">{{ label() }}</span>
+    </button>
+}

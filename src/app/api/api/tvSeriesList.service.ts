@@ -26,7 +26,11 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    TvSeriesListRestControllerServiceInterface
+    TvSeriesListRestControllerServiceInterface,
+    TvSeriesAiringTodayListRequestParams,
+    TvSeriesOnTheAirListRequestParams,
+    TvSeriesPopularListRequestParams,
+    TvSeriesTopRatedListRequestParams
 } from './tvSeriesList.serviceInterface';
 
 
@@ -44,17 +48,18 @@ export class TvSeriesListRestControllerService extends BaseService implements Tv
      * Airing Today
      * Get a list of TV shows airing today.
      * @endpoint get /tv/airing_today
-     * @param language 
-     * @param page 
-     * @param timezone 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvSeriesAiringTodayList(language?: string, page?: number, timezone?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
-    public tvSeriesAiringTodayList(language?: string, page?: number, timezone?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
-    public tvSeriesAiringTodayList(language?: string, page?: number, timezone?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
-    public tvSeriesAiringTodayList(language?: string, page?: number, timezone?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvSeriesAiringTodayList(requestParameters?: TvSeriesAiringTodayListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
+    public tvSeriesAiringTodayList(requestParameters?: TvSeriesAiringTodayListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
+    public tvSeriesAiringTodayList(requestParameters?: TvSeriesAiringTodayListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
+    public tvSeriesAiringTodayList(requestParameters?: TvSeriesAiringTodayListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const timezone = requestParameters?.timezone;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -189,17 +194,18 @@ export class TvSeriesListRestControllerService extends BaseService implements Tv
      * On The Air
      * Get a list of TV shows that air in the next 7 days.
      * @endpoint get /tv/on_the_air
-     * @param language 
-     * @param page 
-     * @param timezone 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvSeriesOnTheAirList(language?: string, page?: number, timezone?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
-    public tvSeriesOnTheAirList(language?: string, page?: number, timezone?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
-    public tvSeriesOnTheAirList(language?: string, page?: number, timezone?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
-    public tvSeriesOnTheAirList(language?: string, page?: number, timezone?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvSeriesOnTheAirList(requestParameters?: TvSeriesOnTheAirListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
+    public tvSeriesOnTheAirList(requestParameters?: TvSeriesOnTheAirListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
+    public tvSeriesOnTheAirList(requestParameters?: TvSeriesOnTheAirListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
+    public tvSeriesOnTheAirList(requestParameters?: TvSeriesOnTheAirListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
+        const timezone = requestParameters?.timezone;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -278,16 +284,17 @@ export class TvSeriesListRestControllerService extends BaseService implements Tv
      * Popular
      * Get a list of TV shows ordered by popularity.
      * @endpoint get /tv/popular
-     * @param language 
-     * @param page 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvSeriesPopularList(language?: string, page?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
-    public tvSeriesPopularList(language?: string, page?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
-    public tvSeriesPopularList(language?: string, page?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
-    public tvSeriesPopularList(language?: string, page?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvSeriesPopularList(requestParameters?: TvSeriesPopularListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
+    public tvSeriesPopularList(requestParameters?: TvSeriesPopularListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
+    public tvSeriesPopularList(requestParameters?: TvSeriesPopularListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
+    public tvSeriesPopularList(requestParameters?: TvSeriesPopularListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -357,16 +364,17 @@ export class TvSeriesListRestControllerService extends BaseService implements Tv
      * Top Rated
      * Get a list of TV shows ordered by rating.
      * @endpoint get /tv/top_rated
-     * @param language 
-     * @param page 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvSeriesTopRatedList(language?: string, page?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
-    public tvSeriesTopRatedList(language?: string, page?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
-    public tvSeriesTopRatedList(language?: string, page?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
-    public tvSeriesTopRatedList(language?: string, page?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvSeriesTopRatedList(requestParameters?: TvSeriesTopRatedListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvSeriesPage>;
+    public tvSeriesTopRatedList(requestParameters?: TvSeriesTopRatedListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvSeriesPage>>;
+    public tvSeriesTopRatedList(requestParameters?: TvSeriesTopRatedListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvSeriesPage>>;
+    public tvSeriesTopRatedList(requestParameters?: TvSeriesTopRatedListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const language = requestParameters?.language;
+        const page = requestParameters?.page;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

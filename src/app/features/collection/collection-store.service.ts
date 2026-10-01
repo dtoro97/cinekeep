@@ -5,7 +5,6 @@ import { ComponentStore } from '@ngrx/component-store';
 import { catchError, EMPTY, forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
 
 import { CollectionDetails, CollectionRestControllerService, MovieRestControllerService } from '../../api';
-import { API_JSON_OPTIONS } from '../../constants';
 import {
     RemoteData,
     MediaListItem,
@@ -23,11 +22,10 @@ interface CollectionState {
 
 @Injectable()
 export class CollectionStoreService extends ComponentStore<CollectionState> {
-    private readonly opts = API_JSON_OPTIONS;
 
     collection$ = this.select((state) => state.collection);
 
-    mappedPartsState$ = this.select((state) => toMediaListEntryState(state.parts, { routeType: 'movie' }));
+    mappedPartsState$ = this.select((state) => toMediaListEntryState(state.parts));
 
     partsCount$ = this.select((state) => (state.parts.state === 'success' ? state.parts.data.length : 0));
 
@@ -87,7 +85,7 @@ export class CollectionStoreService extends ComponentStore<CollectionState> {
             parts: { state: 'loading' },
         });
         return this.collectionRestControllerService
-            .collectionDetails(id, undefined, undefined, undefined, this.opts)
+            .collectionDetails({ collectionId: id })
             .pipe(
                 switchMap((collection) => {
                     const sortedParts = sortByDate(collection.parts ?? [], (part) => part.release_date);
@@ -140,7 +138,7 @@ export class CollectionStoreService extends ComponentStore<CollectionState> {
     }
 
     private fetchTopCast$(mediaId: number): Observable<PersonLink[]> {
-        return this.movieRestControllerService.movieCredits(mediaId, undefined, undefined, undefined, this.opts).pipe(
+        return this.movieRestControllerService.movieCredits({ movieId: mediaId }).pipe(
             map((credits) =>
                 (credits.cast ?? [])
                     .filter(

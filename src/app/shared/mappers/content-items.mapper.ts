@@ -8,24 +8,13 @@ import {
     VideoTrailerSeedItem,
     MediaListEntry,
     MediaListItem,
-    MediaListRouteType,
     PersonListItem,
     SearchResultItem,
 } from '../models';
 
 type DatePrecision = 'year' | 'full';
 
-interface MediaListEntryOptions {
-    readonly genreMap?: ReadonlyMap<number, string>;
-    readonly userRatings?: ReadonlyMap<number, number>;
-    readonly routeType?: MediaListRouteType;
-    readonly showIndex?: boolean;
-    readonly indexStart?: number;
-    readonly descendingFrom?: number | null;
-}
-
 const EMPTY_GENRE_MAP = new Map<number, string>();
-const EMPTY_USER_RATINGS = new Map<number, number>();
 
 type MediaItemLike = {
     id?: number | null;
@@ -158,57 +147,22 @@ export const toCollectionPartMediaListItem = (
 
 export const toMediaListEntryState = (
     state: RemoteData<MediaListItem[]>,
-    options: MediaListEntryOptions = {},
-): RemoteData<MediaListEntry[]> => mapRemoteData(state, (items) => toMediaListEntries(items, options));
+    genreMap: ReadonlyMap<number, string> = EMPTY_GENRE_MAP,
+): RemoteData<MediaListEntry[]> => mapRemoteData(state, (items) => toMediaListEntries(items, genreMap));
 
+/** List rows with up to three genre names and a link to the title. */
 export const toMediaListEntries = (
     items: readonly MediaListItem[],
-    options: MediaListEntryOptions = {},
-): MediaListEntry[] => {
-    const genreMap = options.genreMap ?? EMPTY_GENRE_MAP;
-    const userRatings = options.userRatings ?? EMPTY_USER_RATINGS;
-    const routeType = options.routeType ?? 'item';
-    const indexStart = options.indexStart ?? 1;
-    const descendingFrom = options.descendingFrom ?? null;
-
-    return items.map((item, index) => ({
+    genreMap: ReadonlyMap<number, string> = EMPTY_GENRE_MAP,
+): MediaListEntry[] =>
+    items.map((item) => ({
         item,
         genreNames: (item.genreIds ?? [])
             .map((genreId) => genreMap.get(genreId))
             .filter((genreName): genreName is string => !!genreName)
             .slice(0, 3),
-        userRating: userRatings.get(item.id) ?? null,
-        routerLink: toMediaListRouterLink(item, routeType),
-        index: toMediaListDisplayIndex(
-            index,
-            options.showIndex ?? false,
-            indexStart,
-            descendingFrom,
-        ),
+        routerLink: ['/title', item.id, item.mediaType],
     }));
-};
-
-const toMediaListRouterLink = (
-    item: MediaListItem,
-    routeType: MediaListRouteType,
-): readonly (string | number)[] => [
-    '/title',
-    item.id,
-    routeType === 'item' ? item.mediaType : routeType,
-];
-
-const toMediaListDisplayIndex = (
-    index: number,
-    showIndex: boolean,
-    indexStart: number,
-    descendingFrom: number | null,
-): number | null => {
-    if (!showIndex) {
-        return null;
-    }
-
-    return descendingFrom !== null ? descendingFrom - index : indexStart + index;
-};
 
 export const toPersonListItem = (person: PersonLike): PersonListItem => ({
     id: person.id ?? 0,

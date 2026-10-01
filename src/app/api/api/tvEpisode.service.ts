@@ -42,7 +42,17 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    TvEpisodeRestControllerServiceInterface
+    TvEpisodeRestControllerServiceInterface,
+    TvEpisodeAccountStatesRequestParams,
+    TvEpisodeAddRatingRequestParams,
+    TvEpisodeChangesByIdRequestParams,
+    TvEpisodeCreditsRequestParams,
+    TvEpisodeDeleteRatingRequestParams,
+    TvEpisodeDetailsRequestParams,
+    TvEpisodeExternalIdsRequestParams,
+    TvEpisodeImagesRequestParams,
+    TvEpisodeTranslationsRequestParams,
+    TvEpisodeVideosRequestParams
 } from './tvEpisode.serviceInterface';
 
 
@@ -60,28 +70,29 @@ export class TvEpisodeRestControllerService extends BaseService implements TvEpi
      * Account States
      * Get the rating, watchlist and favourite status.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/account_states
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param sessionId 
-     * @param guestSessionId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvEpisodeAccountStates(seriesId: number, seasonNumber: number, episodeNumber: number, sessionId?: string, guestSessionId?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AccountStates>;
-    public tvEpisodeAccountStates(seriesId: number, seasonNumber: number, episodeNumber: number, sessionId?: string, guestSessionId?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AccountStates>>;
-    public tvEpisodeAccountStates(seriesId: number, seasonNumber: number, episodeNumber: number, sessionId?: string, guestSessionId?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AccountStates>>;
-    public tvEpisodeAccountStates(seriesId: number, seasonNumber: number, episodeNumber: number, sessionId?: string, guestSessionId?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvEpisodeAccountStates(requestParameters: TvEpisodeAccountStatesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AccountStates>;
+    public tvEpisodeAccountStates(requestParameters: TvEpisodeAccountStatesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AccountStates>>;
+    public tvEpisodeAccountStates(requestParameters: TvEpisodeAccountStatesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AccountStates>>;
+    public tvEpisodeAccountStates(requestParameters: TvEpisodeAccountStatesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const seriesId = requestParameters?.seriesId;
         if (seriesId === null || seriesId === undefined) {
             throw new Error('Required parameter seriesId was null or undefined when calling tvEpisodeAccountStates.');
         }
+        const seasonNumber = requestParameters?.seasonNumber;
         if (seasonNumber === null || seasonNumber === undefined) {
             throw new Error('Required parameter seasonNumber was null or undefined when calling tvEpisodeAccountStates.');
         }
+        const episodeNumber = requestParameters?.episodeNumber;
         if (episodeNumber === null || episodeNumber === undefined) {
             throw new Error('Required parameter episodeNumber was null or undefined when calling tvEpisodeAccountStates.');
         }
+        const sessionId = requestParameters?.sessionId;
+        const guestSessionId = requestParameters?.guestSessionId;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -151,33 +162,34 @@ export class TvEpisodeRestControllerService extends BaseService implements TvEpi
      * Add Rating
      * Rate a TV episode and save it to your rated list.
      * @endpoint post /tv/{series_id}/season/{season_number}/episode/{episode_number}/rating
-     * @param seriesId 
-     * @param contentType 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param guestSessionId 
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvEpisodeAddRating(seriesId: number, contentType: string, seasonNumber: number, episodeNumber: number, guestSessionId?: string, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
-    public tvEpisodeAddRating(seriesId: number, contentType: string, seasonNumber: number, episodeNumber: number, guestSessionId?: string, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
-    public tvEpisodeAddRating(seriesId: number, contentType: string, seasonNumber: number, episodeNumber: number, guestSessionId?: string, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
-    public tvEpisodeAddRating(seriesId: number, contentType: string, seasonNumber: number, episodeNumber: number, guestSessionId?: string, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvEpisodeAddRating(requestParameters: TvEpisodeAddRatingRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
+    public tvEpisodeAddRating(requestParameters: TvEpisodeAddRatingRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
+    public tvEpisodeAddRating(requestParameters: TvEpisodeAddRatingRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
+    public tvEpisodeAddRating(requestParameters: TvEpisodeAddRatingRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const seriesId = requestParameters?.seriesId;
         if (seriesId === null || seriesId === undefined) {
             throw new Error('Required parameter seriesId was null or undefined when calling tvEpisodeAddRating.');
         }
+        const contentType = requestParameters?.contentType;
         if (contentType === null || contentType === undefined) {
             throw new Error('Required parameter contentType was null or undefined when calling tvEpisodeAddRating.');
         }
+        const seasonNumber = requestParameters?.seasonNumber;
         if (seasonNumber === null || seasonNumber === undefined) {
             throw new Error('Required parameter seasonNumber was null or undefined when calling tvEpisodeAddRating.');
         }
+        const episodeNumber = requestParameters?.episodeNumber;
         if (episodeNumber === null || episodeNumber === undefined) {
             throw new Error('Required parameter episodeNumber was null or undefined when calling tvEpisodeAddRating.');
         }
+        const guestSessionId = requestParameters?.guestSessionId;
+        const sessionId = requestParameters?.sessionId;
+        const accountAddFavoriteRequest = requestParameters?.accountAddFavoriteRequest;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -260,15 +272,16 @@ export class TvEpisodeRestControllerService extends BaseService implements TvEpi
      * Changes
      * Get the recent changes for a TV episode.
      * @endpoint get /tv/episode/{episode_id}/changes
-     * @param episodeId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvEpisodeChangesById(episodeId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ChangeList>;
-    public tvEpisodeChangesById(episodeId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChangeList>>;
-    public tvEpisodeChangesById(episodeId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChangeList>>;
-    public tvEpisodeChangesById(episodeId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvEpisodeChangesById(requestParameters: TvEpisodeChangesByIdRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ChangeList>;
+    public tvEpisodeChangesById(requestParameters: TvEpisodeChangesByIdRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChangeList>>;
+    public tvEpisodeChangesById(requestParameters: TvEpisodeChangesByIdRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChangeList>>;
+    public tvEpisodeChangesById(requestParameters: TvEpisodeChangesByIdRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const episodeId = requestParameters?.episodeId;
         if (episodeId === null || episodeId === undefined) {
             throw new Error('Required parameter episodeId was null or undefined when calling tvEpisodeChangesById.');
         }
@@ -320,27 +333,28 @@ export class TvEpisodeRestControllerService extends BaseService implements TvEpi
      * Credits
      * 
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/credits
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvEpisodeCredits(seriesId: number, seasonNumber: number, episodeNumber: number, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvEpisodeCredits>;
-    public tvEpisodeCredits(seriesId: number, seasonNumber: number, episodeNumber: number, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvEpisodeCredits>>;
-    public tvEpisodeCredits(seriesId: number, seasonNumber: number, episodeNumber: number, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvEpisodeCredits>>;
-    public tvEpisodeCredits(seriesId: number, seasonNumber: number, episodeNumber: number, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvEpisodeCredits(requestParameters: TvEpisodeCreditsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvEpisodeCredits>;
+    public tvEpisodeCredits(requestParameters: TvEpisodeCreditsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvEpisodeCredits>>;
+    public tvEpisodeCredits(requestParameters: TvEpisodeCreditsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvEpisodeCredits>>;
+    public tvEpisodeCredits(requestParameters: TvEpisodeCreditsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const seriesId = requestParameters?.seriesId;
         if (seriesId === null || seriesId === undefined) {
             throw new Error('Required parameter seriesId was null or undefined when calling tvEpisodeCredits.');
         }
+        const seasonNumber = requestParameters?.seasonNumber;
         if (seasonNumber === null || seasonNumber === undefined) {
             throw new Error('Required parameter seasonNumber was null or undefined when calling tvEpisodeCredits.');
         }
+        const episodeNumber = requestParameters?.episodeNumber;
         if (episodeNumber === null || episodeNumber === undefined) {
             throw new Error('Required parameter episodeNumber was null or undefined when calling tvEpisodeCredits.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -401,29 +415,30 @@ export class TvEpisodeRestControllerService extends BaseService implements TvEpi
      * Delete Rating
      * Delete your rating on a TV episode.
      * @endpoint delete /tv/{series_id}/season/{season_number}/episode/{episode_number}/rating
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param contentType 
-     * @param guestSessionId 
-     * @param sessionId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvEpisodeDeleteRating(seriesId: number, seasonNumber: number, episodeNumber: number, contentType?: string, guestSessionId?: string, sessionId?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
-    public tvEpisodeDeleteRating(seriesId: number, seasonNumber: number, episodeNumber: number, contentType?: string, guestSessionId?: string, sessionId?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
-    public tvEpisodeDeleteRating(seriesId: number, seasonNumber: number, episodeNumber: number, contentType?: string, guestSessionId?: string, sessionId?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
-    public tvEpisodeDeleteRating(seriesId: number, seasonNumber: number, episodeNumber: number, contentType?: string, guestSessionId?: string, sessionId?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvEpisodeDeleteRating(requestParameters: TvEpisodeDeleteRatingRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<StatusResponse>;
+    public tvEpisodeDeleteRating(requestParameters: TvEpisodeDeleteRatingRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<StatusResponse>>;
+    public tvEpisodeDeleteRating(requestParameters: TvEpisodeDeleteRatingRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<StatusResponse>>;
+    public tvEpisodeDeleteRating(requestParameters: TvEpisodeDeleteRatingRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const seriesId = requestParameters?.seriesId;
         if (seriesId === null || seriesId === undefined) {
             throw new Error('Required parameter seriesId was null or undefined when calling tvEpisodeDeleteRating.');
         }
+        const seasonNumber = requestParameters?.seasonNumber;
         if (seasonNumber === null || seasonNumber === undefined) {
             throw new Error('Required parameter seasonNumber was null or undefined when calling tvEpisodeDeleteRating.');
         }
+        const episodeNumber = requestParameters?.episodeNumber;
         if (episodeNumber === null || episodeNumber === undefined) {
             throw new Error('Required parameter episodeNumber was null or undefined when calling tvEpisodeDeleteRating.');
         }
+        const contentType = requestParameters?.contentType;
+        const guestSessionId = requestParameters?.guestSessionId;
+        const sessionId = requestParameters?.sessionId;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -496,28 +511,29 @@ export class TvEpisodeRestControllerService extends BaseService implements TvEpi
      * Details
      * Query the details of a TV episode.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param appendToResponse comma separated list of endpoints within this namespace, 20 items max
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvEpisodeDetails(seriesId: number, seasonNumber: number, episodeNumber: number, appendToResponse?: string, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvEpisode>;
-    public tvEpisodeDetails(seriesId: number, seasonNumber: number, episodeNumber: number, appendToResponse?: string, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvEpisode>>;
-    public tvEpisodeDetails(seriesId: number, seasonNumber: number, episodeNumber: number, appendToResponse?: string, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvEpisode>>;
-    public tvEpisodeDetails(seriesId: number, seasonNumber: number, episodeNumber: number, appendToResponse?: string, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvEpisodeDetails(requestParameters: TvEpisodeDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvEpisode>;
+    public tvEpisodeDetails(requestParameters: TvEpisodeDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvEpisode>>;
+    public tvEpisodeDetails(requestParameters: TvEpisodeDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvEpisode>>;
+    public tvEpisodeDetails(requestParameters: TvEpisodeDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const seriesId = requestParameters?.seriesId;
         if (seriesId === null || seriesId === undefined) {
             throw new Error('Required parameter seriesId was null or undefined when calling tvEpisodeDetails.');
         }
+        const seasonNumber = requestParameters?.seasonNumber;
         if (seasonNumber === null || seasonNumber === undefined) {
             throw new Error('Required parameter seasonNumber was null or undefined when calling tvEpisodeDetails.');
         }
+        const episodeNumber = requestParameters?.episodeNumber;
         if (episodeNumber === null || episodeNumber === undefined) {
             throw new Error('Required parameter episodeNumber was null or undefined when calling tvEpisodeDetails.');
         }
+        const appendToResponse = requestParameters?.appendToResponse;
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -587,23 +603,24 @@ export class TvEpisodeRestControllerService extends BaseService implements TvEpi
      * External IDs
      * Get a list of external IDs that have been added to a TV episode.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/external_ids
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvEpisodeExternalIds(seriesId: number, seasonNumber: number, episodeNumber: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvEpisodeExternalIds>;
-    public tvEpisodeExternalIds(seriesId: number, seasonNumber: number, episodeNumber: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvEpisodeExternalIds>>;
-    public tvEpisodeExternalIds(seriesId: number, seasonNumber: number, episodeNumber: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvEpisodeExternalIds>>;
-    public tvEpisodeExternalIds(seriesId: number, seasonNumber: number, episodeNumber: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvEpisodeExternalIds(requestParameters: TvEpisodeExternalIdsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvEpisodeExternalIds>;
+    public tvEpisodeExternalIds(requestParameters: TvEpisodeExternalIdsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvEpisodeExternalIds>>;
+    public tvEpisodeExternalIds(requestParameters: TvEpisodeExternalIdsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvEpisodeExternalIds>>;
+    public tvEpisodeExternalIds(requestParameters: TvEpisodeExternalIdsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const seriesId = requestParameters?.seriesId;
         if (seriesId === null || seriesId === undefined) {
             throw new Error('Required parameter seriesId was null or undefined when calling tvEpisodeExternalIds.');
         }
+        const seasonNumber = requestParameters?.seasonNumber;
         if (seasonNumber === null || seasonNumber === undefined) {
             throw new Error('Required parameter seasonNumber was null or undefined when calling tvEpisodeExternalIds.');
         }
+        const episodeNumber = requestParameters?.episodeNumber;
         if (episodeNumber === null || episodeNumber === undefined) {
             throw new Error('Required parameter episodeNumber was null or undefined when calling tvEpisodeExternalIds.');
         }
@@ -655,28 +672,29 @@ export class TvEpisodeRestControllerService extends BaseService implements TvEpi
      * Images
      * Get the images that belong to a TV episode.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/images
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param includeImageLanguage specify a comma separated list of ISO-639-1 values to query, for example: &#x60;en-US,null&#x60;
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvEpisodeImages(seriesId: number, seasonNumber: number, episodeNumber: number, includeImageLanguage?: string, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvEpisodeImages>;
-    public tvEpisodeImages(seriesId: number, seasonNumber: number, episodeNumber: number, includeImageLanguage?: string, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvEpisodeImages>>;
-    public tvEpisodeImages(seriesId: number, seasonNumber: number, episodeNumber: number, includeImageLanguage?: string, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvEpisodeImages>>;
-    public tvEpisodeImages(seriesId: number, seasonNumber: number, episodeNumber: number, includeImageLanguage?: string, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvEpisodeImages(requestParameters: TvEpisodeImagesRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TvEpisodeImages>;
+    public tvEpisodeImages(requestParameters: TvEpisodeImagesRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TvEpisodeImages>>;
+    public tvEpisodeImages(requestParameters: TvEpisodeImagesRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TvEpisodeImages>>;
+    public tvEpisodeImages(requestParameters: TvEpisodeImagesRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const seriesId = requestParameters?.seriesId;
         if (seriesId === null || seriesId === undefined) {
             throw new Error('Required parameter seriesId was null or undefined when calling tvEpisodeImages.');
         }
+        const seasonNumber = requestParameters?.seasonNumber;
         if (seasonNumber === null || seasonNumber === undefined) {
             throw new Error('Required parameter seasonNumber was null or undefined when calling tvEpisodeImages.');
         }
+        const episodeNumber = requestParameters?.episodeNumber;
         if (episodeNumber === null || episodeNumber === undefined) {
             throw new Error('Required parameter episodeNumber was null or undefined when calling tvEpisodeImages.');
         }
+        const includeImageLanguage = requestParameters?.includeImageLanguage;
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -746,23 +764,24 @@ export class TvEpisodeRestControllerService extends BaseService implements TvEpi
      * Translations
      * Get the translations that have been added to a TV episode.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/translations
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvEpisodeTranslations(seriesId: number, seasonNumber: number, episodeNumber: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TranslationList>;
-    public tvEpisodeTranslations(seriesId: number, seasonNumber: number, episodeNumber: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TranslationList>>;
-    public tvEpisodeTranslations(seriesId: number, seasonNumber: number, episodeNumber: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TranslationList>>;
-    public tvEpisodeTranslations(seriesId: number, seasonNumber: number, episodeNumber: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvEpisodeTranslations(requestParameters: TvEpisodeTranslationsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<TranslationList>;
+    public tvEpisodeTranslations(requestParameters: TvEpisodeTranslationsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<TranslationList>>;
+    public tvEpisodeTranslations(requestParameters: TvEpisodeTranslationsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<TranslationList>>;
+    public tvEpisodeTranslations(requestParameters: TvEpisodeTranslationsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const seriesId = requestParameters?.seriesId;
         if (seriesId === null || seriesId === undefined) {
             throw new Error('Required parameter seriesId was null or undefined when calling tvEpisodeTranslations.');
         }
+        const seasonNumber = requestParameters?.seasonNumber;
         if (seasonNumber === null || seasonNumber === undefined) {
             throw new Error('Required parameter seasonNumber was null or undefined when calling tvEpisodeTranslations.');
         }
+        const episodeNumber = requestParameters?.episodeNumber;
         if (episodeNumber === null || episodeNumber === undefined) {
             throw new Error('Required parameter episodeNumber was null or undefined when calling tvEpisodeTranslations.');
         }
@@ -814,28 +833,29 @@ export class TvEpisodeRestControllerService extends BaseService implements TvEpi
      * Videos
      * Get the videos that belong to a TV episode.
      * @endpoint get /tv/{series_id}/season/{season_number}/episode/{episode_number}/videos
-     * @param seriesId 
-     * @param seasonNumber 
-     * @param episodeNumber 
-     * @param includeVideoLanguage filter the list results by language, supports more than one value by using a comma
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public tvEpisodeVideos(seriesId: number, seasonNumber: number, episodeNumber: number, includeVideoLanguage?: string, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<VideoList>;
-    public tvEpisodeVideos(seriesId: number, seasonNumber: number, episodeNumber: number, includeVideoLanguage?: string, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<VideoList>>;
-    public tvEpisodeVideos(seriesId: number, seasonNumber: number, episodeNumber: number, includeVideoLanguage?: string, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<VideoList>>;
-    public tvEpisodeVideos(seriesId: number, seasonNumber: number, episodeNumber: number, includeVideoLanguage?: string, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public tvEpisodeVideos(requestParameters: TvEpisodeVideosRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<VideoList>;
+    public tvEpisodeVideos(requestParameters: TvEpisodeVideosRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<VideoList>>;
+    public tvEpisodeVideos(requestParameters: TvEpisodeVideosRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<VideoList>>;
+    public tvEpisodeVideos(requestParameters: TvEpisodeVideosRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const seriesId = requestParameters?.seriesId;
         if (seriesId === null || seriesId === undefined) {
             throw new Error('Required parameter seriesId was null or undefined when calling tvEpisodeVideos.');
         }
+        const seasonNumber = requestParameters?.seasonNumber;
         if (seasonNumber === null || seasonNumber === undefined) {
             throw new Error('Required parameter seasonNumber was null or undefined when calling tvEpisodeVideos.');
         }
+        const episodeNumber = requestParameters?.episodeNumber;
         if (episodeNumber === null || episodeNumber === undefined) {
             throw new Error('Required parameter episodeNumber was null or undefined when calling tvEpisodeVideos.');
         }
+        const includeVideoLanguage = requestParameters?.includeVideoLanguage;
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

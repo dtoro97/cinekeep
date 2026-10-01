@@ -33,6 +33,107 @@ import { WatchProviderList } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface MovieAccountStatesRequestParams {
+    movieId: number;
+    sessionId?: string;
+    guestSessionId?: string;
+}
+
+export interface MovieAddRatingRequestParams {
+    movieId: number;
+    contentType: string;
+    guestSessionId?: string;
+    sessionId?: string;
+    accountAddFavoriteRequest?: AccountAddFavoriteRequest;
+}
+
+export interface MovieAlternativeTitlesRequestParams {
+    movieId: number;
+    country?: string;
+}
+
+export interface MovieChangesRequestParams {
+    movieId: number;
+    endDate?: string;
+    page?: number;
+    startDate?: string;
+}
+
+export interface MovieCreditsRequestParams {
+    movieId: number;
+    language?: string;
+}
+
+export interface MovieDeleteRatingRequestParams {
+    movieId: number;
+    contentType?: string;
+    guestSessionId?: string;
+    sessionId?: string;
+}
+
+export interface MovieDetailsRequestParams {
+    movieId: number;
+    appendToResponse?: string;
+    language?: string;
+    sessionId?: string;
+    guestSessionId?: string;
+}
+
+export interface MovieExternalIdsRequestParams {
+    movieId: number;
+}
+
+export interface MovieImagesRequestParams {
+    movieId: number;
+    includeImageLanguage?: string;
+    language?: string;
+}
+
+export interface MovieKeywordsRequestParams {
+    movieId: string;
+}
+
+export interface MovieListsRequestParams {
+    movieId: number;
+    language?: string;
+    page?: number;
+}
+
+export interface MovieRecommendationsRequestParams {
+    movieId: number;
+    language?: string;
+    page?: number;
+}
+
+export interface MovieReleaseDatesRequestParams {
+    movieId: number;
+}
+
+export interface MovieReviewsRequestParams {
+    movieId: number;
+    language?: string;
+    page?: number;
+}
+
+export interface MovieSimilarRequestParams {
+    movieId: number;
+    language?: string;
+    page?: number;
+}
+
+export interface MovieTranslationsRequestParams {
+    movieId: number;
+}
+
+export interface MovieVideosRequestParams {
+    movieId: number;
+    language?: string;
+}
+
+export interface MovieWatchProvidersRequestParams {
+    movieId: number;
+}
+
 
 export interface MovieRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -42,173 +143,144 @@ export interface MovieRestControllerServiceInterface {
      * Account States
      * Get the rating, watchlist and favourite status of an account.
      * @endpoint get /movie/{movie_id}/account_states
-     * @param movieId 
-     * @param sessionId 
-     * @param guestSessionId 
+* @param requestParameters
      */
-    movieAccountStates(movieId: number, sessionId?: string, guestSessionId?: string, extraHttpRequestParams?: any): Observable<AccountStates>;
+    movieAccountStates(requestParameters: MovieAccountStatesRequestParams, extraHttpRequestParams?: any): Observable<AccountStates>;
 
     /**
      * Add Rating
      * Rate a movie and save it to your rated list.
      * @endpoint post /movie/{movie_id}/rating
-     * @param movieId 
-     * @param contentType 
-     * @param guestSessionId 
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+* @param requestParameters
      */
-    movieAddRating(movieId: number, contentType: string, guestSessionId?: string, sessionId?: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, extraHttpRequestParams?: any): Observable<StatusResponse>;
+    movieAddRating(requestParameters: MovieAddRatingRequestParams, extraHttpRequestParams?: any): Observable<StatusResponse>;
 
     /**
      * Alternative Titles
      * Get the alternative titles for a movie.
      * @endpoint get /movie/{movie_id}/alternative_titles
-     * @param movieId 
-     * @param country specify a ISO-3166-1 value to filter the results
+* @param requestParameters
      */
-    movieAlternativeTitles(movieId: number, country?: string, extraHttpRequestParams?: any): Observable<AlternativeTitleList>;
+    movieAlternativeTitles(requestParameters: MovieAlternativeTitlesRequestParams, extraHttpRequestParams?: any): Observable<AlternativeTitleList>;
 
     /**
      * Changes
      * Get the recent changes for a movie.
      * @endpoint get /movie/{movie_id}/changes
-     * @param movieId 
-     * @param endDate 
-     * @param page 
-     * @param startDate 
+* @param requestParameters
      */
-    movieChanges(movieId: number, endDate?: string, page?: number, startDate?: string, extraHttpRequestParams?: any): Observable<ChangeList>;
+    movieChanges(requestParameters: MovieChangesRequestParams, extraHttpRequestParams?: any): Observable<ChangeList>;
 
     /**
      * Credits
      * 
      * @endpoint get /movie/{movie_id}/credits
-     * @param movieId 
-     * @param language 
+* @param requestParameters
      */
-    movieCredits(movieId: number, language?: string, extraHttpRequestParams?: any): Observable<Credits>;
+    movieCredits(requestParameters: MovieCreditsRequestParams, extraHttpRequestParams?: any): Observable<Credits>;
 
     /**
      * Delete Rating
      * Delete a user rating.
      * @endpoint delete /movie/{movie_id}/rating
-     * @param movieId 
-     * @param contentType 
-     * @param guestSessionId 
-     * @param sessionId 
+* @param requestParameters
      */
-    movieDeleteRating(movieId: number, contentType?: string, guestSessionId?: string, sessionId?: string, extraHttpRequestParams?: any): Observable<StatusResponse>;
+    movieDeleteRating(requestParameters: MovieDeleteRatingRequestParams, extraHttpRequestParams?: any): Observable<StatusResponse>;
 
     /**
      * Details
      * Get the top level details of a movie by ID.
      * @endpoint get /movie/{movie_id}
-     * @param movieId 
-     * @param appendToResponse comma separated list of endpoints within this namespace, 20 items max
-     * @param language 
-     * @param sessionId TMDb user session ID
-     * @param guestSessionId TMDb guest session ID
+* @param requestParameters
      */
-    movieDetails(movieId: number, appendToResponse?: string, language?: string, sessionId?: string, guestSessionId?: string, extraHttpRequestParams?: any): Observable<Movie>;
+    movieDetails(requestParameters: MovieDetailsRequestParams, extraHttpRequestParams?: any): Observable<Movie>;
 
     /**
      * External IDs
      * 
      * @endpoint get /movie/{movie_id}/external_ids
-     * @param movieId 
+* @param requestParameters
      */
-    movieExternalIds(movieId: number, extraHttpRequestParams?: any): Observable<ExternalIds>;
+    movieExternalIds(requestParameters: MovieExternalIdsRequestParams, extraHttpRequestParams?: any): Observable<ExternalIds>;
 
     /**
      * Images
      * Get the images that belong to a movie.
      * @endpoint get /movie/{movie_id}/images
-     * @param movieId 
-     * @param includeImageLanguage specify a comma separated list of ISO-639-1 values to query, for example: &#x60;en-US,null&#x60;
-     * @param language 
+* @param requestParameters
      */
-    movieImages(movieId: number, includeImageLanguage?: string, language?: string, extraHttpRequestParams?: any): Observable<ImageList>;
+    movieImages(requestParameters: MovieImagesRequestParams, extraHttpRequestParams?: any): Observable<ImageList>;
 
     /**
      * Keywords
      * 
      * @endpoint get /movie/{movie_id}/keywords
-     * @param movieId 
+* @param requestParameters
      */
-    movieKeywords(movieId: string, extraHttpRequestParams?: any): Observable<KeywordList>;
+    movieKeywords(requestParameters: MovieKeywordsRequestParams, extraHttpRequestParams?: any): Observable<KeywordList>;
 
     /**
      * Lists
      * Get the lists that a movie has been added to.
      * @endpoint get /movie/{movie_id}/lists
-     * @param movieId 
-     * @param language 
-     * @param page 
+* @param requestParameters
      */
-    movieLists(movieId: number, language?: string, page?: number, extraHttpRequestParams?: any): Observable<MovieListPage>;
+    movieLists(requestParameters: MovieListsRequestParams, extraHttpRequestParams?: any): Observable<MovieListPage>;
 
     /**
      * Recommendations
      * 
      * @endpoint get /movie/{movie_id}/recommendations
-     * @param movieId 
-     * @param language 
-     * @param page 
+* @param requestParameters
      */
-    movieRecommendations(movieId: number, language?: string, page?: number, extraHttpRequestParams?: any): Observable<MoviePage>;
+    movieRecommendations(requestParameters: MovieRecommendationsRequestParams, extraHttpRequestParams?: any): Observable<MoviePage>;
 
     /**
      * Release Dates
      * Get the release dates and certifications for a movie.
      * @endpoint get /movie/{movie_id}/release_dates
-     * @param movieId 
+* @param requestParameters
      */
-    movieReleaseDates(movieId: number, extraHttpRequestParams?: any): Observable<ReleaseDateList>;
+    movieReleaseDates(requestParameters: MovieReleaseDatesRequestParams, extraHttpRequestParams?: any): Observable<ReleaseDateList>;
 
     /**
      * Reviews
      * Get the user reviews for a movie.
      * @endpoint get /movie/{movie_id}/reviews
-     * @param movieId 
-     * @param language 
-     * @param page 
+* @param requestParameters
      */
-    movieReviews(movieId: number, language?: string, page?: number, extraHttpRequestParams?: any): Observable<ReviewPage>;
+    movieReviews(requestParameters: MovieReviewsRequestParams, extraHttpRequestParams?: any): Observable<ReviewPage>;
 
     /**
      * Similar
      * Get the similar movies based on genres and keywords.
      * @endpoint get /movie/{movie_id}/similar
-     * @param movieId 
-     * @param language 
-     * @param page 
+* @param requestParameters
      */
-    movieSimilar(movieId: number, language?: string, page?: number, extraHttpRequestParams?: any): Observable<MoviePage>;
+    movieSimilar(requestParameters: MovieSimilarRequestParams, extraHttpRequestParams?: any): Observable<MoviePage>;
 
     /**
      * Translations
      * Get the translations for a movie.
      * @endpoint get /movie/{movie_id}/translations
-     * @param movieId 
+* @param requestParameters
      */
-    movieTranslations(movieId: number, extraHttpRequestParams?: any): Observable<TranslationList>;
+    movieTranslations(requestParameters: MovieTranslationsRequestParams, extraHttpRequestParams?: any): Observable<TranslationList>;
 
     /**
      * Videos
      * 
      * @endpoint get /movie/{movie_id}/videos
-     * @param movieId 
-     * @param language 
+* @param requestParameters
      */
-    movieVideos(movieId: number, language?: string, extraHttpRequestParams?: any): Observable<VideoList>;
+    movieVideos(requestParameters: MovieVideosRequestParams, extraHttpRequestParams?: any): Observable<VideoList>;
 
     /**
      * Watch Providers
      * Get the list of streaming providers we have for a movie.
      * @endpoint get /movie/{movie_id}/watch/providers
-     * @param movieId 
+* @param requestParameters
      */
-    movieWatchProviders(movieId: number, extraHttpRequestParams?: any): Observable<WatchProviderList>;
+    movieWatchProviders(requestParameters: MovieWatchProvidersRequestParams, extraHttpRequestParams?: any): Observable<WatchProviderList>;
 
 }

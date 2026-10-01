@@ -17,6 +17,14 @@ import { GenreList } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface GenreMovieListRequestParams {
+    language?: string;
+}
+
+export interface GenreTvListRequestParams {
+    language?: string;
+}
+
 
 export interface GenreRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -26,16 +34,16 @@ export interface GenreRestControllerServiceInterface {
      * Movie List
      * Get the list of official genres for movies.
      * @endpoint get /genre/movie/list
-     * @param language 
+* @param requestParameters
      */
-    genreMovieList(language?: string, extraHttpRequestParams?: any): Observable<GenreList>;
+    genreMovieList(requestParameters: GenreMovieListRequestParams, extraHttpRequestParams?: any): Observable<GenreList>;
 
     /**
      * TV List
      * Get the list of official genres for TV shows.
      * @endpoint get /genre/tv/list
-     * @param language 
+* @param requestParameters
      */
-    genreTvList(language?: string, extraHttpRequestParams?: any): Observable<GenreList>;
+    genreTvList(requestParameters: GenreTvListRequestParams, extraHttpRequestParams?: any): Observable<GenreList>;
 
 }

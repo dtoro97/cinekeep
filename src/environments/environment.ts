@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
   apiUrl: 'https://api.themoviedb.org/3',
-  apiV4Url: 'https://api.themoviedb.org/4',
+  backendApiUrl: '',
   apiKey: '${API_KEY}',
 };

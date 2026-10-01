@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { Router, RouterOutlet } from '@angular/router';
 
-import { filter, map, switchMap } from 'rxjs';
+import { filter, switchMap, tap } from 'rxjs';
 
 import { MediaImagesStoreService } from '../media-images-store.service';
 import { MediaCreditsStoreService } from '../media-credits-store.service';
@@ -13,7 +13,8 @@ import { MediaVideoStoreService } from '../media-video-store.service';
 import { MediaDetailActionsStore } from '../media-detail-actions-store.service';
 import { EpisodeDetailStoreService } from '../episode-detail-page/episode-detail-store.service';
 import { MediaDetailStoreService } from '../media-detail-store.service';
-import { MediaType } from '../../../shared';
+import { isDefined } from '../../../shared';
+import { toMediaTarget } from '../media-target';
 
 @Component({
     selector: 'app-media-wrapper',
@@ -33,17 +34,23 @@ import { MediaType } from '../../../shared';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MediaWrapperComponent {
+    readonly id = input.required<string>();
+    readonly type = input.required<string>();
+
+    private readonly target = computed(() => toMediaTarget(this.id(), this.type()));
+
     constructor(
         private readonly mediaStore: MediaStoreService,
-        private readonly route: ActivatedRoute,
+        private readonly router: Router,
     ) {
-        this.route.paramMap
+        toObservable(this.target)
             .pipe(
-                map((params) => ({
-                    id: Number(params.get('id')),
-                    type: (params.get('type') ?? 'movie') as MediaType,
-                })),
-                filter(({ id }) => Number.isInteger(id)),
+                tap((target) => {
+                    if (!target) {
+                        this.router.navigate(['/not-found'], { replaceUrl: true });
+                    }
+                }),
+                filter(isDefined),
                 switchMap((target) => this.mediaStore.load$(target)),
                 takeUntilDestroyed(),
             )

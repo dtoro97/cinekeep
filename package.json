@@ -10,8 +10,8 @@
     "watch": "ng build --watch --configuration development",
     "deploy": "npm run deploy:github-pages",
     "deploy:github-pages": "npm run build:github-pages && npx angular-cli-ghpages --no-silent --dir=dist/github-pages/",
-    "generate-api": "npx -y @openapitools/openapi-generator-cli generate -i openapi.json -g typescript-angular -o src/app/api --additional-properties=providedIn=root,withInterfaces=true,serviceSuffix=RestControllerService",
-    "generate-api:v4": "npx -y @openapitools/openapi-generator-cli generate -i openapi-v4-lists.json -g typescript-angular -o src/app/api-v4 --additional-properties=providedIn=root,withInterfaces=true",
+    "generate-api": "npx -y @openapitools/openapi-generator-cli generate -i openapi.json -g typescript-angular -o src/app/api --additional-properties=providedIn=root,withInterfaces=true,serviceSuffix=RestControllerService,useSingleRequestParameter=true",
+    "generate-api:cinekeep": "npx -y @openapitools/openapi-generator-cli generate -i openapi-cinekeep.json -g typescript-angular -o src/app/api-cinekeep --additional-properties=providedIn=root,withInterfaces=true,useSingleRequestParameter=true",
     "serve:ssr:cinekeep": "node dist/cinekeep/server/server.mjs"
   },
   "private": true,

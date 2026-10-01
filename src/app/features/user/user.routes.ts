@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authenticatedGuard, v4AccountAccessGuard } from '../../shared';
+import { authenticatedGuard } from '../../shared';
 import { UserListsStore } from './user-lists-store.service';
 import { UserFavouritesPageComponent } from './user-favourites-page/user-favourites-page.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
@@ -12,7 +12,7 @@ import { UserListsComponent } from './user-lists/user-lists.component';
 export const userRoutes: Routes = [
     {
         path: '',
-        canActivate: [authenticatedGuard, v4AccountAccessGuard],
+        canActivate: [authenticatedGuard],
         providers: [UserListsStore],
         children: [
             {

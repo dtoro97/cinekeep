@@ -22,6 +22,46 @@ import { StatusResponse } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface ListAddMovieRequestParams {
+    listId: number;
+    sessionId: string;
+    listAddMovieRequest?: ListAddMovieRequest;
+}
+
+export interface ListCheckItemStatusRequestParams {
+    listId: number;
+    language?: string;
+    movieId?: number;
+}
+
+export interface ListClearRequestParams {
+    listId: number;
+    sessionId: string;
+    confirm: boolean;
+}
+
+export interface ListCreateRequestParams {
+    sessionId: string;
+    accountAddFavoriteRequest?: AccountAddFavoriteRequest;
+}
+
+export interface ListDeleteRequestParams {
+    listId: number;
+    sessionId: string;
+}
+
+export interface ListDetailsRequestParams {
+    listId: number;
+    language?: string;
+    page?: number;
+}
+
+export interface ListRemoveMovieRequestParams {
+    listId: number;
+    sessionId: string;
+    accountAddFavoriteRequest?: AccountAddFavoriteRequest;
+}
+
 
 export interface ListRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -31,68 +71,56 @@ export interface ListRestControllerServiceInterface {
      * Add Movie
      * Add a movie to a list.
      * @endpoint post /list/{list_id}/add_item
-     * @param listId 
-     * @param sessionId 
-     * @param listAddMovieRequest 
+* @param requestParameters
      */
-    listAddMovie(listId: number, sessionId: string, listAddMovieRequest?: ListAddMovieRequest, extraHttpRequestParams?: any): Observable<StatusResponse>;
+    listAddMovie(requestParameters: ListAddMovieRequestParams, extraHttpRequestParams?: any): Observable<StatusResponse>;
 
     /**
      * Check Item Status
      * Use this method to check if an item has already been added to the list.
      * @endpoint get /list/{list_id}/item_status
-     * @param listId 
-     * @param language 
-     * @param movieId 
+* @param requestParameters
      */
-    listCheckItemStatus(listId: number, language?: string, movieId?: number, extraHttpRequestParams?: any): Observable<ListItemStatus>;
+    listCheckItemStatus(requestParameters: ListCheckItemStatusRequestParams, extraHttpRequestParams?: any): Observable<ListItemStatus>;
 
     /**
      * Clear
      * Clear all items from a list.
      * @endpoint post /list/{list_id}/clear
-     * @param listId 
-     * @param sessionId 
-     * @param confirm 
+* @param requestParameters
      */
-    listClear(listId: number, sessionId: string, confirm: boolean, extraHttpRequestParams?: any): Observable<StatusResponse>;
+    listClear(requestParameters: ListClearRequestParams, extraHttpRequestParams?: any): Observable<StatusResponse>;
 
     /**
      * Create
      * 
      * @endpoint post /list
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+* @param requestParameters
      */
-    listCreate(sessionId: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, extraHttpRequestParams?: any): Observable<CreateListResponse>;
+    listCreate(requestParameters: ListCreateRequestParams, extraHttpRequestParams?: any): Observable<CreateListResponse>;
 
     /**
      * Delete
      * Delete a list.
      * @endpoint delete /list/{list_id}
-     * @param listId 
-     * @param sessionId 
+* @param requestParameters
      */
-    listDelete(listId: number, sessionId: string, extraHttpRequestParams?: any): Observable<StatusResponse>;
+    listDelete(requestParameters: ListDeleteRequestParams, extraHttpRequestParams?: any): Observable<StatusResponse>;
 
     /**
      * Details
      * 
      * @endpoint get /list/{list_id}
-     * @param listId 
-     * @param language 
-     * @param page 
+* @param requestParameters
      */
-    listDetails(listId: number, language?: string, page?: number, extraHttpRequestParams?: any): Observable<ListDetails>;
+    listDetails(requestParameters: ListDetailsRequestParams, extraHttpRequestParams?: any): Observable<ListDetails>;
 
     /**
      * Remove Movie
      * Remove a movie from a list.
      * @endpoint post /list/{list_id}/remove_item
-     * @param listId 
-     * @param sessionId 
-     * @param accountAddFavoriteRequest 
+* @param requestParameters
      */
-    listRemoveMovie(listId: number, sessionId: string, accountAddFavoriteRequest?: AccountAddFavoriteRequest, extraHttpRequestParams?: any): Observable<StatusResponse>;
+    listRemoveMovie(requestParameters: ListRemoveMovieRequestParams, extraHttpRequestParams?: any): Observable<StatusResponse>;
 
 }

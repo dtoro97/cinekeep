@@ -2,14 +2,27 @@ import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
 
-import { Observable, catchError, forkJoin, map, of, switchMap, tap, throwError } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
 
-import { MediaRatingService, RemoteData, TmdbListService, normalizeRatingValue } from '../../shared';
+import { MediaStateResponse } from '../../api-cinekeep';
+import {
+    LibraryFlag,
+    MediaSnapshotRequest,
+    MediaRatingService,
+    RemoteData,
+    UserLibraryService,
+    UserRatingState,
+    UserSessionStoreService,
+    normalizeRatingValue,
+    remoteSuccess,
+    toMediaSnapshotRequest,
+    toUserRatingVm,
+    writeUserRating$,
+} from '../../shared';
+import { MediaStoreService } from './media-store.service';
 import { type MediaTarget, toMediaKey } from './media-target';
 
-interface MediaActionResource {
-    readonly userRating: RemoteData<number | null>;
-    readonly ratingPending: boolean;
+interface MediaActionResource extends UserRatingState {
     readonly watchlistState: RemoteData<boolean>;
     readonly favoriteState: RemoteData<boolean>;
 }
@@ -26,13 +39,6 @@ const EMPTY_ACTION_RESOURCE: MediaActionResource = {
     favoriteState: { state: 'notAsked' },
 };
 
-const loadingActionResource = (): MediaActionResource => ({
-    userRating: { state: 'loading' },
-    ratingPending: false,
-    watchlistState: { state: 'loading' },
-    favoriteState: { state: 'loading' },
-});
-
 const INITIAL_STATE: MediaActionsState = {
     target: null,
     actionsByMediaKey: {},
@@ -45,23 +51,15 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
     private readonly activeActions$ = this.select(
         this.target$,
         this.select((state) => state.actionsByMediaKey),
-        (target, actionsByMediaKey) => (target ? (actionsByMediaKey[toMediaKey(target)] ?? EMPTY_ACTION_RESOURCE) : EMPTY_ACTION_RESOURCE),
+        (target, actionsByMediaKey) =>
+            target ? (actionsByMediaKey[toMediaKey(target)] ?? EMPTY_ACTION_RESOURCE) : EMPTY_ACTION_RESOURCE,
     );
 
-    readonly userRatingState$ = this.activeActions$.pipe(map((actions) => actions.userRating));
     readonly watchlistState$ = this.activeActions$.pipe(map((actions) => actions.watchlistState));
     readonly favoriteState$ = this.activeActions$.pipe(map((actions) => actions.favoriteState));
 
-    readonly ratingVm$ = this.select(
-        this.userRatingState$,
-        this.activeActions$.pipe(map((actions) => actions.ratingPending)),
-        this.target$,
-        (value, pending, target) => ({
-            currentRating: value.state === 'success' ? value.data : null,
-            disabled: target === null || pending || value.state === 'loading',
-            loading: value.state === 'loading',
-            pending,
-        }),
+    readonly ratingVm$ = this.select(this.activeActions$, this.target$, (actions, target) =>
+        toUserRatingVm(actions, target !== null),
     );
 
     readonly listActionsVm$ = this.select(
@@ -73,13 +71,16 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
             pending: watchlistState.state === 'loading' || favoriteState.state === 'loading',
             watchlistLabel:
                 watchlistState.state === 'success' && watchlistState.data ? 'On Watchlist' : 'Add to Watchlist',
-            favoriteLabel: favoriteState.state === 'success' && favoriteState.data ? 'In favorites' : 'Add to favorites',
+            favoriteLabel:
+                favoriteState.state === 'success' && favoriteState.data ? 'In favorites' : 'Add to favorites',
         }),
     );
 
     constructor(
         private readonly mediaRatingService: MediaRatingService,
-        private readonly tmdbListService: TmdbListService,
+        private readonly mediaStore: MediaStoreService,
+        private readonly userLibraryService: UserLibraryService,
+        private readonly userSessionStore: UserSessionStoreService,
     ) {
         super(INITIAL_STATE);
     }
@@ -91,50 +92,32 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
             target,
             actionsByMediaKey: {
                 ...state.actionsByMediaKey,
-                [key]: state.actionsByMediaKey[key] ?? loadingActionResource(),
+                [key]: state.actionsByMediaKey[key] ?? {
+                    userRating: { state: 'loading' },
+                    ratingPending: false,
+                    watchlistState: { state: 'loading' },
+                    favoriteState: { state: 'loading' },
+                },
             },
         }));
         this.fetchMediaActionsEffect(target);
     }
 
     submitUserRating$(target: MediaTarget, value: number): Observable<unknown> {
-        this.patchActionResource(target, { ratingPending: true });
-
-        return this.mediaRatingService.rateMedia$(target.id, target.type, value).pipe(
-            tap(() => {
-                this.patchActionResource(target, {
-                    userRating: {
-                        state: 'success',
-                        data: normalizeRatingValue(value),
-                    },
-                    ratingPending: false,
-                });
-            }),
-            catchError((error) => {
-                this.patchActionResource(target, { ratingPending: false });
-                return throwError(() => error);
-            }),
+        return writeUserRating$(
+            this.mediaRatingService.rateMedia$(target.id, target.type, value, this.loadedSnapshot(target)),
+            normalizeRatingValue(value),
+            (patch) => this.patchActionResource(target, patch),
         );
     }
 
     deleteUserRating$(target: MediaTarget): Observable<unknown> {
-        this.patchActionResource(target, { ratingPending: true });
-
-        return this.mediaRatingService.deleteMediaRating$(target.id, target.type).pipe(
-            tap(() => {
-                this.patchActionResource(target, {
-                    userRating: { state: 'success', data: null },
-                    ratingPending: false,
-                });
-            }),
-            catchError((error) => {
-                this.patchActionResource(target, { ratingPending: false });
-                return throwError(() => error);
-            }),
+        return writeUserRating$(this.mediaRatingService.deleteMediaRating$(target.id, target.type), null, (patch) =>
+            this.patchActionResource(target, patch),
         );
     }
 
-    toggleWatchlist$(): Observable<unknown> {
+    toggleLibraryFlag$(flag: LibraryFlag): Observable<unknown> {
         const state = this.get();
         const target = state.target;
 
@@ -142,60 +125,23 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
             return throwError(() => new Error('No media action context is available.'));
         }
 
-        const currentState = this.getActionResource(state, target).watchlistState;
+        const resource = this.getActionResource(state, target);
+        const currentState = flag === 'watchlist' ? resource.watchlistState : resource.favoriteState;
         const previousValue = currentState.state === 'success' ? currentState.data : false;
-        const nextValue = !previousValue;
 
-        this.patchActionResource(target, { watchlistState: { state: 'loading' } });
+        this.patchActionResource(target, toLibraryFlagPatch(flag, { state: 'loading' }));
 
-        return this.tmdbListService.updateWatchlist$(target.id, target.type, nextValue).pipe(
-            tap((result) => {
-                this.patchActionResource(target, {
-                    watchlistState: { state: 'success', data: result },
-                });
-            }),
-            catchError((error) => {
-                this.patchActionResource(target, {
-                    watchlistState: {
-                        state: 'success',
-                        data: previousValue,
-                    },
-                });
-                return throwError(() => error);
-            }),
-        );
-    }
-
-    toggleFavorite$(): Observable<unknown> {
-        const state = this.get();
-        const target = state.target;
-
-        if (!target) {
-            return throwError(() => new Error('No media action context is available.'));
-        }
-
-        const currentState = this.getActionResource(state, target).favoriteState;
-        const previousValue = currentState.state === 'success' ? currentState.data : false;
-        const nextValue = !previousValue;
-
-        this.patchActionResource(target, { favoriteState: { state: 'loading' } });
-
-        return this.tmdbListService.updateFavorite$(target.id, target.type, nextValue).pipe(
-            tap((result) => {
-                this.patchActionResource(target, {
-                    favoriteState: { state: 'success', data: result },
-                });
-            }),
-            catchError((error) => {
-                this.patchActionResource(target, {
-                    favoriteState: {
-                        state: 'success',
-                        data: previousValue,
-                    },
-                });
-                return throwError(() => error);
-            }),
-        );
+        return this.userLibraryService
+            .updateLibraryFlag$(flag, target.id, target.type, !previousValue, this.loadedSnapshot(target))
+            .pipe(
+                tap((result) => {
+                    this.patchActionResource(target, toLibraryFlagPatch(flag, remoteSuccess(result)));
+                }),
+                catchError((error) => {
+                    this.patchActionResource(target, toLibraryFlagPatch(flag, remoteSuccess(previousValue)));
+                    return throwError(() => error);
+                }),
+            );
     }
 
     addToList$(listId: number): Observable<unknown> {
@@ -205,67 +151,51 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
             return throwError(() => new Error('No media action context is available.'));
         }
 
-        return this.tmdbListService.addToList$(listId, target.id, target.type);
+        return this.userLibraryService.addToList$(listId, target.id, target.type, this.loadedSnapshot(target));
     }
 
+    /** Re-fetches whenever the user signs in or out. */
     private readonly fetchMediaActionsEffect = this.effect<MediaTarget>((params$) =>
         params$.pipe(
             switchMap((target) =>
-                forkJoin([
-                    this.fetchUserRating$(target),
-                    this.fetchWatchlistState$(target),
-                    this.fetchFavoriteState$(target),
-                ]),
+                this.userSessionStore.settledIsAuthenticated$.pipe(
+                    switchMap((isAuthenticated) => this.fetchMediaState$(target, isAuthenticated)),
+                ),
             ),
         ),
     );
 
-    private fetchUserRating$(target: MediaTarget) {
-        return this.mediaRatingService.getMediaRating$(target.id, target.type).pipe(
-            tap((rating) => {
+    private fetchMediaState$(target: MediaTarget, isAuthenticated: boolean) {
+        const mediaState$: Observable<MediaStateResponse | null> = isAuthenticated
+            ? this.userLibraryService.getMediaState$(target.id, target.type)
+            : of(null);
+
+        return mediaState$.pipe(
+            tap((mediaState) => {
                 this.patchActionResource(target, {
-                    userRating: { state: 'success', data: rating },
+                    userRating: {
+                        state: 'success',
+                        data: typeof mediaState?.rating === 'number' ? normalizeRatingValue(mediaState.rating) : null,
+                    },
+                    watchlistState: { state: 'success', data: !!mediaState?.inWatchlist },
+                    favoriteState: { state: 'success', data: !!mediaState?.favorite },
                 });
             }),
             catchError(() => {
                 this.patchActionResource(target, {
                     userRating: { state: 'success', data: null },
-                });
-                return of(undefined);
-            }),
-        );
-    }
-
-    private fetchWatchlistState$(target: MediaTarget) {
-        return this.tmdbListService.getWatchlistState$(target.id, target.type).pipe(
-            tap((watchlist) => {
-                this.patchActionResource(target, {
-                    watchlistState: { state: 'success', data: watchlist },
-                });
-            }),
-            catchError(() => {
-                this.patchActionResource(target, {
                     watchlistState: { state: 'success', data: false },
-                });
-                return of(undefined);
-            }),
-        );
-    }
-
-    private fetchFavoriteState$(target: MediaTarget) {
-        return this.tmdbListService.getFavoriteState$(target.id, target.type).pipe(
-            tap((favorite) => {
-                this.patchActionResource(target, {
-                    favoriteState: { state: 'success', data: favorite },
-                });
-            }),
-            catchError(() => {
-                this.patchActionResource(target, {
                     favoriteState: { state: 'success', data: false },
                 });
                 return of(undefined);
             }),
         );
+    }
+
+    private loadedSnapshot(target: MediaTarget): MediaSnapshotRequest | undefined {
+        const media = this.mediaStore.currentMediaFor(target);
+
+        return media ? toMediaSnapshotRequest(media, target.type) : undefined;
     }
 
     private getActionResource(state: MediaActionsState, target: MediaTarget): MediaActionResource {
@@ -288,3 +218,6 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
         });
     }
 }
+
+const toLibraryFlagPatch = (flag: LibraryFlag, state: RemoteData<boolean>): Partial<MediaActionResource> =>
+    flag === 'watchlist' ? { watchlistState: state } : { favoriteState: state };

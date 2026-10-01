@@ -3,18 +3,17 @@ import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatDialog } from '@angular/material/dialog';
 
-import { EMPTY, Observable, catchError, switchMap, take } from 'rxjs';
+import { EMPTY, Observable, catchError, switchMap } from 'rxjs';
 
 import {
     BrowseToolbarComponent,
     ConfirmationDialogService,
     EmptyStateComponent,
     IconButtonComponent,
+    MEDIA_TYPE_OPTIONS,
     MediaListItem,
-    MediaRatingDialogComponent,
-    MediaRatingDialogResult,
+    MediaRatingDialogService,
     PageScrollService,
     ToggleGroupComponent,
     RepeatPipe,
@@ -24,12 +23,10 @@ import {
     SnackbarType,
     SortButtonComponent,
     SubPageHeaderComponent,
-    TmdbUserAccountService,
-    UserSessionStoreService,
 } from '../../../shared';
 import { AccountEpisodeItemComponent } from '../account-episode-item/account-episode-item.component';
 import { AccountMediaItemComponent } from '../account-media-item/account-media-item.component';
-import { USER_ACCOUNT_SORT_OPTIONS } from '../user-list-sort-options';
+import { USER_ACCOUNT_SORT_FIELD, USER_ACCOUNT_SORT_OPTIONS } from '../user-list-sort-options';
 import { UserRatedEpisodeItem, UserRatingContentType, UserRatingsStore } from '../user-ratings-store.service';
 
 @Component({
@@ -54,41 +51,27 @@ import { UserRatedEpisodeItem, UserRatingContentType, UserRatingsStore } from '.
 })
 export class UserRatingsPageComponent {
     readonly contentTypeOptions: SelectOption<UserRatingContentType>[] = [
-        { label: 'Movies', value: 'movie' },
-        { label: 'TV series', value: 'tv' },
+        ...MEDIA_TYPE_OPTIONS,
         { label: 'Episodes', value: 'episode' },
     ];
 
     readonly episodeSkeletonCount = 8;
     readonly skeletonCount = 8;
     readonly sortOptions = USER_ACCOUNT_SORT_OPTIONS;
+    readonly sortField = USER_ACCOUNT_SORT_FIELD;
     readonly vm$ = this.store.ratingsPageViewModel$;
 
     constructor(
         private readonly confirmationDialog: ConfirmationDialogService,
         private readonly destroyRef: DestroyRef,
-        private readonly dialog: MatDialog,
         private readonly pageScroll: PageScrollService,
+        private readonly ratingDialog: MediaRatingDialogService,
         private readonly snackbar: SnackbarService,
         private readonly store: UserRatingsStore,
-        private readonly tmdbUserAccountService: TmdbUserAccountService,
-        private readonly userSessionStore: UserSessionStoreService,
     ) {
-        this.tmdbUserAccountService
-            .ensureAccountIdentity$()
-            .pipe(
-                switchMap(() => this.store.loadPage$(0)),
-                catchError(() => this.showError('Could not load your ratings.')),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe();
-    }
-
-    onSortChange(value: unknown): void {
         this.store
-            .setSortField$(value)
+            .loadPage$(0)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your ratings.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -99,7 +82,6 @@ export class UserRatingsPageComponent {
         this.store
             .toggleSortDirection$()
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your ratings.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -114,7 +96,6 @@ export class UserRatingsPageComponent {
             () => this.store.removeMediaRating$(item),
         )
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not update your rating.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -125,7 +106,6 @@ export class UserRatingsPageComponent {
         this.confirmRemoveRating$(item.title)
             .pipe(
                 switchMap((confirmed) => (confirmed ? this.store.removeMediaRating$(item) : EMPTY)),
-                take(1),
                 catchError(() => this.showError('Could not remove your rating.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -140,7 +120,6 @@ export class UserRatingsPageComponent {
             () => this.store.removeEpisodeRating$(item),
         )
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not update your rating.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -151,7 +130,6 @@ export class UserRatingsPageComponent {
         this.confirmRemoveRating$(item.title)
             .pipe(
                 switchMap((confirmed) => (confirmed ? this.store.removeEpisodeRating$(item) : EMPTY)),
-                take(1),
                 catchError(() => this.showError('Could not remove your rating.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -164,33 +142,13 @@ export class UserRatingsPageComponent {
         updateRating: (value: number) => Observable<unknown>,
         removeRating: () => Observable<unknown>,
     ): Observable<unknown> {
-        return this.dialog
-            .open(MediaRatingDialogComponent, {
-                data: {
-                    title,
-                    currentRating,
-                    authMode: this.userSessionStore.mode(),
-                },
-                maxWidth: '36rem',
-                width: '100%',
-            })
-            .afterClosed()
-            .pipe(
-                take(1),
-                switchMap((result: MediaRatingDialogResult | undefined) => {
-                    if (result === undefined || result.action === 'login') {
-                        return EMPTY;
-                    }
-
-                    if (result.action === 'remove') {
-                        return this.confirmRemoveRating$(title).pipe(
-                            switchMap((confirmed) => (confirmed ? removeRating() : EMPTY)),
-                        );
-                    }
-
-                    return updateRating(result.value);
-                }),
-            );
+        return this.ratingDialog.open$({
+            title,
+            currentRating,
+            save: updateRating,
+            remove: () =>
+                this.confirmRemoveRating$(title).pipe(switchMap((confirmed) => (confirmed ? removeRating() : EMPTY))),
+        });
     }
 
     private confirmRemoveRating$(title: string): Observable<boolean> {
@@ -206,7 +164,6 @@ export class UserRatingsPageComponent {
         this.store
             .setContentType$(value)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your ratings.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -219,7 +176,6 @@ export class UserRatingsPageComponent {
         this.store
             .loadPage$(event.pageIndex)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your ratings.')),
                 takeUntilDestroyed(this.destroyRef),
             )

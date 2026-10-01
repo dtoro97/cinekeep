@@ -24,7 +24,10 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    ChangesRestControllerServiceInterface
+    ChangesRestControllerServiceInterface,
+    ChangesMovieListRequestParams,
+    ChangesPeopleListRequestParams,
+    ChangesTvListRequestParams
 } from './changes.serviceInterface';
 
 
@@ -42,17 +45,18 @@ export class ChangesRestControllerService extends BaseService implements Changes
      * Movie List
      * Get a list of all of the movie ids that have been changed in the past 24 hours.
      * @endpoint get /movie/changes
-     * @param endDate 
-     * @param page 
-     * @param startDate 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public changesMovieList(endDate?: string, page?: number, startDate?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MediaChangePage>;
-    public changesMovieList(endDate?: string, page?: number, startDate?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MediaChangePage>>;
-    public changesMovieList(endDate?: string, page?: number, startDate?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MediaChangePage>>;
-    public changesMovieList(endDate?: string, page?: number, startDate?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public changesMovieList(requestParameters?: ChangesMovieListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MediaChangePage>;
+    public changesMovieList(requestParameters?: ChangesMovieListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MediaChangePage>>;
+    public changesMovieList(requestParameters?: ChangesMovieListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MediaChangePage>>;
+    public changesMovieList(requestParameters?: ChangesMovieListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const endDate = requestParameters?.endDate;
+        const page = requestParameters?.page;
+        const startDate = requestParameters?.startDate;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -131,17 +135,18 @@ export class ChangesRestControllerService extends BaseService implements Changes
      * People List
      * 
      * @endpoint get /person/changes
-     * @param endDate 
-     * @param page 
-     * @param startDate 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public changesPeopleList(endDate?: string, page?: number, startDate?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MediaChangePage>;
-    public changesPeopleList(endDate?: string, page?: number, startDate?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MediaChangePage>>;
-    public changesPeopleList(endDate?: string, page?: number, startDate?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MediaChangePage>>;
-    public changesPeopleList(endDate?: string, page?: number, startDate?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public changesPeopleList(requestParameters?: ChangesPeopleListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MediaChangePage>;
+    public changesPeopleList(requestParameters?: ChangesPeopleListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MediaChangePage>>;
+    public changesPeopleList(requestParameters?: ChangesPeopleListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MediaChangePage>>;
+    public changesPeopleList(requestParameters?: ChangesPeopleListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const endDate = requestParameters?.endDate;
+        const page = requestParameters?.page;
+        const startDate = requestParameters?.startDate;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -220,17 +225,18 @@ export class ChangesRestControllerService extends BaseService implements Changes
      * TV List
      * 
      * @endpoint get /tv/changes
-     * @param endDate 
-     * @param page 
-     * @param startDate 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public changesTvList(endDate?: string, page?: number, startDate?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MediaChangePage>;
-    public changesTvList(endDate?: string, page?: number, startDate?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MediaChangePage>>;
-    public changesTvList(endDate?: string, page?: number, startDate?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MediaChangePage>>;
-    public changesTvList(endDate?: string, page?: number, startDate?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public changesTvList(requestParameters?: ChangesTvListRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<MediaChangePage>;
+    public changesTvList(requestParameters?: ChangesTvListRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<MediaChangePage>>;
+    public changesTvList(requestParameters?: ChangesTvListRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<MediaChangePage>>;
+    public changesTvList(requestParameters?: ChangesTvListRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const endDate = requestParameters?.endDate;
+        const page = requestParameters?.page;
+        const startDate = requestParameters?.startDate;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

@@ -2,7 +2,6 @@ import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute } from '@angular/router';
 
 import { EMPTY, catchError, combineLatest, filter, map, switchMap, tap } from 'rxjs';
 
@@ -14,7 +13,6 @@ import {
     SnackbarService,
     SnackbarType,
     SubPageHeaderComponent,
-    MediaType,
     SeoService,
 } from '../../../shared';
 import { MediaReviewsStoreService } from '../media-reviews-store.service';
@@ -61,15 +59,9 @@ export class MediaReviewsPageComponent {
         private readonly mediaReviewsStoreService: MediaReviewsStoreService,
         private readonly snackbar: SnackbarService,
         private readonly seo: SeoService,
-        private readonly route: ActivatedRoute,
     ) {
-        this.route.parent!.paramMap
+        this.mediaStore.currentTarget$
             .pipe(
-                map((params) => ({
-                    id: Number(params.get('id')),
-                    type: (params.get('type') ?? 'movie') as MediaType,
-                })),
-                filter(({ id }) => Number.isInteger(id)),
                 switchMap((target) => this.mediaReviewsStoreService.load$(target)),
                 takeUntilDestroyed(),
             )

@@ -1,5 +1,7 @@
+import { pluralize } from './pluralize';
+
 function toPluralized(count: number, unit: string): string {
-    return `${count} ${unit}${count === 1 ? '' : 's'} ago`;
+    return `${pluralize(count, unit)} ago`;
 }
 
 export function toRelativeTimeLabelFromMinutes(minutes: number): string {

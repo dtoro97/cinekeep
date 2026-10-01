@@ -17,21 +17,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
-import type { SearchResultItem, SelectOption } from '../../..';
+import type { SearchResultItem } from '../../..';
+import { SEARCH_TYPE_OPTIONS } from '../../../models/media-type-options.model';
 import { HeaderSearchResultsComponent } from './header-search-results.component';
 import {
     HeaderSearchBarStoreService,
     SearchFilterValue,
 } from './header-search-bar.store.service';
-
-type SearchFilterOption = SelectOption<SearchFilterValue>;
-
-const FILTER_OPTIONS: ReadonlyArray<SearchFilterOption> = [
-    { label: 'All', value: 'all' },
-    { label: 'Movies', value: 'movie' },
-    { label: 'TV series', value: 'tv' },
-    { label: 'People', value: 'person' },
-];
 
 @Component({
     selector: 'app-header-search-bar',
@@ -54,7 +46,7 @@ const FILTER_OPTIONS: ReadonlyArray<SearchFilterOption> = [
 })
 export class HeaderSearchBarComponent {
     readonly searchControl = new FormControl('', { nonNullable: true });
-    readonly filterOptions = FILTER_OPTIONS;
+    readonly filterOptions = SEARCH_TYPE_OPTIONS;
     readonly vm$ = this.store.vm$;
 
     constructor(

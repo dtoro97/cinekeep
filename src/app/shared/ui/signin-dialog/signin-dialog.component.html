@@ -1,0 +1,81 @@
+<section class="signin-dialog">
+    <header class="signin-dialog__header">
+        <h2 class="text-title">{{ title() }}</h2>
+        <p class="text-body-sm signin-dialog__description">{{ description }}</p>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-dialog-content class="signin-dialog__content">
+            <label class="signin-dialog__field">
+                <span class="text-body-sm">Email</span>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <input matInput type="email" formControlName="email" autocomplete="email" />
+                    @if (form.controls.email.hasError('required')) {
+                        <mat-error>Enter your email.</mat-error>
+                    } @else if (form.controls.email.hasError('email')) {
+                        <mat-error>Enter a valid email address.</mat-error>
+                    }
+                </mat-form-field>
+            </label>
+
+            @if (isRegister()) {
+                <label class="signin-dialog__field">
+                    <span class="text-body-sm">Username</span>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <input
+                            matInput
+                            type="text"
+                            formControlName="username"
+                            autocomplete="username"
+                            [maxlength]="usernameMaxLength"
+                        />
+                        @if (form.controls.username.hasError('required')) {
+                            <mat-error>Choose a username.</mat-error>
+                        }
+                    </mat-form-field>
+                </label>
+            }
+
+            <label class="signin-dialog__field">
+                <span class="text-body-sm">Password</span>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <input
+                        matInput
+                        type="password"
+                        formControlName="password"
+                        [attr.autocomplete]="isRegister() ? 'new-password' : 'current-password'"
+                    />
+                    @if (form.controls.password.hasError('required')) {
+                        <mat-error>Enter your password.</mat-error>
+                    }
+                </mat-form-field>
+            </label>
+
+            @if (errorMessage(); as message) {
+                <p class="signin-dialog__error text-body-sm" role="alert">{{ message }}</p>
+            }
+
+            <p class="signin-dialog__switch text-body-sm">
+                @if (isRegister()) {
+                    Already have an account?
+                } @else {
+                    New to CineKeep?
+                }
+                <button class="signin-dialog__switch-button" type="button" (click)="toggleMode()">
+                    @if (isRegister()) {
+                        Sign in
+                    } @else {
+                        Create an account
+                    }
+                </button>
+            </p>
+        </mat-dialog-content>
+
+        <mat-dialog-actions align="end">
+            <button matButton class="text-button" type="button" (click)="cancel()">Cancel</button>
+            <button matButton="filled" type="submit" [disabled]="pending()" [attr.aria-busy]="pending() ? 'true' : null">
+                {{ submitLabel() }}
+            </button>
+        </mat-dialog-actions>
+    </form>
+</section>

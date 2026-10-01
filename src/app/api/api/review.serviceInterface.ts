@@ -17,6 +17,10 @@ import { ReviewDetails } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface ReviewDetailsRequestParams {
+    reviewId: string;
+}
+
 
 export interface ReviewRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -26,8 +30,8 @@ export interface ReviewRestControllerServiceInterface {
      * Details
      * Retrieve the details of a movie or TV show review.
      * @endpoint get /review/{review_id}
-     * @param reviewId 
+* @param requestParameters
      */
-    reviewDetails(reviewId: string, extraHttpRequestParams?: any): Observable<ReviewDetails>;
+    reviewDetails(requestParameters: ReviewDetailsRequestParams, extraHttpRequestParams?: any): Observable<ReviewDetails>;
 
 }

@@ -23,9 +23,8 @@
 
                 <app-sort-button
                     [options]="sortOptions"
-                    [selectedValue]="vm.sortField"
+                    [selectedValue]="sortField"
                     [direction]="vm.sortDirection"
-                    (sortChange)="onSortChange($event)"
                     (directionToggle)="onSortDirectionToggle()"
                 />
             </div>

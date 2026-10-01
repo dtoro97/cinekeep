@@ -17,6 +17,24 @@ import { MediaChangePage } from '../model/models';
 import { Configuration }                                     from '../configuration';
 
 
+export interface ChangesMovieListRequestParams {
+    endDate?: string;
+    page?: number;
+    startDate?: string;
+}
+
+export interface ChangesPeopleListRequestParams {
+    endDate?: string;
+    page?: number;
+    startDate?: string;
+}
+
+export interface ChangesTvListRequestParams {
+    endDate?: string;
+    page?: number;
+    startDate?: string;
+}
+
 
 export interface ChangesRestControllerServiceInterface {
     defaultHeaders: HttpHeaders;
@@ -26,30 +44,24 @@ export interface ChangesRestControllerServiceInterface {
      * Movie List
      * Get a list of all of the movie ids that have been changed in the past 24 hours.
      * @endpoint get /movie/changes
-     * @param endDate 
-     * @param page 
-     * @param startDate 
+* @param requestParameters
      */
-    changesMovieList(endDate?: string, page?: number, startDate?: string, extraHttpRequestParams?: any): Observable<MediaChangePage>;
+    changesMovieList(requestParameters: ChangesMovieListRequestParams, extraHttpRequestParams?: any): Observable<MediaChangePage>;
 
     /**
      * People List
      * 
      * @endpoint get /person/changes
-     * @param endDate 
-     * @param page 
-     * @param startDate 
+* @param requestParameters
      */
-    changesPeopleList(endDate?: string, page?: number, startDate?: string, extraHttpRequestParams?: any): Observable<MediaChangePage>;
+    changesPeopleList(requestParameters: ChangesPeopleListRequestParams, extraHttpRequestParams?: any): Observable<MediaChangePage>;
 
     /**
      * TV List
      * 
      * @endpoint get /tv/changes
-     * @param endDate 
-     * @param page 
-     * @param startDate 
+* @param requestParameters
      */
-    changesTvList(endDate?: string, page?: number, startDate?: string, extraHttpRequestParams?: any): Observable<MediaChangePage>;
+    changesTvList(requestParameters: ChangesTvListRequestParams, extraHttpRequestParams?: any): Observable<MediaChangePage>;
 
 }

@@ -16,7 +16,6 @@ import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 
 import { SearchRestControllerService } from '../../../../api';
-import { API_JSON_OPTIONS } from '../../../../constants';
 import {
     RemoteData,
     MediaOrPersonFilterType,
@@ -157,23 +156,10 @@ export class HeaderSearchBarStoreService extends ComponentStore<HeaderSearchBarS
     }
 
     private getSearchObservable({ filter, query }: SearchRequest): Observable<SearchResultItem[]> {
-        const opts = API_JSON_OPTIONS;
-
         switch (filter) {
             case 'movie':
                 return this.searchService
-                    .searchMovie(
-                        query,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        opts,
-                    )
+                    .searchMovie({ query })
                     .pipe(
                         map((response) =>
                             (response.results ?? []).map((item) => mediaToSearchResultItem(item, 'movie')),
@@ -181,17 +167,17 @@ export class HeaderSearchBarStoreService extends ComponentStore<HeaderSearchBarS
                     );
             case 'tv':
                 return this.searchService
-                    .searchTv(query, undefined, undefined, undefined, undefined, undefined, undefined, undefined, opts)
+                    .searchTv({ query })
                     .pipe(
                         map((response) => (response.results ?? []).map((item) => mediaToSearchResultItem(item, 'tv'))),
                     );
             case 'person':
                 return this.searchService
-                    .searchPerson(query, undefined, undefined, undefined, undefined, undefined, opts)
+                    .searchPerson({ query })
                     .pipe(map((response) => (response.results ?? []).map(personToSearchResultItem)));
             default:
                 return this.searchService
-                    .searchMulti(query, undefined, undefined, undefined, undefined, undefined, opts)
+                    .searchMulti({ query })
                     .pipe(map((response) => (response.results ?? []).map(multiToSearchResultItem)));
         }
     }

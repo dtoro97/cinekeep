@@ -4,27 +4,26 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
-import { EMPTY, Observable, catchError, switchMap, take } from 'rxjs';
+import { EMPTY, Observable, catchError } from 'rxjs';
 
 import {
     BrowseToolbarComponent,
     EmptyStateComponent,
     IconButtonComponent,
+    MEDIA_TYPE_OPTIONS,
     MediaListItem,
     MediaType,
     PageScrollService,
     ToggleGroupComponent,
     RepeatPipe,
-    SelectOption,
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
     SortButtonComponent,
     SubPageHeaderComponent,
-    TmdbUserAccountService,
 } from '../../../shared';
 import { AccountMediaItemComponent } from '../account-media-item/account-media-item.component';
-import { USER_ACCOUNT_SORT_OPTIONS } from '../user-list-sort-options';
+import { USER_ACCOUNT_SORT_FIELD, USER_ACCOUNT_SORT_OPTIONS } from '../user-list-sort-options';
 import { UserWatchlistStore } from '../user-watchlist-store.service';
 
 @Component({
@@ -47,12 +46,10 @@ import { UserWatchlistStore } from '../user-watchlist-store.service';
     providers: [UserWatchlistStore],
 })
 export class UserWatchlistPageComponent {
-    readonly mediaTypeOptions: SelectOption<MediaType>[] = [
-        { label: 'Movies', value: 'movie' },
-        { label: 'TV series', value: 'tv' },
-    ];
+    readonly mediaTypeOptions = MEDIA_TYPE_OPTIONS;
 
     readonly sortOptions = USER_ACCOUNT_SORT_OPTIONS;
+    readonly sortField = USER_ACCOUNT_SORT_FIELD;
     readonly skeletonCount = 8;
     readonly vm$ = this.store.watchlistPageViewModel$;
 
@@ -61,23 +58,10 @@ export class UserWatchlistPageComponent {
         private readonly pageScroll: PageScrollService,
         private readonly snackbar: SnackbarService,
         private readonly store: UserWatchlistStore,
-        private readonly tmdbUserAccountService: TmdbUserAccountService,
     ) {
-        this.tmdbUserAccountService
-            .ensureAccountIdentity$()
-            .pipe(
-                switchMap(() => this.store.loadPage$(0)),
-                catchError(() => this.showError('Could not load your watchlist.')),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe();
-    }
-
-    onSortChange(value: unknown): void {
         this.store
-            .setSortField$(value)
+            .loadPage$(0)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your watchlist.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -88,7 +72,6 @@ export class UserWatchlistPageComponent {
         this.store
             .toggleSortDirection$()
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your watchlist.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -99,7 +82,6 @@ export class UserWatchlistPageComponent {
         this.store
             .removeFromWatchlist$(item)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not update your watchlist.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -110,7 +92,6 @@ export class UserWatchlistPageComponent {
         this.store
             .setMediaType$(value)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your watchlist.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -123,7 +104,6 @@ export class UserWatchlistPageComponent {
         this.store
             .loadPage$(event.pageIndex)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your watchlist.')),
                 takeUntilDestroyed(this.destroyRef),
             )

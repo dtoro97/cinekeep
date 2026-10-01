@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { map, Observable, shareReplay } from 'rxjs';
 
 import { GenreRestControllerService } from '../../api';
-import { API_JSON_OPTIONS } from '../../constants';
 import type { MediaType } from '../types';
 import { isDefined } from '../utils';
 
@@ -11,12 +10,12 @@ import { isDefined } from '../utils';
     providedIn: 'root',
 })
 export class GenreService {
-    readonly movieGenres$ = this.genreService.genreMovieList(undefined, 'body', false, API_JSON_OPTIONS).pipe(
+    readonly movieGenres$ = this.genreService.genreMovieList().pipe(
         map((response) => this.toGenreMap(response.genres)),
         shareReplay(1),
     );
 
-    readonly tvGenres$ = this.genreService.genreTvList(undefined, 'body', false, API_JSON_OPTIONS).pipe(
+    readonly tvGenres$ = this.genreService.genreTvList().pipe(
         map((response) => this.toGenreMap(response.genres)),
         shareReplay(1),
     );

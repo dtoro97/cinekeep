@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
-import { EMPTY, Observable, catchError, switchMap, take } from 'rxjs';
+import { EMPTY, Observable, catchError, switchMap } from 'rxjs';
 
 import {
     BrowseToolbarComponent,
@@ -13,20 +13,19 @@ import {
     ConfirmationDialogService,
     EmptyStateComponent,
     IconButtonComponent,
+    MEDIA_TYPE_OPTIONS,
     MediaType,
     PageScrollService,
     ToggleGroupComponent,
     RepeatPipe,
-    SelectOption,
     SkeletonComponent,
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
     SortButtonComponent,
     SubPageHeaderComponent,
-    TmdbUserAccountService,
 } from '../../../shared';
-import { USER_ACCOUNT_SORT_OPTIONS } from '../user-list-sort-options';
+import { USER_ACCOUNT_SORT_FIELD, USER_ACCOUNT_SORT_OPTIONS } from '../user-list-sort-options';
 import { UserFavouritesStore } from '../user-favourites-store.service';
 
 @Component({
@@ -50,14 +49,12 @@ import { UserFavouritesStore } from '../user-favourites-store.service';
     providers: [UserFavouritesStore],
 })
 export class UserFavouritesPageComponent {
-    readonly mediaTypeOptions: SelectOption<MediaType>[] = [
-        { label: 'Movies', value: 'movie' },
-        { label: 'TV series', value: 'tv' },
-    ];
+    readonly mediaTypeOptions = MEDIA_TYPE_OPTIONS;
 
     readonly posterImageParams = 'w342';
     readonly skeletonCount = 20;
     readonly sortOptions = USER_ACCOUNT_SORT_OPTIONS;
+    readonly sortField = USER_ACCOUNT_SORT_FIELD;
     readonly vm$ = this.store.favouritesPageViewModel$;
 
     constructor(
@@ -66,23 +63,10 @@ export class UserFavouritesPageComponent {
         private readonly pageScroll: PageScrollService,
         private readonly snackbar: SnackbarService,
         private readonly store: UserFavouritesStore,
-        private readonly tmdbUserAccountService: TmdbUserAccountService,
     ) {
-        this.tmdbUserAccountService
-            .ensureAccountIdentity$()
-            .pipe(
-                switchMap(() => this.store.loadPage$(0)),
-                catchError(() => this.showError('Could not load your favorites.')),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe();
-    }
-
-    onSortChange(value: unknown): void {
         this.store
-            .setSortField$(value)
+            .loadPage$(0)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -93,7 +77,6 @@ export class UserFavouritesPageComponent {
         this.store
             .toggleSortDirection$()
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -110,7 +93,6 @@ export class UserFavouritesPageComponent {
             })
             .pipe(
                 switchMap((confirmed) => (confirmed ? this.store.removeFromFavourites$(item) : EMPTY)),
-                take(1),
                 catchError(() => this.showError('Could not update your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -121,7 +103,6 @@ export class UserFavouritesPageComponent {
         this.store
             .setMediaType$(value)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
             )
@@ -134,7 +115,6 @@ export class UserFavouritesPageComponent {
         this.store
             .loadPage$(event.pageIndex)
             .pipe(
-                take(1),
                 catchError(() => this.showError('Could not load your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
             )

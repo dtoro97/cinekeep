@@ -11,5 +11,8 @@ export * from './tmdb-discover-sort';
 export * from './browser-country';
 export * from './locale-detection';
 export * from './company-display';
+export * from './media-display';
 export * from './image-language';
 export * from './youtube';
+export * from './pluralize';
+export * from './tmdb-image';

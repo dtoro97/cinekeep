@@ -1,7 +1,6 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 
 import { catchError, combineLatest, distinctUntilChanged, map, of, shareReplay, startWith, switchMap, tap } from 'rxjs';
 
@@ -13,6 +12,7 @@ import {
     SkeletonComponent,
     SubPageHeaderComponent,
     remoteSuccess,
+    formatTitleWithYear,
 } from '../../../shared';
 import { MediaApiService } from '../media-api.service';
 import { MediaStoreService } from '../media-store.service';
@@ -27,8 +27,9 @@ import { MediaDetails } from '../models/media-details.model';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReviewDetailPageComponent {
-    readonly reviewState$ = this.route.paramMap.pipe(
-        map((params) => params.get('reviewId')),
+    readonly reviewId = input.required<string>();
+
+    readonly reviewState$ = toObservable(this.reviewId).pipe(
         distinctUntilChanged(),
         switchMap((reviewId) => {
             if (!reviewId) {
@@ -47,7 +48,6 @@ export class ReviewDetailPageComponent {
     constructor(
         public readonly mediaStore: MediaStoreService,
         private readonly mediaApiService: MediaApiService,
-        private readonly route: ActivatedRoute,
         private readonly seo: SeoService,
     ) {
         combineLatest({
@@ -64,7 +64,7 @@ export class ReviewDetailPageComponent {
                         mediaState.state === 'success' ? mediaState.data : null;
                     const review = reviewState.data;
                     const mediaTitle = media
-                        ? toMediaDisplayTitle(media)
+                        ? formatTitleWithYear(media.title, media.year)
                         : review.media_title ?? 'Review';
                     const imagePath = getReviewImagePath(media);
                     const hasBackdrop = !!media?.backdropPath;
@@ -95,6 +95,3 @@ export class ReviewDetailPageComponent {
 
 const getReviewImagePath = (media: MediaDetails | null): string | null =>
     media?.backdropPath ?? media?.posterPath ?? null;
-
-const toMediaDisplayTitle = (media: MediaDetails): string =>
-    media.year ? `${media.title} (${media.year})` : media.title;

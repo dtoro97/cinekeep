@@ -24,7 +24,8 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    CreditRestControllerServiceInterface
+    CreditRestControllerServiceInterface,
+    CreditDetailsRequestParams
 } from './credit.serviceInterface';
 
 
@@ -42,19 +43,20 @@ export class CreditRestControllerService extends BaseService implements CreditRe
      * Details
      * Get a movie or TV credit details by ID.
      * @endpoint get /credit/{credit_id}
-     * @param creditId 
-     * @param language 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public creditDetails(creditId: string, language?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CreditDetails>;
-    public creditDetails(creditId: string, language?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CreditDetails>>;
-    public creditDetails(creditId: string, language?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CreditDetails>>;
-    public creditDetails(creditId: string, language?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public creditDetails(requestParameters: CreditDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CreditDetails>;
+    public creditDetails(requestParameters: CreditDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CreditDetails>>;
+    public creditDetails(requestParameters: CreditDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CreditDetails>>;
+    public creditDetails(requestParameters: CreditDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const creditId = requestParameters?.creditId;
         if (creditId === null || creditId === undefined) {
             throw new Error('Required parameter creditId was null or undefined when calling creditDetails.');
         }
+        const language = requestParameters?.language;
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 

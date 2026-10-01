@@ -24,7 +24,8 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 import {
-    ReviewRestControllerServiceInterface
+    ReviewRestControllerServiceInterface,
+    ReviewDetailsRequestParams
 } from './review.serviceInterface';
 
 
@@ -42,15 +43,16 @@ export class ReviewRestControllerService extends BaseService implements ReviewRe
      * Details
      * Retrieve the details of a movie or TV show review.
      * @endpoint get /review/{review_id}
-     * @param reviewId 
+     * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public reviewDetails(reviewId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ReviewDetails>;
-    public reviewDetails(reviewId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ReviewDetails>>;
-    public reviewDetails(reviewId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ReviewDetails>>;
-    public reviewDetails(reviewId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public reviewDetails(requestParameters: ReviewDetailsRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ReviewDetails>;
+    public reviewDetails(requestParameters: ReviewDetailsRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ReviewDetails>>;
+    public reviewDetails(requestParameters: ReviewDetailsRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ReviewDetails>>;
+    public reviewDetails(requestParameters: ReviewDetailsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const reviewId = requestParameters?.reviewId;
         if (reviewId === null || reviewId === undefined) {
             throw new Error('Required parameter reviewId was null or undefined when calling reviewDetails.');
         }

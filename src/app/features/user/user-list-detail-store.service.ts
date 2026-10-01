@@ -3,16 +3,17 @@ import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 import { EMPTY, catchError, of, switchMap, tap, throwError } from 'rxjs';
 
-import { V4ListContentItem, V4ListDetails, V4ListSortBy } from '../../api-v4';
+import { UserListDetailsResponse, UserListItemResponse } from '../../api-cinekeep';
 import { PAGE_SIZE } from '../../constants';
 import {
     RemoteData,
     MediaListItem,
     MediaType,
-    TmdbListService,
-    UserSessionStoreService,
+    UserLibraryService,
+    UserListSortBy,
     isDefined,
     remoteSuccess,
+    toSnapshotMediaListItem,
     toUpdatedAtLabel,
     updateRemoteData,
 } from '../../shared';
@@ -22,7 +23,6 @@ export interface UserListDetailHeader {
     readonly id: number;
     readonly name: string;
     readonly description: string | null;
-    readonly createdBy: string | null;
     readonly itemCount: number;
     readonly updatedLabel: string | null;
 }
@@ -44,9 +44,8 @@ interface UserListDetailState {
     readonly page: number;
     readonly totalPages: number;
     readonly totalResults: number;
-    readonly activeSortBy: V4ListSortBy;
-    readonly defaultSortBy: V4ListSortBy;
-    readonly isOwnedByCurrentUser: boolean;
+    readonly activeSortBy: UserListSortBy;
+    readonly defaultSortBy: UserListSortBy;
     readonly isPublic: boolean;
 }
 
@@ -59,7 +58,6 @@ const INITIAL_STATE: UserListDetailState = {
     totalResults: 0,
     activeSortBy: DEFAULT_USER_LIST_SORT_BY,
     defaultSortBy: DEFAULT_USER_LIST_SORT_BY,
-    isOwnedByCurrentUser: false,
     isPublic: false,
 };
 
@@ -73,15 +71,10 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
         total: state.totalResults,
         sortBy: state.activeSortBy,
         defaultSortBy: state.defaultSortBy,
-        ownedByCurrentUser: state.isOwnedByCurrentUser,
         isPublic: state.isPublic,
-        existingItemKeys: state.itemsState.state === 'success' ? state.itemsState.data.map((item) => item.key) : [],
     }));
 
-    constructor(
-        private readonly tmdbListService: TmdbListService,
-        private readonly userSessionStore: UserSessionStoreService,
-    ) {
+    constructor(private readonly userLibraryService: UserLibraryService) {
         super(INITIAL_STATE);
     }
 
@@ -95,7 +88,6 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             totalResults: 0,
             activeSortBy: DEFAULT_USER_LIST_SORT_BY,
             defaultSortBy: DEFAULT_USER_LIST_SORT_BY,
-            isOwnedByCurrentUser: false,
             isPublic: false,
         });
 
@@ -129,7 +121,7 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
         return this.fetchAndPatchPage$(state.listId, page, state.activeSortBy, state.defaultSortBy, state);
     }
 
-    setSortBy$(sortBy: V4ListSortBy) {
+    setSortBy$(sortBy: UserListSortBy) {
         const state = this.get();
 
         if (state.listId === null || sortBy === state.activeSortBy) {
@@ -151,7 +143,7 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
         readonly name: string;
         readonly description: string;
         readonly isPublic: boolean;
-        readonly sortBy?: V4ListSortBy;
+        readonly sortBy?: UserListSortBy;
     }) {
         const state = this.get();
 
@@ -161,12 +153,12 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
 
         const nextDefaultSortBy = request.sortBy ?? state.defaultSortBy;
 
-        return this.tmdbListService
+        return this.userLibraryService
             .updateList$(state.listId, {
                 name: request.name,
                 description: request.description,
-                public: request.isPublic,
-                sort_by: request.sortBy,
+                isPublic: request.isPublic,
+                sortBy: nextDefaultSortBy,
             })
             .pipe(
                 tap(() => {
@@ -200,7 +192,7 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             return throwError(() => new Error('List detail is not loaded yet.'));
         }
 
-        return this.tmdbListService.clearList$(state.listId).pipe(
+        return this.userLibraryService.clearList$(state.listId).pipe(
             tap(() => {
                 this.patchState((state) => ({
                     headerState:
@@ -226,17 +218,7 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             return throwError(() => new Error('List detail is not loaded yet.'));
         }
 
-        return this.tmdbListService.deleteList$(state.listId);
-    }
-
-    addItem$(mediaId: number, mediaType: MediaType) {
-        const state = this.get();
-
-        if (state.listId === null) {
-            return throwError(() => new Error('List detail is not loaded yet.'));
-        }
-
-        return this.tmdbListService.addToList$(state.listId, mediaId, mediaType).pipe(switchMap(() => this.reload$()));
+        return this.userLibraryService.deleteList$(state.listId);
     }
 
     removeItem$(item: UserListDetailItem) {
@@ -246,13 +228,8 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             return throwError(() => new Error('List detail is not loaded yet.'));
         }
 
-        return this.tmdbListService
-            .removeItems$(state.listId, [
-                {
-                    media_id: item.id,
-                    media_type: item.mediaType,
-                },
-            ])
+        return this.userLibraryService
+            .removeItem$(state.listId, item.id, item.mediaType)
             .pipe(
                 switchMap(() => {
                     const state = this.get();
@@ -294,14 +271,8 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             return throwError(() => new Error('List detail is not loaded yet.'));
         }
 
-        return this.tmdbListService
-            .updateItems$(state.listId, [
-                {
-                    media_id: item.id,
-                    media_type: item.mediaType,
-                    comment,
-                },
-            ])
+        return this.userLibraryService
+            .updateItemComment$(state.listId, item.id, item.mediaType, comment)
             .pipe(
                 tap(() => {
                     this.patchState((state) => ({
@@ -323,14 +294,14 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
     private fetchAndPatchPage$(
         listId: number,
         page: number,
-        sortBy: V4ListSortBy | undefined,
-        fallbackDefaultSortBy: V4ListSortBy,
+        sortBy: UserListSortBy | undefined,
+        fallbackDefaultSortBy: UserListSortBy,
         restoreState: UserListDetailState,
     ) {
-        return this.tmdbListService.getListDetails$(listId, page, sortBy).pipe(
+        return this.userLibraryService.getListDetails$(listId, page - 1, PAGE_SIZE, sortBy).pipe(
             tap((result) => {
-                const defaultSortBy = result.sort_by ?? fallbackDefaultSortBy;
-                this.patchState(this.toLoadedPageState(result, sortBy ?? defaultSortBy, defaultSortBy));
+                const defaultSortBy = result.list?.sortBy ?? fallbackDefaultSortBy;
+                this.patchState(this.toLoadedPageState(result, page, sortBy ?? defaultSortBy, defaultSortBy));
             }),
             catchError((error: unknown) => {
                 this.setState(restoreState);
@@ -339,78 +310,52 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
         );
     }
 
-    private toLoadedPageState(result: V4ListDetails, activeSortBy: V4ListSortBy, fallbackDefaultSortBy: V4ListSortBy) {
-        const items = this.toItems(result);
-        const defaultSortBy = result.sort_by ?? fallbackDefaultSortBy;
-        const updatedLabel = toUpdatedAtLabel(result.updated_at);
+    private toLoadedPageState(
+        result: UserListDetailsResponse,
+        page: number,
+        activeSortBy: UserListSortBy,
+        fallbackDefaultSortBy: UserListSortBy,
+    ) {
+        const list = result.list ?? {};
+        const items = (result.items?.content ?? []).map((item) => this.toItem(item)).filter(isDefined);
+        const totalResults = result.items?.totalElements ?? list.itemCount ?? items.length;
 
         return {
             headerState: remoteSuccess({
-                id: result.id ?? 0,
-                name: result.name || 'Untitled List',
-                description: result.description ?? null,
-                createdBy: result.created_by?.username ?? null,
-                itemCount: result.item_count ?? items.length,
-                updatedLabel,
+                id: list.id ?? 0,
+                name: list.name || 'Untitled List',
+                description: list.description ?? null,
+                itemCount: list.itemCount ?? totalResults,
+                updatedLabel: toUpdatedAtLabel(list.updatedAt),
             }),
             itemsState: remoteSuccess(items),
-            page: result.page ?? 1,
-            totalPages: result.total_pages ?? 1,
-            totalResults: result.total_results ?? result.item_count ?? items.length,
+            page,
+            totalPages: Math.max(1, result.items?.totalPages ?? 1),
+            totalResults,
             activeSortBy,
-            defaultSortBy,
-            isOwnedByCurrentUser:
-                this.userSessionStore.username()?.toLocaleLowerCase() ===
-                result.created_by?.username?.toLocaleLowerCase(),
-            isPublic: result.public === true,
+            defaultSortBy: list.sortBy ?? fallbackDefaultSortBy,
+            isPublic: list.isPublic === true,
         };
     }
 
-    private toItems(result: V4ListDetails): UserListDetailItem[] {
-        const commentsByKey = new Map(Object.entries(result.comments ?? {}));
+    private toItem(item: UserListItemResponse): UserListDetailItem | null {
+        const mediaItem = toSnapshotMediaListItem(item, item.voteAverage ?? null);
 
-        return (result.results ?? [])
-            .map((item) => this.toItem(item, commentsByKey))
-            .filter(isDefined);
-    }
-
-    private toItem(item: V4ListContentItem, commentsByKey: ReadonlyMap<string, string>): UserListDetailItem | null {
-        if (!item.id || !item.media_type) {
+        if (!mediaItem) {
             return null;
         }
-
-        const mediaType = item.media_type === 'tv' ? 'tv' : item.media_type === 'movie' ? 'movie' : null;
-        const title = (mediaType === 'tv' ? item.name : item.title) ?? item.title ?? item.name;
-
-        if (!mediaType || !title) {
-            return null;
-        }
-
-        const date = mediaType === 'tv' ? (item.first_air_date ?? '') : (item.release_date ?? '');
-
-        const key = `${mediaType}:${item.id}`;
 
         return {
-            key,
-            id: item.id,
-            mediaType,
+            key: `${mediaItem.mediaType}:${mediaItem.id}`,
+            id: mediaItem.id,
+            mediaType: mediaItem.mediaType,
             mediaItem: {
-                id: item.id,
-                thumb: item.poster_path ?? null,
-                title,
-                overview: item.overview ?? '',
-                rating: item.vote_average ?? null,
-                date,
-                mediaType,
-                badges: [
-                    {
-                        label: mediaType === 'tv' ? 'TV series' : 'Movie',
-                    },
-                ],
+                ...mediaItem,
+                badges: [{ label: mediaItem.mediaType === 'tv' ? 'TV series' : 'Movie' }],
             },
-            title,
-            comment: commentsByKey.get(key) ?? '',
-            link: ['/', 'title', item.id, mediaType],
+            title: mediaItem.title,
+            comment: item.comment ?? '',
+            link: ['/', 'title', mediaItem.id, mediaItem.mediaType],
         };
     }
 }
