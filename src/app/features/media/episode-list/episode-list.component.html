@@ -1,17 +1,13 @@
-@if (state.state === 'loading') {
-    <ul class="episode-list" aria-label="Episodes loading">
+@if (state.state === "loading") {
+    <ul class="episode-list" aria-hidden="true">
         @for (i of skeletonCount | repeat; track i) {
-            <li class="episode-list__item">
-                <app-episode-list-item [loading]="true" />
-            </li>
+            <li><app-episode-list-item numbered [loading]="true" /></li>
         }
     </ul>
-} @else if (state.state === 'success') {
+} @else if (state.state === "success") {
     <ul class="episode-list" aria-label="Episodes">
-        @for (item of state.data; track item.id) {
-            <li class="episode-list__item">
-                <app-episode-list-item [item]="item.item" />
-            </li>
+        @for (entry of state.data; track entry.id) {
+            <li><app-episode-list-item numbered [item]="entry.item" [highlighted]="entry.isBest" /></li>
         }
     </ul>
 }

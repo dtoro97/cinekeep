@@ -1,15 +1,7 @@
-import {
-    ChangeDetectionStrategy,
-    Component,
-    Input,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 import { SMALL_LIST_COUNT } from '../../../constants';
-import {
-    EpisodeListItemComponent,
-    RepeatPipe,
-    RemoteData,
-} from '../../../shared';
+import { EpisodeListItemComponent, RemoteData, RepeatPipe } from '../../../shared';
 import type { EpisodeListEntry } from './episode-list.models';
 
 @Component({

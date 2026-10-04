@@ -34,6 +34,13 @@
     max-width: 48rem;
 }
 
+// Label-only sections read like a reference document: small caps over a hairline rule.
+.page-section__header--label {
+    align-items: center;
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+}
+
 .page-section__controls {
     display: flex;
     align-items: center;

@@ -1,90 +1,6 @@
 @if (vm$ | async; as vm) {
     <div class="discover-page page-container">
-        <header class="discover-page__header inner-container">
-            <h1 class="text-display">{{ vm.title }}</h1>
-            <p class="discover-page__subtitle text-body">{{ vm.subtitle }}</p>
-        </header>
-
         <main class="discover-page__content inner-container">
-            <app-browse-toolbar>
-                <div start class="discover-page__toolbar-start">
-                    @if (vm.showResultCount) {
-                        <span class="discover-page__result-count text-caption">
-                            {{ vm.resultStart }} - {{ vm.resultEnd }} of {{ vm.totalResults }}
-                        </span>
-                    }
-                </div>
-
-                <div end class="discover-page__toolbar-actions">
-                    @if (vm.showMediaTypeToggle) {
-                        <app-toggle-group
-                            [options]="vm.mediaTypeOptions"
-                            [selectedValue]="vm.mediaType"
-                            (selected)="onMediaTypeChange($event)"
-                        />
-                    }
-
-                    @if (vm.showSort) {
-                        <app-sort-button
-                            [options]="vm.sortOptions"
-                            [selectedValue]="vm.sortKey"
-                            [direction]="vm.sortDirection"
-                            (sortChange)="onSortChange($event)"
-                            (directionToggle)="onSortDirectionToggle()"
-                        />
-                    }
-
-                    @if (vm.showFilters) {
-                        <button
-                            mat-stroked-button
-                            type="button"
-                            class="discover-page__filter-toggle"
-                            [attr.aria-expanded]="mobileFiltersOpen"
-                            (click)="openFilters()"
-                            >
-                                <i class="fa-solid fa-filter" aria-hidden="true"></i>
-                                <span>Filters</span>
-                            </button>
-                        }
-
-                    @if (vm.showReset) {
-                        <button
-                            mat-stroked-button
-                            type="button"
-                            class="discover-page__reset"
-                            (click)="reset()"
-                        >
-                            Reset filters
-                        </button>
-                    }
-                </div>
-            </app-browse-toolbar>
-
-            @if (vm.lockedFilters.length || vm.activeFilters.length) {
-                <div class="discover-page__active-filters" aria-label="Active filters">
-                    @for (filter of vm.lockedFilters; track filter.id) {
-                        <span
-                            class="discover-page__filter-chip discover-page__filter-chip--locked text-caption"
-                        >
-                            <mat-icon aria-hidden="true">lock</mat-icon>
-                            <span>{{ filter.label }}</span>
-                        </span>
-                    }
-
-                    @for (filter of vm.activeFilters; track filter.id) {
-                        <button
-                            class="discover-page__filter-chip text-caption"
-                            type="button"
-                            [attr.aria-label]="'Remove ' + filter.label"
-                            (click)="clearFilter(filter)"
-                        >
-                            <span>{{ filter.label }}</span>
-                            <mat-icon aria-hidden="true">close</mat-icon>
-                        </button>
-                    }
-                </div>
-            }
-
             <ng-template #filterPanel let-showHeader="showHeader">
                 <app-discover-filter-panel
                     [showHeader]="showHeader"
@@ -95,24 +11,95 @@
                 />
             </ng-template>
 
-            <div
-                class="discover-page__layout"
-                [class.discover-page__layout--with-filters]="vm.showFilters"
-            >
+            <div class="discover-page__layout" [class.discover-page__layout--with-filters]="vm.showFilters">
                 @if (vm.showFilters) {
                     <aside class="discover-page__filters" aria-label="Filters">
-                        <ng-container
-                            *ngTemplateOutlet="
-                                filterPanel;
-                                context: { showHeader: false }
-                            "
-                        />
+                        <ng-container *ngTemplateOutlet="filterPanel; context: { showHeader: false }" />
                     </aside>
                 }
 
                 <section class="discover-page__results" aria-label="Results">
+                    <header class="discover-page__header">
+                        <div class="discover-page__heading">
+                            <h1 class="text-display">{{ vm.title }}</h1>
+                            @if (vm.subtitle) {
+                                <p class="discover-page__subtitle text-body">{{ vm.subtitle }}</p>
+                            }
+                        </div>
+
+                        @if (vm.showMediaTypeToggle) {
+                            <app-toggle-group
+                                class="discover-page__mode"
+                                [options]="vm.mediaTypeOptions"
+                                [selectedValue]="vm.mediaType"
+                                (selected)="onMediaTypeChange($event)"
+                            />
+                        }
+                    </header>
+
+                    <div class="discover-page__toolbar">
+                        <div class="discover-page__summary">
+                            @if (vm.showResultCount) {
+                                <span class="discover-page__result-count text-label">{{ vm.resultCountLabel }}</span>
+                            }
+
+                            @for (filter of vm.lockedFilters; track filter.id) {
+                                <span class="discover-page__filter-chip discover-page__filter-chip--locked text-caption">
+                                    <mat-icon aria-hidden="true">lock</mat-icon>
+                                    <span>{{ filter.label }}</span>
+                                </span>
+                            }
+
+                            @for (filter of vm.activeFilters; track filter.id) {
+                                <button
+                                    class="discover-page__filter-chip text-caption"
+                                    type="button"
+                                    attr.aria-label="Remove {{ filter.label }}"
+                                    (click)="clearFilter(filter)"
+                                >
+                                    <span>{{ filter.label }}</span>
+                                    <mat-icon aria-hidden="true">close</mat-icon>
+                                </button>
+                            }
+
+                            @if (vm.showReset) {
+                                <button class="discover-page__reset text-caption" type="button" (click)="reset()">
+                                    Clear all
+                                </button>
+                            }
+                        </div>
+
+                        <div class="discover-page__toolbar-actions">
+                            @if (vm.showFilters) {
+                                <button
+                                    class="discover-page__filter-toggle button--subtle"
+                                    matButton="outlined"
+                                    type="button"
+                                    [attr.aria-expanded]="mobileFiltersOpen"
+                                    (click)="openFilters()"
+                                >
+                                    <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                                    <span>Filters</span>
+                                    @if (vm.filters.activeFilterCount) {
+                                        <span class="discover-page__filter-count">{{ vm.filters.activeFilterCount }}</span>
+                                    }
+                                </button>
+                            }
+
+                            @if (vm.showSort) {
+                                <app-sort-button
+                                    [options]="vm.sortOptions"
+                                    [selectedValue]="vm.sortKey"
+                                    [direction]="vm.sortDirection"
+                                    (sortChange)="onSortChange($event)"
+                                    (directionToggle)="onSortDirectionToggle()"
+                                />
+                            }
+                        </div>
+                    </div>
+
                     @if (vm.showEmptyState) {
-                        <div class="empty-panel discover-page__empty">
+                        <div class="discover-page__empty">
                             <app-empty-state
                                 iconClass="fa-solid fa-filter-circle-xmark"
                                 text="No titles matched these filters."
@@ -120,38 +107,53 @@
                         </div>
                     } @else {
                         <div class="discover-page__items">
-                            @if (vm.resultsState.state === 'loading') {
-                                @for (slot of 20 | repeat; track slot) {
-                                    <div class="discover-page__skeleton-card">
-                                        <app-skeleton class="discover-page__poster-skeleton" />
-                                        <div class="discover-page__content-skeleton">
-                                            <app-skeleton class="discover-page__line discover-page__line--title" />
-                                            <app-skeleton class="discover-page__line discover-page__line--meta" />
-                                            <app-skeleton class="discover-page__line discover-page__line--genres" />
-                                        </div>
-                                    </div>
-                                }
+                            @if (vm.resultsState.state === "loading") {
+                                <ng-container *ngTemplateOutlet="skeletonCards; context: { count: skeletonCount }" />
                             } @else {
                                 @for (entry of vm.displayItems; track entry.item.id) {
-                                    <app-discover-card
-                                        [item]="entry.item"
-                                        [genreNames]="entry.genreNames"
-                                        [link]="entry.routerLink"
+                                    <app-card [item]="entry.item" imageParams="w342">
+                                        <app-library-toggle
+                                            card-actions
+                                            flag="favorite"
+                                            [mediaId]="entry.item.id"
+                                            [mediaType]="entry.item.mediaType"
+                                            [title]="entry.item.title"
+                                            [iconOnly]="true"
+                                            [libraryState]="entry.libraryState"
+                                        />
+                                        <app-library-toggle
+                                            card-actions
+                                            flag="watchlist"
+                                            [mediaId]="entry.item.id"
+                                            [mediaType]="entry.item.mediaType"
+                                            [title]="entry.item.title"
+                                            [iconOnly]="true"
+                                            [libraryState]="entry.libraryState"
+                                        />
+                                    </app-card>
+                                }
+
+                                @if (vm.loadingMore) {
+                                    <ng-container
+                                        *ngTemplateOutlet="skeletonCards; context: { count: loadMoreSkeletonCount }"
                                     />
                                 }
                             }
                         </div>
-                    }
 
-                    @if (vm.showPaginator) {
-                        <mat-paginator
-                            class="discover-page__paginator"
-                            [length]="vm.paginatorLength"
-                            [pageIndex]="vm.pageIndex"
-                            [pageSize]="vm.pageSize"
-                            [hidePageSize]="true"
-                            (page)="onPageChange($event)"
-                        />
+                        @if (vm.hasMore || vm.loadingMore) {
+                            <div class="discover-page__more">
+                                <button
+                                    class="button--subtle"
+                                    matButton="outlined"
+                                    type="button"
+                                    [disabled]="vm.loadingMore"
+                                    (click)="loadMore()"
+                                >
+                                    Show more
+                                </button>
+                            </div>
+                        }
                     }
                 </section>
             </div>
@@ -166,14 +168,21 @@
                     cdkTrapFocus
                     cdkTrapFocusAutoCapture
                 >
-                    <ng-container
-                        *ngTemplateOutlet="
-                            filterPanel;
-                            context: { showHeader: true }
-                        "
-                    />
+                    <ng-container *ngTemplateOutlet="filterPanel; context: { showHeader: true }" />
                 </section>
             }
         </main>
     </div>
 }
+
+<ng-template #skeletonCards let-count="count">
+    @for (slot of count | repeat; track slot) {
+        <div class="discover-page__skeleton-card" aria-hidden="true">
+            <app-skeleton class="discover-page__poster-skeleton" />
+            <div class="discover-page__content-skeleton">
+                <app-skeleton class="discover-page__line discover-page__line--title" />
+                <app-skeleton class="discover-page__line discover-page__line--meta" />
+            </div>
+        </div>
+    }
+</ng-template>

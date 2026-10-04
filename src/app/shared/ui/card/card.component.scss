@@ -1,32 +1,42 @@
 @use 'breakpoints' as *;
 @use 'mixins' as *;
 
+:host {
+    display: block;
+    min-width: 0;
+}
+
 .media-card {
     --media-card-title-line-height: 1.25;
     --media-card-meta-block-size: calc(var(--text-xs) * 1.4);
 
+    position: relative;
+    min-width: 0;
+    @include card-hover('.media-card__image', '.media-card__title', $frame-selector: '.media-card__media');
+}
+
+.media-card__link {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
     color: inherit;
     text-decoration: none;
     text-align: left;
-    @include media-card-hover('.media-card__image', '.media-card__title');
 }
 
 .media-card__media {
     position: relative;
     aspect-ratio: var(--poster-ratio);
-    border: 1px solid var(--mat-sys-outline-variant);
+    border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-lg);
     overflow: hidden;
     background: var(--surface-panel);
+    box-shadow: var(--shadow-sm);
 }
 
 .media-card__image {
     height: 100%;
     --image-radius: 0;
-    transition: opacity var(--motion-base);
 }
 
 .media-card__content {
@@ -44,51 +54,14 @@
     align-self: start;
     line-height: var(--media-card-title-line-height);
     min-height: 2lh;
-    transition: color var(--motion-base);
     @include line-clamp(2);
 }
 
 .media-card__meta {
     grid-row: 2;
     align-self: start;
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-1);
     color: var(--text-muted);
-}
-
-.media-card__meta-item {
-    display: inline-flex;
-    align-items: center;
-}
-
-.media-card__rating {
-    --rating-font-size: var(--text-xs);
-}
-
-.media-card__rating::before {
-    content: '';
-    width: 0.25rem;
-    height: 0.25rem;
-    margin-inline-end: var(--space-1);
-    border-radius: var(--radius-full);
-    background: var(--text-muted);
-    opacity: 0.7;
-}
-
-.media-card__rating:first-child::before {
-    display: none;
-}
-
-.media-card__meta-item + .media-card__meta-item::before {
-    content: '';
-    width: 0.25rem;
-    height: 0.25rem;
-    margin-inline-end: var(--space-1);
-    border-radius: var(--radius-full);
-    background: currentColor;
-    opacity: 0.7;
+    @include meta-list(var(--space-1-5));
 }
 
 .media-card__role {
@@ -98,8 +71,35 @@
     color: var(--text-muted);
 }
 
+// Projected `[card-actions]` float over the poster; on hover devices they appear with hover or focus.
+.media-card__actions {
+    position: absolute;
+    z-index: 2;
+    inset-block-start: var(--space-2);
+    inset-inline-end: var(--space-2);
+    transition: opacity var(--motion-base);
+    @include overlay-action-surface();
+
+    &:empty {
+        display: none;
+    }
+}
+
+@include hover-capable {
+    .media-card__actions {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .media-card:hover .media-card__actions,
+    .media-card:focus-within .media-card__actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
 @include mobile() {
-    .media-card {
+    .media-card__link {
         gap: var(--space-1);
     }
 }

@@ -2,99 +2,28 @@
     <app-sub-page-header
         [parentTitle]="backParentTitle"
         [backLink]="backLink"
-        pageTitle="Create list"
+        pageTitle="New list"
         [subtitle]="pageSubtitle"
     />
 
     <main class="page-main list-create__main">
         <form
-            class="surface-panel list-create__form"
+            class="list-create__form"
             [formGroup]="form"
-            [attr.aria-busy]="pending() ? 'true' : null"
+            [attr.aria-busy]="pending() || null"
             (ngSubmit)="submit()"
         >
-            <label class="list-create__field">
-                <span class="text-body-sm">List name</span>
-                <mat-form-field appearance="outline" subscriptSizing="fixed">
-                    <input
-                        matInput
-                        type="text"
-                        formControlName="name"
-                        autocomplete="off"
-                        [maxlength]="nameMaxLength"
-                        placeholder="Enter a list name"
-                    />
-                    @if (form.controls.name.touched && form.controls.name.hasError("required")) {
-                        <mat-error>Give your list a name.</mat-error>
-                    } @else if (form.controls.name.hasError("maxlength")) {
-                        <mat-error>List names can be at most {{ nameMaxLength }} characters.</mat-error>
-                    }
-                    <mat-hint align="end">
-                        {{ form.controls.name.value.length }} / {{ nameMaxLength }}
-                    </mat-hint>
-                </mat-form-field>
-            </label>
-
-            <label class="list-create__field">
-                <span class="list-create__field-label text-body-sm">
-                    <span>Description</span>
-                    <span class="text-caption">Optional</span>
-                </span>
-                <mat-form-field
-                    class="list-create__description-field"
-                    appearance="outline"
-                    subscriptSizing="dynamic"
-                >
-                    <textarea
-                        matInput
-                        rows="4"
-                        formControlName="description"
-                        [maxlength]="descriptionMaxLength"
-                        placeholder="Add a short description"
-                    ></textarea>
-                    @if (form.controls.description.hasError("maxlength")) {
-                        <mat-error>Descriptions can be at most {{ descriptionMaxLength }} characters.</mat-error>
-                    }
-                    <mat-hint align="end">
-                        {{ form.controls.description.value.length }} / {{ descriptionMaxLength }}
-                    </mat-hint>
-                </mat-form-field>
-            </label>
-
-            <label class="list-create__field">
-                <span class="text-body-sm">Default order</span>
-                <mat-form-field appearance="outline" subscriptSizing="fixed">
-                    <mat-select formControlName="sortBy">
-                        @for (option of sortOptions; track option.value) {
-                            <mat-option [value]="option.value">
-                                {{ option.label }}
-                            </mat-option>
-                        }
-                    </mat-select>
-                </mat-form-field>
-            </label>
-
-            <fieldset class="list-create__properties" aria-label="List visibility">
-                <div class="list-create__property">
-                    <mat-slide-toggle
-                        formControlName="isPublic"
-                        aria-describedby="profile-visibility-description"
-                    >
-                        Visible on profile
-                    </mat-slide-toggle>
-                    <span id="profile-visibility-description" class="text-caption">
-                        People who can view your profile can see this list.
-                    </span>
-                </div>
-            </fieldset>
+            <app-user-list-form-fields [form]="form" idPrefix="create-list" />
 
             <div class="list-create__actions">
+                <button matButton="filled" type="submit" [disabled]="pending()">{{ submitButtonLabel() }}</button>
                 <a matButton class="text-button" [routerLink]="backLink">Cancel</a>
-                <button matButton="filled" type="submit" [disabled]="pending()">
-                    {{ pending() ? pendingLabel : submitLabel }}
-                </button>
             </div>
         </form>
+
+        <aside class="list-create__preview" aria-hidden="true">
+            <span class="list-create__preview-label text-caption">How it will look in your lists</span>
+            <app-user-list-card [item]="preview()" [preview]="true" />
+        </aside>
     </main>
 </div>
-

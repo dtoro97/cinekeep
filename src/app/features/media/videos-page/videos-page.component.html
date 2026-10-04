@@ -30,7 +30,7 @@
                 <section class="videos">
                     <app-browse-toolbar class="videos__toolbar">
                         <span start class="text-caption">
-                            1 - {{ vm.videoItems.length }} of {{ vm.videoItems.length }}
+                            {{ vm.videoItems.length | pluralize: "video" }}
                         </span>
                         <app-sort-button
                             end

@@ -32,3 +32,23 @@
         color: var(--control-subtle-text-active);
     }
 }
+
+.toggle-group--chips {
+    gap: var(--space-1-5);
+
+    .toggle-group__button {
+        min-height: 1.875rem;
+        padding: 0 var(--space-3);
+        border-color: transparent;
+        border-radius: var(--radius-pill);
+        font-size: var(--text-xs);
+    }
+
+    .toggle-group__button--active,
+    .toggle-group__button--active:hover {
+        border-color: var(--color-border);
+        background: var(--surface-raised);
+        color: var(--text-primary);
+        box-shadow: none;
+    }
+}

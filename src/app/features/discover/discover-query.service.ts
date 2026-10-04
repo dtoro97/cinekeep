@@ -96,6 +96,7 @@ export class DiscoverQueryService {
                 withRuntimeGte: runtime.min,
                 withRuntimeLte: runtime.max,
                 withWatchProviders: providerFilter,
+                withoutGenres: serializeNumberListParam(query.excludedGenreIds) ?? undefined,
             })
             .pipe(
                 map((response) => ({
@@ -141,6 +142,7 @@ export class DiscoverQueryService {
                 withRuntimeGte: runtime.min,
                 withRuntimeLte: runtime.max,
                 withWatchProviders: providerFilter,
+                withoutGenres: serializeNumberListParam(query.excludedGenreIds) ?? undefined,
             })
             .pipe(
                 map((response) => ({

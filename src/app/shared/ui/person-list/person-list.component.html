@@ -1,42 +1,18 @@
 <div class="person-list" role="list">
     @if (state.state === "loading") {
-        <ng-container
-            *ngTemplateOutlet="skeleton; context: { $implicit: skeletonCount }"
-        />
+        <ng-container *ngTemplateOutlet="skeleton" />
     } @else if (state.state === "success" || state.state === "loading-more") {
         @for (person of state.data; track person.id; let idx = $index) {
-            <app-person-list-item
-                [person]="person"
-                [index]="indexStart + idx"
-            />
+            <app-person-list-item [person]="person" [index]="showIndex ? indexStart + idx : null" />
         }
         @if (state.state === "loading-more") {
-            <ng-container
-                *ngTemplateOutlet="
-                    skeleton;
-                    context: { $implicit: skeletonCount }
-                "
-            />
+            <ng-container *ngTemplateOutlet="skeleton" />
         }
     }
 
-    <ng-template #skeleton let-count>
-        @for (i of count | repeat; track i) {
-            <div class="person-list__skeleton-row" role="listitem">
-                <app-skeleton class="person-list__index-skeleton text-label" />
-                <app-skeleton class="person-list__avatar-skeleton" />
-                <div class="person-list__summary-skeleton">
-                    <app-skeleton
-                        class="person-list__title-skeleton text-body-sm"
-                    />
-                    <app-skeleton
-                        class="person-list__department-skeleton text-caption"
-                    />
-                </div>
-                <app-skeleton
-                    class="person-list__known-for-skeleton text-caption"
-                />
-            </div>
+    <ng-template #skeleton>
+        @for (i of skeletonCount | repeat; track i) {
+            <app-person-list-item [loading]="true" [index]="showIndex ? indexStart + i : null" />
         }
     </ng-template>
 </div>

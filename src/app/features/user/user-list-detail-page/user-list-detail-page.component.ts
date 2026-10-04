@@ -1,33 +1,47 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, input, numberAttribute, signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    DestroyRef,
+    ElementRef,
+    Injector,
+    afterNextRender,
+    computed,
+    input,
+    numberAttribute,
+    signal,
+    viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { EMPTY, Observable, catchError, distinctUntilChanged, switchMap, tap } from 'rxjs';
-
+import { EMPTY, Observable, catchError, distinctUntilChanged, finalize, switchMap, tap } from 'rxjs';
 
 import {
+    BrowseToolbarComponent,
     ConfirmationDialogService,
     EmptyStateComponent,
     IconButtonComponent,
     PageScrollService,
-    PluralizePipe,
     RepeatPipe,
     SeoService,
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
+    SortButtonComponent,
     SubPageHeaderComponent,
     UserListSortBy,
+    MediaListItemComponent,
 } from '../../../shared';
-import { AccountMediaItemComponent } from '../account-media-item/account-media-item.component';
 import {
     UserListAddItemsDialogComponent,
     UserListAddItemsDialogData,
@@ -37,20 +51,24 @@ import {
     UserListEditDialogData,
 } from '../user-list-edit-dialog/user-list-edit-dialog.component';
 import { UserListDetailHeader, UserListDetailItem, UserListDetailStore } from '../user-list-detail-store.service';
-import { USER_LIST_SORT_OPTIONS } from '../user-list-sort-options';
+import { isSameUserListCover } from '../user-list-cover';
+import { USER_LIST_SORT_FIELD_OPTIONS, UserListSort, toUserListSortBy } from '../user-list-sort-options';
 
 @Component({
     selector: 'app-user-list-detail-page',
     imports: [
         AsyncPipe,
+        BrowseToolbarComponent,
         EmptyStateComponent,
         MatButtonModule,
         MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatMenuModule,
         MatPaginatorModule,
-        MatSelectModule,
-        PluralizePipe,
+        SortButtonComponent,
         MatTooltipModule,
-        AccountMediaItemComponent,
+        MediaListItemComponent,
         IconButtonComponent,
         RepeatPipe,
         SubPageHeaderComponent,
@@ -65,12 +83,16 @@ export class UserListDetailPageComponent {
     readonly vm$ = this.store.userListDetailVm$;
     readonly backLink = ['/', 'me', 'lists'];
     readonly initialSkeletonCount = 6;
-    readonly sortOptions = USER_LIST_SORT_OPTIONS;
+    readonly sortFieldOptions = USER_LIST_SORT_FIELD_OPTIONS;
     readonly editingCommentKey = signal<string | null>(null);
     readonly commentDraft = signal('');
+    readonly commentPending = signal(false);
+    readonly commentSaveLabel = computed(() => (this.commentPending() ? 'Saving…' : 'Save'));
+    private readonly commentInput = viewChild<ElementRef<HTMLTextAreaElement>>('commentInput');
 
     constructor(
         private readonly destroyRef: DestroyRef,
+        private readonly injector: Injector,
         private readonly confirmationDialog: ConfirmationDialogService,
         private readonly dialog: MatDialog,
         private readonly pageScroll: PageScrollService,
@@ -98,8 +120,7 @@ export class UserListDetailPageComponent {
                         this.seo.setPage({
                             title: `${vm.header.data.name} | List`,
                             description:
-                                vm.header.data.description ||
-                                'Your saved movies and TV series in one CineKeep list.',
+                                vm.header.data.description || 'Your saved movies and TV series in one CineKeep list.',
                             robots: 'noindex, nofollow',
                         });
                         return;
@@ -148,17 +169,19 @@ export class UserListDetailPageComponent {
             .subscribe();
     }
 
-    onEditDetails(header: UserListDetailHeader, isPublic: boolean, defaultSortBy: UserListSortBy): void {
+    onEditDetails(header: UserListDetailHeader, defaultSortBy: UserListSortBy): void {
         this.dialog
             .open<UserListEditDialogComponent, UserListEditDialogData>(UserListEditDialogComponent, {
+                ariaLabelledBy: 'edit-list-title',
                 autoFocus: false,
                 data: {
+                    listId: header.id,
+                    cover: header.cover,
                     name: header.name,
                     description: header.description,
-                    isPublic,
                     sortBy: defaultSortBy,
                 },
-                maxWidth: '34rem',
+                maxWidth: '40rem',
                 panelClass: 'media-list-dialog-panel',
                 width: '100%',
             })
@@ -172,8 +195,8 @@ export class UserListDetailPageComponent {
                     if (
                         result.name === header.name &&
                         result.description === (header.description ?? '') &&
-                        result.isPublic === isPublic &&
-                        result.sortBy === defaultSortBy
+                        result.sortBy === defaultSortBy &&
+                        isSameUserListCover(result.cover, header.cover)
                     ) {
                         return EMPTY;
                     }
@@ -190,11 +213,21 @@ export class UserListDetailPageComponent {
             .subscribe();
     }
 
-    onSortChange(sortBy: UserListSortBy): void {
-        if (!this.sortOptions.some((option) => option.value === sortBy)) {
+    onSortFieldChange(value: unknown, current: UserListSort): void {
+        const field = this.sortFieldOptions.find((option) => option.value === value)?.value;
+
+        if (!field || field === current.field) {
             return;
         }
 
+        this.applySort(toUserListSortBy({ field, direction: current.direction }));
+    }
+
+    onSortDirectionToggle(current: UserListSort): void {
+        this.applySort(toUserListSortBy({ ...current, direction: current.direction === 'asc' ? 'desc' : 'asc' }));
+    }
+
+    private applySort(sortBy: UserListSortBy): void {
         this.store
             .setSortBy$(sortBy)
             .pipe(
@@ -208,8 +241,7 @@ export class UserListDetailPageComponent {
         this.confirmationDialog
             .confirm$({
                 title: 'Clear this list?',
-                message:
-                    'Every title will be removed, but the list itself will stay in place so you can reuse it.',
+                message: 'Every title will be removed, but the list itself will stay in place so you can reuse it.',
                 confirmLabel: 'Clear list',
                 tone: 'danger',
             })
@@ -228,8 +260,7 @@ export class UserListDetailPageComponent {
         this.confirmationDialog
             .confirm$({
                 title: 'Delete this list?',
-                message:
-                    'This permanently removes the list and every item saved to it from your account.',
+                message: 'This permanently removes the list and every item saved to it from your account.',
                 confirmLabel: 'Delete list',
                 tone: 'danger',
             })
@@ -267,6 +298,7 @@ export class UserListDetailPageComponent {
     onStartComment(item: UserListDetailItem): void {
         this.editingCommentKey.set(item.key);
         this.commentDraft.set(item.comment);
+        afterNextRender(() => this.commentInput()?.nativeElement.focus(), { injector: this.injector });
     }
 
     onCancelComment(): void {
@@ -283,6 +315,10 @@ export class UserListDetailPageComponent {
     }
 
     onSaveComment(item: UserListDetailItem): void {
+        if (this.commentPending()) {
+            return;
+        }
+
         const comment = this.commentDraft().trim();
 
         if (comment === item.comment) {
@@ -290,14 +326,17 @@ export class UserListDetailPageComponent {
             return;
         }
 
+        this.commentPending.set(true);
+
         this.store
             .updateItemComment$(item, comment)
             .pipe(
                 tap(() => {
                     this.onCancelComment();
-                    this.showSuccess('Comment updated.');
+                    this.showSuccess(comment ? 'Comment saved.' : 'Comment removed.');
                 }),
-                catchError(() => this.showError('Could not update this comment.')),
+                catchError(() => this.showError('Could not save this comment. Your text is still here, try again.')),
+                finalize(() => this.commentPending.set(false)),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();

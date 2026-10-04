@@ -8,6 +8,12 @@ import { RatingComponent } from '../rating/rating.component';
 
 export type CardDateFormat = 'year' | 'dayMonth';
 
+/** `DatePipe` patterns behind each card date format; shared by poster and backdrop cards. */
+export const CARD_DATE_PATTERNS: Readonly<Record<CardDateFormat, string>> = {
+    year: 'yyyy',
+    dayMonth: 'MMM d',
+};
+
 @Component({
     selector: 'app-card',
     templateUrl: './card.component.html',
@@ -16,8 +22,10 @@ export type CardDateFormat = 'year' | 'dayMonth';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CardComponent {
-    @Input() item?: CardItem;
+    @Input({ required: true }) item!: CardItem;
     @Input() dateFormat: CardDateFormat = 'year';
     @Input() imageParams?: string;
     @Input() showRating = true;
+
+    protected readonly datePatterns = CARD_DATE_PATTERNS;
 }

@@ -12,7 +12,6 @@
 export interface CreateUserListRequest { 
     name: string;
     description?: string;
-    isPublic?: boolean;
     sortBy?: CreateUserListRequest.SortByEnum;
 }
 export namespace CreateUserListRequest {

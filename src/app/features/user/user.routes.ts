@@ -5,6 +5,7 @@ import { UserListsStore } from './user-lists-store.service';
 import { UserFavouritesPageComponent } from './user-favourites-page/user-favourites-page.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserListCreatePageComponent } from './user-list-create-page/user-list-create-page.component';
+import { UserListDetailPageComponent } from './user-list-detail-page/user-list-detail-page.component';
 import { UserRatingsPageComponent } from './user-ratings-page/user-ratings-page.component';
 import { UserWatchlistPageComponent } from './user-watchlist-page/user-watchlist-page.component';
 import { UserListsComponent } from './user-lists/user-lists.component';
@@ -43,7 +44,7 @@ export const userRoutes: Routes = [
             },
             {
                 path: 'lists/:listId',
-                redirectTo: '/lists/:listId',
+                component: UserListDetailPageComponent,
             },
             {
                 path: 'lists',

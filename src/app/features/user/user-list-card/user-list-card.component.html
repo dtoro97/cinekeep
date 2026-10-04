@@ -1,63 +1,61 @@
-<article class="list-card">
-    <a class="list-card__link" [routerLink]="['/lists', item.id]" [attr.aria-label]="'Open list ' + item.name">
-        <div class="list-card__main">
-            <div class="list-card__title-row">
-                <h3 class="list-card__title text-subtitle">
-                    {{ item.name }}
-                </h3>
-            </div>
-
-            <div class="list-card__meta-row text-caption">
-                @if (item.numberOfItems !== null) {
-                    <span class="list-card__meta u-nowrap">
-                        {{ item.numberOfItems | pluralize: 'item' }}
-                    </span>
-                }
-            </div>
-
-            <p
-                class="list-card__description text-body-sm"
-                [class.list-card__description--placeholder]="!item.description"
-            >
-                {{ item.description || 'No list description yet.' }}
-            </p>
+<article class="list-card" [class.list-card--preview]="preview">
+    @if (preview) {
+        <div class="list-card__link">
+            <ng-container [ngTemplateOutlet]="content" />
         </div>
+    } @else {
+        <a class="list-card__link" [routerLink]="['/me/lists', item.id]" attr.aria-label="Open list {{ item.name }}">
+            <ng-container [ngTemplateOutlet]="content" />
+        </a>
+    }
 
-        <div class="list-card__footer text-caption">
-            @if (item.updatedAt ?? item.createdAt; as updatedAt) {
-                <span class="list-card__timestamp"> Updated {{ updatedAt | date: 'mediumDate' }} </span>
-            } @else {
-                <span class="list-card__timestamp"> Custom list </span>
-            }
-        </div>
-    </a>
-
-    <div class="list-card__actions">
-        <span
-            class="list-card__status"
-            [attr.aria-label]="(item.isPublic ? 'Public' : 'Private') + ' list'"
-            [title]="(item.isPublic ? 'Public' : 'Private') + ' list'"
-        >
-            <i [class]="item.isPublic ? 'fa-regular fa-eye' : 'fa-solid fa-lock'" aria-hidden="true"></i>
-        </span>
-
-        @if (actionsEnabled) {
+    @if (actionsEnabled) {
+        <div class="list-card__actions">
             <app-icon-button
-                [ariaLabel]="'Edit list ' + item.name"
+                ariaLabel="Edit list {{ item.name }}"
                 title="Edit list"
                 (onClick)="editList.emit(item)"
             >
-                <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+                <i class="fa-solid fa-pencil" aria-hidden="true"></i>
             </app-icon-button>
 
             <app-icon-button
                 tone="danger"
-                [ariaLabel]="'Delete list ' + item.name"
+                ariaLabel="Delete list {{ item.name }}"
                 title="Delete list"
                 (onClick)="deleteList.emit(item)"
             >
                 <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
             </app-icon-button>
-        }
-    </div>
+        </div>
+    }
 </article>
+
+<ng-template #content>
+        <div class="list-card__cover" [class.list-card__cover--poster]="item.cover?.isPoster">
+            @if (item.cover; as cover) {
+                <app-image class="list-card__cover-image" [src]="cover.path" [params]="cover.params" alt="" />
+            } @else {
+                <span class="list-card__cover-empty" aria-hidden="true">
+                    <i class="fa-solid fa-film"></i>
+                </span>
+            }
+
+            <h3 class="list-card__title text-display-sm">{{ item.name }}</h3>
+        </div>
+
+        <div class="list-card__body">
+            <p class="list-card__meta text-caption">
+                @if (item.numberOfItems !== null) {
+                    <span class="u-nowrap">{{ item.numberOfItems | pluralize: 'item' }}</span>
+                }
+                @if (item.updatedAt ?? item.createdAt; as updatedAt) {
+                    <span class="u-nowrap">Updated {{ updatedAt | date: 'mediumDate' }}</span>
+                }
+            </p>
+
+            @if (item.description) {
+                <p class="list-card__description text-body-sm">{{ item.description }}</p>
+            }
+        </div>
+</ng-template>

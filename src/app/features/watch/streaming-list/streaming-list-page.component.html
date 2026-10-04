@@ -12,13 +12,12 @@
             </p>
         </header>
 
-        <main class="streaming-list__content inner-container">
+        <main class="streaming-list__content inner-container page-list-column">
             <app-browse-toolbar>
                 <div start class="streaming-list__result-count">
                     @if (vm.showResultCount) {
                         <span class="text-caption">
-                            1 - {{ vm.visibleCount }} of
-                            {{ vm.totalResults }}
+                            {{ vm.totalResults | pluralize: "title" }}
                         </span>
                     }
                 </div>
@@ -54,7 +53,6 @@
                     @if (vm.isLoading) {
                         @for (slot of 20 | repeat; track slot) {
                             <div class="streaming-list__skeleton-row">
-                                <app-skeleton class="streaming-list__index-skeleton" />
                                 <app-skeleton class="streaming-list__poster-skeleton" />
                                 <div class="streaming-list__content-skeleton">
                                     <app-skeleton class="streaming-list__line streaming-list__line--title" />
@@ -70,7 +68,6 @@
                             <app-media-list-item
                                 [item]="entry.item"
                                 [link]="entry.routerLink"
-                                [index]="entry.index"
                             >
                                 <span media-list-item-note class="streaming-list__availability text-caption">
                                     {{ entry.availabilityText }}
@@ -84,13 +81,13 @@
                                     [mediaType]="entry.item.mediaType"
                                     [title]="entry.item.title"
                                     [iconOnly]="true"
+                                    [libraryState]="entry.libraryState"
                                 />
                             </app-media-list-item>
                         }
 
                         @for (slot of vm.loadingMorePlaceholderCount | repeat; track slot) {
                             <div class="streaming-list__skeleton-row">
-                                <app-skeleton class="streaming-list__index-skeleton" />
                                 <app-skeleton class="streaming-list__poster-skeleton" />
                                 <div class="streaming-list__content-skeleton">
                                     <app-skeleton class="streaming-list__line streaming-list__line--title" />

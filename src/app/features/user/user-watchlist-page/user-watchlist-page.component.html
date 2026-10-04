@@ -3,10 +3,9 @@
         parentTitle="Profile"
         backLink="/me"
         pageTitle="Watchlist"
-        subtitle="Movies and TV series saved for later."
     />
 
-    <main class="page-main page">
+    <main class="page-main page page-list-column">
         <app-browse-toolbar>
             <div start class="page__total">
                 @if (vm.items.state === "success") {
@@ -33,27 +32,27 @@
         @if (vm.items.state === "loading") {
             <div class="page__list">
                 @for (placeholder of skeletonCount | repeat; track placeholder) {
-                    <app-account-media-item [loading]="true" />
+                    <app-media-list-item [loading]="true" />
                 }
             </div>
         } @else if (vm.items.state === "success") {
             @if (vm.items.data.length) {
                 <div class="page__list">
                     @for (item of vm.items.data; track item.id) {
-                        <app-account-media-item
+                        <app-media-list-item
                             [item]="item"
                             [link]="['/title', item.id, item.mediaType]"
                         >
                             <app-icon-button
-                                account-media-item-action
-                                tone="danger"
+                                media-list-item-action
+                                [selected]="true"
                                 title="Remove from watchlist"
-                                [ariaLabel]="'Remove ' + item.title + ' from watchlist'"
+                                ariaLabel="Remove {{ item.title }} from watchlist"
                                 (onClick)="onRemoveFromWatchlist(item)"
                             >
                                 <i class="fa-solid fa-bookmark" aria-hidden="true"></i>
                             </app-icon-button>
-                        </app-account-media-item>
+                        </app-media-list-item>
                     }
                 </div>
 

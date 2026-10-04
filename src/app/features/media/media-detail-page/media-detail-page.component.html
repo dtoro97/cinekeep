@@ -32,6 +32,15 @@
 
                             <h1 class="hero-title text-hero-title">{{ media.title }}</h1>
 
+                            @if (vm.hero.credit; as credit) {
+                                <p class="hero-credit text-body">
+                                    {{ credit.label }}
+                                    @for (person of credit.people; track person.id; let last = $last) {
+                                        <a class="hero-credit__link" [routerLink]="['/name', person.id]">{{ person.name }}</a>@if (!last) {<span>, </span>}
+                                    }
+                                </p>
+                            }
+
                             @if (media.tagline) {
                                 <p class="hero-tagline text-hero-summary">"{{ media.tagline }}"</p>
                             }
@@ -50,20 +59,17 @@
 
                             @if (media.mediaType === 'tv' && media.numberOfSeasons) {
                                 <span class="text-body-sm">
-                                    {{ media.numberOfSeasons }}
-                                    {{ media.numberOfSeasons === 1 ? 'season' : 'seasons' }}
+                                    {{ media.numberOfSeasons | pluralize: 'season' : 'seasons' }}
                                 </span>
                             }
 
                             @if (media.runtime) {
                                 <span class="text-body-sm">{{ media.runtime | m2h }}</span>
                             }
-                        </div>
 
-                        <div class="hero-genres">
                             @for (genre of media.genres; track genre.id) {
                                 <mat-chip
-                                    class="chip--accent chip--link"
+                                    class="chip--link"
                                     [routerLink]="['/discover']"
                                     [queryParams]="{
                                         genres: genre.id,
@@ -97,58 +103,31 @@
                             </a>
                         }
 
-                        <div class="hero-actions">
-                            <app-media-list-actions
-                                [mediaId]="media.id"
-                                [title]="media.title"
-                                [mediaType]="media.mediaType"
-                            />
-
+                        <app-media-list-actions
+                            [mediaId]="media.id"
+                            [title]="media.title"
+                            [mediaType]="media.mediaType"
+                            [backdropPath]="media.backdropPath"
+                        >
                             @if (vm.videos.state === 'loading') {
                                 <app-skeleton class="hero-trailer-skeleton" aria-hidden="true" />
                             } @else if (vm.videos.state === 'success' && vm.videos.data?.trailerKey; as trailerKey) {
-                                <button matButton="filled" type="button" (click)="openTrailer(trailerKey)">
+                                <button
+                                    matButton="outlined"
+                                    class="button--subtle"
+                                    type="button"
+                                    (click)="openTrailer(trailerKey)"
+                                >
                                     <i class="fa-solid fa-play" aria-hidden="true"></i>
-                                    Play trailer
+                                    Trailer
                                 </button>
                             }
-                        </div>
-                    </div>
-
-                    <aside class="detail-hero__side" aria-label="Ratings and availability">
-                        @if (media.voteAverage || vm.hero.canRateTitle) {
-                            <div class="hero-ratings">
-                                <app-tmdb-rating [value]="media.voteAverage" [voteCount]="media.voteCount" />
-
-                                @if (vm.hero.canRateTitle) {
-                                    <app-user-rating
-                                        class="hero-user-rating hero-user-rating--with-divider"
-                                        [currentRating]="vm.hero.userRating.currentRating"
-                                        [disabled]="vm.hero.userRating.disabled"
-                                        [loading]="vm.hero.userRating.loading"
-                                        [pending]="vm.hero.userRating.pending"
-                                        (ratingClick)="openUserRatingDialog(media.id, media.mediaType, media.title)"
-                                    />
-                                }
-                            </div>
-                        }
+                        </app-media-list-actions>
 
                         @if (vm.hero.watchProviders; as providers) {
                             @if (providers.providers.length) {
                                 <div class="provider-preview">
-                                    <div class="u-flex-column u-items-start u-gap-1">
-                                        <span class="text-label u-nowrap">Watch on</span>
-                                        @if (providers.link) {
-                                            <a
-                                                class="section-link section-link--muted text-body-sm"
-                                                [href]="providers.link"
-                                                target="_blank"
-                                                rel="noopener"
-                                            >
-                                                Data provided by JustWatch
-                                            </a>
-                                        }
-                                    </div>
+                                    <span class="text-overline">Stream on</span>
 
                                     <div class="provider-preview-logos">
                                         @for (provider of providers.providers; track provider.provider_id) {
@@ -181,8 +160,38 @@
                                             </a>
                                         }
                                     </div>
+
+                                    @if (providers.link) {
+                                        <a
+                                            class="section-link section-link--muted text-caption"
+                                            [href]="providers.link"
+                                            target="_blank"
+                                            rel="noopener"
+                                        >
+                                            Data provided by JustWatch
+                                        </a>
+                                    }
                                 </div>
                             }
+                        }
+                    </div>
+
+                    <aside class="detail-hero__side" aria-label="Ratings">
+                        @if (media.voteAverage || vm.hero.canRateTitle) {
+                            <div class="hero-ratings">
+                                <app-tmdb-rating prominent [value]="media.voteAverage" [voteCount]="media.voteCount" />
+
+                                @if (vm.hero.canRateTitle) {
+                                    <app-user-rating
+                                        class="hero-user-rating hero-user-rating--with-divider"
+                                        [currentRating]="vm.hero.userRating.currentRating"
+                                        [disabled]="vm.hero.userRating.disabled"
+                                        [loading]="vm.hero.userRating.loading"
+                                        [pending]="vm.hero.userRating.pending"
+                                        (ratingClick)="openUserRatingDialog(media.id, media.mediaType, media.title)"
+                                    />
+                                }
+                            </div>
                         }
                     </aside>
                 </div>
@@ -199,9 +208,6 @@
                         <div class="detail-hero__facts">
                             <app-skeleton class="hero-certification-skeleton" aria-hidden="true" />
                             <app-skeleton class="hero-meta-skeleton" aria-hidden="true" />
-                        </div>
-
-                        <div class="hero-genres">
                             @for (i of 3 | repeat; track i) {
                                 <app-skeleton class="hero-genre-skeleton" aria-hidden="true" />
                             }
@@ -216,26 +222,15 @@
                         </div>
                     </div>
 
-                    <aside class="detail-hero__side" aria-label="Ratings and availability">
+                    <aside class="detail-hero__side" aria-label="Ratings">
                         <div class="hero-ratings">
-                            <app-tmdb-rating [loading]="true" />
+                            <app-tmdb-rating prominent [loading]="true" />
                             <app-user-rating
                                 class="hero-user-rating hero-user-rating--with-divider"
                                 [currentRating]="null"
                                 [disabled]="true"
                                 [loading]="true"
                             />
-                        </div>
-
-                        <div class="provider-preview provider-preview--skeleton" aria-hidden="true">
-                            <div class="u-flex-column u-items-start u-gap-1">
-                                <app-skeleton class="hero-provider-label-skeleton" />
-                                <app-skeleton class="hero-provider-link-skeleton" />
-                            </div>
-
-                            <div class="provider-preview-logos">
-                                <app-skeleton class="hero-provider-logo-skeleton" />
-                            </div>
                         </div>
                     </aside>
                 </div>
@@ -245,6 +240,11 @@
         <div class="page-sections">
             @if (vm.creditsSummary.state !== 'success' || vm.creditsSummary.data) {
                 <app-page-section subtitle="Top Cast">
+                    <a section-controls class="section-link text-body-sm" [routerLink]="['cast']">
+                        All cast & crew
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </a>
+
                     <app-media-credits-summary [data]="vm.creditsSummary" />
                 </app-page-section>
             }
@@ -272,39 +272,15 @@
                 </a>
             }
 
-            @if (vm.media; as media) {
-                @if (media.mediaType === 'tv' && media.lastEpisode) {
-                    <app-page-section subtitle="Latest Episode">
-                        <a section-controls class="section-link text-body-sm" [routerLink]="['episodes']">
-                            Browse all episodes
-                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                        </a>
+            @if (vm.latestEpisode; as episode) {
+                <app-page-section subtitle="Latest Episode">
+                    <a section-controls class="section-link text-body-sm" [routerLink]="['episodes']">
+                        Browse all episodes
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </a>
 
-                        @if (vm.latestEpisode; as episode) {
-                            <app-episode-list-item
-                                [item]="{
-                                    name: episode.name,
-                                    subtitle: null,
-                                    overview: episode.overview,
-                                    stillPath: episode.still_path,
-                                    seasonNumber: episode.season_number,
-                                    episodeNumber: episode.episode_number,
-                                    airDate: episode.air_date,
-                                    runtime: episode.runtime,
-                                    voteAverage: episode.vote_average,
-                                    routeCommands: [
-                                        '/title',
-                                        media.id,
-                                        media.mediaType,
-                                        'episodes',
-                                        episode.season_number,
-                                        episode.episode_number,
-                                    ],
-                                }"
-                            />
-                        }
-                    </app-page-section>
-                }
+                    <app-episode-list-item [item]="episode" />
+                </app-page-section>
             }
 
             @if (vm.videos.state === 'loading') {
@@ -377,22 +353,12 @@
             }
 
             @if (vm.recommendations.state === 'loading') {
-                <app-page-section panel title="More Like This">
-                    <app-media-carousel-panel
-                        [state]="{ state: 'loading' }"
-                        variant="backdrop"
-                        [showRating]="true"
-                        [showDate]="true"
-                    />
+                <app-page-section subtitle="More Like This">
+                    <app-media-carousel-panel [state]="{ state: 'loading' }" [showRating]="true" [showDate]="true" />
                 </app-page-section>
             } @else if (vm.recommendations.state === 'success' && vm.recommendations.data; as recommendations) {
-                <app-page-section panel title="More Like This">
-                    <app-media-carousel-panel
-                        [state]="recommendations.state"
-                        variant="backdrop"
-                        [showRating]="true"
-                        [showDate]="true"
-                    />
+                <app-page-section subtitle="More Like This">
+                    <app-media-carousel-panel [state]="recommendations.state" [showRating]="true" [showDate]="true" />
                 </app-page-section>
             }
 
@@ -528,12 +494,7 @@
                                                     direction: 'desc',
                                                     votes: 'any',
                                                 }"
-                                            >
-                                                {{ company.label }}
-                                            </a>
-                                            @if (i !== media.productionCompanies.length - 1) {
-                                                <span>, </span>
-                                            }
+                                            >{{ company.label }}</a>@if (i !== media.productionCompanies.length - 1) {<span>, </span>}
                                         }
                                     </dd>
                                 </div>

@@ -45,14 +45,11 @@
     background: var(--surface-panel-soft);
     color: var(--text-primary);
     text-decoration: none;
-    transition:
-        background-color var(--motion-base),
-        border-color var(--motion-base);
-    @include media-card-hover(
+    @include card-hover(
         '.provider-card__image',
         '.provider-card__label',
-        var(--color-border),
-        var(--surface-panel)
+        $border-color: var(--color-border),
+        $background: var(--surface-panel)
     );
 
     &__media {
@@ -68,7 +65,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: opacity var(--motion-base);
+        transition: filter var(--motion-base);
     }
 
     &__logo {
@@ -141,14 +138,11 @@
     background: var(--surface-panel-soft);
     color: inherit;
     text-decoration: none;
-    transition:
-        background-color var(--motion-base),
-        border-color var(--motion-base);
-    @include media-card-hover(
+    @include card-hover(
         '.route-card__image',
         '.route-card__title',
-        var(--color-border),
-        var(--surface-panel)
+        $border-color: var(--color-border),
+        $background: var(--surface-panel)
     );
 
     &--featured {
@@ -175,7 +169,7 @@
     }
 
     &__cta {
-        color: var(--text-accent);
+        color: var(--text-primary);
     }
 
     &__preview {
@@ -199,7 +193,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: opacity var(--motion-base);
+        transition: filter var(--motion-base);
     }
 }
 

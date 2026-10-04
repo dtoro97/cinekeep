@@ -25,6 +25,7 @@ import {
     buildExternalLinks,
     compareValues,
     isPreferredImageLanguage,
+    toRating,
 } from '../../shared';
 import { CAROUSEL_COUNT } from '../../constants';
 
@@ -69,6 +70,8 @@ export interface PersonCreditsUiState {
 export interface PersonDetailVm {
     person: RemoteData<PersonWithExternalIds | null>;
     externalLinks: ExternalLinks | null;
+    /** "Alternative name" or "Alternative names", matching the person's alias count. */
+    aliasesLabel: string;
     knownFor: RemoteData<CardItem[]>;
     photos: RemoteData<ViewerImage[]>;
     credits: RemoteData<PersonCreditsState>;
@@ -76,17 +79,21 @@ export interface PersonDetailVm {
     creditsDisplay: RemoteData<{
         totalCount: number;
         hasActiveFilters: boolean;
+        emptyTitle: string;
+        emptyText: string;
         mediaOptions: SelectOption<PersonCreditsMediaType>[];
         acting: {
             totalCount: number;
             hiddenCount: number;
             expanded: boolean;
+            toggleLabel: string;
             rows: PersonCreditRow[];
         };
         production: {
             totalCount: number;
             hiddenCount: number;
             expanded: boolean;
+            toggleLabel: string;
             rows: PersonCreditRow[];
         };
     }>;
@@ -120,6 +127,10 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
         (state): PersonDetailVm => ({
             person: state.person,
             externalLinks: this.buildPersonExternalLinks(state.person),
+            aliasesLabel:
+                state.person.state === 'success' && state.person.data?.also_known_as?.length === 1
+                    ? 'Alternative name'
+                    : 'Alternative names',
             knownFor: this.buildKnownFor(state.person, state.credits),
             photos: state.photos,
             credits: state.credits,
@@ -365,7 +376,7 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
                 mediaType,
                 releaseDate,
                 year: releaseDate?.slice(0, 4) || 'Unknown',
-                rating: credit.vote_average ?? null,
+                rating: toRating(credit.vote_average),
                 voteCount: credit.vote_count ?? 0,
                 posterPath: credit.poster_path ?? null,
                 backdropPath: credit.backdrop_path ?? null,
@@ -431,15 +442,20 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
 
         const acting = this.prepareCreditSection(credits.data.acting, ui, ui.actingExpanded);
         const production = this.prepareCreditSection(credits.data.production, ui, ui.productionExpanded);
+        const hasActiveFilters =
+            ui.mediaType !== INITIAL_CREDITS_UI.mediaType ||
+            ui.sortBy !== INITIAL_CREDITS_UI.sortBy ||
+            ui.sortDirection !== INITIAL_CREDITS_UI.sortDirection;
 
         return {
             state: 'success' as const,
             data: {
                 totalCount: acting.totalCount + production.totalCount,
-                hasActiveFilters:
-                    ui.mediaType !== INITIAL_CREDITS_UI.mediaType ||
-                    ui.sortBy !== INITIAL_CREDITS_UI.sortBy ||
-                    ui.sortDirection !== INITIAL_CREDITS_UI.sortDirection,
+                hasActiveFilters,
+                emptyTitle: hasActiveFilters ? 'No filmography matches these filters' : 'No filmography available yet',
+                emptyText: hasActiveFilters
+                    ? 'Try resetting the filters to bring back more titles.'
+                    : 'We do not have any movie or TV series credits to show right now.',
                 mediaOptions: this.buildMediaOptions(credits.data),
                 acting,
                 production,
@@ -489,6 +505,7 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
         totalCount: number;
         hiddenCount: number;
         expanded: boolean;
+        toggleLabel: string;
         rows: PersonCreditRow[];
     } {
         const filtered = ui.mediaType === 'all' ? rows : rows.filter((row) => row.mediaType === ui.mediaType);
@@ -499,6 +516,7 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
             totalCount: sorted.length,
             hiddenCount: Math.max(sorted.length - visibleRows.length, 0),
             expanded,
+            toggleLabel: expanded ? 'Show less' : 'Show all',
             rows: visibleRows,
         };
     }

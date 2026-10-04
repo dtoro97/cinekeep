@@ -1,7 +1,2 @@
 <i class="rating__icon fa-solid fa-star" aria-hidden="true"></i>
-
-@if (value) {
-    <span class="rating__value">{{ value | number: '1.1-1' }}</span>
-} @else {
-    <span class="text-caption">-</span>
-}
+<span class="rating__value">{{ value | number: '1.1-1' }}</span>

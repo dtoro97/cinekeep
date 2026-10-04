@@ -8,16 +8,26 @@ import { PAGE_SIZE } from '../../constants';
 import { RemoteData, UserLibraryService, UserListSortBy, isDefined } from '../../shared';
 import { remoteSuccess, toPageItemRange, updateRemoteData } from '../../shared/utils';
 import { DEFAULT_USER_LIST_SORT_BY } from './user-list-sort-options';
+import { UserListCoverChoice, toUserListCoverChoice } from './user-list-cover';
+
+export interface UserListCover {
+    readonly path: string;
+    readonly params: string;
+    /** Posters are cropped toward the top so faces and titles survive the wide frame. */
+    readonly isPoster: boolean;
+}
 
 export interface UserListSummaryItem {
     readonly id: number;
     readonly name: string;
     readonly description: string | null;
-    readonly isPublic: boolean;
     readonly sortBy: UserListSortBy;
     readonly createdAt: string | null;
     readonly updatedAt: string | null;
     readonly numberOfItems: number | null;
+    readonly cover: UserListCover | null;
+    /** The cover the user picked; `null` while the automatic cover is used. */
+    readonly coverChoice: UserListCoverChoice | null;
 }
 
 interface UserListsState {
@@ -97,19 +107,19 @@ export class UserListsStore extends ComponentStore<UserListsState> {
         request: {
             readonly name: string;
             readonly description: string;
-            readonly isPublic: boolean;
             readonly sortBy: UserListSortBy;
+            readonly cover: UserListCoverChoice | null;
         },
     ) {
         return this.userLibraryService
             .updateList$(listId, {
                 name: request.name,
                 description: request.description,
-                isPublic: request.isPublic,
                 sortBy: request.sortBy,
+                cover: request.cover ?? undefined,
             })
             .pipe(
-                tap(() => {
+                tap((list) => {
                     this.patchState((state) => ({
                         items: updateRemoteData(state.items, (items) =>
                             items.map((item) =>
@@ -118,8 +128,9 @@ export class UserListsStore extends ComponentStore<UserListsState> {
                                           ...item,
                                           name: request.name,
                                           description: request.description || null,
-                                          isPublic: request.isPublic,
                                           sortBy: request.sortBy,
+                                          cover: this.toUserListCover(list),
+                                          coverChoice: toUserListCoverChoice(list.cover),
                                       }
                                     : item,
                             ),
@@ -137,9 +148,7 @@ export class UserListsStore extends ComponentStore<UserListsState> {
                 const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
                 const page = Math.min(state.page, totalPages);
                 const nextItems =
-                    state.items.state === 'success'
-                        ? state.items.data.filter((item) => item.id !== listId)
-                        : null;
+                    state.items.state === 'success' ? state.items.data.filter((item) => item.id !== listId) : null;
 
                 this.patchState({
                     items: nextItems ? remoteSuccess(nextItems) : state.items,
@@ -179,11 +188,22 @@ export class UserListsStore extends ComponentStore<UserListsState> {
             id: item.id,
             name,
             description: item.description?.trim() || null,
-            isPublic: item.isPublic === true,
             sortBy: item.sortBy ?? DEFAULT_USER_LIST_SORT_BY,
             createdAt: item.createdAt ?? null,
             updatedAt: item.updatedAt ?? null,
             numberOfItems: item.itemCount ?? null,
+            cover: this.toUserListCover(item),
+            coverChoice: toUserListCoverChoice(item.cover),
         };
+    }
+
+    private toUserListCover(item: UserListResponse): UserListCover | null {
+        const { backdropPath, posterPath } = item.cover ?? {};
+
+        if (backdropPath) {
+            return { path: backdropPath, params: 'w780', isPoster: false };
+        }
+
+        return posterPath ? { path: posterPath, params: 'w500', isPoster: true } : null;
     }
 }

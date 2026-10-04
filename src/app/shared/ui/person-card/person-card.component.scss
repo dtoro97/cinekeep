@@ -17,7 +17,7 @@
 }
 
 a.card {
-    @include media-card-hover('.photo', '.name');
+    @include card-hover('.photo', '.name', $frame-selector: '.photo', $scale: false);
 }
 
 .photo {
@@ -26,9 +26,8 @@ a.card {
     aspect-ratio: 1 / 1;
     overflow: hidden;
     border-radius: var(--radius-full);
-    border: 1px solid var(--mat-sys-outline-variant);
+    border: 1px solid var(--color-border-subtle);
     --image-radius: var(--radius-full);
-    transition: opacity var(--motion-base);
 }
 
 .photo-fill {
@@ -39,7 +38,6 @@ a.card {
 
 .name {
     margin-top: var(--space-1);
-    transition: color var(--motion-base);
     @include line-clamp(2);
 }
 

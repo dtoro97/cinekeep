@@ -1,6 +1,20 @@
 import { Injectable } from '@angular/core';
 
-import { EMPTY, Observable, expand, finalize, forkJoin, map, reduce, share, switchMap } from 'rxjs';
+import {
+    EMPTY,
+    Observable,
+    catchError,
+    concatMap,
+    expand,
+    finalize,
+    forkJoin,
+    map,
+    of,
+    reduce,
+    share,
+    startWith,
+    switchMap,
+} from 'rxjs';
 
 import {
     FavoriteControllerService,
@@ -13,9 +27,10 @@ import {
     WatchlistControllerService,
 } from '../../api-cinekeep';
 import { MediaSnapshotRequest } from '../mappers/media-snapshot.mapper';
-import { LibraryFlag, MediaType, UserListSortBy } from '../types';
+import { LibraryFlag, MediaType, RemoteData, UserListSortBy } from '../types';
 import { isDefined } from '../utils';
 import { MediaSnapshotService } from './media-snapshot.service';
+import { UserSessionStoreService } from './user-session-store.service';
 
 export interface MediaUserListSummary {
     id: number;
@@ -28,6 +43,27 @@ export interface MediaUserListSummary {
 
 /** The largest page the backend serves. */
 const MAX_PAGE_SIZE = 100;
+
+/** One media-state entry per title, keyed by `mediaType:id`. */
+export type MediaStateLookup = ReadonlyMap<string, MediaStateResponse>;
+
+export interface MediaKey {
+    readonly id: number;
+    readonly mediaType: MediaType;
+}
+
+export const toMediaKey = (item: MediaKey): string => `${item.mediaType}:${item.id}`;
+
+/** Per-title state for a library toggle: not asked while signed out, loading until fetched. */
+export const toLibraryState = (lookup: MediaStateLookup | null, item: MediaKey): RemoteData<MediaStateResponse> => {
+    if (!lookup) {
+        return { state: 'notAsked' };
+    }
+
+    const state = lookup.get(toMediaKey(item));
+    return state ? { state: 'success', data: state } : { state: 'loading' };
+};
+
 @Injectable({ providedIn: 'root' })
 export class UserLibraryService {
     private readonly mediaStateRequests = new Map<string, Observable<MediaStateResponse>>();
@@ -39,6 +75,7 @@ export class UserLibraryService {
         private readonly userListController: UserListControllerService,
         private readonly userListItemController: UserListItemControllerService,
         private readonly watchlistController: WatchlistControllerService,
+        private readonly userSessionStore: UserSessionStoreService,
     ) {}
 
     updateWatchlist$(
@@ -131,26 +168,19 @@ export class UserLibraryService {
         return this.userListController.getListDetails({ listId, page: pageIndex, size: pageSize, sortBy });
     }
 
-    createList$(name: string, description: string, isPublic: boolean, sortBy: UserListSortBy): Observable<number> {
-        return this.userListController
-            .createList({ createUserListRequest: { name, description, isPublic, sortBy } })
-            .pipe(
-                map((list) => {
-                    if (!list.id) {
-                        throw new Error('Unable to create your list.');
-                    }
+    createList$(name: string, description: string, sortBy: UserListSortBy): Observable<number> {
+        return this.userListController.createList({ createUserListRequest: { name, description, sortBy } }).pipe(
+            map((list) => {
+                if (!list.id) {
+                    throw new Error('Unable to create your list.');
+                }
 
-                    return list.id;
-                }),
-            );
+                return list.id;
+            }),
+        );
     }
 
-    addToList$(
-        listId: number,
-        mediaId: number,
-        mediaType: MediaType,
-        snapshot?: MediaSnapshotRequest,
-    ) {
+    addToList$(listId: number, mediaId: number, mediaType: MediaType, snapshot?: MediaSnapshotRequest) {
         return this.saveWithSnapshot$(mediaId, mediaType, snapshot, (request) =>
             this.userListItemController.addItem({ listId, listItemRequest: request }),
         );
@@ -177,28 +207,28 @@ export class UserLibraryService {
     }
 
     updateList$(listId: number, request: UpdateUserListRequest) {
-        return this.userListController
-            .updateList({ listId, updateUserListRequest: request });
+        return this.userListController.updateList({ listId, updateUserListRequest: request });
     }
 
     clearList$(listId: number) {
-        return this.userListItemController
-            .clearItems({ listId });
+        return this.userListItemController.clearItems({ listId });
     }
 
     deleteList$(listId: number) {
-        return this.userListController
-            .deleteList({ listId });
+        return this.userListController.deleteList({ listId });
     }
 
     removeItem$(listId: number, mediaId: number, mediaType: MediaType) {
-        return this.userListItemController
-            .removeItem({ listId, mediaType, tmdbId: mediaId });
+        return this.userListItemController.removeItem({ listId, mediaType, tmdbId: mediaId });
     }
 
     updateItemComment$(listId: number, mediaId: number, mediaType: MediaType, comment: string) {
-        return this.userListItemController
-            .updateItem({ listId, mediaType, tmdbId: mediaId, updateListItemRequest: { comment } });
+        return this.userListItemController.updateItem({
+            listId,
+            mediaType,
+            tmdbId: mediaId,
+            updateListItemRequest: { comment },
+        });
     }
 
     /** Callers asking for the same title at the same time, like a card's two toggles, share one request. */
@@ -210,15 +240,63 @@ export class UserLibraryService {
             return inFlight$;
         }
 
-        const request$ = this.mediaStateController
-            .getMediaState({ mediaType, tmdbId: mediaId })
-            .pipe(
-                finalize(() => this.mediaStateRequests.delete(key)),
-                share(),
-            );
+        const request$ = this.mediaStateController.getMediaState({ mediaType, tmdbId: mediaId }).pipe(
+            finalize(() => this.mediaStateRequests.delete(key)),
+            share(),
+        );
 
         this.mediaStateRequests.set(key, request$);
         return request$;
+    }
+
+    /** States for up to 100 movies and 100 TV series in one request. */
+    getMediaStates$(items: readonly MediaKey[]): Observable<MediaStateLookup> {
+        return this.mediaStateController
+            .getMediaStates({
+                movieIds: items.filter((item) => item.mediaType === 'movie').map((item) => item.id),
+                tvIds: items.filter((item) => item.mediaType === 'tv').map((item) => item.id),
+            })
+            .pipe(
+                map(
+                    (states) =>
+                        new Map(items.map((item) => [toMediaKey(item), states[item.mediaType]?.[item.id] ?? {}])),
+                ),
+            );
+    }
+
+    /**
+     * Library states for the titles a list has loaded. Fetches only titles it has not seen,
+     * so "show more" asks for the new page alone; emits `null` while signed out.
+     */
+    mediaStates$(items$: Observable<readonly MediaKey[]>): Observable<MediaStateLookup | null> {
+        return this.userSessionStore.settledIsAuthenticated$.pipe(
+            switchMap((authenticated) => {
+                if (!authenticated) {
+                    return of(null);
+                }
+
+                const lookup = new Map<string, MediaStateResponse>();
+
+                return items$.pipe(
+                    concatMap((items) => {
+                        const missing = items.filter((item) => !lookup.has(toMediaKey(item)));
+
+                        if (!missing.length) {
+                            return EMPTY;
+                        }
+
+                        return this.getMediaStates$(missing).pipe(
+                            catchError(() => of(new Map(missing.map((item) => [toMediaKey(item), {}])))),
+                            map((states) => {
+                                states.forEach((state, key) => lookup.set(key, state));
+                                return new Map(lookup);
+                            }),
+                        );
+                    }),
+                    startWith(new Map(lookup)),
+                );
+            }),
+        );
     }
 
     /** Saves a title with its snapshot, fetching the snapshot from TMDb when none is passed. */

@@ -1,50 +1,131 @@
-.dialog {
-    &__header,
-    &__content,
-    &__field,
-    &__properties,
-    &__property {
-        display: flex;
-        flex-direction: column;
-    }
+@use 'breakpoints' as *;
+@use 'mixins' as *;
 
-    &__header {
-        gap: var(--space-2);
-        margin-bottom: var(--space-6);
+.dialog {
+    &__title {
+        margin-bottom: var(--space-5);
     }
 
     &__content {
-        gap: var(--space-6);
-    }
-
-    &__field {
-        gap: var(--space-3);
-    }
-
-    &__field-label {
         display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: var(--space-3);
+        flex-direction: column;
+        gap: var(--space-6);
+        padding-top: var(--space-1);
+    }
+}
+
+// Covers are picked like stills on a contact sheet: native radios underneath, so arrow keys work.
+// The divider lives on a wrapper: a fieldset border would cut through its legend.
+.cover-section {
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--row-divider);
+}
+
+.cover-picker {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    &__legend {
+        padding: 0;
+        margin-bottom: var(--space-1);
     }
 
-    &__description-field {
-        --mat-form-field-container-height: auto;
+    &__hint {
+        display: block;
+        margin-bottom: var(--space-4);
+    }
 
-        textarea.mat-mdc-input-element {
-            resize: vertical;
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+        gap: var(--space-4) var(--space-3);
+        max-height: 19rem;
+        overflow-y: auto;
+        padding: var(--space-1);
+        margin: calc(var(--space-1) * -1);
+    }
+
+    &__option {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1-5);
+        min-width: 0;
+        cursor: pointer;
+    }
+
+    &__frame {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 100%;
+        aspect-ratio: var(--backdrop-ratio);
+        background: var(--surface-panel);
+        transition:
+            box-shadow var(--motion-fast),
+            border-color var(--motion-fast);
+        @include media-frame();
+
+        &--automatic {
+            color: var(--text-muted);
+            font-size: var(--text-xl);
         }
     }
 
-    &__properties {
-        gap: var(--space-3);
-        min-width: 0;
-        margin: 0;
-        padding: 0;
-        border: 0;
+    &__image {
+        width: 100%;
+        height: 100%;
+        transition: filter var(--motion-base);
     }
 
-    &__property {
-        gap: var(--space-1);
+    &__name {
+        color: var(--text-secondary);
+        @include line-clamp(1);
+    }
+
+    &__name-skeleton {
+        width: 70%;
+        --skeleton-height: 0.75rem;
+    }
+
+    &__option:has(input:checked) {
+        .cover-picker__frame {
+            border-color: var(--color-brand);
+            box-shadow: 0 0 0 2px var(--color-brand);
+        }
+
+        .cover-picker__name {
+            color: var(--text-primary);
+        }
+    }
+
+    &__option:has(input:focus-visible) .cover-picker__frame {
+        box-shadow:
+            0 0 0 2px var(--color-brand),
+            0 0 0 5px var(--control-focus-ring-outer);
+    }
+
+    &__empty {
+        margin: 0;
+        color: var(--text-muted);
+    }
+}
+
+@include hover-capable {
+    .cover-picker__option:hover {
+        .cover-picker__image {
+            filter: var(--interactive-media-hover-filter);
+        }
+
+        .cover-picker__name {
+            color: var(--text-primary);
+        }
+    }
+}
+
+@include mobile() {
+    .cover-picker__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }

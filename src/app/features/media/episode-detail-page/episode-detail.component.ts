@@ -32,18 +32,17 @@ import {
     ViewerImage,
 } from '../../../shared';
 import {
-    ImageComponent,
+    HeroSurfaceComponent,
     PageSectionComponent,
     PhotoViewerComponent,
     PhotosPreviewComponent,
     SkeletonComponent,
-    SubPageHeaderComponent,
     TmdbRatingComponent,
     UserRatingComponent,
     VideosGridComponent,
 } from '../../../shared';
 import { MinutesToHours } from '../../../shared/pipes/time.pipe';
-import { CastCrewGridComponent } from '../cast-crew-grid/cast-crew-grid.component';
+import { MediaCreditsSummaryComponent } from '../media-credits-summary/media-credits-summary.component';
 import { EpisodeTarget, isSameEpisodeTarget, toEpisodeTarget } from '../media-target';
 import { MediaStoreService } from '../media-store.service';
 import { EpisodeDetailStoreService } from './episode-detail-store.service';
@@ -55,14 +54,13 @@ import { EpisodeDetailStoreService } from './episode-detail-store.service';
         DatePipe,
         RouterLink,
         MatDialogModule,
-        CastCrewGridComponent,
+        HeroSurfaceComponent,
+        MediaCreditsSummaryComponent,
         UserRatingComponent,
-        ImageComponent,
         PageSectionComponent,
         PhotosPreviewComponent,
         SkeletonComponent,
         MinutesToHours,
-        SubPageHeaderComponent,
         TmdbRatingComponent,
         VideosGridComponent,
     ],
@@ -89,7 +87,9 @@ export class EpisodeDetailComponent {
         map(({ detail, target, episodeTarget }) => ({
             ...detail,
             seriesId: target.id,
+            seriesLink: ['/title', target.id, target.type] as const,
             episodesLink: ['/title', target.id, target.type, 'episodes', episodeTarget.seasonNumber] as const,
+            seasonLabel: episodeTarget.seasonNumber === 0 ? 'Specials' : `Season ${episodeTarget.seasonNumber}`,
         })),
     );
 

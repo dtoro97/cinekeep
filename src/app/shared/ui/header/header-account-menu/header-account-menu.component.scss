@@ -101,25 +101,15 @@
     }
 
     &__identity {
+        padding: var(--space-3);
+        color: var(--text-primary);
+    }
+
+    &__identity-row {
         display: flex;
         align-items: center;
         gap: var(--space-3);
-        padding: var(--space-3);
-        color: var(--text-primary);
-        transition:
-            background-color var(--motion-fast),
-            color var(--motion-fast);
-
-        @include hover-capable {
-            &:hover {
-                background: var(--control-subtle-surface-hover);
-            }
-        }
-
-        &:focus-visible {
-            outline: 2px solid var(--control-focus-ring-inner);
-            outline-offset: -2px;
-        }
+        min-width: 0;
     }
 
     &__identity-copy {
@@ -158,23 +148,6 @@
             }
         }
 
-        &--danger {
-            --mat-menu-item-label-text-color: var(--color-danger-light);
-            --mat-menu-item-icon-color: var(--color-danger-light);
-            --account-menu-icon-color: var(--color-danger-light);
-
-            color: var(--color-danger-light);
-
-            @include hover-capable {
-                &:hover:not(:disabled) {
-                    --mat-menu-item-label-text-color: var(--color-danger-light);
-                    --mat-menu-item-icon-color: var(--color-danger-light);
-                    --account-menu-icon-color: var(--color-danger-light);
-
-                    color: var(--color-danger-light);
-                }
-            }
-        }
     }
 
     &__item-icon {

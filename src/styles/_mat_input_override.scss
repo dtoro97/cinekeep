@@ -8,8 +8,8 @@
     --mat-select-focused-arrow-color: var(--control-text);
     --mat-select-placeholder-text-color: var(--control-text);
 
-    --mat-select-panel-background-color: var(--mat-sys-surface-container);
-    --mat-select-container-elevation-shadow: none;
+    --mat-select-panel-background-color: var(--overlay-surface);
+    --mat-select-container-elevation-shadow: var(--overlay-shadow);
 
     --mat-option-label-text-size: 0.875rem;
     --mat-option-label-text-color: var(--mat-sys-on-surface);
@@ -174,10 +174,10 @@
 .mat-mdc-select-panel {
     min-width: 120px !important;
     padding-block: var(--space-1) !important;
-    border: 1px solid var(--mat-sys-outline-variant) !important;
-    border-radius: var(--radius-lg) !important;
-    background: var(--surface-panel) !important;
-    box-shadow: none !important;
+    border: 1px solid var(--overlay-border) !important;
+    border-radius: var(--overlay-radius) !important;
+    background: var(--overlay-surface) !important;
+    box-shadow: var(--overlay-shadow) !important;
 }
 
 .mat-mdc-option {
@@ -190,6 +190,6 @@
     &:hover,
     &.mdc-list-item--selected:hover,
     &.mat-mdc-option-active {
-        background: var(--control-surface-hover) !important;
+        background: var(--overlay-item-hover) !important;
     }
 }

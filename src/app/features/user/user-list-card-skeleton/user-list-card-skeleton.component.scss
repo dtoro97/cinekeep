@@ -1,88 +1,35 @@
-@use "breakpoints" as *;
 @use "mixins" as *;
 
+// Mirrors the cover-led list card.
 .card {
     display: flex;
     flex-direction: column;
-    min-height: 9.5rem;
-    padding: var(--space-4);
+    overflow: hidden;
     @include surface-panel(var(--surface-panel-soft));
 
-    &__copy,
-    &__main {
+    &__cover {
+        display: block;
+        aspect-ratio: 16 / 7;
+        --skeleton-height: 100%;
+        --skeleton-radius: 0;
+    }
+
+    &__body {
         display: flex;
         flex-direction: column;
-    }
-
-    &__copy {
-        gap: var(--space-5);
-    }
-
-    &__main {
-        gap: var(--space-3);
-    }
-
-    &__title-row,
-    &__footer {
-        display: flex;
-        align-items: center;
-        gap: var(--space-3);
-        flex-wrap: wrap;
-    }
-
-    &__title-row {
         gap: var(--space-2);
+        padding: var(--space-3) var(--space-4) var(--space-4);
     }
 
     &__line {
-        &--meta,
-        &--count,
-        &--action {
-            height: 0.8rem;
-        }
+        --skeleton-height: 0.875rem;
 
         &--meta {
-            width: min(8.5rem, 100%);
-        }
-
-        &--count {
-            width: 3.75rem;
-        }
-
-        &--title {
-            width: min(11rem, 62%);
-            height: 1.5rem;
+            width: 45%;
         }
 
         &--body {
-            width: min(14rem, 100%);
-            height: 1rem;
-        }
-
-        &--action {
-            width: 5.5rem;
-        }
-    }
-
-    &__footer {
-        justify-content: space-between;
-        margin-top: auto;
-        padding-top: var(--space-2);
-        border-top: 1px solid var(--color-border-subtle);
-    }
-}
-
-@include mobile() {
-    .card {
-        min-height: 9rem;
-        padding: var(--space-3);
-
-        &__copy {
-            gap: var(--space-4);
-        }
-
-        &__main {
-            gap: var(--space-2);
+            width: 80%;
         }
     }
 }

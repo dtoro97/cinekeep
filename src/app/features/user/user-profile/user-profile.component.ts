@@ -43,7 +43,10 @@ import { UserProfilePreviewStore } from './user-profile-preview-store.service';
     providers: [UserProfilePreviewStore],
 })
 export class UserProfileComponent {
-    readonly previewCarouselColumns = 5;
+    // Favourites are the profile's identity, shown larger; other shelves stay dense.
+    readonly favouritesCarouselColumns = 5;
+    readonly favouritesPosterImageParams = 'w342';
+    readonly previewCarouselColumns = 7;
     readonly previewPosterImageParams = 'w185';
 
     readonly vm$ = combineLatest([

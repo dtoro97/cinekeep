@@ -7,85 +7,70 @@
             pageTitle="Reviews"
         />
 
-        <main class="page-main">
-            @if (vm.reviewsState.state === "loading") {
-                <section class="content u-flex-column">
-                    <div class="toolbar">
-                        <app-skeleton class="toolbar-count-skeleton" />
-                    </div>
+        <main class="page-main reviews-layout">
+            <aside class="reviews-summary" aria-label="Review summary">
+                <app-review-media-summary [media]="vm.media">
+                    @if (vm.reviewsState.state === "success" || vm.reviewsState.state === "loading-more") {
+                        <dl class="reviews-summary__stats">
+                            <div class="reviews-summary__stat">
+                                <dt class="text-overline">Reviews</dt>
+                                <dd class="text-display-sm">{{ vm.reviewCount }}</dd>
+                            </div>
 
-                    <div class="list u-flex-column">
-                        <ng-container
-                            *ngTemplateOutlet="
-                                reviewSkeletonList;
-                                context: { count: skeletonCount }
-                            "
-                        />
-                    </div>
-                </section>
-            } @else if (
-                vm.reviewsState.state === "success" ||
-                vm.reviewsState.state === "loading-more"
-            ) {
-                @if (vm.reviewsState.data.length) {
-                    <section class="content u-flex-column">
-                        <div class="toolbar">
-                            <span class="text-caption">
-                                1-{{ vm.reviewsState.data.length }} of
-                                {{
-                                    vm.totalResults ||
-                                        vm.reviewsState.data.length
-                                }}
-                            </span>
-                        </div>
-
-                        <div class="list u-flex-column">
-                            @for (
-                                review of vm.reviewsState.data;
-                                track review.id
-                            ) {
-                                <app-review-card [review]="review" [reviewLink]="review.id ? [review.id] : null" />
+                            @if (vm.ratingSummary.averageRating) {
+                                <div class="reviews-summary__stat">
+                                    <dt class="text-overline">Reviewer average</dt>
+                                    <dd class="reviews-summary__average">
+                                        <span class="text-rating-sm">{{ vm.ratingSummary.averageRating | number: '1.1-1' }}</span>
+                                        <span class="text-caption">/10 {{ vm.ratedCountLabel }}</span>
+                                    </dd>
+                                </div>
                             }
+                        </dl>
+                    }
+                </app-review-media-summary>
+            </aside>
 
-                            @if (vm.reviewsState.state === "loading-more") {
-                                <ng-container
-                                    *ngTemplateOutlet="
-                                        reviewSkeletonList;
-                                        context: {
-                                            count: vm.reviewsState.data.length,
-                                        }
-                                    "
-                                />
-                            }
-                        </div>
+            <section class="reviews-list" aria-label="Reviews">
+                @if (vm.reviewsState.state === "loading") {
+                    <ng-container *ngTemplateOutlet="reviewSkeletonList; context: { count: skeletonCount }" />
+                } @else if (vm.reviewsState.state === "success" || vm.reviewsState.state === "loading-more") {
+                    @if (vm.reviewsState.data.length) {
+                        @for (review of vm.reviewsState.data; track review.id) {
+                            <app-review-card [review]="review" [reviewLink]="review.id ? [review.id] : null" />
+                        }
+
+                        @if (vm.reviewsState.state === "loading-more") {
+                            <ng-container *ngTemplateOutlet="reviewSkeletonList; context: { count: skeletonCount }" />
+                        }
 
                         @if (vm.hasMore) {
-                            <div class="u-flex u-justify-center">
-                                <button
-                                    mat-stroked-button
-                                    type="button"
-                                    (click)="loadMore()"
-                                >
-                                    Show more reviews
-                                </button>
+                            <div class="reviews-list__more">
+                                <button mat-stroked-button type="button" (click)="loadMore()">Show more reviews</button>
                             </div>
                         }
-                    </section>
-                } @else {
-                    <section class="empty">
+                    } @else {
                         <app-empty-state
                             iconClass="fa-regular fa-comment-dots"
                             text="No reviews have been posted for this title yet."
                         />
-                    </section>
+                    }
                 }
-            }
+            </section>
         </main>
     }
 </div>
 
 <ng-template #reviewSkeletonList let-count="count">
     @for (i of count | repeat; track i) {
-        <app-skeleton class="review-skeleton" />
+        <div class="review-skeleton" aria-hidden="true">
+            <app-skeleton class="review-skeleton__score" />
+            <div class="review-skeleton__body">
+                <app-skeleton class="review-skeleton__line review-skeleton__line--byline" />
+                <app-skeleton class="review-skeleton__line" />
+                <app-skeleton class="review-skeleton__line" />
+                <app-skeleton class="review-skeleton__line review-skeleton__line--short" />
+            </div>
+        </div>
     }
 </ng-template>

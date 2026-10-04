@@ -1,9 +1,6 @@
 .mat-mdc-menu-panel {
     --mat-menu-container-shape: var(--radius-lg);
-    --mat-menu-container-color: var(
-        --mat-select-panel-background-color,
-        var(--mat-sys-surface-container)
-    );
+    --mat-menu-container-color: var(--overlay-surface);
     --mat-menu-item-label-text-size: var(
         --mat-option-label-text-size,
         var(--text-sm)
@@ -16,14 +13,12 @@
         --mat-option-label-text-color,
         var(--mat-sys-on-surface)
     );
-    --mat-menu-item-hover-state-layer-color: var(--control-surface-hover);
-    --mat-menu-item-focus-state-layer-color: var(--control-surface-hover);
-    --mat-menu-item-pressed-state-layer-color: var(
-        --control-subtle-surface-active
-    );
+    --mat-menu-item-hover-state-layer-color: transparent;
+    --mat-menu-item-focus-state-layer-color: transparent;
+    --mat-menu-item-pressed-state-layer-color: transparent;
 
-    border: 1px solid var(--color-border-subtle);
-    box-shadow: none;
+    border: 1px solid var(--overlay-border);
+    box-shadow: var(--overlay-shadow);
 
     .mat-mdc-menu-content {
         padding-block: var(--space-1);
@@ -34,9 +29,13 @@
         transition:
             background-color var(--motion-fast),
             color var(--motion-fast);
+
+        &:not([disabled]):is(:hover, .cdk-keyboard-focused, .cdk-program-focused) {
+            background: var(--overlay-item-hover);
+        }
     }
 
     .mat-divider {
-        border-top-color: var(--mat-sys-outline-variant);
+        border-top-color: var(--overlay-border);
     }
 }

@@ -1,5 +1,5 @@
-import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { AsyncPipe, DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { tap } from 'rxjs';
@@ -56,6 +56,7 @@ export class HomePageComponent {
     readonly homeVM$ = this.homeStoreService.homeVM$;
 
     constructor(
+        @Inject(DOCUMENT) private readonly document: Document,
         private readonly homeStoreService: HomeStoreService,
         private readonly seo: SeoService,
     ) {
@@ -82,6 +83,10 @@ export class HomePageComponent {
                 takeUntilDestroyed(),
             )
             .subscribe();
+    }
+
+    openTrailer(url: string): void {
+        this.document.defaultView?.open(url, '_blank', 'noopener,noreferrer');
     }
 
     onWhatToWatchMediaTypeSelected(value: unknown): void {

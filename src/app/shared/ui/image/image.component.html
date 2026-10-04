@@ -1,5 +1,5 @@
-@if (src) {
-    <img class="image" [src]="src | imgSrc: params" [alt]="alt" />
+@if (currentSrc && !failed()) {
+    <img class="image" [src]="currentSrc | imgSrc: params" [alt]="alt" (error)="onError()" />
 } @else {
     <div class="image__placeholder" aria-hidden="true">
         @switch (type) {

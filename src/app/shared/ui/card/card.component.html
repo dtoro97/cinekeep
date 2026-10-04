@@ -1,15 +1,7 @@
-@if (item) {
-    <a
-        class="media-card"
-        [routerLink]="item.routeCommands ?? ['/title', item.id, item.mediaType]"
-    >
+<div class="media-card">
+    <a class="media-card__link" [routerLink]="item.routeCommands ?? ['/title', item.id, item.mediaType]">
         <div class="media-card__media">
-            <app-image
-                class="media-card__image"
-                [src]="item.imagePath"
-                [alt]="item.title"
-                [params]="imageParams"
-            />
+            <app-image class="media-card__image" [src]="item.imagePath" [alt]="item.title" [params]="imageParams" />
         </div>
 
         <div class="media-card__content">
@@ -18,13 +10,11 @@
             @if ((showRating && item.rating) || item.date) {
                 <span class="media-card__meta text-card-meta">
                     @if (item.date) {
-                        <span class="media-card__meta-item">
-                            {{ item.date | date : (dateFormat === "dayMonth" ? "dd MMM" : "yyyy") }}
-                        </span>
+                        <span>{{ item.date | date: datePatterns[dateFormat] }}</span>
                     }
 
                     @if (showRating && item.rating) {
-                        <app-rating class="media-card__rating" [value]="item.rating" />
+                        <app-rating [value]="item.rating" />
                     }
                 </span>
             }
@@ -34,4 +24,8 @@
             }
         </div>
     </a>
-}
+
+    <div class="media-card__actions" role="group" [attr.aria-label]="item.title">
+        <ng-content select="[card-actions]" />
+    </div>
+</div>

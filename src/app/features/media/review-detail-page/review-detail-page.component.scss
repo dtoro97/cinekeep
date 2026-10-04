@@ -1,55 +1,71 @@
+@use 'breakpoints' as *;
+
 .review-detail-layout {
     display: grid;
-    grid-template-columns: 160px minmax(0, 1fr);
+    grid-template-columns: 13rem minmax(0, 46rem);
+    gap: var(--space-12);
     align-items: start;
-    gap: var(--space-6);
-}
 
-.review-detail-poster {
-    width: 160px;
-    overflow: hidden;
-    border: 1px solid var(--mat-sys-outline-variant);
-    border-radius: var(--radius-lg);
-    background: var(--surface-panel);
+    &__summary {
+        position: sticky;
+        inset-block-start: calc(var(--space-12) + var(--space-3) + var(--space-6));
+    }
 
-    &--skeleton {
-        aspect-ratio: var(--poster-ratio);
-        --skeleton-height: auto;
-        --skeleton-radius: var(--radius-lg);
+    &__body {
+        min-width: 0;
     }
 }
 
-.review-detail {
-    max-width: 68ch;
-    min-width: 0;
+.review-detail-skeleton {
+    display: grid;
+    grid-template-columns: 4rem minmax(0, 1fr);
+    gap: var(--space-4);
+
+    &__score {
+        width: 2.5rem;
+        --skeleton-height: 1.875rem;
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+
+    &__line {
+        width: 100%;
+
+        &--byline {
+            width: 40%;
+            margin-block-end: var(--space-2);
+            --skeleton-height: 1.25rem;
+        }
+
+        &--short {
+            width: 60%;
+        }
+    }
 }
 
-.review-detail__meta-skeleton {
-    width: min(18rem, 100%);
-    height: 3rem;
-}
-
-.review-detail__content-skeleton {
-    width: min(76ch, 100%);
-    height: 24rem;
-    margin-top: var(--space-5);
-    --skeleton-radius: var(--radius-lg);
-}
-
-.review-detail__empty {
-    max-width: 40rem;
-    border: 1px solid var(--color-border-subtle);
-    border-radius: var(--radius-lg);
-    background: var(--surface-panel);
-}
-
-@media (max-width: 768px) {
+@include tablet() {
     .review-detail-layout {
-        grid-template-columns: 1fr;
-        gap: var(--space-5);
+        grid-template-columns: 10rem minmax(0, 1fr);
+        gap: var(--space-8);
+    }
+}
+
+@include mobile() {
+    .review-detail-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-6);
+
+        &__summary {
+            position: static;
+        }
     }
 
-    .review-detail-poster {
-        width: 112px;
+    .review-detail-skeleton {
+        grid-template-columns: 3rem minmax(0, 1fr);
+        gap: var(--space-3);
     }
 }

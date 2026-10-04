@@ -12,6 +12,7 @@ import { HttpHeaders }                                       from '@angular/comm
 import { Observable }                                        from 'rxjs';
 
 import { MediaStateResponse } from '../model/models';
+import { MediaStatesResponse } from '../model/models';
 
 
 import { Configuration }                                     from '../configuration';
@@ -20,6 +21,11 @@ import { Configuration }                                     from '../configurat
 export interface GetMediaStateRequestParams {
     mediaType: 'movie' | 'tv';
     tmdbId: number;
+}
+
+export interface GetMediaStatesRequestParams {
+    movieIds?: Array<number>;
+    tvIds?: Array<number>;
 }
 
 
@@ -34,5 +40,13 @@ export interface MediaStateControllerServiceInterface {
 * @param requestParameters
      */
     getMediaState(requestParameters: GetMediaStateRequestParams, extraHttpRequestParams?: any): Observable<MediaStateResponse>;
+
+    /**
+     * 
+     * 
+     * @endpoint get /api/media/state
+* @param requestParameters
+     */
+    getMediaStates(requestParameters: GetMediaStatesRequestParams, extraHttpRequestParams?: any): Observable<MediaStatesResponse>;
 
 }

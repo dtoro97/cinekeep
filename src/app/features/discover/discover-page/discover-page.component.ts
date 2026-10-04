@@ -3,12 +3,11 @@ import { ChangeDetectionStrategy, Component, HostListener } from '@angular/core'
 import { A11yModule } from '@angular/cdk/a11y';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 import {
-    BrowseToolbarComponent,
+    CardComponent,
     EmptyStateComponent,
-    PageScrollService,
+    LibraryToggleComponent,
     ToggleGroupComponent,
     RepeatPipe,
     SkeletonComponent,
@@ -18,7 +17,6 @@ import {
     DiscoverActiveFilter,
     DiscoverStoreService,
 } from '../discover-store.service';
-import { DiscoverCardComponent } from '../discover-card/discover-card.component';
 import { DiscoverFilterPanelComponent } from '../discover-filter-panel/discover-filter-panel.component';
 import { DiscoverFilterChange } from '../discover-page-definitions';
 
@@ -27,13 +25,12 @@ import { DiscoverFilterChange } from '../discover-page-definitions';
     imports: [
         A11yModule,
         AsyncPipe,
-        BrowseToolbarComponent,
-        DiscoverCardComponent,
+        CardComponent,
         DiscoverFilterPanelComponent,
         EmptyStateComponent,
+        LibraryToggleComponent,
         MatButtonModule,
         MatIconModule,
-        MatPaginatorModule,
         NgTemplateOutlet,
         ToggleGroupComponent,
         RepeatPipe,
@@ -49,10 +46,10 @@ export class DiscoverPageComponent {
     readonly vm$ = this.store.vm$;
     mobileFiltersOpen = false;
 
-    constructor(
-        private readonly pageScroll: PageScrollService,
-        private readonly store: DiscoverStoreService,
-    ) {}
+    readonly skeletonCount = 20;
+    readonly loadMoreSkeletonCount = 5;
+
+    constructor(private readonly store: DiscoverStoreService) {}
 
     onMediaTypeChange(value: unknown): void {
         this.store.updateMediaType(value);
@@ -86,9 +83,8 @@ export class DiscoverPageComponent {
         this.mobileFiltersOpen = false;
     }
 
-    onPageChange(event: PageEvent): void {
-        this.pageScroll.scrollToTop();
-        this.store.updatePage(event.pageIndex);
+    loadMore(): void {
+        this.store.loadMore();
     }
 
     @HostListener('document:keydown.escape')

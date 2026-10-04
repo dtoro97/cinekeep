@@ -5,9 +5,9 @@
     --overlay-icon-button-icon-size: 1rem;
     --overlay-icon-button-radius: var(--radius-lg);
     --overlay-icon-button-border: var(--border-overlay-soft);
-    --overlay-icon-button-surface: var(--color-surface-overlay);
-    --overlay-icon-button-surface-hover: var(--mat-sys-surface-container-high);
-    --overlay-icon-button-surface-active: var(--mat-sys-surface-container-highest);
+    --overlay-icon-button-surface: var(--surface-scrim);
+    --overlay-icon-button-surface-hover: var(--surface-raised);
+    --overlay-icon-button-surface-active: var(--surface-overlay);
     --overlay-icon-button-text: var(--text-secondary);
     --overlay-icon-button-text-hover: var(--text-primary);
 

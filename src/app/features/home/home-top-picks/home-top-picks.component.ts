@@ -1,40 +1,24 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import {
-    CardComponent,
-    CardItem,
-    ImageComponent,
-    SkeletonComponent,
-    RepeatPipe,
-    RatingComponent,
-} from '../../../shared';
+import { CardItem, ImageComponent, RatingComponent, RepeatPipe, SkeletonComponent } from '../../../shared';
 
 interface TopPickItem {
     readonly item: CardItem;
+    readonly rank: number;
+    readonly year: string;
 }
 
 @Component({
     selector: 'app-home-top-picks',
-    imports: [
-        RouterLink,
-        DatePipe,
-        CardComponent,
-        ImageComponent,
-        SkeletonComponent,
-        RepeatPipe,
-        RatingComponent,
-    ],
+    imports: [RouterLink, ImageComponent, RatingComponent, RepeatPipe, SkeletonComponent],
     templateUrl: './home-top-picks.component.html',
     styleUrl: './home-top-picks.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeTopPicksComponent {
     @Input({ required: true }) loading!: boolean;
-    @Input({ required: true }) featuredItems!: readonly TopPickItem[];
-    @Input({ required: true }) secondaryItems!: readonly TopPickItem[];
+    @Input({ required: true }) items!: readonly TopPickItem[];
 
-    readonly featuredSkeletonCount = 3;
-    readonly secondarySkeletonCount = 7;
+    readonly skeletonCount = 10;
 }

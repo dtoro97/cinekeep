@@ -1,17 +1,31 @@
 @if (vm$ | async; as vm) {
     <div class="actions">
+        <button
+            matButton="filled"
+            type="button"
+            class="watchlist-button"
+            [class.watchlist-button--active]="vm.isInWatchlist"
+            [disabled]="vm.pending"
+            [attr.aria-pressed]="vm.isInWatchlist"
+            (click)="toggleWatchlist()"
+        >
+            <i
+                [class.fa-solid]="vm.isInWatchlist"
+                [class.fa-regular]="!vm.isInWatchlist"
+                class="fa-bookmark"
+                aria-hidden="true"
+            ></i>
+            {{ vm.watchlistLabel }}
+        </button>
+
+        <ng-content />
+
         <app-icon-button
             class="action"
             [selected]="vm.isFavorite"
             [disabled]="vm.pending"
-            [ariaLabel]="
-                vm.isFavorite
-                    ? title + ' is in your favorites'
-                    : 'Add ' + title + ' to favorites'
-            "
-            [matTooltip]="
-                vm.isFavorite ? 'Remove from favorites' : 'Add to favorites'
-            "
+            ariaLabel="{{ vm.favoriteActionLabel }}: {{ title }}"
+            [matTooltip]="vm.favoriteActionLabel"
             (onClick)="toggleFavorite()"
         >
             <i
@@ -24,33 +38,9 @@
 
         <app-icon-button
             class="action"
-            [selected]="vm.isInWatchlist"
-            [disabled]="vm.pending"
-            [ariaLabel]="
-                vm.isInWatchlist
-                    ? title + ' is on your watchlist'
-                    : 'Add ' + title + ' to watchlist'
-            "
-            [matTooltip]="
-                vm.isInWatchlist
-                    ? 'Remove from watchlist'
-                    : 'Add to watchlist'
-            "
-            (onClick)="toggleWatchlist()"
-        >
-            <i
-                [class.fa-solid]="vm.isInWatchlist"
-                [class.fa-regular]="!vm.isInWatchlist"
-                class="icon fa-bookmark"
-                aria-hidden="true"
-            ></i>
-        </app-icon-button>
-
-        <app-icon-button
-            class="action"
             [disabled]="vm.pending || listDialogPending()"
-            [ariaLabel]="'Add ' + title + ' to one of your lists'"
-            [matTooltip]="'Add to one of your lists'"
+            ariaLabel="Add {{ title }} to one of your lists"
+            matTooltip="Add to one of your lists"
             (onClick)="openCustomListsDialog()"
         >
             <i class="icon fa-solid fa-list" aria-hidden="true"></i>

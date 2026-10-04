@@ -8,6 +8,10 @@ export const DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE = 50;
 export const OPENING_SOON_MOVIE_DAYS_AHEAD = 14;
 // TMDb release type 3 is theatrical.
 export const THEATRICAL_MOVIE_RELEASE_TYPE = 3;
+// TMDb TV genres for news (10763), reality (10764), soap (10766) and talk (10767).
+// Daily programming in these genres crowds out series on curated shelves.
+export const CURATED_TV_EXCLUDED_GENRE_IDS: readonly number[] = [10763, 10764, 10766, 10767];
+export const CURATED_TV_EXCLUDED_GENRES = CURATED_TV_EXCLUDED_GENRE_IDS.join(',');
 
 export const PHOTOS_GRID_FIRST_ROW = 3;
 export const GRID_COUNT = 4;

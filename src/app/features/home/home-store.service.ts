@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import { catchError, filter, forkJoin, map, of, switchMap, take, tap } from 'rxjs';
+import { Observable, catchError, filter, forkJoin, map, of, switchMap, take, tap } from 'rxjs';
 
 import {
+    CURATED_TV_EXCLUDED_GENRES,
     DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
+    DEFAULT_DISCOVER_VOTE_COUNT_GTE,
     MEDIUM_LIST_COUNT,
     OPENING_SOON_MOVIE_DAYS_AHEAD,
     PAGE_SIZE,
@@ -12,13 +14,16 @@ import {
 import {
     DiscoverRestControllerService,
     MovieListRestControllerService,
+    MovieRestControllerService,
     MultiListItem,
     PersonListRestControllerService,
     TrendingRestControllerService,
     TvSeriesListItem,
-    TvSeriesListRestControllerService,
+    TvSeriesRestControllerService,
+    VideoList,
 } from '../../api';
 import {
+    buildYoutubeWatchUrl,
     getCurrentMonthDateWindow,
     getCurrentMonthName,
     getISODate,
@@ -28,11 +33,13 @@ import {
     CardItem,
     MediaType,
     PersonCardItem,
+    pickBestYoutubeTrailer,
     pickDailySeededItem,
     toCardItem,
     toTmdbMovieDiscoverSort,
     toTmdbTvDiscoverSort,
     toPersonCardItem,
+    toRating,
 } from '../../shared';
 import { SpotlightItem } from './spotlight-item';
 import { WatchProviderStoreService } from '../../shared/services';
@@ -49,10 +56,13 @@ interface StreamingArrivalsFeature {
 }
 
 const TOP_PICKS_MAX_ITEMS = MEDIUM_LIST_COUNT;
-const TOP_PICKS_FEATURED_COUNT = 3;
+const AIRING_PREVIEW_MAX_ITEMS = 12;
+// The airing grid runs three columns on desktop and two on tablet; multiples of six fill both.
+const AIRING_PREVIEW_ROW_UNIT = 6;
 
 interface HomeState {
     spotlight: RemoteData<SpotlightItem | null>;
+    spotlightTrailerUrl: string | null;
     whatToWatchMovies: RemoteData<CardItem[]>;
     whatToWatchTv: RemoteData<CardItem[]>;
     selectedWhatToWatchMediaType: MediaType;
@@ -65,6 +75,7 @@ interface HomeState {
 
 const INITIAL_STATE: HomeState = {
     spotlight: { state: 'notAsked' },
+    spotlightTrailerUrl: null,
     whatToWatchMovies: { state: 'notAsked' },
     whatToWatchTv: { state: 'notAsked' },
     selectedWhatToWatchMediaType: 'movie',
@@ -79,11 +90,12 @@ const INITIAL_STATE: HomeState = {
 export class HomeStoreService extends ComponentStore<HomeState> {
     readonly homeVM$ = this.select((state) => ({
         spotlight: state.spotlight,
+        spotlightTrailerUrl: state.spotlightTrailerUrl,
         whatToWatch: state.selectedWhatToWatchMediaType === 'movie' ? state.whatToWatchMovies : state.whatToWatchTv,
         whatToWatchLoading:
             (state.selectedWhatToWatchMediaType === 'movie' ? state.whatToWatchMovies : state.whatToWatchTv).state ===
             'loading',
-        whatToWatchTopPicks: this.toTopPickGroups(
+        whatToWatchTopPicks: this.toTopPicks(
             state.selectedWhatToWatchMediaType === 'movie' ? state.whatToWatchMovies : state.whatToWatchTv,
         ),
         whatToWatchOptions: MEDIA_TYPE_OPTIONS,
@@ -91,14 +103,15 @@ export class HomeStoreService extends ComponentStore<HomeState> {
         popularPeople: state.popularPeople,
         trendingToday: state.trendingToday,
         airingToday: state.airingToday,
-        airingTonightPreview: state.airingToday.state === 'success' ? state.airingToday.data.slice(0, 12) : [],
+        airingTonightPreview: state.airingToday.state === 'success' ? this.toAiringPreview(state.airingToday.data) : [],
         streamingArrivals: this.toStreamingArrivalsFeature(state.streamingArrivals),
         inTheatres: state.inTheatres,
     }));
 
     constructor(
-        private readonly tvListService: TvSeriesListRestControllerService,
         private readonly movieListService: MovieListRestControllerService,
+        private readonly movieService: MovieRestControllerService,
+        private readonly tvService: TvSeriesRestControllerService,
         private readonly discoverService: DiscoverRestControllerService,
         private readonly personListService: PersonListRestControllerService,
         private readonly trendingService: TrendingRestControllerService,
@@ -138,12 +151,21 @@ export class HomeStoreService extends ComponentStore<HomeState> {
                     ),
                     catchError(() => of([] as CardItem[])),
                 ),
-            tv: this.tvListService.tvSeriesPopularList({ page: 1 }).pipe(
-                map((response) =>
-                    (response.results ?? []).map((item) => toCardItem(item, 'tv')).slice(0, TOP_PICKS_MAX_ITEMS),
+            // Discover instead of the raw popular list, which is dominated by daily talk and soap programming.
+            tv: this.discoverService
+                .discoverTv({
+                    includeAdult: false,
+                    page: 1,
+                    sortBy: toTmdbTvDiscoverSort('popularity', 'desc'),
+                    voteCountGte: DEFAULT_DISCOVER_VOTE_COUNT_GTE,
+                    withoutGenres: CURATED_TV_EXCLUDED_GENRES,
+                })
+                .pipe(
+                    map((response) =>
+                        (response.results ?? []).map((item) => toCardItem(item, 'tv')).slice(0, TOP_PICKS_MAX_ITEMS),
+                    ),
+                    catchError(() => of([] as CardItem[])),
                 ),
-                catchError(() => of([] as CardItem[])),
-            ),
         }).pipe(
             tap((whatToWatch) =>
                 this.patchState({
@@ -158,7 +180,12 @@ export class HomeStoreService extends ComponentStore<HomeState> {
         this.patchState({ popularPeople: { state: 'loading' } });
 
         return this.personListService.personPopularList({ page: 1 }).pipe(
-            map((response) => (response.results ?? []).map((item) => toPersonCardItem(item)).slice(0, PAGE_SIZE)),
+            map((response) =>
+                (response.results ?? [])
+                    .map((item) => toPersonCardItem(item))
+                    .filter((person) => !!person.imagePath)
+                    .slice(0, PAGE_SIZE),
+            ),
             catchError(() => of([] as PersonCardItem[])),
             tap((popularPeople) =>
                 this.patchState({
@@ -207,11 +234,28 @@ export class HomeStoreService extends ComponentStore<HomeState> {
             tap(({ spotlight, trendingToday }) =>
                 this.patchState({
                     spotlight: { state: 'success', data: spotlight },
+                    spotlightTrailerUrl: null,
                     trendingToday: {
                         state: 'success',
                         data: trendingToday,
                     },
                 }),
+            ),
+            switchMap(({ spotlight }) => (spotlight ? this.loadSpotlightTrailer$(spotlight) : of(null))),
+        );
+    }
+
+    private loadSpotlightTrailer$(spotlight: SpotlightItem) {
+        const videos$: Observable<VideoList> =
+            spotlight.mediaType === 'movie'
+                ? this.movieService.movieVideos({ movieId: spotlight.id })
+                : this.tvService.tvSeriesVideos({ seriesId: spotlight.id });
+
+        return videos$.pipe(
+            map((response) => pickBestYoutubeTrailer(response.results ?? [])?.key ?? null),
+            catchError(() => of(null)),
+            tap((trailerKey) =>
+                this.patchState({ spotlightTrailerUrl: trailerKey ? buildYoutubeWatchUrl(trailerKey) : null }),
             ),
         );
     }
@@ -230,6 +274,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
                 sortBy: toTmdbTvDiscoverSort('popularity', 'desc'),
                 timezone: this.getTimeZone(),
                 voteCountGte: DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
+                withoutGenres: CURATED_TV_EXCLUDED_GENRES,
             })
             .pipe(
                 map((response) =>
@@ -270,6 +315,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
                         watchRegion: region,
                         withWatchMonetizationTypes: 'flatrate',
                         withWatchProviders: providerFilter,
+                        withoutGenres: CURATED_TV_EXCLUDED_GENRES,
                     })
                     .pipe(
                         map((response) =>
@@ -336,24 +382,27 @@ export class HomeStoreService extends ComponentStore<HomeState> {
             title: title ?? '',
             overview: item.overview ?? '',
             backdropPath: item.backdrop_path,
-            rating: item.vote_average ?? null,
+            rating: toRating(item.vote_average),
             year: (date ?? '').slice(0, 4),
             mediaTypeLabel: isMovie ? 'Movie' : 'TV series',
         };
     }
 
-    private toTopPickGroups(state: RemoteData<CardItem[]>) {
-        const topPickItems =
-            state.state === 'success' || state.state === 'loading-more'
-                ? state.data.slice(0, TOP_PICKS_MAX_ITEMS).map((item) => ({
-                      item,
-                  }))
-                : [];
+    private toTopPicks(state: RemoteData<CardItem[]>) {
+        return state.state === 'success' || state.state === 'loading-more'
+            ? state.data.slice(0, TOP_PICKS_MAX_ITEMS).map((item, index) => ({
+                  item,
+                  rank: index + 1,
+                  year: item.date.slice(0, 4),
+              }))
+            : [];
+    }
 
-        return {
-            featured: topPickItems.slice(0, TOP_PICKS_FEATURED_COUNT),
-            secondary: topPickItems.slice(TOP_PICKS_FEATURED_COUNT),
-        };
+    private toAiringPreview(items: AiringTodayItem[]): AiringTodayItem[] {
+        const capped = items.slice(0, AIRING_PREVIEW_MAX_ITEMS);
+        const fullRowsCount = capped.length - (capped.length % AIRING_PREVIEW_ROW_UNIT);
+
+        return fullRowsCount ? capped.slice(0, fullRowsCount) : capped;
     }
 
     private toAiringTodayItem(item: TvSeriesListItem): AiringTodayItem {

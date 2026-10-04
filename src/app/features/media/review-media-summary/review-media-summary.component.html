@@ -1,0 +1,18 @@
+@if (currentMedia; as media) {
+    <app-image class="review-media-summary__poster" [src]="media.posterPath" [alt]="media.title" params="w342" />
+} @else {
+    <app-skeleton class="review-media-summary__poster review-media-summary__poster--skeleton" />
+}
+
+<div class="review-media-summary__body">
+    @if (currentMedia; as media) {
+        <div class="review-media-summary__identity">
+            <p class="review-media-summary__title text-display-sm">{{ media.title }}</p>
+            @if (meta) {
+                <p class="text-card-meta">{{ meta }}</p>
+            }
+        </div>
+    }
+
+    <ng-content />
+</div>

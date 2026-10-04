@@ -21,8 +21,8 @@ import {
     SnackbarType,
     SortButtonComponent,
     SubPageHeaderComponent,
+    MediaListItemComponent,
 } from '../../../shared';
-import { AccountMediaItemComponent } from '../account-media-item/account-media-item.component';
 import { USER_ACCOUNT_SORT_FIELD, USER_ACCOUNT_SORT_OPTIONS } from '../user-list-sort-options';
 import { UserWatchlistStore } from '../user-watchlist-store.service';
 
@@ -31,7 +31,7 @@ import { UserWatchlistStore } from '../user-watchlist-store.service';
     imports: [
         AsyncPipe,
         MatPaginatorModule,
-        AccountMediaItemComponent,
+        MediaListItemComponent,
         BrowseToolbarComponent,
         EmptyStateComponent,
         IconButtonComponent,

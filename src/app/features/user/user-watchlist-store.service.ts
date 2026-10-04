@@ -13,6 +13,7 @@ import {
     UserLibraryService,
     isDefined,
     toSnapshotMediaListItem,
+    toRating,
 } from '../../shared';
 import { remoteSuccess } from '../../shared/utils';
 import { toTotalAfterMediaRemoval, toUserMediaTotalLabel } from './user-account-media.helpers';
@@ -142,7 +143,7 @@ export class UserWatchlistStore extends ComponentStore<UserWatchlistState> {
 
     private toWatchlistPage(result: PageResponseWatchlistItemResponse, requestedPage: number) {
         return {
-            items: (result.content ?? []).map((item) => toSnapshotMediaListItem(item, item.voteAverage ?? null)).filter(isDefined),
+            items: (result.content ?? []).map((item) => toSnapshotMediaListItem(item, toRating(item.voteAverage))).filter(isDefined),
             page: requestedPage,
             totalResults: result.totalElements ?? 0,
         };

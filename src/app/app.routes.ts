@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { NotFoundComponent, authenticatedGuard } from './shared';
+import { NotFoundComponent } from './shared';
 
 export const routes: Routes = [
     {
@@ -71,15 +71,6 @@ export const routes: Routes = [
             import('./features/user/user.routes').then(
                 (m) => m.userRoutes,
             ),
-    },
-    {
-        path: 'lists/:listId',
-        canActivate: [authenticatedGuard],
-        data: { robots: 'noindex, nofollow' },
-        loadComponent: () =>
-            import(
-                './features/user/user-list-detail-page/user-list-detail-page.component'
-            ).then((m) => m.UserListDetailPageComponent),
     },
     {
         path: 'watch',

@@ -5,7 +5,8 @@ import { MatButtonModule } from '@angular/material/button';
 
 import { EMPTY, catchError } from 'rxjs';
 
-import type { LibraryFlag, MediaType } from '../../types';
+import type { MediaStateResponse } from '../../../api-cinekeep';
+import type { LibraryFlag, MediaType, RemoteData } from '../../types';
 import { SnackbarService, SnackbarType } from '../../services/snackbar.service';
 import { UserLibraryService } from '../../services/user-library.service';
 import { UserSessionStoreService } from '../../services/user-session-store.service';
@@ -60,6 +61,8 @@ export class LibraryToggleComponent {
     readonly mediaType = input.required<MediaType>();
     readonly title = input.required<string>();
     readonly iconOnly = input(false);
+    /** State loaded by the parent list in one batch; when omitted the toggle fetches its own. */
+    readonly libraryState = input<RemoteData<MediaStateResponse> | null>(null);
 
     readonly active = signal(false);
     readonly pending = signal(false);
@@ -97,6 +100,17 @@ export class LibraryToggleComponent {
         effect((onCleanup) => {
             const flag = this.flag();
             const target = this.target();
+            const libraryState = this.libraryState();
+
+            if (libraryState) {
+                this.active.set(
+                    libraryState.state === 'success' &&
+                        (flag === 'watchlist' ? !!libraryState.data.inWatchlist : !!libraryState.data.favorite),
+                );
+                this.pending.set(libraryState.state === 'loading');
+                return;
+            }
+
             const authenticated = isAuthenticated();
 
             this.active.set(false);

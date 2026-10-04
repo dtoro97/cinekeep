@@ -16,12 +16,14 @@ import {
     SkeletonComponent,
     SortButtonComponent,
     LibraryToggleComponent,
+    PluralizePipe,
 } from '../../../shared';
 import { StreamingListStoreService } from './streaming-list-store.service';
 
 @Component({
     selector: 'app-streaming-list-page',
     imports: [
+        PluralizePipe,
         AsyncPipe,
         BrowseToolbarComponent,
         EmptyStateComponent,

@@ -70,6 +70,7 @@ export class SigninDialogComponent {
     readonly isRegister = computed(() => this.mode() === 'register');
     readonly title = computed(() => (this.isRegister() ? 'Create your account' : this.signinTitle));
     readonly submitLabel = computed(() => (this.isRegister() ? 'Create account' : 'Sign in'));
+    readonly passwordAutocomplete = computed(() => (this.isRegister() ? 'new-password' : 'current-password'));
     readonly description: string;
 
     readonly form: FormGroup<SigninForm>;

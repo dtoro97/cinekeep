@@ -18,16 +18,10 @@
 
         <div class="backdrop-card__meta text-caption">
             @if (showRating && item.rating) {
-                <app-rating [value]="item.rating"></app-rating>
+                <app-rating [value]="item.rating" />
             }
             @if (showDate && item.date) {
-                @if (showRating && item.rating) {
-                    <span class="backdrop-card__meta-separator" aria-hidden="true">&middot;</span>
-                }
-                <span class="backdrop-card__meta-date">{{
-                    item.date
-                        | date: (dateFormat === "dayMonth" ? "MMM d" : "yyyy")
-                }}</span>
+                <span>{{ item.date | date: datePatterns[dateFormat] }}</span>
             }
         </div>
     </div>

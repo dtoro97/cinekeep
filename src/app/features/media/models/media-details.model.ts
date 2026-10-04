@@ -18,7 +18,7 @@ export interface MediaDetails {
     year: string;
     overview: string;
     genres: ItemWithNameAndId[];
-    voteAverage: number;
+    voteAverage: number | null;
     posterPath: string | null;
     backdropPath: string | null;
     status?: string;

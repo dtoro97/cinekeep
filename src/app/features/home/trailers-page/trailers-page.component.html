@@ -69,10 +69,10 @@
                             <button
                                 mat-stroked-button
                                 type="button"
-                                [disabled]="vm.trailersState.state === 'loading-more'"
+                                [disabled]="vm.loadingMore"
                                 (click)="showMoreSelected()"
                             >
-                                {{ vm.trailersState.state === 'loading-more' ? 'Loading trailers' : 'Show more trailers' }}
+                                {{ vm.showMoreLabel }}
                             </button>
                         </div>
                     }

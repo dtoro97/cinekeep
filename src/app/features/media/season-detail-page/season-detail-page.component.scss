@@ -1,120 +1,113 @@
 @use 'breakpoints' as *;
 @use 'mixins' as *;
 
+.season-hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+
+    &__back {
+        display: inline-flex;
+        align-self: flex-start;
+        align-items: center;
+        gap: var(--space-1);
+        @include text-link(var(--text-primary));
+
+        i {
+            font-size: var(--text-2xs);
+        }
+    }
+
+    &__body {
+        display: grid;
+        grid-template-columns: 10rem minmax(0, 1fr) auto;
+        align-items: end;
+        gap: var(--space-6);
+    }
+
+    // Same ratings aside as the title and episode pages.
+    &__ratings {
+        padding-inline-start: var(--space-6);
+        border-inline-start: 1px solid var(--color-border-subtle);
+    }
+
+    &__poster {
+        width: 100%;
+        aspect-ratio: var(--poster-ratio);
+        overflow: hidden;
+        border: 1px solid var(--color-border-subtle);
+        border-radius: var(--radius-lg);
+        background: var(--surface-panel);
+        box-shadow: var(--shadow-lg);
+        --image-radius: var(--radius-lg);
+        --skeleton-height: auto;
+        --skeleton-radius: var(--radius-lg);
+    }
+
+    &__text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-3);
+        min-width: 0;
+        max-width: 46rem;
+        text-shadow: var(--shadow-text-hero);
+    }
+
+    &__series {
+        color: var(--text-secondary);
+    }
+
+    &__meta {
+        @include meta-list();
+    }
+
+    &__overview {
+        @include line-clamp(3);
+    }
+
+    &__line {
+        width: 60%;
+
+        &--title {
+            width: 40%;
+            --skeleton-height: 3rem;
+        }
+
+        &--meta {
+            width: 25%;
+        }
+    }
+}
+
 .season-detail {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
-}
-
-.season-summary {
-    display: grid;
-    grid-template-columns: 8rem minmax(0, 1fr);
-    align-items: start;
-    gap: var(--space-5);
-    min-width: 0;
-    padding-bottom: var(--space-5);
-    border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.season-summary__poster,
-.season-summary__poster-skeleton {
-    width: 100%;
-    aspect-ratio: var(--poster-ratio);
-    border: 1px solid var(--color-border-subtle);
-    --image-radius: var(--radius-lg);
-    --skeleton-height: auto;
-    --skeleton-radius: var(--radius-lg);
-}
-
-.season-summary__content {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: var(--space-3);
-}
-
-.season-summary__head {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: var(--space-2);
-}
-
-.season-summary__title-row,
-.season-summary__meta {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-}
-
-.season-summary__overview {
-    max-width: 64ch;
-    color: var(--text-secondary);
-    @include line-clamp(4);
-}
-
-.season-summary__line-skeleton {
-    --skeleton-radius: var(--radius-sm);
-
-    &--title {
-        width: min(100%, 18rem);
-        --skeleton-height: 2rem;
-    }
-
-    &--meta {
-        width: min(100%, 13rem);
-        --skeleton-height: 1rem;
-    }
-
-    &--overview {
-        width: min(100%, 38rem);
-        --skeleton-height: 4rem;
-    }
-}
-
-.season-episodes {
-    min-width: 0;
-}
-
-.season-nav {
-    min-width: 0;
+    gap: var(--space-8);
 }
 
 .season-nav__skeleton {
-    display: flex;
-}
-
-.season-nav__skeleton-line {
-    width: min(100%, 24rem);
-    --skeleton-height: var(--control-height-md);
-    --skeleton-radius: var(--radius-md);
-}
-
-@include tablet() {
-    .season-summary {
-        grid-template-columns: 7rem minmax(0, 1fr);
-        gap: var(--space-4);
-    }
+    width: min(28rem, 100%);
+    --skeleton-height: 1.875rem;
 }
 
 @include mobile() {
+    .season-hero {
+        gap: var(--space-4);
+
+        &__body {
+            grid-template-columns: 6rem minmax(0, 1fr);
+            gap: var(--space-4);
+        }
+
+        &__ratings {
+            grid-column: 1 / -1;
+            padding-inline-start: 0;
+            border-inline-start: 0;
+        }
+    }
+
     .season-detail {
-        gap: var(--space-5);
-    }
-
-    .season-summary {
-        grid-template-columns: 5.5rem minmax(0, 1fr);
-        gap: var(--space-3);
-    }
-
-    .season-summary__content {
-        gap: var(--space-3);
-    }
-
-    .season-summary__overview {
-        max-width: 100%;
+        gap: var(--space-6);
     }
 }

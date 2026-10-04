@@ -1,7 +1,7 @@
 @use "./breakpoints" as *;
 
 .mat-mdc-snack-bar-container {
-    --mat-snack-bar-container-color: var(--mat-sys-surface-container-high);
+    --mat-snack-bar-container-color: var(--overlay-surface);
     --mat-snack-bar-container-shape: var(--radius-lg);
     --mat-snack-bar-supporting-text-color: var(--text-primary);
     --mat-snack-bar-supporting-text-font: inherit;
@@ -14,14 +14,14 @@
     --mat-button-text-hover-state-layer-opacity: 0;
     --mat-button-text-focus-state-layer-opacity: 0;
     --mat-button-text-pressed-state-layer-opacity: 0;
-    --mat-button-text-ripple-color: rgba(255, 154, 122, 0.14);
+    --mat-button-text-ripple-color: var(--ripple-danger-soft);
     --snackbar-action-color: var(--color-brand-light);
 
     margin: var(--space-4);
 
     .mdc-snackbar__surface {
-        border: 1px solid var(--color-border-subtle);
-        box-shadow: none;
+        border: 1px solid var(--overlay-border);
+        box-shadow: var(--overlay-shadow);
         min-width: min(22rem, calc(100vw - var(--space-8)));
         max-width: min(38rem, calc(100vw - var(--space-8)));
         padding-right: var(--space-2);

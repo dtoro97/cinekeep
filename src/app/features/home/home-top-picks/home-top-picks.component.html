@@ -1,81 +1,43 @@
-<div class="top-picks u-flex-column u-gap-4">
-    @if (loading) {
-        <div class="featured-grid">
-            @for (item of featuredSkeletonCount | repeat; track item) {
-                <article class="feature-card--skeleton">
-                    <div class="feature-media aspect-poster">
-                        <app-skeleton class="feature-media-skeleton" />
-                    </div>
+@if (loading) {
+    <ol class="chart u-list-none" aria-hidden="true">
+        @for (i of skeletonCount | repeat; track i) {
+            <li class="chart-row chart-row--skeleton">
+                <app-skeleton class="chart-rank-skeleton" />
+                <app-skeleton class="chart-poster" />
+                <span class="chart-body">
+                    <app-skeleton class="chart-title-skeleton" />
+                    <app-skeleton class="chart-meta-skeleton" />
+                    <app-skeleton class="chart-overview-skeleton" />
+                </span>
+            </li>
+        }
+    </ol>
+} @else if (items.length) {
+    <ol class="chart u-list-none">
+        @for (entry of items; track entry.item.id) {
+            <li>
+                <a class="chart-row" [routerLink]="['/title', entry.item.id, entry.item.mediaType]">
+                    <span class="chart-rank text-numeral" aria-hidden="true">{{ entry.rank }}</span>
+                    <app-image class="chart-poster" [src]="entry.item.imagePath" [alt]="entry.item.title" />
 
-                    <div class="feature-body u-flex-column u-items-start">
-                        <app-skeleton class="feature-title-skeleton" />
+                    <span class="chart-body">
+                        <span class="chart-title text-subtitle">{{ entry.item.title }}</span>
 
-                        <div class="feature-meta u-flex u-items-center u-gap-2">
-                            <app-skeleton class="feature-meta-skeleton" />
-                            <app-skeleton class="feature-meta-skeleton feature-meta-skeleton--badge" />
-                        </div>
-
-                        <app-skeleton class="feature-copy-skeleton" />
-                        <app-skeleton class="feature-copy-skeleton feature-copy-skeleton--short" />
-                    </div>
-                </article>
-            }
-        </div>
-
-        <div class="tiles-grid">
-            @for (item of secondarySkeletonCount | repeat; track item) {
-                <article class="tile">
-                    <div class="tile-card-skeleton aspect-poster">
-                        <app-skeleton class="tile-card-fill-skeleton" />
-                    </div>
-                </article>
-            }
-        </div>
-    } @else {
-        @if (featuredItems.length) {
-            <div class="featured-grid">
-                @for (entry of featuredItems; track entry.item.id) {
-                    <a class="feature-card" [routerLink]="['/title', entry.item.id, entry.item.mediaType]">
-                        <div class="feature-media aspect-poster">
-                            <app-image [src]="entry.item.imagePath" [alt]="entry.item.title" />
-                        </div>
-
-                        <div class="feature-body u-flex-column u-items-start">
-                            <span class="feature-title text-title">
-                                {{ entry.item.title }}
-                            </span>
-
-                            <div class="feature-meta u-flex u-items-center u-gap-2">
-                                @if (entry.item.date) {
-                                    <span class="text-meta">
-                                        {{ entry.item.date | date: 'yyyy' }}
-                                    </span>
-                                }
-
-                                @if (entry.item.rating !== null) {
-                                    <app-rating [value]="entry.item.rating"></app-rating>
-                                }
-                            </div>
-
-                            @if (entry.item.overview) {
-                                <p class="feature-overview text-body-sm">
-                                    {{ entry.item.overview }}
-                                </p>
+                        <span class="chart-meta text-card-meta">
+                            @if (entry.year) {
+                                <span>{{ entry.year }}</span>
                             }
-                        </div>
-                    </a>
-                }
-            </div>
-        }
+                            @if (entry.item.rating) {
+                                <app-rating [value]="entry.item.rating" />
+                            }
+                        </span>
 
-        @if (secondaryItems.length) {
-            <div class="tiles-grid">
-                @for (entry of secondaryItems; track entry.item.id) {
-                    <article class="tile">
-                        <app-card [item]="entry.item" [showRating]="true" />
-                    </article>
-                }
-            </div>
+                        @if (entry.item.overview) {
+                            <span class="chart-overview text-body-sm">{{ entry.item.overview }}</span>
+                        }
+                    </span>
+                </a>
+            </li>
         }
-    }
-</div>
+    </ol>
+}

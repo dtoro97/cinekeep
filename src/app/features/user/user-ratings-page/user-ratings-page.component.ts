@@ -23,9 +23,9 @@ import {
     SnackbarType,
     SortButtonComponent,
     SubPageHeaderComponent,
+    MediaListItemComponent,
+    EpisodeListItemComponent,
 } from '../../../shared';
-import { AccountEpisodeItemComponent } from '../account-episode-item/account-episode-item.component';
-import { AccountMediaItemComponent } from '../account-media-item/account-media-item.component';
 import { USER_ACCOUNT_SORT_FIELD, USER_ACCOUNT_SORT_OPTIONS } from '../user-list-sort-options';
 import { UserRatedEpisodeItem, UserRatingContentType, UserRatingsStore } from '../user-ratings-store.service';
 
@@ -34,8 +34,8 @@ import { UserRatedEpisodeItem, UserRatingContentType, UserRatingsStore } from '.
     imports: [
         AsyncPipe,
         MatPaginatorModule,
-        AccountEpisodeItemComponent,
-        AccountMediaItemComponent,
+        EpisodeListItemComponent,
+        MediaListItemComponent,
         BrowseToolbarComponent,
         EmptyStateComponent,
         IconButtonComponent,

@@ -40,6 +40,15 @@ export class WatchProviderStoreService extends ComponentStore<WatchProviderStore
     readonly movieProviders$ = this.select((state) => state.movieProviders);
     readonly tvProviders$ = this.select((state) => state.tvProviders);
     readonly loaded$ = this.select((state) => state.loaded);
+    /**
+     * Load flag and both lists in one emission. Combining the separate selectors can briefly
+     * see `loaded` before the lists, which made provider pages look like unknown providers.
+     */
+    readonly catalog$ = this.select(({ loaded, movieProviders, tvProviders }) => ({
+        loaded,
+        movieProviders,
+        tvProviders,
+    }));
     private loadingRegion: string | null = null;
     private loadedRegion: string | null = null;
     private readonly catalogRequests = new Map<string, Observable<WatchProviderOption[]>>();

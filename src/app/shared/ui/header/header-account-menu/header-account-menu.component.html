@@ -15,7 +15,7 @@
             [matMenuTriggerFor]="accountMenu"
             [matMenuTriggerRestoreFocus]="false"
             [disabled]="vm.busy"
-            [attr.aria-label]="'Open account menu for ' + vm.displayName"
+            attr.aria-label="Open account menu for {{ vm.displayName }}"
         >
             <app-user-avatar
                 class="account-menu__avatar"
@@ -27,13 +27,15 @@
 
         <mat-menu #accountMenu="matMenu" xPosition="before">
             <div class="account-menu__panel">
-                <a class="account-menu__identity" routerLink="/me">
-                    <app-user-avatar [name]="vm.username ?? vm.displayName" size="sm" />
-                    <span class="account-menu__identity-copy">
-                        <span class="account-menu__identity-name text-body-sm u-truncate">
-                            {{ vm.displayName }}
+                <a class="account-menu__identity" mat-menu-item routerLink="/me">
+                    <span class="account-menu__identity-row">
+                        <app-user-avatar [name]="vm.username ?? vm.displayName" size="sm" />
+                        <span class="account-menu__identity-copy">
+                            <span class="account-menu__identity-name text-body-sm u-truncate">
+                                {{ vm.displayName }}
+                            </span>
+                            <span class="text-caption">View profile</span>
                         </span>
-                        <span class="text-caption">View profile</span>
                     </span>
                 </a>
 
@@ -53,7 +55,7 @@
                 <mat-divider class="account-menu__divider" />
 
                 <button
-                    class="account-menu__item account-menu__item--danger"
+                    class="account-menu__item"
                     mat-menu-item
                     type="button"
                     [disabled]="vm.busy"

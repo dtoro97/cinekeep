@@ -17,6 +17,11 @@ interface ReviewPaginationState {
     readonly totalResults: number;
 }
 
+export interface ReviewRatingSummary {
+    readonly ratedCount: number;
+    readonly averageRating: number | null;
+}
+
 interface MediaReviewsState {
     readonly target: MediaTarget | null;
     readonly reviewPage: RemoteData<ReviewPage | null>;
@@ -50,6 +55,21 @@ export class MediaReviewsStoreService extends ComponentStore<MediaReviewsState> 
     readonly totalResults$ = this.pagination$.pipe(map((pagination) => pagination.totalResults));
 
     readonly hasMore$ = this.pagination$.pipe(map((pagination) => pagination.page < pagination.totalPages));
+
+    readonly ratingSummary$ = this.reviewsState$.pipe(
+        map((state): ReviewRatingSummary => {
+            const reviews = state.state === 'success' || state.state === 'loading-more' ? state.data : [];
+            const ratings = reviews
+                .map((review) => review.author_details?.rating)
+                .filter((rating): rating is number => typeof rating === 'number' && rating > 0);
+            const total = ratings.reduce((sum, rating) => sum + rating, 0);
+
+            return {
+                ratedCount: ratings.length,
+                averageRating: ratings.length ? Math.round((total / ratings.length) * 10) / 10 : null,
+            };
+        }),
+    );
 
     readonly previewReviews$ = this.reviewsState$.pipe(
         map((state) => {

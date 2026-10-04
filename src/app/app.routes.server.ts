@@ -11,10 +11,6 @@ export const serverRoutes: ServerRoute[] = [
         renderMode: RenderMode.Client,
     },
     {
-        path: 'lists/:listId',
-        renderMode: RenderMode.Client,
-    },
-    {
         path: '**',
         renderMode: RenderMode.Server,
     },

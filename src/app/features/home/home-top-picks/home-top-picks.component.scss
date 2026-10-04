@@ -1,162 +1,88 @@
 @use 'breakpoints' as *;
 @use 'mixins' as *;
 
-.featured-grid {
+// A ranked chart: two columns that read top-to-bottom, numbered like a box-office list.
+.chart {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-4);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(5, auto);
+    grid-auto-flow: column;
+    column-gap: var(--space-8);
 }
 
-.feature {
-    &-card,
-    &-card--skeleton {
-        @include surface-panel(var(--surface-panel));
-        display: grid;
-        grid-template-columns: minmax(0, 44%) minmax(0, 1fr);
-        align-items: start;
-        gap: var(--space-3);
-        padding: var(--space-3);
-    }
-
-    &-card {
-        @include surface-hover();
-    }
-
-    &-media {
-        position: relative;
-        align-self: start;
-        overflow: hidden;
-        border-radius: var(--radius-lg);
-        background: var(--mat-sys-surface-container-high);
-
-        app-image {
-            @include absolute-fill;
-        }
-    }
-
-    &-body {
-        min-width: 0;
-        gap: var(--space-2);
-    }
-
-    &-title {
-        @include line-clamp(2);
-    }
-
-    &-meta {
-        flex-wrap: wrap;
-        color: var(--color-on-surface-60);
-    }
-
-    &-overview {
-        max-width: 26ch;
-        @include line-clamp(4);
-    }
-
-    &-media-skeleton {
-        @include absolute-fill;
-        --skeleton-radius: 0;
-    }
-
-    &-title-skeleton {
-        width: 78%;
-        --skeleton-height: 1.95rem;
-    }
-
-    &-meta-skeleton {
-        width: 2.75rem;
-        --skeleton-height: 1rem;
-
-        &--badge {
-            width: 3.25rem;
-            --skeleton-radius: var(--radius-sm);
-        }
-    }
-
-    &-copy-skeleton {
-        width: 100%;
-        --skeleton-height: 0.875rem;
-
-        &--short {
-            width: 82%;
-        }
-    }
+// Rows divide with a bottom border (not the usual `li + li`) because the chart flows in two columns.
+.chart-row {
+    grid-template-columns: var(--row-rank-width) var(--row-thumb-poster) minmax(0, 1fr);
+    border-bottom: 1px solid var(--row-divider);
+    @include list-row('.chart-poster', '.chart-title');
+    align-items: center;
 }
 
-.tiles-grid {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: var(--space-3);
+.chart-rank {
+    text-align: end;
 }
 
-.tile {
-    position: relative;
+.chart-poster {
+    width: 100%;
+    aspect-ratio: var(--poster-ratio);
+    @include media-frame();
+}
+
+.chart-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
     min-width: 0;
-
-    &-card-skeleton {
-        position: relative;
-        overflow: hidden;
-        border-radius: var(--radius-lg);
-    }
-
-    &-card-fill-skeleton {
-        @include absolute-fill;
-        --skeleton-radius: 0;
-    }
 }
 
-@include content-md() {
-    .featured-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+.chart-title {
+    @include line-clamp(1);
+}
 
-    .tiles-grid {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-    }
+.chart-meta {
+    @include meta-list();
+}
+
+.chart-overview {
+    max-width: 60ch;
+    @include line-clamp(2);
+}
+
+.chart-rank-skeleton {
+    justify-self: end;
+    width: 1.75rem;
+    --skeleton-height: 2rem;
+}
+
+.chart-title-skeleton {
+    width: 55%;
+    --skeleton-height: 1.1rem;
+}
+
+.chart-meta-skeleton {
+    width: 6rem;
+    --skeleton-height: 0.9rem;
+}
+
+.chart-overview-skeleton {
+    width: 85%;
+    --skeleton-height: 0.9rem;
 }
 
 @include tablet() {
-    .featured-grid {
+    .chart {
         grid-template-columns: minmax(0, 1fr);
-    }
-
-    .tiles-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-}
-
-@include content-sm() {
-    .tiles-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: none;
+        grid-auto-flow: row;
     }
 }
 
 @include mobile() {
-    .top-picks {
-        gap: var(--space-3);
+    .chart-row {
+        grid-template-columns: var(--row-rank-width-compact) var(--row-thumb-poster-compact) minmax(0, 1fr);
     }
 
-    .feature-card,
-    .feature-card--skeleton {
-        grid-template-columns: 6.75rem minmax(0, 1fr);
-        gap: var(--space-2);
-        padding: var(--space-2);
-    }
-    .feature-media-skeleton {
-        width: 6.75rem;
-    }
-
-    .feature-body {
-        gap: var(--space-1);
-        padding-block: 0;
-    }
-
-    .feature-overview {
-        @include line-clamp(3);
-    }
-
-    .tiles-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--space-2);
+    .chart-rank {
+        font-size: var(--text-xl);
     }
 }

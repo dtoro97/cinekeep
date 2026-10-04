@@ -1,9 +1,21 @@
 @use "./breakpoints" as *;
 
+// Dim and soften the page behind modals so the dialog wins focus.
+.cdk-overlay-dark-backdrop {
+    background: var(--surface-backdrop);
+    backdrop-filter: blur(var(--backdrop-blur));
+}
+
+// The photo viewer covers the viewport; a blur under it would cost frames for nothing.
+.cdk-overlay-dark-backdrop:has(+ .cdk-global-overlay-wrapper > .photo-viewer-panel) {
+    backdrop-filter: none;
+}
+
 .cdk-overlay-pane:not(.photo-viewer-panel) {
     .mat-mdc-dialog-container .mdc-dialog__surface {
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--color-border-subtle);
+        border-radius: var(--overlay-radius);
+        border: 1px solid var(--overlay-border);
+        background: var(--overlay-surface);
         box-shadow: var(--shadow-dialog);
         padding: var(--space-6);
     }
@@ -15,6 +27,7 @@
 }
 
 :root {
+    --mat-dialog-container-color: var(--overlay-surface);
     --mat-dialog-with-actions-content-padding: 0;
     --mat-dialog-content-padding: var(--space-4) 0 0;
     --mat-dialog-actions-padding: var(--space-4) 0 0;

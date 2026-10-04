@@ -1,10 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import {
-    afterNextRender,
-    ChangeDetectionStrategy,
-    Component,
-    DestroyRef,
-} from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 
@@ -12,16 +7,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 
-import {
-    BehaviorSubject,
-    EMPTY,
-    catchError,
-    combineLatest,
-    finalize,
-    map,
-    switchMap,
-    tap,
-} from 'rxjs';
+import { BehaviorSubject, EMPTY, catchError, combineLatest, finalize, map, switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../../services/auth.service';
 import { UserSessionStoreService } from '../../../services/user-session-store.service';
@@ -45,21 +31,13 @@ interface HeaderAccountMenuViewModel {
 
 @Component({
     selector: 'app-header-account-menu',
-    imports: [
-        AsyncPipe,
-        MatDividerModule,
-        MatIconModule,
-        MatMenuModule,
-        RouterLink,
-        UserAvatarComponent,
-    ],
+    imports: [AsyncPipe, MatDividerModule, MatIconModule, MatMenuModule, RouterLink, UserAvatarComponent],
     templateUrl: './header-account-menu.component.html',
     styleUrl: './header-account-menu.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderAccountMenuComponent {
     readonly accountRoutes: readonly HeaderAccountRoute[] = [
-        { label: 'Profile', route: '/me', icon: 'person' },
         { label: 'Watchlist', route: '/me/watchlists', icon: 'bookmark' },
         { label: 'Favorites', route: '/me/favorites', icon: 'favorite' },
         { label: 'Ratings', route: '/me/ratings', icon: 'star' },
@@ -70,11 +48,7 @@ export class HeaderAccountMenuComponent {
     private readonly busy$ = new BehaviorSubject(false);
     private readonly ready$ = new BehaviorSubject(false);
 
-    readonly vm$ = combineLatest([
-        this.ready$,
-        this.userSessionStore.authViewModel$,
-        this.busy$,
-    ]).pipe(
+    readonly vm$ = combineLatest([this.ready$, this.userSessionStore.authViewModel$, this.busy$]).pipe(
         map(
             ([ready, auth, busy]): HeaderAccountMenuViewModel => ({
                 // Stays a placeholder until hydration and the session restore have both settled.
@@ -125,8 +99,7 @@ export class HeaderAccountMenuComponent {
         this.confirmationDialog
             .confirm$({
                 title: 'Sign out?',
-                message:
-                    'You will need to sign in again to manage your watchlist, favorites, ratings, and lists.',
+                message: 'You will need to sign in again to manage your watchlist, favorites, ratings, and lists.',
                 confirmLabel: 'Sign out',
                 tone: 'danger',
             })
@@ -142,7 +115,7 @@ export class HeaderAccountMenuComponent {
                         tap(() => {
                             // Session state updates the UI on its own; only leave account-only pages.
                             if (this.isOnAccountPage()) {
-                                void this.router.navigateByUrl('/');
+                                this.router.navigateByUrl('/');
                             }
                         }),
                         catchError(() => EMPTY),

@@ -5,10 +5,11 @@
 }
 
 .text-display {
-    font-size: var(--text-3xl);
-    font-weight: var(--weight-bold);
-    line-height: 1.1;
-    letter-spacing: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-4xl);
+    font-weight: var(--weight-semibold);
+    line-height: 1.05;
+    letter-spacing: var(--tracking-tight);
     color: var(--text-primary);
 }
 
@@ -16,9 +17,10 @@
     font-family: var(--font-display);
     font-size: var(--text-5xl);
     font-weight: var(--weight-semibold);
-    line-height: 1;
-    letter-spacing: 0;
+    line-height: 0.98;
+    letter-spacing: var(--tracking-tighter);
     color: var(--text-primary);
+    text-wrap: balance;
 }
 
 .text-hero-meta {
@@ -30,7 +32,7 @@
 }
 
 .text-hero-summary {
-    font-size: var(--text-sm);
+    font-size: var(--text-md);
     font-weight: var(--weight-regular);
     line-height: var(--lh-relaxed);
     letter-spacing: 0;
@@ -38,10 +40,20 @@
 }
 
 .text-headline {
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-semibold);
+    line-height: 1.1;
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-primary);
+}
+
+.text-display-sm {
+    font-family: var(--font-display);
     font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
+    font-weight: var(--weight-semibold);
     line-height: 1.15;
-    letter-spacing: 0;
+    letter-spacing: var(--tracking-tight);
     color: var(--text-primary);
 }
 
@@ -49,7 +61,16 @@
     font-size: var(--text-lg);
     font-weight: var(--weight-semibold);
     line-height: 1.25;
-    letter-spacing: 0;
+    letter-spacing: var(--tracking-tight);
+    color: var(--text-primary);
+}
+
+.text-section-label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    line-height: 1.2;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
     color: var(--text-primary);
 }
 
@@ -122,18 +143,39 @@
     color: var(--text-secondary);
 }
 
-.text-rating {
-    font-size: var(--text-4xl);
-    font-weight: var(--weight-bold);
+// Display-serif numbers: scores, review averages and list ranks share one figure style.
+%text-figure {
+    font-family: var(--font-display);
+    font-weight: var(--weight-semibold);
     line-height: 1;
-    color: var(--color-rating);
+    letter-spacing: var(--tracking-tight);
     font-variant-numeric: tabular-nums;
+}
+
+.text-rating {
+    @extend %text-figure;
+    font-size: var(--text-4xl);
+    color: var(--color-rating);
+}
+
+.text-rating-sm {
+    @extend %text-figure;
+    font-size: var(--text-3xl);
+    color: var(--color-rating);
+}
+
+/// Rank and episode numbers leading a list row.
+.text-numeral {
+    @extend %text-figure;
+    font-size: var(--text-3xl);
+    color: var(--text-disabled);
 }
 
 .text-overline {
     font-size: var(--text-2xs);
     font-weight: var(--weight-semibold);
     line-height: 1.2;
-    letter-spacing: 0;
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
     color: var(--text-muted);
 }

@@ -27,6 +27,9 @@ const MAX_COMPACT_PREVIEW_PHOTOS = 4;
 const PERSON_PROFILE_COUNT = 3;
 const SKELETON_TILE_COUNT = 9;
 const COMPACT_SKELETON_TILE_COUNT = 4;
+// Summed tile aspect ratios that fit two mosaic rows; row height scales with the
+// viewport, so a row holds roughly 6.3 units on any desktop width.
+const MOSAIC_ASPECT_BUDGET = 11;
 
 @Component({
     selector: 'app-photos-preview',
@@ -71,7 +74,8 @@ function toPreviewTiles(
     }
 
     const visibleCount = getVisibleCount(maxVisible, mode, variant);
-    const selectedEntries = selectEntries(state.data, visibleCount, mode);
+    const entries = selectEntries(state.data, visibleCount, mode);
+    const selectedEntries = variant === 'mosaic' ? fitAspectBudget(entries, MOSAIC_ASPECT_BUDGET) : entries;
     const sourceCount = totalCount || state.data.length;
     const moreCount = showMoreTile && sourceCount > selectedEntries.length ? sourceCount - selectedEntries.length + 1 : null;
 
@@ -138,6 +142,24 @@ function selectPersonEntries(
     const mixed = mixEntries([profiles, tagged], visibleCount);
 
     return mixed.length ? mixed : entries.slice(0, visibleCount);
+}
+
+function fitAspectBudget(entries: readonly PhotosPreviewEntry[], budget: number): PhotosPreviewEntry[] {
+    const fitted: PhotosPreviewEntry[] = [];
+    let used = 0;
+
+    for (const entry of entries) {
+        const aspectRatio = getLayoutAspectRatio(entry.image);
+
+        if (fitted.length && used + aspectRatio > budget) {
+            break;
+        }
+
+        fitted.push(entry);
+        used += aspectRatio;
+    }
+
+    return fitted;
 }
 
 function groupByPhotoType(entries: readonly PhotosPreviewEntry[]): Map<string, PhotosPreviewEntry[]> {

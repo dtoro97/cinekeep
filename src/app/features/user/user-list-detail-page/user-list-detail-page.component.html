@@ -1,173 +1,155 @@
 @if (vm$ | async; as vm) {
     <div class="detail page-container">
-        @if (vm.header.state === "success") {
+        @if (vm.header.state === 'success') {
+            @let header = vm.header.data;
+
             <app-sub-page-header
-                parentTitle="lists"
+                parentTitle="your lists"
                 [backLink]="backLink"
-                [pageTitle]="vm.header.data.name"
-                [subtitle]="vm.header.data.itemCount | pluralize: 'title'"
-                [titleIconClass]="vm.isPublic ? 'fa-regular fa-eye' : 'fa-solid fa-lock'"
-                [titleIconLabel]="(vm.isPublic ? 'Public' : 'Private') + ' list'"
+                [backdropPath]="header.backdropPath"
+                [pageTitle]="header.name"
+                [subtitle]="vm.headerSubtitle"
             />
 
-            <main class="page-main detail__main">
-                <section
-                    class="detail__summary"
-                    aria-label="List details"
-                >
-                    @if (vm.header.data.description) {
-                        <p class="detail__description text-body-sm">
-                            {{ vm.header.data.description }}
-                        </p>
-                    }
+            <main class="page-main detail__main page-list-column">
+                @if (header.description) {
+                    <p class="detail__description text-body">{{ header.description }}</p>
+                }
 
-                    <div
-                        class="detail__actions"
-                        role="group"
-                        aria-label="List actions"
-                    >
-                        <button
-                            matButton="filled"
-                            type="button"
-                            (click)="onAddTitles(vm.header.data.id)"
-                        >
-                            Add movies or TV series
+                <app-browse-toolbar class="detail__toolbar">
+                    <div start class="detail__actions" role="group" aria-label="List actions">
+                        <button matButton="filled" type="button" (click)="onAddTitles(header.id)">
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                            Add titles
                         </button>
                         <button
-                            mat-stroked-button
+                            matButton="outlined"
+                            class="button--subtle"
                             type="button"
-                            (click)="onEditDetails(vm.header.data, vm.isPublic, vm.defaultSortBy)"
+                            (click)="onEditDetails(header, vm.defaultSortBy)"
                         >
+                            <i class="fa-solid fa-pencil" aria-hidden="true"></i>
                             Edit list
                         </button>
                         <button
-                            mat-stroked-button
+                            matButton="outlined"
+                            class="button--subtle detail__more"
                             type="button"
-                            (click)="onClearList()"
+                            aria-label="More list actions"
+                            matTooltip="More"
+                            [matMenuTriggerFor]="listMenu"
                         >
-                            Clear list
+                            <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
                         </button>
-                        <button
-                            class="detail__danger-button"
-                            mat-stroked-button
-                            type="button"
-                            (click)="onDeleteList()"
-                        >
-                            Delete list
-                        </button>
-                    </div>
-                </section>
 
-                <section class="detail__toolbar">
-                    <div>
-                        <h2 class="text-title">Movies and TV series</h2>
+                        <mat-menu #listMenu="matMenu" xPosition="before">
+                            <button mat-menu-item type="button" [disabled]="!header.itemCount" (click)="onClearList()">
+                                <mat-icon aria-hidden="true">clear_all</mat-icon>
+                                <span>Clear list</span>
+                            </button>
+                            <button class="detail__menu-danger" mat-menu-item type="button" (click)="onDeleteList()">
+                                <mat-icon aria-hidden="true">delete</mat-icon>
+                                <span>Delete list</span>
+                            </button>
+                        </mat-menu>
                     </div>
 
-                    <div class="detail__sort">
-                        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                            <mat-select
-                                [value]="vm.sortBy"
-                                aria-label="Sort list items"
-                                (selectionChange)="onSortChange($event.value)"
-                            >
-                                @for (option of sortOptions; track option.value) {
-                                    <mat-option [value]="option.value">
-                                        {{ option.label }}
-                                    </mat-option>
-                                }
-                            </mat-select>
-                        </mat-form-field>
-                    </div>
-                </section>
+                    <app-sort-button
+                        end
+                        [options]="sortFieldOptions"
+                        [selectedValue]="vm.sort.field"
+                        [direction]="vm.sort.direction"
+                        (sortChange)="onSortFieldChange($event, vm.sort)"
+                        (directionToggle)="onSortDirectionToggle(vm.sort)"
+                    />
+                </app-browse-toolbar>
 
-                @if (
-                    vm.items.state === "loading"
-                ) {
+                @if (vm.items.state === 'loading') {
                     <div class="detail__items" aria-hidden="true">
                         @for (placeholder of initialSkeletonCount | repeat; track placeholder) {
-                            <app-account-media-item [loading]="true" />
+                            <app-media-list-item [loading]="true" />
                         }
                     </div>
-                } @else if (vm.items.state === "success") {
+                } @else if (vm.items.state === 'success') {
                     @if (vm.items.data.length) {
                         <div class="detail__items">
                             @for (item of vm.items.data; track item.key) {
-                                <app-account-media-item
-                                    [item]="item.mediaItem"
-                                    [link]="item.link"
-                                >
-                                    <div
-                                        account-media-item-action
-                                        class="detail__item-actions"
-                                    >
+                                <app-media-list-item [item]="item.mediaItem" [link]="item.link">
+                                    <div media-list-item-action class="detail__item-actions">
                                         <app-icon-button
-                                            matTooltip="Edit comment"
-                                            ariaLabel="Edit comment"
+                                            [title]="item.commentActionLabel"
+                                            [ariaLabel]="item.commentActionLabel"
+                                            [selected]="editingCommentKey() === item.key"
                                             (onClick)="onStartComment(item)"
                                         >
-                                            <i
-                                                class="fa-regular fa-comment"
-                                                aria-hidden="true"
-                                            ></i>
+                                            <i class="fa-regular fa-comment" aria-hidden="true"></i>
                                         </app-icon-button>
                                         <app-icon-button
                                             tone="danger"
-                                            matTooltip="Remove from list"
-                                            ariaLabel="Remove from list"
+                                            title="Remove from list"
+                                            ariaLabel="Remove {{ item.title }} from this list"
                                             (onClick)="onRemoveItem(item)"
                                         >
-                                            <i
-                                                class="fa-regular fa-trash-can"
-                                                aria-hidden="true"
-                                            ></i>
+                                            <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
                                         </app-icon-button>
                                     </div>
 
-                                    @if (item.comment) {
-                                        <p
-                                            account-media-item-note
-                                            class="detail__comment text-body-sm"
-                                        >
-                                            <i
-                                                class="fa-regular fa-comment"
-                                                aria-hidden="true"
-                                            ></i>
-                                            {{ item.comment }}
-                                        </p>
-                                    }
-
                                     @if (editingCommentKey() === item.key) {
-                                        <div
-                                            account-media-item-note
-                                            class="detail__comment-editor"
-                                        >
-                                            <textarea
-                                                class="detail__comment-input text-body-sm"
-                                                rows="2"
-                                                [value]="commentDraft()"
-                                                [attr.aria-label]="'Comment for ' + item.title"
-                                                placeholder="Add a comment"
-                                                (input)="onCommentDraftInput($event)"
-                                            ></textarea>
+                                        <div media-list-item-note class="detail__comment-editor">
+                                            <mat-form-field
+                                                class="detail__comment-field"
+                                                appearance="outline"
+                                                subscriptSizing="dynamic"
+                                            >
+                                                <textarea
+                                                    #commentInput
+                                                    matInput
+                                                    rows="2"
+                                                    placeholder="Why does it belong on this list?"
+                                                    attr.aria-label="Comment for {{ item.title }}"
+                                                    aria-describedby="comment-editor-hint"
+                                                    [value]="commentDraft()"
+                                                    [disabled]="commentPending()"
+                                                    (input)="onCommentDraftInput($event)"
+                                                    (keydown.escape)="onCancelComment()"
+                                                    (keydown.control.enter)="onSaveComment(item)"
+                                                    (keydown.meta.enter)="onSaveComment(item)"
+                                                ></textarea>
+                                            </mat-form-field>
+
                                             <div class="detail__comment-actions">
+                                                <span
+                                                    id="comment-editor-hint"
+                                                    class="detail__comment-hint text-caption"
+                                                >
+                                                    Ctrl+Enter to save, Esc to cancel
+                                                </span>
                                                 <button
                                                     matButton
+                                                    class="text-button"
                                                     type="button"
+                                                    [disabled]="commentPending()"
                                                     (click)="onCancelComment()"
                                                 >
-                                                    Cancel comment
+                                                    Cancel
                                                 </button>
                                                 <button
                                                     matButton="filled"
                                                     type="button"
+                                                    [disabled]="commentPending()"
                                                     (click)="onSaveComment(item)"
                                                 >
-                                                    Save comment
+                                                    {{ commentSaveLabel() }}
                                                 </button>
                                             </div>
                                         </div>
+                                    } @else if (item.comment) {
+                                        <p media-list-item-note class="detail__comment text-body-sm">
+                                            <i class="fa-regular fa-comment" aria-hidden="true"></i>
+                                            <span>{{ item.comment }}</span>
+                                        </p>
                                     }
-                                </app-account-media-item>
+                                </app-media-list-item>
                             }
                         </div>
 
@@ -184,32 +166,25 @@
                     } @else {
                         <section class="detail__empty">
                             <app-empty-state
-                                iconClass="fa-solid fa-list"
-                                title="This list is empty"
-                                text="Add a movie or TV series to start building it."
+                                iconClass="fa-solid fa-film"
+                                title="Nothing on this list yet"
+                                text="Search for films and series and add them here."
                             />
-                            <button
-                                matButton="filled"
-                                type="button"
-                                (click)="onAddTitles(vm.header.data.id)"
-                            >
-                                Add movies or TV series
+                            <button matButton="filled" type="button" (click)="onAddTitles(header.id)">
+                                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                Add titles
                             </button>
                         </section>
                     }
                 }
             </main>
         } @else {
-            <app-sub-page-header
-                parentTitle="lists"
-                [backLink]="backLink"
-                [loading]="true"
-            />
+            <app-sub-page-header parentTitle="your lists" [backLink]="backLink" [loading]="true" />
 
-            <main class="page-main detail__main">
+            <main class="page-main detail__main page-list-column">
                 <div class="detail__items" aria-hidden="true">
                     @for (placeholder of initialSkeletonCount | repeat; track placeholder) {
-                        <app-account-media-item [loading]="true" />
+                        <app-media-list-item [loading]="true" />
                     }
                 </div>
             </main>

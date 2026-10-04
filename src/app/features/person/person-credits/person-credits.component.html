@@ -80,7 +80,7 @@
                                             @if (credit.rating) {
                                                 <app-rating [value]="credit.rating" />
                                             } @else {
-                                                <span class="text-caption">-</span>
+                                                <span class="text-caption">Not rated</span>
                                             }
                                         </td>
                                     </tr>
@@ -91,7 +91,7 @@
 
                     @if (state.data.acting.hiddenCount || state.data.acting.expanded) {
                         <button class="show-all text-body-sm" type="button" (click)="actingCreditsToggle.emit()">
-                            {{ state.data.acting.expanded ? 'Show less' : 'Show all' }}
+                            {{ state.data.acting.toggleLabel }}
                         </button>
                     }
                 </section>
@@ -153,7 +153,7 @@
 
                     @if (state.data.production.hiddenCount || state.data.production.expanded) {
                         <button class="show-all text-body-sm" type="button" (click)="productionCreditsToggle.emit()">
-                            {{ state.data.production.expanded ? 'Show less' : 'Show all' }}
+                            {{ state.data.production.toggleLabel }}
                         </button>
                     }
                 </section>
@@ -163,16 +163,8 @@
         <div class="empty-panel u-flex-column u-items-center u-gap-3">
             <app-empty-state
                 iconClass="fa-solid fa-table-list"
-                [title]="
-                    state.data.hasActiveFilters
-                        ? 'No filmography matches these filters'
-                        : 'No filmography available yet'
-                "
-                [text]="
-                    state.data.hasActiveFilters
-                        ? 'Try resetting the filters to bring back more titles.'
-                        : 'We do not have any movie or TV series credits to show right now.'
-                "
+                [title]="state.data.emptyTitle"
+                [text]="state.data.emptyText"
             />
             @if (state.data.hasActiveFilters) {
                 <button class="reset text-caption" type="button" (click)="onResetFilters()">Reset filters</button>

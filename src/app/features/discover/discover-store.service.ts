@@ -9,6 +9,7 @@ import {
     combineLatest,
     debounceTime,
     distinctUntilChanged,
+    exhaustMap,
     forkJoin,
     map,
     merge,
@@ -25,7 +26,6 @@ import {
     Language,
     SearchRestControllerService,
 } from '../../api';
-import { PAGE_SIZE } from '../../constants';
 import {
     ConfigStoreService,
     DEFAULT_TMDB_DISCOVER_SORT_DIRECTION,
@@ -36,7 +36,6 @@ import {
     GenreService,
     RemoteData,
     remoteData,
-    toPageItemRange,
     WatchProviderStoreService,
     LocaleStoreService,
     MEDIA_TYPE_OPTIONS,
@@ -50,6 +49,7 @@ import {
     parsePositiveNumberParam,
     parseRegionParam,
     parseStringParam,
+    pluralize,
     SelectOption,
     serializeNumberListParam,
     serializePositiveNumberParam,
@@ -57,8 +57,11 @@ import {
     TMDB_DISCOVER_SORT_DIRECTIONS,
     TMDB_DISCOVER_SORT_KEYS,
     toLanguageOptions,
-    toMediaListEntries,
+    MediaStateLookup,
+    toLibraryState,
+    mediaListItemToCardItem,
     toRegionOptions,
+    UserLibraryService,
 } from '../../shared';
 import {
     DISCOVER_DEFAULT_FILTERS,
@@ -80,6 +83,7 @@ import { DiscoverQueryService } from './discover-query.service';
 
 type ActiveFilterType =
     | 'genre'
+    | 'excluded-genres'
     | 'year'
     | 'keyword'
     | 'company'
@@ -91,6 +95,27 @@ type ActiveFilterType =
     | 'rating'
     | 'votes'
     | 'runtime';
+
+/** Filters folded under "More filters"; the panel shows how many of them are active. */
+const MORE_FILTER_TYPES: ReadonlySet<ActiveFilterType> = new Set([
+    'keyword',
+    'company',
+    'certification',
+    'release-type',
+    'language',
+    'votes',
+    'runtime',
+]);
+
+const RESULT_NOUNS: Readonly<Record<MediaType, readonly [string, string]>> = {
+    movie: ['movie', 'movies'],
+    tv: ['TV series', 'TV series'],
+};
+
+const ADVANCED_TITLES: Readonly<Record<MediaType, string>> = {
+    movie: 'Discover Movies',
+    tv: 'Discover TV Series',
+};
 
 export interface DiscoverActiveFilter {
     readonly id: string;
@@ -131,6 +156,8 @@ interface DiscoverState {
     readonly keywordLabelMap: ReadonlyMap<number, string>;
     readonly companyLabelMap: ReadonlyMap<number, string>;
     readonly regionOptions: readonly SelectOption<string>[];
+    /** Watchlist and favorite states for the loaded titles; `null` while signed out. */
+    readonly libraryStates: MediaStateLookup | null;
 }
 
 const EMPTY_PAGINATION: DiscoverPagination = {
@@ -160,6 +187,7 @@ const INITIAL_STATE: DiscoverState = {
     keywordLabelMap: new Map(),
     companyLabelMap: new Map(),
     regionOptions: [],
+    libraryStates: null,
 };
 
 const DISCOVER_MEDIA_TYPES: readonly MediaType[] = ['movie', 'tv'];
@@ -221,12 +249,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         const genreMap = this.getGenreMap(state.query.mediaType, state);
         const hasLoadedResults = state.resultsState.state === 'success' || state.resultsState.state === 'loading-more';
         const visibleCount = remoteData(state.resultsState, []).length;
-        const resultRange = toPageItemRange({
-            page: Math.max(state.pagination.page, 1),
-            pageSize: PAGE_SIZE,
-            itemCount: visibleCount,
-            totalResults: state.totalResults,
-        });
+        const [singularNoun, pluralNoun] = RESULT_NOUNS[state.query.mediaType];
         const activeFilters = this.toActiveFilters(
             definition,
             state.query,
@@ -239,18 +262,16 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         );
 
         return {
-            title: definition?.title ?? '',
+            title: definition?.mode === 'advanced' ? ADVANCED_TITLES[state.query.mediaType] : (definition?.title ?? ''),
             subtitle: definition?.subtitle ?? '',
             resultsState: state.resultsState,
-            displayItems: toMediaListEntries(remoteData(state.resultsState, []), genreMap),
-            totalResults: state.totalResults,
-            visibleCount,
-            resultStart: resultRange.start,
-            resultEnd: resultRange.end,
-            pageIndex: Math.max(state.pagination.page - 1, 0),
-            pageSize: PAGE_SIZE,
-            paginatorLength: this.getPaginatorLength(state),
-            showPaginator: hasLoadedResults && this.getPaginatorLength(state) > PAGE_SIZE,
+            displayItems: remoteData(state.resultsState, []).map((item) => ({
+                item: mediaListItemToCardItem(item),
+                libraryState: toLibraryState(state.libraryStates, item),
+            })),
+            resultCountLabel: pluralize(state.totalResults, singularNoun, pluralNoun),
+            hasMore: state.resultsState.state === 'success' && state.pagination.page < state.pagination.totalPages,
+            loadingMore: state.resultsState.state === 'loading-more',
             showEmptyState: state.resultsState.state === 'success' && visibleCount === 0,
             showResultCount: hasLoadedResults,
             showSort: !!definition?.showSort,
@@ -262,7 +283,12 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
             sortKey: state.query.sortKey,
             sortDirection: state.query.sortDirection,
             sortOptions: getTmdbDiscoverSortOptions(state.query.mediaType),
-            filters: this.toDiscoverFilters(state, genreMap, activeFilters.length),
+            filters: this.toDiscoverFilters(
+                state,
+                genreMap,
+                activeFilters.length,
+                activeFilters.filter((filter) => MORE_FILTER_TYPES.has(filter.type)).length,
+            ),
             lockedFilters: definition?.lockedFilters ?? [],
             activeFilters,
         };
@@ -270,6 +296,52 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
 
     private readonly routeRequestEffect = this.effect<DiscoverRouteRequest>((request$) =>
         request$.pipe(switchMap((request) => this.handleRouteRequest(request))),
+    );
+
+    private readonly updateLibraryStates = this.updater(
+        (state, libraryStates: MediaStateLookup | null): DiscoverState => ({ ...state, libraryStates }),
+    );
+
+    /** Appends the next page; a new route request replaces the results, so late pages are dropped. */
+    readonly loadMore = this.effect<void>((trigger$) =>
+        trigger$.pipe(
+            exhaustMap(() => {
+                const { definition, query, pagination, resultsState } = this.get();
+
+                if (!definition || resultsState.state !== 'success' || pagination.page >= pagination.totalPages) {
+                    return EMPTY;
+                }
+
+                const loaded = resultsState.data;
+                this.patchState({ resultsState: { state: 'loading-more', data: loaded } });
+
+                return this.discoverQuery.list$(definition, query, pagination.page + 1).pipe(
+                    tap((result) => {
+                        if (this.get().query !== query) {
+                            return;
+                        }
+
+                        const loadedIds = new Set(loaded.map((item) => item.id));
+
+                        this.patchState({
+                            resultsState: {
+                                state: 'success',
+                                data: [...loaded, ...result.items.filter((item) => !loadedIds.has(item.id))],
+                            },
+                            pagination: { page: result.page, totalPages: result.totalPages },
+                            totalResults: result.totalResults,
+                        });
+                    }),
+                    catchError(() => {
+                        if (this.get().query === query) {
+                            this.patchState({ resultsState: { state: 'success', data: loaded } });
+                        }
+
+                        return EMPTY;
+                    }),
+                );
+            }),
+        ),
     );
 
     private readonly keywordLookup: DiscoverLookup = {
@@ -304,9 +376,11 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         private readonly watchProviderStore: WatchProviderStoreService,
         configStore: ConfigStoreService,
         genreService: GenreService,
+        userLibrary: UserLibraryService,
     ) {
         super(INITIAL_STATE);
         this.routeRequestEffect(this.routeRequest$(genreService, configStore));
+        this.updateLibraryStates(userLibrary.mediaStates$(this.select((state) => remoteData(state.resultsState, []))));
     }
 
     updateFilter(change: DiscoverFilterChange): void {
@@ -722,6 +796,11 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
             queryParams['page'] = null;
         }
 
+        if (filter.type === 'excluded-genres') {
+            queryParams['exclude'] = 'none';
+            queryParams['page'] = null;
+        }
+
         if (filter.type === 'runtime') {
             queryParams['runtime'] = null;
             queryParams['page'] = null;
@@ -744,16 +823,6 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         this.router.navigate([], {
             relativeTo: this.route,
             queryParams,
-        });
-    }
-
-    updatePage(pageIndex: number): void {
-        const page = Math.max(1, pageIndex + 1);
-
-        this.router.navigate([], {
-            relativeTo: this.route,
-            queryParams: { page: page === 1 ? null : page },
-            queryParamsHandling: 'merge',
         });
     }
 
@@ -866,6 +935,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                 ? parseEnumParam(params.get('direction'), TMDB_DISCOVER_SORT_DIRECTIONS, definition.defaultSortDirection)
                 : definition.defaultSortDirection,
             genreIds: filters.genres ? parsePositiveIntegerListParam(params.get('genres')) : [],
+            excludedGenreIds: this.resolveExcludedGenreIds(definition, params),
             keywordIds: filters.keywords ? parsePositiveIntegerListParam(params.get('keywords')) : [],
             companyIds: filters.companies ? parsePositiveIntegerListParam(params.get('companies')) : [],
             providerIds: filters.providers ? parsePositiveIntegerListParam(params.get('providers')) : [],
@@ -1059,30 +1129,34 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         );
     }
 
-    private getPaginatorLength(state: DiscoverState): number {
-        if (state.pagination.totalPages <= 0) {
-            return state.totalResults;
-        }
-
-        return Math.min(state.totalResults, state.pagination.totalPages * PAGE_SIZE);
-    }
-
     private toDiscoverFilters(
         state: DiscoverState,
         genreMap: ReadonlyMap<number, string>,
         activeFilterCount: number,
+        moreActiveCount: number,
     ): DiscoverFilters {
         const { definition, query } = state;
         const filters = definition?.filters ?? NO_FILTERS;
 
+        const visible = {
+            ...filters,
+            certification: filters.certification && query.mediaType === 'movie',
+            releaseType: this.showReleaseTypeFilter(definition, query.mediaType),
+        };
+
         return {
             activeFilterCount,
-            visible: {
-                ...filters,
-                certification: filters.certification && query.mediaType === 'movie',
-                releaseType: this.showReleaseTypeFilter(definition, query.mediaType),
-            },
-            genreOptions: this.toGenreOptions(genreMap),
+            moreActiveCount,
+            hasMoreFilters:
+                visible.keywords ||
+                visible.companies ||
+                visible.certification ||
+                visible.releaseType ||
+                visible.language ||
+                visible.votes ||
+                visible.runtime,
+            visible,
+            genreOptions: this.toGenreOptions(genreMap, query.excludedGenreIds),
             selectedGenreIds: query.genreIds,
             keywordSuggestions: state.keywordSuggestions,
             companySuggestions: state.companySuggestions,
@@ -1134,6 +1208,14 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                     type: 'genre',
                     value: genreId,
                 });
+            });
+        }
+
+        if (definition.defaultGenreExclusion && query.excludedGenreIds.length) {
+            activeFilters.push({
+                id: 'excluded-genres',
+                label: definition.defaultGenreExclusion.label,
+                type: 'excluded-genres',
             });
         }
 
@@ -1245,8 +1327,12 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         return mediaType === 'movie' ? state.movieGenreMap : state.tvGenreMap;
     }
 
-    private toGenreOptions(genreMap: ReadonlyMap<number, string>): SelectOption<number>[] {
+    private toGenreOptions(
+        genreMap: ReadonlyMap<number, string>,
+        excludedGenreIds: readonly number[],
+    ): SelectOption<number>[] {
         return [...genreMap.entries()]
+            .filter(([value]) => !excludedGenreIds.includes(value))
             .map(([value, label]) => ({ label, value }))
             .sort((left, right) => left.label.localeCompare(right.label));
     }
@@ -1304,6 +1390,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
             (filters.language && query.originalLanguage !== null) ||
             (filters.rating && query.voteAverageGte !== null) ||
             this.hasResettableVoteFilter(definition, query) ||
+            (!!definition.defaultGenreExclusion && !query.excludedGenreIds.length) ||
             (filters.runtime && query.runtimePreset !== 'any')
         );
     }
@@ -1342,6 +1429,14 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         }
 
         return parsePositiveNumberParam(params.get('votes')) ?? definition.defaultVoteCountGte ?? null;
+    }
+
+    private resolveExcludedGenreIds(definition: DiscoverPageDefinition, params: ParamMap): readonly number[] {
+        if (!definition.defaultGenreExclusion || params.get('exclude') === 'none') {
+            return [];
+        }
+
+        return definition.defaultGenreExclusion.genreIds;
     }
 
     private serializeVoteCount(value: unknown): string | number | null {
