@@ -1,25 +1,22 @@
-import { CdkAccordionModule } from '@angular/cdk/accordion';
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ImageComponent, RepeatPipe, SkeletonComponent } from '../../../shared';
-import { CastGridMember, GroupedCrew } from '../models/cast-crew.model';
 
-type CastCrewGridVariant = 'accordion' | 'directory';
+import { ImageComponent, PluralizePipe, RepeatPipe, SkeletonComponent } from '../../../shared';
+import { CreditDepartment, CreditPerson } from '../models/cast-crew.model';
 
+/** Cast as one grid of people, or crew as one grid per department. */
 @Component({
     selector: 'app-cast-crew-grid',
-    imports: [CdkAccordionModule, RouterLink, ImageComponent, RepeatPipe, SkeletonComponent],
+    imports: [ImageComponent, NgTemplateOutlet, PluralizePipe, RepeatPipe, RouterLink, SkeletonComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './cast-crew-grid.component.html',
     styleUrl: './cast-crew-grid.component.scss',
 })
 export class CastCrewGridComponent {
-    readonly defaultExpandedGroupCount = 3;
-    readonly loadingRowCount = 5;
-    @Input() cast: CastGridMember[] = [];
-    @Input() groupedCrew: GroupedCrew[] = [];
+    readonly loadingRowCount = 12;
+    @Input() cast: readonly CreditPerson[] = [];
+    @Input() departments: readonly CreditDepartment[] = [];
     @Input() showCast = true;
-    @Input() showCrew = true;
     @Input() loading = false;
-    @Input() variant: CastCrewGridVariant = 'accordion';
 }

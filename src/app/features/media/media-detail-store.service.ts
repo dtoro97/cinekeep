@@ -40,6 +40,8 @@ import {
     toOptionalSection,
     toCardItem,
     toVideoCardItems,
+    EpisodeListItemData,
+    toRating,
 } from '../../shared';
 import { MediaCreditsStoreService } from './media-credits-store.service';
 import { MediaDetailActionsStore } from './media-detail-actions-store.service';
@@ -52,6 +54,7 @@ import { MediaStoreService } from './media-store.service';
 import { MediaVideoStoreService } from './media-video-store.service';
 import { CreditsSummary } from './media-credits-summary/media-credits-summary.model';
 import { MediaDetails } from './models/media-details.model';
+import { dedupeWatchProviders } from './mappers/watch-provider.mapper';
 
 interface MediaDetailPageData {
     readonly media: MediaDetails | null;
@@ -103,6 +106,11 @@ export interface MediaDetailProviderPreview {
     readonly link: string | null;
 }
 
+export interface MediaDetailHeroCredit {
+    readonly label: string;
+    readonly people: readonly { readonly id: number; readonly name: string }[];
+}
+
 interface MediaReleaseInfo {
     readonly certification: string | null;
     readonly inCinemas: boolean;
@@ -119,6 +127,9 @@ interface MediaDetailState {
 }
 
 type RelatedMediaResult = MovieListItem | TvSeriesListItem;
+
+const HERO_CREDIT_LIMIT = 3;
+const TOP_CAST_GRID_COUNT = 12;
 
 const INITIAL_STATE: MediaDetailState = {
     target: null,
@@ -297,12 +308,13 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
                 externalLinks: page.externalLinks,
                 userRating,
                 watchProviders: remoteData(page.watchProviderState, null),
+                credit: this.toHeroCredit(creditsSummary, target.type),
             },
             inCinemas: page.inCinemas,
             creditsSummary,
             isMovie: target.type === 'movie',
             collection: page.collectionState,
-            latestEpisode: page.media?.lastEpisode ?? null,
+            latestEpisode: toLatestEpisodeItem(page.media),
             videos: toOptionalSection(page.videosState, (): MediaDetailVideosPreview | null =>
                 page.videoTotalCount
                     ? {
@@ -545,7 +557,7 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         response: WatchProviderList | null | undefined,
     ): MediaDetailProviderPreview | null {
         const item = response?.results?.[this.localeStore.region()];
-        const providers = item?.flatrate ?? [];
+        const providers = dedupeWatchProviders(item?.flatrate ?? []);
 
         if (!providers.length) {
             return null;
@@ -556,6 +568,24 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
             hiddenCount: Math.max(0, providers.length - 3),
             link: item?.link ?? null,
         };
+    }
+
+    // TV crew is aggregated across episodes, so series credit their creators only.
+    private toHeroCredit(
+        creditsSummary: RemoteData<CreditsSummary | null>,
+        mediaType: MediaType,
+    ): MediaDetailHeroCredit | null {
+        if (creditsSummary.state !== 'success' || !creditsSummary.data) {
+            return null;
+        }
+
+        const { creators, directors } = creditsSummary.data;
+        const [label, links] = mediaType === 'tv' ? ['Created by', creators] : ['Directed by', directors];
+        const people = links
+            .filter((link): link is { id: number; name: string } => !!link.id && !!link.name)
+            .slice(0, HERO_CREDIT_LIMIT);
+
+        return people.length ? { label, people } : null;
     }
 
     private toCreditsSummary(
@@ -583,7 +613,8 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         return {
             state: 'success',
             data: {
-                topCastState,
+                topCast: remoteData(topCastState, []).slice(0, TOP_CAST_GRID_COUNT),
+                isSeries: media.mediaType === 'tv',
                 directors: crew
                     .filter((member) => member.job === 'Director')
                     .map((member) => ({ id: member.id, name: member.name })),
@@ -591,4 +622,32 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
             },
         };
     }
+}
+
+/** The series' latest aired episode as a list row. */
+function toLatestEpisodeItem(media: MediaDetails | null): EpisodeListItemData | null {
+    const episode = media?.mediaType === 'tv' ? media.lastEpisode : undefined;
+
+    if (!media || !episode) {
+        return null;
+    }
+
+    const seasonNumber = episode.season_number ?? null;
+    const episodeNumber = episode.episode_number ?? null;
+
+    return {
+        name: episode.name ?? 'Untitled episode',
+        subtitle: null,
+        overview: episode.overview ?? '',
+        stillPath: episode.still_path ?? null,
+        seasonNumber,
+        episodeNumber,
+        airDate: episode.air_date ?? null,
+        runtime: episode.runtime ?? null,
+        voteAverage: toRating(episode.vote_average),
+        routeCommands:
+            seasonNumber !== null && episodeNumber !== null
+                ? ['/title', media.id, media.mediaType, 'episodes', seasonNumber, episodeNumber]
+                : null,
+    };
 }

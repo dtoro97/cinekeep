@@ -1,11 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    ElementRef,
-    HostListener,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { EventType, Router } from '@angular/router';
@@ -14,26 +9,22 @@ import { filter, tap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
-import type { SearchResultItem } from '../../..';
 import { SEARCH_TYPE_OPTIONS } from '../../../models/media-type-options.model';
 import { HeaderSearchResultsComponent } from './header-search-results.component';
-import {
-    HeaderSearchBarStoreService,
-    SearchFilterValue,
-} from './header-search-bar.store.service';
+import { HeaderSearchBarStoreService } from './header-search-bar.store.service';
+import { SearchFilterValue } from './header-search.model';
+
+const EDITABLE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
 
 @Component({
     selector: 'app-header-search-bar',
-    standalone: true,
     imports: [
         AsyncPipe,
         MatButtonModule,
         MatFormFieldModule,
         MatIconModule,
-        MatInputModule,
         MatSelectModule,
         ReactiveFormsModule,
         HeaderSearchResultsComponent,
@@ -45,8 +36,11 @@ import {
     styleUrl: './header-search-bar.component.scss',
 })
 export class HeaderSearchBarComponent {
+    @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
+
     readonly searchControl = new FormControl('', { nonNullable: true });
     readonly filterOptions = SEARCH_TYPE_OPTIONS;
+    readonly listboxId = 'header-search-listbox';
     readonly vm$ = this.store.vm$;
 
     constructor(
@@ -54,20 +48,15 @@ export class HeaderSearchBarComponent {
         private readonly router: Router,
         private readonly el: ElementRef<HTMLElement>,
     ) {
-        this.searchControl.valueChanges
-            .pipe(takeUntilDestroyed())
-            .subscribe((query) => {
-                this.store.search(query);
-            });
+        this.searchControl.valueChanges.pipe(takeUntilDestroyed()).subscribe((query) => {
+            this.store.updateQuery(query);
+        });
 
         this.router.events
             .pipe(
                 takeUntilDestroyed(),
                 filter((event) => event.type === EventType.NavigationEnd),
-                tap(() => {
-                    this.clearQuery();
-                    this.store.closeSearch();
-                }),
+                tap(() => this.closeSearch()),
             )
             .subscribe();
     }
@@ -75,68 +64,150 @@ export class HeaderSearchBarComponent {
     @HostListener('document:click', ['$event'])
     onDocumentClick(event: MouseEvent): void {
         if (!this.el.nativeElement.contains(event.target as Node)) {
-            this.store.hideDropdown();
+            this.store.closePanel();
         }
     }
 
-    onSearchFocus(): void {
-        if (!this.searchControl.getRawValue().trim()) {
+    @HostListener('document:keydown', ['$event'])
+    onDocumentKeydown(event: KeyboardEvent): void {
+        if (
+            event.key !== '/' ||
+            event.defaultPrevented ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.altKey ||
+            this.isEditableOrOverlayTarget(event.target)
+        ) {
             return;
         }
 
-        this.store.showDropdownIfNeeded();
+        event.preventDefault();
+        this.focusSearch();
     }
 
-    closeSearch(): void {
-        this.clearQuery();
-        this.store.closeSearch();
+    onFocusOut(event: FocusEvent): void {
+        const next = event.relatedTarget;
+
+        if (next instanceof Node && this.el.nativeElement.contains(next)) {
+            return;
+        }
+
+        this.store.closePanel();
+    }
+
+    openPanel(): void {
+        this.store.openPanel();
+    }
+
+    closePanel(): void {
+        this.store.closePanel();
+    }
+
+    onInputKeydown(event: KeyboardEvent): void {
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+                this.moveActiveOption(1);
+                break;
+            case 'ArrowUp':
+                event.preventDefault();
+                this.moveActiveOption(-1);
+                break;
+            case 'Enter':
+                event.preventDefault();
+                this.submit();
+                break;
+            case 'Escape':
+                this.dismiss(event);
+                break;
+        }
     }
 
     setFilter(filter: SearchFilterValue): void {
-        this.store.setSearchFilter(filter);
-        const value = this.searchControl.getRawValue().trim();
-        if (value) {
-            this.store.search(value);
-        }
+        this.store.updateFilter(filter);
     }
 
-    navigateToResult(item: SearchResultItem): void {
-        this.clearQuery();
-        this.store.closeSearch();
-
-        if (item.mediaType === 'person') {
-            this.router.navigate(['name', item.id]);
-            return;
-        }
-
-        this.router.navigate(['title', item.id, item.mediaType]);
+    widenSearch(): void {
+        this.store.updateFilter('all');
+        this.searchInput?.nativeElement.focus();
     }
 
-    navigateToSearch(filter: SearchFilterValue): void {
-        const query = this.searchControl.getRawValue().trim();
+    retry(): void {
+        this.store.retry();
+    }
 
-        if (!query) {
-            return;
-        }
+    clearSearch(): void {
+        this.searchControl.setValue('');
+        this.searchInput?.nativeElement.focus();
+    }
 
-        const queryParams: Record<string, string> = { query };
-
-        if (filter === 'movie' || filter === 'tv' || filter === 'person') {
-            queryParams['type'] = filter;
-        }
-
-        this.clearQuery();
+    closeSearch(): void {
+        this.searchControl.setValue('', { emitEvent: false });
         this.store.closeSearch();
-
-        this.router.navigate(['/search'], { queryParams });
     }
 
     toggleSearch(): void {
         this.store.toggleSearch();
     }
 
-    private clearQuery(): void {
-        this.searchControl.setValue('', { emitEvent: false });
+    private moveActiveOption(delta: 1 | -1): void {
+        const activeOptionId = this.store.moveActiveOption(delta);
+
+        if (activeOptionId) {
+            this.el.nativeElement.querySelector(`#${activeOptionId}`)?.scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    private submit(): void {
+        const action = this.store.getSubmitAction();
+
+        switch (action.kind) {
+            case 'option':
+                this.router.navigate([...action.routeCommands]);
+                break;
+            case 'search':
+                this.router.navigate(['/search'], { queryParams: action.queryParams });
+                break;
+        }
+    }
+
+    private dismiss(event: KeyboardEvent): void {
+        const step = this.store.dismiss();
+
+        if (step === 'none') {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (step === 'query') {
+            this.searchControl.setValue('', { emitEvent: false });
+        }
+    }
+
+    private focusSearch(): void {
+        const input = this.searchInput?.nativeElement;
+
+        // On mobile the field lives in a closed sheet; opening it lets the focus trap capture the input.
+        if (!input || input.offsetParent === null) {
+            this.store.openSearch();
+            return;
+        }
+
+        input.focus();
+        input.select();
+    }
+
+    private isEditableOrOverlayTarget(target: EventTarget | null): boolean {
+        if (!(target instanceof HTMLElement)) {
+            return false;
+        }
+
+        return (
+            target.isContentEditable ||
+            EDITABLE_TAGS.has(target.tagName) ||
+            target.closest('.cdk-overlay-container') !== null
+        );
     }
 }
-

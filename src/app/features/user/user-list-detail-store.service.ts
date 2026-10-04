@@ -16,8 +16,11 @@ import {
     toSnapshotMediaListItem,
     toUpdatedAtLabel,
     updateRemoteData,
+    pluralize,
+    toRating,
 } from '../../shared';
-import { DEFAULT_USER_LIST_SORT_BY } from './user-list-sort-options';
+import { UserListCoverChoice, isSameUserListCover, toUserListCoverChoice } from './user-list-cover';
+import { DEFAULT_USER_LIST_SORT_BY, toUserListSort } from './user-list-sort-options';
 
 export interface UserListDetailHeader {
     readonly id: number;
@@ -25,6 +28,10 @@ export interface UserListDetailHeader {
     readonly description: string | null;
     readonly itemCount: number;
     readonly updatedLabel: string | null;
+    /** The list's cover backdrop, shown behind the page header. */
+    readonly backdropPath: string | null;
+    /** The cover the user picked; `null` while the automatic cover is used. */
+    readonly cover: UserListCoverChoice | null;
 }
 
 export interface UserListDetailItem {
@@ -34,6 +41,8 @@ export interface UserListDetailItem {
     readonly mediaItem: MediaListItem;
     readonly title: string;
     readonly comment: string;
+    /** "Add comment" or "Edit comment", matching whether the item has one. */
+    readonly commentActionLabel: string;
     readonly link: (string | number)[];
 }
 
@@ -46,7 +55,6 @@ interface UserListDetailState {
     readonly totalResults: number;
     readonly activeSortBy: UserListSortBy;
     readonly defaultSortBy: UserListSortBy;
-    readonly isPublic: boolean;
 }
 
 const INITIAL_STATE: UserListDetailState = {
@@ -58,20 +66,20 @@ const INITIAL_STATE: UserListDetailState = {
     totalResults: 0,
     activeSortBy: DEFAULT_USER_LIST_SORT_BY,
     defaultSortBy: DEFAULT_USER_LIST_SORT_BY,
-    isPublic: false,
 };
 
 @Injectable()
 export class UserListDetailStore extends ComponentStore<UserListDetailState> {
     readonly userListDetailVm$ = this.select((state) => ({
         header: state.headerState,
+        headerSubtitle: state.headerState.state === 'success' ? toHeaderSubtitle(state.headerState.data) : null,
         items: state.itemsState,
         page: state.page - 1,
         pageSize: PAGE_SIZE,
         total: state.totalResults,
         sortBy: state.activeSortBy,
+        sort: toUserListSort(state.activeSortBy),
         defaultSortBy: state.defaultSortBy,
-        isPublic: state.isPublic,
     }));
 
     constructor(private readonly userLibraryService: UserLibraryService) {
@@ -88,7 +96,6 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             totalResults: 0,
             activeSortBy: DEFAULT_USER_LIST_SORT_BY,
             defaultSortBy: DEFAULT_USER_LIST_SORT_BY,
-            isPublic: false,
         });
 
         return this.fetchAndPatchPage$(listId, 1, undefined, DEFAULT_USER_LIST_SORT_BY, INITIAL_STATE);
@@ -142,8 +149,8 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
     updateList$(request: {
         readonly name: string;
         readonly description: string;
-        readonly isPublic: boolean;
         readonly sortBy?: UserListSortBy;
+        readonly cover: UserListCoverChoice | null;
     }) {
         const state = this.get();
 
@@ -157,11 +164,11 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             .updateList$(state.listId, {
                 name: request.name,
                 description: request.description,
-                isPublic: request.isPublic,
                 sortBy: nextDefaultSortBy,
+                cover: request.cover ?? undefined,
             })
             .pipe(
-                tap(() => {
+                tap((list) => {
                     this.patchState((state) => ({
                         headerState:
                             state.headerState.state === 'success'
@@ -169,6 +176,8 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
                                       ...state.headerState.data,
                                       name: request.name,
                                       description: request.description || null,
+                                      backdropPath: list.cover?.backdropPath ?? null,
+                                      cover: toUserListCoverChoice(list.cover),
                                   })
                                 : state.headerState,
                         defaultSortBy: nextDefaultSortBy,
@@ -176,7 +185,6 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
                             request.sortBy && state.activeSortBy === state.defaultSortBy
                                 ? request.sortBy
                                 : state.activeSortBy,
-                        isPublic: request.isPublic,
                     }));
                 }),
                 switchMap(() =>
@@ -200,6 +208,8 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
                             ? remoteSuccess({
                                   ...state.headerState.data,
                                   itemCount: 0,
+                                  backdropPath: null,
+                                  cover: null,
                               })
                             : state.headerState,
                     itemsState: remoteSuccess([]),
@@ -228,40 +238,45 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             return throwError(() => new Error('List detail is not loaded yet.'));
         }
 
-        return this.userLibraryService
-            .removeItem$(state.listId, item.id, item.mediaType)
-            .pipe(
-                switchMap(() => {
-                    const state = this.get();
-                    const totalResults = Math.max(0, state.totalResults - 1);
-                    const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
-                    const page = Math.min(state.page, totalPages);
-                    const nextItems =
-                        state.itemsState.state === 'success'
-                            ? state.itemsState.data.filter((existingItem) => existingItem.key !== item.key)
-                            : null;
+        return this.userLibraryService.removeItem$(state.listId, item.id, item.mediaType).pipe(
+            switchMap(() => {
+                const state = this.get();
+                const totalResults = Math.max(0, state.totalResults - 1);
+                const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+                const page = Math.min(state.page, totalPages);
+                const nextItems =
+                    state.itemsState.state === 'success'
+                        ? state.itemsState.data.filter((existingItem) => existingItem.key !== item.key)
+                        : null;
 
-                    this.patchState({
-                        itemsState: nextItems ? remoteSuccess(nextItems) : state.itemsState,
-                        page,
-                        totalPages,
-                        totalResults,
-                        headerState:
-                            state.headerState.state === 'success'
-                                ? remoteSuccess({
-                                      ...state.headerState.data,
-                                      itemCount: Math.max(0, state.headerState.data.itemCount - 1),
+                this.patchState({
+                    itemsState: nextItems ? remoteSuccess(nextItems) : state.itemsState,
+                    page,
+                    totalPages,
+                    totalResults,
+                    headerState:
+                        state.headerState.state === 'success'
+                            ? remoteSuccess({
+                                  ...state.headerState.data,
+                                  itemCount: Math.max(0, state.headerState.data.itemCount - 1),
+                                  // The backend drops a picked cover when its item leaves the list.
+                                  cover: isSameUserListCover(state.headerState.data.cover, {
+                                      tmdbId: item.id,
+                                      mediaType: item.mediaType,
                                   })
-                                : state.headerState,
-                    });
+                                      ? null
+                                      : state.headerState.data.cover,
+                              })
+                            : state.headerState,
+                });
 
-                    if (totalResults > 0 && nextItems && (page !== state.page || nextItems.length === 0)) {
-                        return this.loadPage$(page - 1);
-                    }
+                if (totalResults > 0 && nextItems && (page !== state.page || nextItems.length === 0)) {
+                    return this.loadPage$(page - 1);
+                }
 
-                    return of(undefined);
-                }),
-            );
+                return of(undefined);
+            }),
+        );
     }
 
     updateItemComment$(item: UserListDetailItem, comment: string) {
@@ -271,24 +286,17 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             return throwError(() => new Error('List detail is not loaded yet.'));
         }
 
-        return this.userLibraryService
-            .updateItemComment$(state.listId, item.id, item.mediaType, comment)
-            .pipe(
-                tap(() => {
-                    this.patchState((state) => ({
-                        itemsState: updateRemoteData(state.itemsState, (items) =>
-                            items.map((existingItem) =>
-                                existingItem.key === item.key
-                                    ? {
-                                          ...existingItem,
-                                          comment,
-                                      }
-                                    : existingItem,
-                            ),
+        return this.userLibraryService.updateItemComment$(state.listId, item.id, item.mediaType, comment).pipe(
+            tap(() => {
+                this.patchState((state) => ({
+                    itemsState: updateRemoteData(state.itemsState, (items) =>
+                        items.map((existingItem) =>
+                            existingItem.key === item.key ? withComment(existingItem, comment) : existingItem,
                         ),
-                    }));
-                }),
-            );
+                    ),
+                }));
+            }),
+        );
     }
 
     private fetchAndPatchPage$(
@@ -327,6 +335,8 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
                 description: list.description ?? null,
                 itemCount: list.itemCount ?? totalResults,
                 updatedLabel: toUpdatedAtLabel(list.updatedAt),
+                backdropPath: list.cover?.backdropPath ?? null,
+                cover: toUserListCoverChoice(list.cover),
             }),
             itemsState: remoteSuccess(items),
             page,
@@ -334,28 +344,42 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             totalResults,
             activeSortBy,
             defaultSortBy: list.sortBy ?? fallbackDefaultSortBy,
-            isPublic: list.isPublic === true,
         };
     }
 
     private toItem(item: UserListItemResponse): UserListDetailItem | null {
-        const mediaItem = toSnapshotMediaListItem(item, item.voteAverage ?? null);
+        const mediaItem = toSnapshotMediaListItem(item, toRating(item.voteAverage));
 
         if (!mediaItem) {
             return null;
         }
 
-        return {
-            key: `${mediaItem.mediaType}:${mediaItem.id}`,
-            id: mediaItem.id,
-            mediaType: mediaItem.mediaType,
-            mediaItem: {
-                ...mediaItem,
-                badges: [{ label: mediaItem.mediaType === 'tv' ? 'TV series' : 'Movie' }],
+        return withComment(
+            {
+                key: `${mediaItem.mediaType}:${mediaItem.id}`,
+                id: mediaItem.id,
+                mediaType: mediaItem.mediaType,
+                mediaItem: {
+                    ...mediaItem,
+                    badges: [{ label: mediaItem.mediaType === 'tv' ? 'TV series' : 'Movie' }],
+                },
+                title: mediaItem.title,
+                link: ['/', 'title', mediaItem.id, mediaItem.mediaType],
             },
-            title: mediaItem.title,
-            comment: item.comment ?? '',
-            link: ['/', 'title', mediaItem.id, mediaItem.mediaType],
-        };
+            item.comment ?? '',
+        );
     }
 }
+
+const withComment = (
+    item: Omit<UserListDetailItem, 'comment' | 'commentActionLabel'>,
+    comment: string,
+): UserListDetailItem => ({
+    ...item,
+    comment,
+    commentActionLabel: comment ? 'Edit comment' : 'Add comment',
+});
+
+/** "12 titles · Updated 2 days ago". */
+const toHeaderSubtitle = (header: UserListDetailHeader): string =>
+    [pluralize(header.itemCount, 'title'), header.updatedLabel].filter(isDefined).join(' · ');

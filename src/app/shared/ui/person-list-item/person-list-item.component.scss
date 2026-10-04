@@ -2,30 +2,35 @@
 @use 'mixins' as *;
 
 :host {
+    --person-list-item-avatar-size: 4rem;
+
     display: block;
 }
 
+// Same row language as the media list, with round portraits like the cast grid and person cards.
 .person-list-item {
-    display: grid;
-    grid-template-columns:
-        var(--person-list-index-width, 1.75rem)
-        var(--person-list-avatar-size, var(--media-square-lg))
-        minmax(0, 1fr);
+    grid-template-columns: var(--row-rank-width) var(--person-list-item-avatar-size) minmax(0, 1fr);
+    @include list-row('.person-list-item__avatar', '.person-list-item__title');
     align-items: center;
-    column-gap: var(--person-list-column-gap, var(--space-4));
-    min-width: 0;
-    padding: var(--person-list-row-padding, var(--space-4));
+
+    &:not(:has(.person-list-item__index)) {
+        grid-template-columns: var(--person-list-item-avatar-size) minmax(0, 1fr);
+    }
 
     &__index {
-        text-align: right;
-        font-variant-numeric: tabular-nums;
+        text-align: end;
+
+        &--skeleton {
+            justify-self: end;
+            width: 1.75rem;
+            --skeleton-height: 1.875rem;
+        }
     }
 
     &__avatar {
-        width: var(--person-list-avatar-size, var(--media-square-lg));
-        height: var(--person-list-avatar-size, var(--media-square-lg));
-        border: 1px solid var(--color-border-subtle);
-        --image-radius: var(--radius-md);
+        width: var(--person-list-item-avatar-size);
+        height: var(--person-list-item-avatar-size);
+        @include media-frame(var(--radius-full));
     }
 
     &__content {
@@ -40,15 +45,14 @@
         min-width: 0;
         flex-wrap: wrap;
         align-items: baseline;
-        column-gap: var(--space-2);
-        row-gap: 0;
+        gap: 0 var(--space-2);
     }
 
     &__title {
         min-width: 0;
-        transition: color var(--motion-base);
+        color: var(--text-primary);
+        text-decoration: none;
         @include line-clamp(1);
-        @include text-link(var(--text-primary));
     }
 
     &__department {
@@ -56,6 +60,7 @@
     }
 
     &__known-for {
+        margin: 0;
         color: var(--text-secondary);
         @include line-clamp(2);
     }
@@ -67,19 +72,33 @@
     &__known-for-link {
         @include text-link(var(--text-secondary));
     }
+
+    &__line {
+        --skeleton-height: 0.875rem;
+
+        &--title {
+            width: min(14rem, 40%);
+            --skeleton-height: 1.125rem;
+        }
+
+        &--known-for {
+            width: min(24rem, 60%);
+        }
+    }
 }
 
 @include mobile() {
+    :host {
+        --person-list-item-avatar-size: 3.5rem;
+    }
+
     .person-list-item {
+        grid-template-columns: var(--row-rank-width-compact) var(--person-list-item-avatar-size) minmax(0, 1fr);
         align-items: start;
 
         &__index {
-            padding-top: var(--space-1);
-        }
-
-        &__title {
-            font-size: var(--text-sm);
-            line-height: var(--lh-normal);
+            padding-block-start: var(--space-1);
+            font-size: var(--text-xl);
         }
     }
 }

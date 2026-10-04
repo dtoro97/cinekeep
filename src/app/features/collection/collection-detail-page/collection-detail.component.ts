@@ -10,9 +10,10 @@ import {
     MediaListComponent,
     ImageComponent,
     PageSectionComponent,
-    RatingComponent,
+    TmdbRatingComponent,
     SeoService,
     SkeletonComponent,
+    PluralizePipe,
 } from '../../../shared';
 import { CollectionStoreService } from '../collection-store.service';
 
@@ -21,10 +22,11 @@ import { CollectionStoreService } from '../collection-store.service';
     templateUrl: './collection-detail.component.html',
     styleUrl: './collection-detail.component.scss',
     imports: [
+        PluralizePipe,
         AsyncPipe,
         HeroSurfaceComponent,
         ImageComponent,
-        RatingComponent,
+        TmdbRatingComponent,
         MediaListComponent,
         PageSectionComponent,
         SkeletonComponent,

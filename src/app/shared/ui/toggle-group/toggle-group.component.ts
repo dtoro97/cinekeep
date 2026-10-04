@@ -18,6 +18,8 @@ export class ToggleGroupComponent {
     readonly selectedValue = input<unknown>();
     readonly selectedValues = input<readonly unknown[]>([]);
     readonly multiple = input(false);
+    /** `chips` is a lighter, denser look for long multi-select option sets such as genres. */
+    readonly variant = input<'default' | 'chips'>('default');
     @Output() selected = new EventEmitter<unknown | unknown[]>();
 
     readonly viewOptions = computed<ToggleGroupViewOption[]>(() =>

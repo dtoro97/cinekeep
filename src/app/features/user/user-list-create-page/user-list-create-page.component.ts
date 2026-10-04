@@ -1,25 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-    AbstractControl,
-    FormControl,
-    FormGroup,
-    NonNullableFormBuilder,
-    ReactiveFormsModule,
-    ValidationErrors,
-    ValidatorFn,
-    Validators,
-} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, DestroyRef, Signal, computed, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
-import { EMPTY, catchError, finalize, map, of, switchMap, tap } from 'rxjs';
-
+import { EMPTY, catchError, finalize, map, of, startWith, switchMap, tap } from 'rxjs';
 
 import {
     MediaType,
@@ -29,23 +15,20 @@ import {
     SnackbarType,
     SubPageHeaderComponent,
     UserLibraryService,
-    UserListSortBy,
 } from '../../../shared';
-import { DEFAULT_USER_LIST_SORT_BY, USER_LIST_SORT_OPTIONS } from '../user-list-sort-options';
-
-const LIST_NAME_MAX_LENGTH = 100;
-const LIST_DESCRIPTION_MAX_LENGTH = 280;
-
-const trimmedRequiredValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-    const value = typeof control.value === 'string' ? control.value.trim() : '';
-
-    return value ? null : { required: true };
-};
+import { UserListCardComponent } from '../user-list-card/user-list-card.component';
+import {
+    UserListForm,
+    UserListFormFieldsComponent,
+    createUserListForm,
+} from '../user-list-form-fields/user-list-form-fields.component';
+import { UserListSummaryItem } from '../user-lists-store.service';
 
 interface CreateListMediaProperties {
     readonly mediaId: number;
     readonly mediaTitle: string | null;
     readonly mediaType: MediaType;
+    readonly backdropPath: string | null;
     readonly returnUrl: string | null;
 }
 
@@ -60,34 +43,27 @@ interface CreateListResult {
     selector: 'app-user-list-create-page',
     imports: [
         MatButtonModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatSelectModule,
-        MatSlideToggleModule,
         ReactiveFormsModule,
         RouterLink,
         SubPageHeaderComponent,
+        UserListCardComponent,
+        UserListFormFieldsComponent,
     ],
     templateUrl: './user-list-create-page.component.html',
     styleUrl: './user-list-create-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserListCreatePageComponent {
-    readonly nameMaxLength = LIST_NAME_MAX_LENGTH;
-    readonly descriptionMaxLength = LIST_DESCRIPTION_MAX_LENGTH;
     readonly backLink: string;
     readonly backParentTitle: string;
     readonly pageSubtitle: string;
     readonly submitLabel: string;
     readonly pendingLabel: string;
     readonly pending = signal(false);
-    readonly sortOptions = USER_LIST_SORT_OPTIONS;
-    readonly form: FormGroup<{
-        name: FormControl<string>;
-        description: FormControl<string>;
-        isPublic: FormControl<boolean>;
-        sortBy: FormControl<UserListSortBy>;
-    }>;
+    readonly submitButtonLabel = computed(() => (this.pending() ? this.pendingLabel : this.submitLabel));
+    readonly form: UserListForm;
+    /** The list card as it will appear in "Your lists", updated as the user types. */
+    readonly preview: Signal<UserListSummaryItem>;
     private readonly mediaProperties: CreateListMediaProperties | null;
 
     constructor(
@@ -103,14 +79,36 @@ export class UserListCreatePageComponent {
         this.backParentTitle = this.getBackParentTitle();
         this.pageSubtitle = this.mediaProperties
             ? this.getMediaListSubtitle()
-            : 'Name the list and add a short description so you can find it later.';
+            : 'Gather films and series around a mood, a theme or an occasion.';
         this.submitLabel = this.mediaProperties ? 'Create and add' : 'Create list';
-        this.pendingLabel = this.mediaProperties ? 'Creating and adding...' : 'Creating...';
-        this.form = this.formBuilder.group({
-            name: ['', [trimmedRequiredValidator, Validators.maxLength(this.nameMaxLength)]],
-            description: ['', [Validators.maxLength(this.descriptionMaxLength)]],
-            isPublic: [false],
-            sortBy: this.formBuilder.control<UserListSortBy>(DEFAULT_USER_LIST_SORT_BY),
+        this.pendingLabel = this.mediaProperties ? 'Creating and adding…' : 'Creating…';
+        this.form = createUserListForm(this.formBuilder);
+
+        // Raw value, so the preview keeps its text while the form is disabled during submit.
+        const formValue = toSignal(
+            this.form.valueChanges.pipe(
+                map(() => this.form.getRawValue()),
+                startWith(this.form.getRawValue()),
+            ),
+            { requireSync: true },
+        );
+        const backdropPath = this.mediaProperties?.backdropPath ?? null;
+        const itemCount = this.mediaProperties ? 1 : 0;
+
+        this.preview = computed(() => {
+            const { name, description, sortBy } = formValue();
+
+            return {
+                id: 0,
+                name: name.trim() || 'Untitled list',
+                description: description.trim() || null,
+                sortBy,
+                createdAt: null,
+                updatedAt: null,
+                numberOfItems: itemCount,
+                cover: backdropPath ? { path: backdropPath, params: 'w780', isPoster: false } : null,
+                coverChoice: null,
+            };
         });
     }
 
@@ -124,19 +122,19 @@ export class UserListCreatePageComponent {
             return;
         }
 
-        const { name, description, isPublic, sortBy } = this.form.getRawValue();
+        const { name, description, sortBy } = this.form.getRawValue();
 
         this.pending.set(true);
         this.form.disable({ emitEvent: false });
 
         this.userLibraryService
-            .createList$(name.trim(), description.trim(), isPublic, sortBy)
+            .createList$(name.trim(), description.trim(), sortBy)
             .pipe(
                 switchMap((listId) => this.addMediaToCreatedList$(listId)),
                 tap(({ addToListState, listId }) => {
                     if (addToListState === 'failed') {
                         this.showError('List created, but the title could not be added.');
-                        this.router.navigate(['/lists', listId]);
+                        this.router.navigate(['/me/lists', listId]);
                         return;
                     }
 
@@ -145,7 +143,7 @@ export class UserListCreatePageComponent {
                             this.getAddedToListMessage(),
                             {
                                 label: 'Open list',
-                                routerLink: ['/lists', listId],
+                                routerLink: ['/me/lists', listId],
                             },
                             7000,
                         );
@@ -183,7 +181,7 @@ export class UserListCreatePageComponent {
             return this.router.navigateByUrl(this.mediaProperties.returnUrl);
         }
 
-        return this.router.navigate(['/lists', listId]);
+        return this.router.navigate(['/me/lists', listId]);
     }
 
     private getBackParentTitle(): string {
@@ -215,6 +213,7 @@ export class UserListCreatePageComponent {
             mediaId,
             mediaTitle: params.get('mediaTitle')?.trim() || null,
             mediaType,
+            backdropPath: toTmdbImagePath(params.get('mediaBackdrop')),
             returnUrl: this.toSafeReturnUrl(params.get('returnUrl')),
         };
     }
@@ -253,3 +252,7 @@ export class UserListCreatePageComponent {
         return EMPTY;
     }
 }
+
+/** Accepts only a bare TMDb image path such as `/abc123.jpg` from the query string. */
+const toTmdbImagePath = (value: string | null): string | null =>
+    value && /^\/[\w-]+\.(jpg|png)$/.test(value) ? value : null;

@@ -39,17 +39,17 @@
         <div class="meta text-caption">
             @if (image.caption) {
                 <span>{{ image.caption }}</span>
-                <span class="meta__separator">&middot;</span>
             }
             @if (image.width && image.height) {
                 <span>{{ image.width }} &times; {{ image.height }}</span>
             }
-            @if (image.vote_average && image.vote_average > 0) {
-                <span class="meta__separator">&middot;</span>
-                <app-rating [value]="image.vote_average"></app-rating>
-                @if (image.vote_count && image.vote_count > 0) {
-                    <span class="meta__votes">({{ image.vote_count }})</span>
-                }
+            @if (image.vote_average) {
+                <span class="meta__score">
+                    <app-rating [value]="image.vote_average" />
+                    @if (image.vote_count) {
+                        <span class="meta__votes">({{ image.vote_count }})</span>
+                    }
+                </span>
             }
         </div>
     </div>

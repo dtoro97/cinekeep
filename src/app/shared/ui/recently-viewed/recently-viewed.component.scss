@@ -3,6 +3,11 @@
 .recently-viewed {
     text-align: left;
 
+    &__header {
+        padding-bottom: var(--space-3);
+        border-bottom: 1px solid var(--color-border);
+    }
+
     &__title {
         margin: 0;
     }

@@ -2,8 +2,12 @@
 @use 'breakpoints' as *;
 
 :host {
-    box-sizing: border-box;
     display: block;
+    width: 100%;
+}
+
+.sub-page-header__plain {
+    box-sizing: border-box;
     width: 100%;
     max-width: var(--layout-content-max-width);
     margin: 0 auto;
@@ -20,7 +24,7 @@
         align-self: flex-start;
         align-items: center;
         gap: var(--space-1);
-        @include text-link(var(--mat-sys-on-surface));
+        @include text-link(var(--text-primary));
     }
 
     &__back-icon {
@@ -45,11 +49,6 @@
         text-wrap: balance;
     }
 
-    &__title-icon {
-        flex: 0 0 auto;
-        color: var(--text-muted);
-        font-size: var(--text-base);
-    }
 
     &__title-skeleton {
         width: min(18rem, 100%);
@@ -63,7 +62,7 @@
 }
 
 @include mobile() {
-    :host {
+    .sub-page-header__plain {
         padding: var(--space-5) var(--space-4) 0;
     }
 

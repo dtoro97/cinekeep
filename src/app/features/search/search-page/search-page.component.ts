@@ -14,6 +14,7 @@ import {
     SEARCH_TYPE_OPTIONS,
     SeoService,
     toMediaListEntryState,
+    PageSectionComponent,
 } from '../../../shared';
 import { GenreService } from '../../../shared/services';
 import { SearchStoreService, SearchType } from '../search-store.service';
@@ -23,6 +24,7 @@ import { SearchStoreService, SearchType } from '../search-store.service';
     templateUrl: './search-page.component.html',
     styleUrl: './search-page.component.scss',
     imports: [
+        PageSectionComponent,
         AsyncPipe,
         MatButtonModule,
         EmptyStateComponent,

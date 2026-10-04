@@ -1,268 +1,53 @@
 @if (loading) {
-    <section class="credit-section credit-section--skeleton" aria-hidden="true">
-        <div class="accordion-header credit-section__toggle">
-            <div class="credit-section__group-label u-flex u-items-center u-gap-2">
-                <app-skeleton class="credit-section__title-skeleton" />
-                <app-skeleton class="credit-section__count-skeleton" />
-            </div>
-        </div>
-
-        <div class="credit-list u-flex-column">
-            @for (row of loadingRowCount | repeat; track row) {
-                <div class="credit-list__item">
-                    <div class="credit-row credit-row--skeleton">
-                        <app-skeleton class="credit-row__thumb-skeleton" />
-                        <div class="credit-row__content">
-                            <div class="credit-row__body u-flex-column">
-                                <app-skeleton class="credit-row__name-skeleton" />
-                                <app-skeleton class="credit-row__meta-skeleton" />
-                            </div>
-                            <app-skeleton class="credit-row__count-skeleton" />
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    </section>
-} @else if (variant === 'directory') {
-    <div class="credit-directory">
-        @if (showCast && cast.length) {
-            <section class="credit-directory__section" aria-labelledby="cast-crew-grid-cast-title">
-                <header class="credit-directory__head">
-                    <h2 id="cast-crew-grid-cast-title" class="text-title">Cast</h2>
-                    <span class="credit-directory__count text-card-meta">
-                        {{ cast.length }}
-                        {{ cast.length === 1 ? 'person' : 'people' }}
-                    </span>
+    <ul class="credit-grid" aria-hidden="true">
+        @for (row of loadingRowCount | repeat; track row) {
+            <li class="credit credit--skeleton">
+                <app-skeleton class="credit__photo" />
+                <span class="credit__body">
+                    <app-skeleton class="credit__line credit__line--name" />
+                    <app-skeleton class="credit__line" />
+                </span>
+            </li>
+        }
+    </ul>
+} @else if (showCast) {
+    <ul class="credit-grid" aria-label="Cast">
+        @for (person of cast; track person.key) {
+            <li><ng-container [ngTemplateOutlet]="creditRow" [ngTemplateOutletContext]="{ $implicit: person }" /></li>
+        }
+    </ul>
+} @else {
+    <div class="credit-departments">
+        @for (department of departments; track department.id) {
+            <section class="credit-department" [attr.aria-labelledby]="department.id">
+                <header class="credit-department__head">
+                    <h2 class="text-title" [id]="department.id">{{ department.name }}</h2>
+                    <span class="text-card-meta">{{ department.people.length | pluralize: 'person' : 'people' }}</span>
                 </header>
 
-                <ul class="credit-list credit-list--directory u-list-none" role="list">
-                    @for (member of cast; track member.id) {
-                        <li class="credit-list__item">
-                            <a class="credit-row" [routerLink]="['/name', member.id]">
-                                <app-image
-                                    class="credit-row__thumb"
-                                    [src]="member.profile_path ?? null"
-                                    [alt]="member.name"
-                                    type="person"
-                                />
-                                <div class="credit-row__content">
-                                    <div class="credit-row__body u-flex-column">
-                                        <span class="credit-row__name text-subtitle">
-                                            {{ member.name }}
-                                        </span>
-                                        @if (member.character) {
-                                            <span class="credit-row__meta text-meta">
-                                                as {{ member.character }}
-                                            </span>
-                                        }
-                                    </div>
-                                    @if (member.episode_count) {
-                                        <span class="credit-row__count text-caption-strong u-nowrap">
-                                            {{ member.episode_count }} ep
-                                        </span>
-                                    }
-                                </div>
-                            </a>
+                <ul class="credit-grid">
+                    @for (person of department.people; track person.key) {
+                        <li>
+                            <ng-container [ngTemplateOutlet]="creditRow" [ngTemplateOutletContext]="{ $implicit: person }" />
                         </li>
                     }
                 </ul>
             </section>
         }
-
-        @if (showCrew) {
-            <section class="credit-directory__section" aria-labelledby="cast-crew-grid-crew-title">
-                <header class="credit-directory__head">
-                    <h2 id="cast-crew-grid-crew-title" class="text-title">Crew</h2>
-                    <span class="credit-directory__count text-card-meta">
-                        {{ groupedCrew.length }}
-                        {{ groupedCrew.length === 1 ? 'department' : 'departments' }}
-                    </span>
-                </header>
-
-                <cdk-accordion multi>
-                    @for (group of groupedCrew; track group.department; let i = $index) {
-                        <cdk-accordion-item
-                            #crewItem="cdkAccordionItem"
-                            class="credit-section accordion-section"
-                            [expanded]="i < defaultExpandedGroupCount"
-                        >
-                            <button class="accordion-header credit-section__toggle" (click)="crewItem.toggle()">
-                                <span class="credit-section__group-label u-flex u-items-center u-gap-2">
-                                    <h3 class="text-meta">
-                                        {{ group.department }}
-                                    </h3>
-                                    <span class="credit-section__count text-overline u-nowrap">
-                                        {{ group.members.length }}
-                                        {{ group.members.length === 1 ? 'person' : 'people' }}
-                                    </span>
-                                </span>
-                                <i
-                                    class="fa-solid fa-chevron-down accordion-chevron"
-                                    [class.accordion-chevron--collapsed]="!crewItem.expanded"
-                                    aria-hidden="true"
-                                ></i>
-                            </button>
-
-                            @if (crewItem.expanded) {
-                                <div class="accordion-body">
-                                    <ul class="credit-list u-list-none u-flex-column" role="list">
-                                        @for (member of group.members; track member.id) {
-                                            <li class="credit-list__item">
-                                                <a class="credit-row" [routerLink]="['/name', member.id]">
-                                                    <app-image
-                                                        class="credit-row__thumb"
-                                                        [src]="member.profile_path ?? null"
-                                                        [alt]="member.name"
-                                                        type="person"
-                                                    />
-                                                    <div class="credit-row__content">
-                                                        <div class="credit-row__body u-flex-column">
-                                                            <span class="credit-row__name text-subtitle">
-                                                                {{ member.name }}
-                                                            </span>
-                                                            <span class="credit-row__meta text-meta">
-                                                                {{ member.job }}
-                                                            </span>
-                                                        </div>
-                                                        @if (member.episode_count) {
-                                                            <span class="credit-row__count text-caption-strong u-nowrap">
-                                                                {{ member.episode_count }} ep
-                                                            </span>
-                                                        }
-                                                    </div>
-                                                </a>
-                                            </li>
-                                        }
-                                    </ul>
-                                </div>
-                            }
-                        </cdk-accordion-item>
-                    }
-                </cdk-accordion>
-            </section>
-        }
     </div>
-} @else {
-    <cdk-accordion multi>
-        @if (showCast && cast.length) {
-            <cdk-accordion-item
-                #castItem="cdkAccordionItem"
-                class="credit-section accordion-section"
-                [expanded]="true"
-            >
-                <button class="accordion-header credit-section__toggle" (click)="castItem.toggle()">
-                    <span class="credit-section__group-label u-flex u-items-center u-gap-2">
-                        <h2 id="cast-crew-grid-cast-title" class="text-meta">Cast</h2>
-                        <span class="credit-section__count text-overline u-nowrap">
-                            {{ cast.length }}
-                            {{ cast.length === 1 ? 'person' : 'people' }}
-                        </span>
-                    </span>
-                    <i
-                        class="fa-solid fa-chevron-down accordion-chevron"
-                        [class.accordion-chevron--collapsed]="!castItem.expanded"
-                        aria-hidden="true"
-                    ></i>
-                </button>
-
-                @if (castItem.expanded) {
-                    <div class="accordion-body">
-                        <ul class="credit-list u-list-none u-flex-column" role="list">
-                            @for (member of cast; track member.id) {
-                                <li class="credit-list__item">
-                                    <a class="credit-row" [routerLink]="['/name', member.id]">
-                                        <app-image
-                                            class="credit-row__thumb"
-                                            [src]="member.profile_path ?? null"
-                                            [alt]="member.name"
-                                            type="person"
-                                        />
-                                        <div class="credit-row__content">
-                                            <div class="credit-row__body u-flex-column">
-                                                <span class="credit-row__name text-subtitle">
-                                                    {{ member.name }}
-                                                </span>
-                                                @if (member.character) {
-                                                    <span class="credit-row__meta text-meta">
-                                                        as {{ member.character }}
-                                                    </span>
-                                                }
-                                            </div>
-                                            @if (member.episode_count) {
-                                                <span class="credit-row__count text-caption-strong u-nowrap">
-                                                    {{ member.episode_count }} ep
-                                                </span>
-                                            }
-                                        </div>
-                                    </a>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                }
-            </cdk-accordion-item>
-        }
-
-        @if (showCrew) {
-            @for (group of groupedCrew; track group.department; let i = $index) {
-                <cdk-accordion-item
-                    #crewItem="cdkAccordionItem"
-                    class="credit-section accordion-section"
-                    [expanded]="i < defaultExpandedGroupCount"
-                >
-                    <button class="accordion-header credit-section__toggle" (click)="crewItem.toggle()">
-                        <span class="credit-section__group-label u-flex u-items-center u-gap-2">
-                            <h2 class="text-meta">
-                                {{ group.department }}
-                            </h2>
-                            <span class="credit-section__count text-overline u-nowrap">
-                                {{ group.members.length }}
-                                {{ group.members.length === 1 ? 'person' : 'people' }}
-                            </span>
-                        </span>
-                        <i
-                            class="fa-solid fa-chevron-down accordion-chevron"
-                            [class.accordion-chevron--collapsed]="!crewItem.expanded"
-                            aria-hidden="true"
-                        ></i>
-                    </button>
-
-                    @if (crewItem.expanded) {
-                        <div class="accordion-body">
-                            <ul class="credit-list u-list-none u-flex-column" role="list">
-                                @for (member of group.members; track member.id) {
-                                    <li class="credit-list__item">
-                                        <a class="credit-row" [routerLink]="['/name', member.id]">
-                                            <app-image
-                                                class="credit-row__thumb"
-                                                [src]="member.profile_path ?? null"
-                                                [alt]="member.name"
-                                                type="person"
-                                            />
-                                            <div class="credit-row__content">
-                                                <div class="credit-row__body u-flex-column">
-                                                    <span class="credit-row__name text-subtitle">
-                                                        {{ member.name }}
-                                                    </span>
-                                                    <span class="credit-row__meta text-meta">
-                                                        {{ member.job }}
-                                                    </span>
-                                                </div>
-                                                @if (member.episode_count) {
-                                                    <span class="credit-row__count text-caption-strong u-nowrap">
-                                                        {{ member.episode_count }} ep
-                                                    </span>
-                                                }
-                                            </div>
-                                        </a>
-                                    </li>
-                                }
-                            </ul>
-                        </div>
-                    }
-                </cdk-accordion-item>
-            }
-        }
-    </cdk-accordion>
 }
+
+<ng-template #creditRow let-person>
+    <a class="credit" [routerLink]="['/name', person.id]">
+        <app-image class="credit__photo" [src]="person.profilePath" alt="" type="person" params="w185" />
+        <span class="credit__body">
+            <span class="credit__name text-subtitle">{{ person.name }}</span>
+            @if (person.role) {
+                <span class="credit__role text-card-meta">{{ person.role }}</span>
+            }
+        </span>
+        @if (person.episodeLabel) {
+            <span class="credit__episodes text-caption">{{ person.episodeLabel }}</span>
+        }
+    </a>
+</ng-template>

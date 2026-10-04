@@ -7,7 +7,6 @@ import { catchError, combineLatest, distinctUntilChanged, map, of, shareReplay, 
 import {
     buildTmdbImageUrl,
     EmptyStateComponent,
-    ImageComponent,
     SeoService,
     SkeletonComponent,
     SubPageHeaderComponent,
@@ -17,17 +16,26 @@ import {
 import { MediaApiService } from '../media-api.service';
 import { MediaStoreService } from '../media-store.service';
 import { ReviewCardComponent } from '../review-card/review-card.component';
+import { ReviewMediaSummaryComponent } from '../review-media-summary/review-media-summary.component';
 import { MediaDetails } from '../models/media-details.model';
 
 @Component({
     selector: 'app-review-detail-page',
-    imports: [AsyncPipe, EmptyStateComponent, ImageComponent, ReviewCardComponent, SkeletonComponent, SubPageHeaderComponent],
+    imports: [
+        AsyncPipe,
+        EmptyStateComponent,
+        ReviewCardComponent,
+        ReviewMediaSummaryComponent,
+        SkeletonComponent,
+        SubPageHeaderComponent,
+    ],
     templateUrl: './review-detail-page.component.html',
     styleUrl: './review-detail-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReviewDetailPageComponent {
     readonly reviewId = input.required<string>();
+    readonly skeletonLines = Array.from({ length: 8 });
 
     readonly reviewState$ = toObservable(this.reviewId).pipe(
         distinctUntilChanged(),
@@ -45,8 +53,24 @@ export class ReviewDetailPageComponent {
         shareReplay({ bufferSize: 1, refCount: true }),
     );
 
+    readonly vm$ = combineLatest({
+        reviewState: this.reviewState$,
+        mediaState: this.mediaStore.mediaDetailsState$,
+    }).pipe(
+        map(({ reviewState, mediaState }) => {
+            const review = reviewState.state === 'success' ? reviewState.data : null;
+            const author = review?.author || review?.author_details?.username;
+
+            return {
+                reviewState,
+                media: mediaState.state === 'success' ? mediaState.data : null,
+                pageTitle: author ? `Review by ${author}` : 'Review',
+            };
+        }),
+    );
+
     constructor(
-        public readonly mediaStore: MediaStoreService,
+        private readonly mediaStore: MediaStoreService,
         private readonly mediaApiService: MediaApiService,
         private readonly seo: SeoService,
     ) {

@@ -6,18 +6,22 @@ import {
     BrowseToolbarComponent,
     EmptyStateComponent,
     PageScrollService,
-    PersonListComponent,
+    PersonCardComponent,
+    PluralizePipe,
+    RepeatPipe,
 } from '../../../shared';
 import { PopularPeopleStoreService } from './popular-people-store.service';
 
 @Component({
     selector: 'app-popular-people-page',
     imports: [
+        PluralizePipe,
         AsyncPipe,
         BrowseToolbarComponent,
         EmptyStateComponent,
         MatPaginatorModule,
-        PersonListComponent,
+        PersonCardComponent,
+        RepeatPipe,
     ],
     providers: [PopularPeopleStoreService],
     templateUrl: './popular-people-page.component.html',
@@ -26,6 +30,7 @@ import { PopularPeopleStoreService } from './popular-people-store.service';
 })
 export class PopularPeoplePageComponent {
     readonly vm$ = this.store.vm$;
+    readonly skeletonCount = 20;
 
     constructor(
         private readonly pageScroll: PageScrollService,

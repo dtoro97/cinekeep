@@ -1,24 +1,28 @@
 @if (currentReview; as review) {
     <article
         class="review-card"
+        [class.review-card--list]="variant === 'list'"
         [class.review-card--preview]="variant === 'preview'"
         [class.review-card--detail]="variant === 'detail'"
     >
-        @if (review.author_details?.avatar_path; as avatarPath) {
-            <img
-                class="review-card__avatar"
-                [src]="avatarPath | imgSrc: 'w185'"
-                [alt]="review.author || review.author_details?.username || 'Anonymous'"
-            />
+        @if (variant !== 'preview') {
+            <p class="review-card__score">
+                @if (score) {
+                    <span class="review-card__score-value text-rating-sm">{{ score | number: '1.1-1' }}</span>
+                    <span class="review-card__score-scale text-caption">/10</span>
+                }
+            </p>
         } @else {
-            <div class="review-card__avatar review-card__avatar--fallback">
-                {{ initial }}
-            </div>
+            <ng-container [ngTemplateOutlet]="avatar" />
         }
 
         <div class="review-card__main">
             <header class="review-card__header">
                 <div class="review-card__byline">
+                    @if (variant !== 'preview') {
+                        <ng-container [ngTemplateOutlet]="avatar" />
+                    }
+
                     <h3 class="review-card__author text-body-strong">
                         {{ review.author || review.author_details?.username || 'Anonymous' }}
                     </h3>
@@ -29,8 +33,8 @@
                         }
                     </span>
 
-                    @if (review.author_details?.rating) {
-                        <app-rating-badge class="review-card__rating" [value]="review.author_details?.rating ?? 0" />
+                    @if (variant === 'preview' && score) {
+                        <app-rating-badge class="review-card__rating" [value]="score" />
                     }
                 </div>
             </header>
@@ -39,7 +43,7 @@
                 <div class="review-card__content text-body" [innerHTML]="contentHtml"></div>
             } @else {
                 <p class="review-card__content review-card__content--collapsed text-body">
-                    {{ contentPreviewHtml }}
+                    {{ contentPreviewText }}
                 </p>
             }
 
@@ -48,4 +52,18 @@
             }
         </div>
     </article>
+
+    <ng-template #avatar>
+        @if (review.author_details?.avatar_path; as avatarPath) {
+            <img
+                class="review-card__avatar"
+                [src]="avatarPath | imgSrc: 'w185'"
+                alt=""
+            />
+        } @else {
+            <div class="review-card__avatar review-card__avatar--fallback" aria-hidden="true">
+                {{ initial }}
+            </div>
+        }
+    </ng-template>
 }

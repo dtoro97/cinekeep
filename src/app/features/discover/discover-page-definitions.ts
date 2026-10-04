@@ -1,5 +1,6 @@
 import type { MediaType, SelectOption, SortDirection, TmdbDiscoverSortKey } from '../../shared';
 import {
+    CURATED_TV_EXCLUDED_GENRE_IDS,
     DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
     DEFAULT_DISCOVER_VOTE_COUNT_GTE,
 } from '../../constants';
@@ -43,10 +44,16 @@ export interface DiscoverLockedFilterDefinition {
     readonly label: string;
 }
 
+export interface DiscoverGenreExclusion {
+    readonly genreIds: readonly number[];
+    readonly label: string;
+}
+
 export interface DiscoverPageDefinition {
     readonly key: DiscoverPageKey;
     readonly title: string;
-    readonly subtitle: string;
+    /** Only when it adds something the title and visible filters don't already say. */
+    readonly subtitle?: string;
     readonly mediaType: MediaType;
     readonly mode: DiscoverPageMode;
     readonly defaultSortKey: DiscoverSortKey;
@@ -57,11 +64,14 @@ export interface DiscoverPageDefinition {
     readonly movieReleaseTypeFilter?: DiscoverMovieReleaseTypeFilter;
     readonly defaultVoteCountGte?: number;
     readonly lockedVoteCountGte?: number;
+    /** Genres left out by default; users can remove the exclusion like any other active filter. */
+    readonly defaultGenreExclusion?: DiscoverGenreExclusion;
     readonly lockedFilters?: readonly DiscoverLockedFilterDefinition[];
 }
 
 export interface DiscoverFilterState {
     readonly genreIds: readonly number[];
+    readonly excludedGenreIds: readonly number[];
     readonly keywordIds: readonly number[];
     readonly companyIds: readonly number[];
     readonly providerIds: readonly number[];
@@ -99,6 +109,10 @@ export type DiscoverFilterChange =
 /** Everything the filter panel renders: which filters show, their options, and the current values. */
 export interface DiscoverFilters {
     readonly activeFilterCount: number;
+    /** Active filters inside the collapsed "More filters" group. */
+    readonly moreActiveCount: number;
+    /** Whether any filter in the "More filters" group applies to this page. */
+    readonly hasMoreFilters: boolean;
     readonly visible: DiscoverFilterVisibility;
     readonly genreOptions: readonly SelectOption<number>[];
     readonly selectedGenreIds: readonly number[];
@@ -133,6 +147,7 @@ export interface DiscoverQueryState extends DiscoverFilterState {
 
 export const DISCOVER_DEFAULT_FILTERS: DiscoverFilterState = {
     genreIds: [],
+    excludedGenreIds: [],
     keywordIds: [],
     companyIds: [],
     providerIds: [],
@@ -211,7 +226,6 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     advanced: {
         key: 'advanced',
         title: 'Discover Movies & TV',
-        subtitle: 'Filter movies and TV series by genre, rating, release date, runtime, language, and where to watch.',
         mediaType: 'movie',
         mode: 'advanced',
         defaultSortKey: 'popularity',
@@ -223,7 +237,6 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'movie-popular': {
         key: 'movie-popular',
         title: 'Popular Movies',
-        subtitle: 'Movies getting the most attention right now.',
         mediaType: 'movie',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -235,7 +248,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'movie-top-rated': {
         key: 'movie-top-rated',
         title: 'Top Rated Movies',
-        subtitle: 'Standout movies ranked by audience ratings.',
+        subtitle: 'Ranked by audience rating.',
         mediaType: 'movie',
         mode: 'browse',
         defaultSortKey: 'rating',
@@ -248,7 +261,6 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'movie-now-playing': {
         key: 'movie-now-playing',
         title: 'Now Playing Movies',
-        subtitle: 'Movies now playing in theaters.',
         mediaType: 'movie',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -263,7 +275,6 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'movie-upcoming': {
         key: 'movie-upcoming',
         title: 'Upcoming Movies',
-        subtitle: 'Upcoming theatrical releases to plan around.',
         mediaType: 'movie',
         mode: 'browse',
         defaultSortKey: 'release_date',
@@ -280,7 +291,6 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'tv-popular': {
         key: 'tv-popular',
         title: 'Popular TV Series',
-        subtitle: 'TV series getting the most attention right now.',
         mediaType: 'tv',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -292,7 +302,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'tv-top-rated': {
         key: 'tv-top-rated',
         title: 'Top Rated TV Series',
-        subtitle: 'Standout TV series ranked by audience ratings.',
+        subtitle: 'Ranked by audience rating.',
         mediaType: 'tv',
         mode: 'browse',
         defaultSortKey: 'rating',
@@ -305,7 +315,6 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'tv-airing-today': {
         key: 'tv-airing-today',
         title: 'TV Series Airing Today',
-        subtitle: 'TV episodes scheduled to air today.',
         mediaType: 'tv',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -314,12 +323,15 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
         filters: TV_DATE_WINDOW_FILTERS,
         dateWindow: 'airing-today',
         defaultVoteCountGte: DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
+        defaultGenreExclusion: {
+            genreIds: CURATED_TV_EXCLUDED_GENRE_IDS,
+            label: 'No talk, news, reality or soaps',
+        },
         lockedFilters: [{ id: 'airing-today', label: 'Airing today' }],
     },
     'tv-on-the-air': {
         key: 'tv-on-the-air',
         title: 'TV Series Airing This Week',
-        subtitle: 'TV series with new episodes airing this week.',
         mediaType: 'tv',
         mode: 'browse',
         defaultSortKey: 'popularity',

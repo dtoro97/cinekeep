@@ -34,7 +34,7 @@
 
                             @if (person.biography && person.biography.length > bioPreviewThreshold) {
                                 <button class="biography__toggle text-body-sm" type="button" (click)="toggleBio()">
-                                    {{ bioExpanded ? 'Show less' : 'Read more' }}
+                                    {{ bioToggleLabel }}
                                 </button>
                             }
                         </div>
@@ -183,7 +183,7 @@
                                 @if (aliases.length) {
                                     <div class="info-grid__item">
                                         <dt class="info-grid__label text-card-meta">
-                                            {{ aliases.length === 1 ? 'Alternative name' : 'Alternative names' }}
+                                            {{ vm.aliasesLabel }}
                                         </dt>
                                         <dd class="info-grid__value">
                                             <ul class="info-grid__value-list u-list-none">

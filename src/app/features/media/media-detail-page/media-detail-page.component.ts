@@ -32,6 +32,7 @@ import {
     VideosGridComponent,
     buildYoutubeWatchUrl,
     isDefined,
+    PluralizePipe,
 } from '../../../shared';
 import { RecentlyViewedStoreService } from '../../../shared/services/recently-viewed-store.service';
 import { MinutesToHours } from '../../../shared/pipes/time.pipe';
@@ -48,6 +49,7 @@ import { toMediaSeoMetadata } from '../media-seo';
 @Component({
     selector: 'app-media-detail-page',
     imports: [
+        PluralizePipe,
         AsyncPipe,
         DatePipe,
         DecimalPipe,

@@ -14,14 +14,18 @@ import {
     remoteData,
     MEDIA_TYPE_OPTION,
     MediaListItem,
+    MediaStateLookup,
     MediaType,
     ToggleGroupOption,
     SortDirection,
     TMDB_DISCOVER_SORT_DIRECTIONS,
     TMDB_DISCOVER_SORT_KEYS,
+    toLibraryState,
+    UserLibraryService,
     WatchProviderOption,
     WatchProviderStoreService,
 } from '../../../shared';
+import type { MediaStateResponse } from '../../../api-cinekeep';
 import {
     StreamingBaseQuery,
     StreamingEditorialSection,
@@ -65,13 +69,15 @@ interface StreamingListState {
     readonly pagination: StreamingListPagination;
     readonly totalResults: number;
     readonly resultsState: RemoteData<MediaListItem[]>;
+    /** Watchlist states for the loaded titles; `null` while signed out. */
+    readonly libraryStates: MediaStateLookup | null;
 }
 
 interface StreamingListDisplayItem {
     readonly item: MediaListItem;
-    readonly index: number;
     readonly routerLink: (string | number)[];
     readonly availabilityText: string;
+    readonly libraryState: RemoteData<MediaStateResponse>;
 }
 
 const EMPTY_PAGINATION: StreamingListPagination = {
@@ -87,6 +93,7 @@ const INITIAL_STATE: StreamingListState = {
     pagination: { ...EMPTY_PAGINATION },
     totalResults: 0,
     resultsState: { state: 'notAsked' },
+    libraryStates: null,
 };
 
 @Injectable()
@@ -114,7 +121,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
             isLoading: state.resultsState.state === 'loading',
             loadingMorePlaceholderCount:
                 state.resultsState.state === 'loading-more' ? state.resultsState.data.length : 0,
-            displayItems: this.toDisplayItems(state.resultsState, state.context, state.mediaType),
+            displayItems: this.toDisplayItems(state.resultsState, state.context, state.mediaType, state.libraryStates),
         };
     });
 
@@ -126,14 +133,20 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
         trigger$.pipe(switchMap(() => this.handleLoadMoreRequest())),
     );
 
+    private readonly updateLibraryStates = this.updater(
+        (state, libraryStates: MediaStateLookup | null): StreamingListState => ({ ...state, libraryStates }),
+    );
+
     constructor(
         private readonly route: ActivatedRoute,
         private readonly router: Router,
         private readonly streamingQuery: StreamingQueryService,
         private readonly watchProviderStore: WatchProviderStoreService,
+        userLibrary: UserLibraryService,
     ) {
         super(INITIAL_STATE);
         this.requestEffect(this.routeRequest$());
+        this.updateLibraryStates(userLibrary.mediaStates$(this.select((state) => remoteData(state.resultsState, []))));
     }
 
     loadMore(): void {
@@ -180,11 +193,16 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
             params: this.route.paramMap,
             data: this.route.data,
             queryParams: this.route.queryParamMap,
-            providersLoaded: this.watchProviderStore.loaded$,
-            movieProviders: this.watchProviderStore.movieProviders$,
-            tvProviders: this.watchProviderStore.tvProviders$,
+            catalog: this.watchProviderStore.catalog$,
         }).pipe(
-            map((source) => this.toRequest(source)),
+            map(({ catalog, ...source }) =>
+                this.toRequest({
+                    ...source,
+                    providersLoaded: catalog.loaded,
+                    movieProviders: catalog.movieProviders,
+                    tvProviders: catalog.tvProviders,
+                }),
+            ),
             distinctUntilChanged(
                 (previous, current) =>
                     previous.context?.key === current.context?.key &&
@@ -428,20 +446,21 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
         state: RemoteData<MediaListItem[]>,
         context: StreamingListContext | null,
         mediaType: MediaType,
+        libraryStates: MediaStateLookup | null,
     ): StreamingListDisplayItem[] {
         if (state.state !== 'success' && state.state !== 'loading-more') {
             return [];
         }
 
-        return state.data.map((item, index) => ({
+        return state.data.map((item) => ({
             item,
-            index: index + 1,
             routerLink: ['/title', item.id, item.mediaType],
             availabilityText: this.toAvailabilityText(
                 item,
                 context,
                 mediaType,
             ),
+            libraryState: toLibraryState(libraryStates, item),
         }));
     }
 

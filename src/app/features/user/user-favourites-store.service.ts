@@ -13,6 +13,7 @@ import {
     UserLibraryService,
     isDefined,
     toSnapshotCardItem,
+    toRating,
 } from '../../shared';
 import { remoteSuccess } from '../../shared/utils';
 import { toTotalAfterMediaRemoval, toUserMediaTotalLabel } from './user-account-media.helpers';
@@ -142,7 +143,7 @@ export class UserFavouritesStore extends ComponentStore<UserFavouritesState> {
 
     private toFavouritePage(result: PageResponseFavoriteItemResponse, requestedPage: number) {
         return {
-            items: (result.content ?? []).map((item) => toSnapshotCardItem(item, item.voteAverage ?? null)).filter(isDefined),
+            items: (result.content ?? []).map((item) => toSnapshotCardItem(item, toRating(item.voteAverage))).filter(isDefined),
             page: requestedPage,
             totalResults: result.totalElements ?? 0,
         };

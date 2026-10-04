@@ -1,86 +1,75 @@
 @if (loading) {
-    <div class="episode-list-item episode-list-item--loading" aria-hidden="true">
-        <app-skeleton class="episode-list-item__still episode-list-item__still--skeleton" />
+    <div class="episode-list-item" aria-hidden="true">
+        @if (numbered) {
+            <app-skeleton class="episode-list-item__number episode-list-item__number--skeleton" />
+        }
+        <app-skeleton class="episode-list-item__still" />
+
         <div class="episode-list-item__content">
-            <div class="episode-list-item__heading">
-                <app-skeleton class="episode-list-item__code-skeleton" />
-                <app-skeleton class="episode-list-item__title-skeleton" />
-            </div>
-            <app-skeleton class="episode-list-item__meta-skeleton" />
-            <app-skeleton class="episode-list-item__overview-skeleton" />
+            <app-skeleton class="episode-list-item__line episode-list-item__line--title" />
+            <app-skeleton class="episode-list-item__line episode-list-item__line--meta" />
+            <app-skeleton class="episode-list-item__line episode-list-item__line--overview" />
         </div>
     </div>
 } @else if (item; as currentItem) {
-    <div class="episode-list-item">
+    <div class="episode-list-item" [class.episode-list-item--highlighted]="highlighted">
+        @if (numbered) {
+            <span class="episode-list-item__number text-numeral">{{ currentItem.episodeNumber }}</span>
+        }
+
         @if (currentItem.routeCommands; as routeCommands) {
-            <a
-                class="episode-list-item__still-link"
-                [routerLink]="routeCommands"
-                [attr.aria-label]="'Open ' + currentItem.name"
-            >
-                <app-image class="episode-list-item__still" [src]="currentItem.stillPath" [alt]="currentItem.name" />
+            <a class="episode-list-item__still-link" [routerLink]="routeCommands" tabindex="-1" aria-hidden="true">
+                <app-image class="episode-list-item__still" [src]="currentItem.stillPath" alt="" params="w300" />
             </a>
         } @else {
-            <app-image class="episode-list-item__still" [src]="currentItem.stillPath" [alt]="currentItem.name" />
+            <app-image class="episode-list-item__still" [src]="currentItem.stillPath" alt="" params="w300" />
         }
 
         <div class="episode-list-item__content">
-            <div class="episode-list-item__header">
-                <div class="episode-list-item__header-main">
-                    <div class="episode-list-item__heading">
-                        @if (currentItem.seasonNumber !== null && currentItem.episodeNumber !== null) {
-                            <span class="episode-list-item__code text-card-meta">
-                                S{{ currentItem.seasonNumber }}E{{ currentItem.episodeNumber }}
-                            </span>
-                        }
+            <div class="episode-list-item__heading">
+                @if (!numbered && currentItem.seasonNumber !== null && currentItem.episodeNumber !== null) {
+                    <span class="episode-list-item__code text-card-meta">
+                        S{{ currentItem.seasonNumber }}E{{ currentItem.episodeNumber }}
+                    </span>
+                }
 
-                        <h3 class="episode-list-item__title text-subtitle">
-                            @if (currentItem.routeCommands; as routeCommands) {
-                                <a class="episode-list-item__title-link" [routerLink]="routeCommands">
-                                    {{ currentItem.name }}
-                                </a>
-                            } @else {
-                                {{ currentItem.name }}
-                            }
-                        </h3>
+                @if (currentItem.routeCommands; as routeCommands) {
+                    <a class="episode-list-item__title text-subtitle" [routerLink]="routeCommands">{{ currentItem.name }}</a>
+                } @else {
+                    <span class="episode-list-item__title text-subtitle">{{ currentItem.name }}</span>
+                }
 
-                        @if (currentItem.badges; as badges) {
-                            @if (badges.length) {
-                                <div class="episode-list-item__badges">
-                                    @for (badge of badges; track badge.label) {
-                                        <app-badge [label]="badge.label" [variant]="badge.variant ?? 'neutral'" />
-                                    }
-                                </div>
-                            }
-                        }
-                    </div>
+                @if (currentItem.voteAverage) {
+                    <app-rating [value]="currentItem.voteAverage" />
+                }
 
-                    @if (currentItem.subtitle || currentItem.airDate || currentItem.runtime) {
-                        <div class="episode-list-item__meta text-card-meta">
-                            @if (currentItem.subtitle) {
-                                <span>{{ currentItem.subtitle }}</span>
-                            }
-                            @if (currentItem.airDate) {
-                                <span>{{ currentItem.airDate | date }}</span>
-                            }
-                            @if (currentItem.runtime) {
-                                <span>{{ currentItem.runtime }}m</span>
-                            }
-                        </div>
+                @if (currentItem.badges; as badges) {
+                    @for (badge of badges; track badge.label) {
+                        <app-badge [label]="badge.label" [variant]="badge.variant ?? 'neutral'" />
                     }
-                </div>
-
-                @if (currentItem.voteAverage && currentItem.voteAverage > 0) {
-                    <app-rating class="episode-list-item__score" [value]="currentItem.voteAverage" />
                 }
             </div>
 
-            <p class="episode-list-item__overview text-body-sm">
-                {{ currentItem.overview || 'No overview available.' }}
-            </p>
+            @if (currentItem.subtitle || currentItem.airDate || currentItem.runtime) {
+                <p class="episode-list-item__meta text-card-meta">
+                    @if (currentItem.subtitle) {
+                        <span>{{ currentItem.subtitle }}</span>
+                    }
+                    @if (currentItem.airDate) {
+                        <span>{{ currentItem.airDate | date: 'mediumDate' }}</span>
+                    }
+                    @if (currentItem.runtime) {
+                        <span>{{ currentItem.runtime }}m</span>
+                    }
+                </p>
+            }
+
+            @if (currentItem.overview) {
+                <p class="episode-list-item__overview text-body-sm">{{ currentItem.overview }}</p>
+            }
         </div>
 
-        <div class="episode-list-item__end">
+        <div class="episode-list-item__actions">
             <ng-content />
         </div>
     </div>

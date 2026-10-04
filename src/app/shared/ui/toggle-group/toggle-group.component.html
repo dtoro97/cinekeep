@@ -1,5 +1,5 @@
 @if (viewOptions().length) {
-    <div class="toggle-group">
+    <div class="toggle-group" [class.toggle-group--chips]="variant() === 'chips'">
         @for (option of viewOptions(); track option.value) {
             <button
                 type="button"

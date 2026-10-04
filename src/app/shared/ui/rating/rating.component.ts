@@ -9,5 +9,5 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RatingComponent {
-    @Input({ required: true }) value: number;
+    @Input({ required: true }) value!: number;
 }

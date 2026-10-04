@@ -1,4 +1,5 @@
 @use 'breakpoints' as *;
+@use 'mixins' as *;
 
 .snackbar {
     display: flex;
@@ -48,10 +49,18 @@
     cursor: pointer;
 }
 
-.snackbar__link:is(:hover, :focus-visible, :active),
-.snackbar__dismiss:is(:hover, :focus-visible, :active) {
+.snackbar__link:is(:focus-visible, :active),
+.snackbar__dismiss:is(:focus-visible, :active) {
     color: var(--snackbar-action-color);
     text-decoration-color: currentColor;
+}
+
+@include hover-capable {
+    .snackbar__link:hover,
+    .snackbar__dismiss:hover {
+        color: var(--snackbar-action-color);
+        text-decoration-color: currentColor;
+    }
 }
 
 @include mobile() {

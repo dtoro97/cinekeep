@@ -5,64 +5,84 @@
         [class.header-search--open]="vm.searchOpen"
         [cdkTrapFocus]="vm.searchOpen"
         [cdkTrapFocusAutoCapture]="vm.searchOpen"
+        (focusout)="onFocusOut($event)"
     >
-        <div class="header-search__bar">
-            <mat-form-field
-                class="header-search__filter-field mat-mdc-form-field--borderless"
-                appearance="outline"
-                subscriptSizing="dynamic"
-            >
-                <mat-select
-                    class="header-search__filter-select"
-                    [value]="vm.searchFilter"
-                    (selectionChange)="setFilter($event.value)"
+        <div class="header-search__top">
+            <div class="header-search__bar">
+                <mat-form-field
+                    class="header-search__filter-field mat-mdc-form-field--borderless"
+                    appearance="outline"
+                    subscriptSizing="dynamic"
                 >
-                    @for (opt of filterOptions; track opt.value) {
-                        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
+                    <mat-select
+                        class="header-search__filter-select"
+                        aria-label="Search in"
+                        [value]="vm.searchFilter"
+                        (selectionChange)="setFilter($event.value)"
+                    >
+                        @for (opt of filterOptions; track opt.value) {
+                            <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
 
-            <mat-form-field
-                class="header-search__input-field mat-mdc-form-field--borderless"
-                appearance="outline"
-                subscriptSizing="dynamic"
-            >
+                <mat-icon class="header-search__search-icon" aria-hidden="true">search</mat-icon>
+
                 <input
-                    matInput
+                    #searchInput
+                    class="header-search__input"
+                    type="text"
+                    role="combobox"
+                    autocomplete="off"
+                    spellcheck="false"
+                    enterkeyhint="search"
+                    aria-label="Search titles and people"
+                    aria-autocomplete="list"
+                    cdkFocusInitial
+                    [attr.aria-expanded]="vm.listboxVisible"
+                    [attr.aria-controls]="vm.listboxVisible ? listboxId : null"
+                    [attr.aria-activedescendant]="vm.activeOptionId"
+                    [placeholder]="vm.placeholder"
                     [formControl]="searchControl"
-                    (focus)="onSearchFocus()"
-                    (keydown.enter)="navigateToSearch(vm.searchFilter)"
-                    placeholder="Search movies, TV series, people..."
+                    (focus)="openPanel()"
+                    (click)="openPanel()"
+                    (keydown)="onInputKeydown($event)"
                 />
-                <mat-icon class="header-search__suffix header-search__search-icon" matSuffix>search</mat-icon>
-                <button
-                    matSuffix
-                    mat-icon-button
-                    class="header-search__suffix header-search__close-button"
-                    (click)="closeSearch()"
-                    aria-label="Close search"
-                >
-                    <mat-icon>close</mat-icon>
-                </button>
-            </mat-form-field>
+
+                @if (vm.hasQuery) {
+                    <button class="header-search__clear" type="button" aria-label="Clear search" (click)="clearSearch()">
+                        <mat-icon aria-hidden="true">close</mat-icon>
+                    </button>
+                } @else {
+                    <kbd class="header-search__shortcut" title="Press / to search" aria-hidden="true">/</kbd>
+                }
+            </div>
+
+            <button class="header-search__cancel" type="button" (click)="closeSearch()">Cancel</button>
         </div>
 
-        @if (vm.showSearchDropdown) {
-            <div class="header-search__dropdown">
+        @if (vm.panel.kind !== "hidden") {
+            <div class="header-search__dropdown" (mousedown)="$event.preventDefault()">
                 <app-header-search-results
-                    [state]="vm.searchResultsState"
-                    (resultSelected)="navigateToResult($event)"
+                    [panel]="vm.panel"
+                    [listboxId]="listboxId"
+                    [activeOptionId]="vm.activeOptionId"
+                    (optionSelected)="closePanel()"
+                    (retry)="retry()"
+                    (widen)="widenSearch()"
                 />
             </div>
         }
+
+        <span class="header-search__status" role="status" aria-live="polite">{{ vm.statusMessage }}</span>
     </div>
 
     <button
         mat-icon-button
         class="header-search__toggle-button"
-        (click)="toggleSearch()"
+        type="button"
         aria-label="Search"
+        (click)="toggleSearch()"
     >
         <mat-icon>search</mat-icon>
     </button>

@@ -66,3 +66,24 @@
     outline: auto;
     outline-offset: 2px;
 }
+
+// Neutral secondary action that sits beside a filled primary.
+.mat-mdc-outlined-button.button--subtle {
+    gap: var(--space-2);
+    background: var(--control-subtle-surface);
+    --mat-button-outlined-label-text-color: var(--text-primary);
+    --mat-button-outlined-outline-color: var(--control-subtle-border);
+    --mat-button-outlined-hover-state-layer-opacity: 0;
+    --mat-button-outlined-focus-state-layer-opacity: 0;
+    --mat-button-outlined-pressed-state-layer-opacity: 0;
+    transition: background-color var(--motion-base);
+
+    &:not(:disabled):hover {
+        background: var(--control-subtle-surface-hover);
+    }
+}
+
+// Leading Font Awesome icons sit inside the label span, so they need their own gap.
+.mat-mdc-button-base .mdc-button__label > i:first-child {
+    margin-inline-end: var(--space-2);
+}

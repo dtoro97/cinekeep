@@ -9,11 +9,10 @@ import { PAGE_SIZE } from '../../../constants';
 import {
     RemoteData,
     remoteData,
-    toPageItemRange,
     LocaleStoreService,
     parsePageParam,
-    PersonListItem,
-    toPersonListItem,
+    PersonCardItem,
+    toKnownForPersonCardItem,
 } from '../../../shared';
 
 interface PopularPeoplePagination {
@@ -22,7 +21,7 @@ interface PopularPeoplePagination {
 }
 
 interface PopularPeopleState {
-    readonly resultsState: RemoteData<PersonListItem[]>;
+    readonly resultsState: RemoteData<PersonCardItem[]>;
     readonly pagination: PopularPeoplePagination;
     readonly totalResults: number;
 }
@@ -42,22 +41,14 @@ const INITIAL_STATE: PopularPeopleState = {
 export class PopularPeopleStoreService extends ComponentStore<PopularPeopleState> {
     readonly vm$ = this.select((state) => {
         const visibleCount = remoteData(state.resultsState, []).length;
-        const resultRange = toPageItemRange({
-            page: Math.max(state.pagination.page, 1),
-            pageSize: PAGE_SIZE,
-            itemCount: visibleCount,
-            totalResults: state.totalResults,
-        });
         const hasLoadedResults = state.resultsState.state === 'success' || state.resultsState.state === 'loading-more';
 
         return {
             title: 'Popular People',
             subtitle: 'Actors, filmmakers, and creators trending across movies and TV.',
-            resultsState: state.resultsState,
-            visibleCount,
+            people: remoteData(state.resultsState, []),
+            isLoading: state.resultsState.state === 'loading',
             totalResults: state.totalResults,
-            resultStart: resultRange.start,
-            resultEnd: resultRange.end,
             pageIndex: Math.max(state.pagination.page - 1, 0),
             pageSize: PAGE_SIZE,
             paginatorLength: this.getPaginatorLength(state),
@@ -103,33 +94,31 @@ export class PopularPeopleStoreService extends ComponentStore<PopularPeopleState
             totalResults: 0,
         });
 
-        return this.personListService
-            .personPopularList({ language: this.localeStore.language(), page })
-            .pipe(
-                tap((response) => {
-                    const results = (response.results ?? []).map((item) => toPersonListItem(item));
+        return this.personListService.personPopularList({ language: this.localeStore.language(), page }).pipe(
+            tap((response) => {
+                const results = (response.results ?? []).map(toKnownForPersonCardItem);
 
-                    this.patchState({
-                        resultsState: { state: 'success', data: results },
-                        pagination: {
-                            page: response.page ?? page,
-                            totalPages: response.total_pages ?? 0,
-                        },
-                        totalResults: response.total_results ?? 0,
-                    });
-                }),
-                catchError(() => {
-                    this.patchState({
-                        resultsState: {
-                            state: 'success',
-                            data: [],
-                        },
-                        pagination: { page, totalPages: page },
-                        totalResults: 0,
-                    });
-                    return EMPTY;
-                }),
-            );
+                this.patchState({
+                    resultsState: { state: 'success', data: results },
+                    pagination: {
+                        page: response.page ?? page,
+                        totalPages: response.total_pages ?? 0,
+                    },
+                    totalResults: response.total_results ?? 0,
+                });
+            }),
+            catchError(() => {
+                this.patchState({
+                    resultsState: {
+                        state: 'success',
+                        data: [],
+                    },
+                    pagination: { page, totalPages: page },
+                    totalResults: 0,
+                });
+                return EMPTY;
+            }),
+        );
     }
 
     private getPaginatorLength(state: PopularPeopleState): number {

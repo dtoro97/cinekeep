@@ -14,26 +14,36 @@
     position: relative;
     overflow: hidden;
     border-radius: var(--radius-lg);
-    background: var(--mat-sys-surface-container-lowest);
+    background: var(--surface-page);
 
     img {
         display: block;
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: opacity var(--motion-base);
+        transition: filter var(--motion-base);
+    }
+}
+
+@mixin video-card-media-active {
+    .video-card__thumb img {
+        filter: var(--interactive-media-hover-filter);
+    }
+
+    .video-card__play {
+        color: var(--text-accent);
     }
 }
 
 .video-card__media {
-    &:is(:hover, :focus-visible) {
-        .video-card__thumb img {
-            opacity: var(--interactive-media-hover-opacity);
+    @include hover-capable {
+        &:hover {
+            @include video-card-media-active;
         }
+    }
 
-        .video-card__play {
-            color: var(--color-brand-light);
-        }
+    &:focus-visible {
+        @include video-card-media-active;
     }
 }
 
@@ -73,23 +83,5 @@ a.video-card__title {
 }
 
 .video-card__metadata {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-1);
-}
-
-.video-card__metadata-item {
-    display: inline-flex;
-    align-items: center;
-
-    & + &::before {
-        content: '';
-        width: 0.25rem;
-        height: 0.25rem;
-        margin-inline-end: var(--space-1);
-        border-radius: var(--radius-full);
-        background: currentColor;
-        opacity: 0.7;
-    }
+    @include meta-list(var(--space-1-5));
 }

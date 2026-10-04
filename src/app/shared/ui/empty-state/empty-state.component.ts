@@ -7,8 +7,8 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EmptyStateComponent {
-    @Input({ required: true }) iconClass = '';
-    @Input({ required: true }) text = '';
+    @Input({ required: true }) iconClass!: string;
+    @Input({ required: true }) text!: string;
     @Input() title?: string;
     @Input() iconStyle: 'badge' | 'plain' = 'badge';
 }

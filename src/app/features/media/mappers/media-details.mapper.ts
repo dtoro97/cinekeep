@@ -1,6 +1,6 @@
 import { Language, Movie, ProductionCompany, TvSeries } from '../../../api';
 import type { MediaType } from '../../../shared';
-import { formatCompanyName } from '../../../shared/utils';
+import { formatCompanyName, toRating } from '../../../shared/utils';
 import { MediaDetails, MediaProductionCompany } from '../models/media-details.model';
 
 export const toMediaDetails = (
@@ -32,7 +32,7 @@ export const toMediaDetails = (
         year: date ? date.substring(0, 4) : '',
         overview: media.overview ?? '',
         genres: media.genres ?? [],
-        voteAverage: media.vote_average ?? 0,
+        voteAverage: toRating(media.vote_average),
         posterPath: media.poster_path ?? null,
         backdropPath: media.backdrop_path ?? null,
         status: media.status,

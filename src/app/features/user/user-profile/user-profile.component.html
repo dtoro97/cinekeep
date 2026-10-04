@@ -24,37 +24,68 @@
             </div>
 
             <nav class="profile__nav" aria-label="Profile navigation">
-                <a class="profile__nav-link text-body-sm" routerLink="/me/watchlists">
-                    <i class="fa-regular fa-bookmark" aria-hidden="true"></i>
-                    <span>Watchlist</span>
-                    <strong class="text-caption-strong">{{ vm.watchlist.total }}</strong>
+                <a class="profile__nav-link" routerLink="/me/watchlists">
+                    <strong class="profile__stat-value text-headline">{{ vm.watchlist.total }}</strong>
+                    <span class="text-overline">Watchlist</span>
                 </a>
 
-                <a class="profile__nav-link text-body-sm" routerLink="/me/ratings">
-                    <i class="fa-regular fa-star" aria-hidden="true"></i>
-                    <span>Ratings</span>
-                    <strong class="text-caption-strong">{{ vm.ratings.total }}</strong>
+                <a class="profile__nav-link" routerLink="/me/ratings">
+                    <strong class="profile__stat-value text-headline">{{ vm.ratings.total }}</strong>
+                    <span class="text-overline">Ratings</span>
                 </a>
 
-                <a class="profile__nav-link text-body-sm" routerLink="/me/favorites">
-                    <i class="fa-regular fa-heart" aria-hidden="true"></i>
-                    <span>Favorites</span>
-                    <strong class="text-caption-strong">{{ vm.favourites.total }}</strong>
+                <a class="profile__nav-link" routerLink="/me/favorites">
+                    <strong class="profile__stat-value text-headline">{{ vm.favourites.total }}</strong>
+                    <span class="text-overline">Favorites</span>
                 </a>
 
-                <a class="profile__nav-link text-body-sm" routerLink="/me/lists">
-                    <i class="fa-solid fa-list" aria-hidden="true"></i>
-                    <span>Lists</span>
-                    <strong class="text-caption-strong">{{ vm.lists.total }}</strong>
+                <a class="profile__nav-link" routerLink="/me/lists">
+                    <strong class="profile__stat-value text-headline">{{ vm.lists.total }}</strong>
+                    <span class="text-overline">Lists</span>
                 </a>
             </nav>
         </aside>
 
         <main class="profile__main">
+            <section class="profile__section" aria-labelledby="profile-favourites-title">
+                <header class="profile__section-header">
+                    <div class="profile__section-heading">
+                        <h2 id="profile-favourites-title" class="text-section-label">Favorites</h2>
+                        <p class="profile__section-count text-caption">
+                            {{ vm.favourites.total | pluralize: 'title' }}
+                        </p>
+                    </div>
+
+                    <a class="profile__section-link text-body-sm" routerLink="/me/favorites">
+                        View favorites
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </a>
+                </header>
+
+                @if (vm.favourites.state.state === 'success' && !vm.favourites.state.data.length) {
+                    <div class="profile__empty">
+                        <app-empty-state
+                            iconClass="fa-regular fa-heart"
+                            iconStyle="plain"
+                            title="No favorite titles"
+                            text="Movies and TV series you mark as favorites will appear here."
+                        />
+                    </div>
+                } @else {
+                    <app-media-carousel-panel
+                        ariaLabel="Favorites preview"
+                        [state]="vm.favourites.state"
+                        [columns]="favouritesCarouselColumns"
+                        [imageParams]="favouritesPosterImageParams"
+                        [skeletonCount]="favouritesCarouselColumns"
+                    />
+                }
+            </section>
+
             <section class="profile__section" aria-labelledby="profile-watchlist-title">
                 <header class="profile__section-header">
                     <div class="profile__section-heading">
-                        <h2 id="profile-watchlist-title" class="text-title">Watchlist</h2>
+                        <h2 id="profile-watchlist-title" class="text-section-label">Watchlist</h2>
                         <p class="profile__section-count text-caption">
                             {{ vm.watchlist.total | pluralize: 'title' }}
                         </p>
@@ -89,7 +120,7 @@
             <section class="profile__section" aria-labelledby="profile-ratings-title">
                 <header class="profile__section-header">
                     <div class="profile__section-heading">
-                        <h2 id="profile-ratings-title" class="text-title">Ratings</h2>
+                        <h2 id="profile-ratings-title" class="text-section-label">Ratings</h2>
                         <p class="profile__section-count text-caption">
                             {{ vm.ratings.total | pluralize: 'title' }}
                         </p>
@@ -121,45 +152,11 @@
                 }
             </section>
 
-            <section class="profile__section" aria-labelledby="profile-favourites-title">
-                <header class="profile__section-header">
-                    <div class="profile__section-heading">
-                        <h2 id="profile-favourites-title" class="text-title">Favorites</h2>
-                        <p class="profile__section-count text-caption">
-                            {{ vm.favourites.total | pluralize: 'title' }}
-                        </p>
-                    </div>
-
-                    <a class="profile__section-link text-body-sm" routerLink="/me/favorites">
-                        View favorites
-                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                    </a>
-                </header>
-
-                @if (vm.favourites.state.state === 'success' && !vm.favourites.state.data.length) {
-                    <div class="profile__empty">
-                        <app-empty-state
-                            iconClass="fa-regular fa-heart"
-                            iconStyle="plain"
-                            title="No favorite titles"
-                            text="Movies and TV series you mark as favorites will appear here."
-                        />
-                    </div>
-                } @else {
-                    <app-media-carousel-panel
-                        ariaLabel="Favorites preview"
-                        [state]="vm.favourites.state"
-                        [columns]="previewCarouselColumns"
-                        [imageParams]="previewPosterImageParams"
-                        [skeletonCount]="previewCarouselColumns"
-                    />
-                }
-            </section>
 
             <section class="profile__section" aria-labelledby="profile-lists-title">
                 <header class="profile__section-header">
                     <div class="profile__section-heading">
-                        <h2 id="profile-lists-title" class="text-title">Lists</h2>
+                        <h2 id="profile-lists-title" class="text-section-label">Lists</h2>
                         <p class="profile__section-count text-caption">
                             {{ vm.lists.total | pluralize: 'list' }}
                         </p>

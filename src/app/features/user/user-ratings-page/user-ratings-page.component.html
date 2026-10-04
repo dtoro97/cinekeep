@@ -3,10 +3,9 @@
         parentTitle="Profile"
         backLink="/me"
         pageTitle="Ratings"
-        subtitle="Movies, TV series, and episodes you rated."
     />
 
-    <main class="page-main page">
+    <main class="page-main page page-list-column">
         <app-browse-toolbar>
             <div start class="page__total">
                 @if (vm.itemsState === "success") {
@@ -35,7 +34,7 @@
                 <ul class="page__episode-list" aria-hidden="true">
                     @for (placeholder of episodeSkeletonCount | repeat; track placeholder) {
                         <li>
-                            <app-account-episode-item [loading]="true" />
+                            <app-episode-list-item [loading]="true" />
                         </li>
                     }
                 </ul>
@@ -44,11 +43,11 @@
                     <ul class="page__episode-list" aria-label="Rated episodes">
                         @for (episode of vm.episodeItems.data; track episode.key) {
                             <li>
-                                <app-account-episode-item [item]="episode.item">
+                                <app-episode-list-item [item]="episode.item">
                                     <div class="page__actions">
                                         <app-icon-button
                                             title="Edit rating"
-                                            [ariaLabel]="'Edit rating for ' + episode.title"
+                                            ariaLabel="Edit rating for {{ episode.title }}"
                                             (onClick)="onEditEpisodeRating(episode)"
                                         >
                                             <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
@@ -57,13 +56,13 @@
                                         <app-icon-button
                                             tone="danger"
                                             title="Remove rating"
-                                            [ariaLabel]="'Remove rating from ' + episode.title"
+                                            ariaLabel="Remove rating from {{ episode.title }}"
                                             (onClick)="onRemoveEpisodeRating(episode)"
                                         >
                                             <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
                                         </app-icon-button>
                                     </div>
-                                </app-account-episode-item>
+                                </app-episode-list-item>
                             </li>
                         }
                     </ul>
@@ -92,21 +91,21 @@
             @if (vm.mediaItems.state === "loading") {
                 <div class="page__list" aria-hidden="true">
                     @for (placeholder of skeletonCount | repeat; track placeholder) {
-                        <app-account-media-item [loading]="true" />
+                        <app-media-list-item [loading]="true" />
                     }
                 </div>
             } @else if (vm.mediaItems.state === "success") {
                 @if (vm.mediaItems.data.length) {
                     <div class="page__list">
                         @for (item of vm.mediaItems.data; track item.mediaType + "-" + item.id) {
-                            <app-account-media-item
+                            <app-media-list-item
                                 [item]="item"
                                 [link]="['/title', item.id, item.mediaType]"
                             >
-                                <div account-media-item-action class="page__actions">
+                                <div media-list-item-action class="page__actions">
                                     <app-icon-button
                                         title="Edit rating"
-                                        [ariaLabel]="'Edit rating for ' + item.title"
+                                        ariaLabel="Edit rating for {{ item.title }}"
                                         (onClick)="onEditMediaRating(item)"
                                     >
                                         <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
@@ -115,13 +114,13 @@
                                     <app-icon-button
                                         tone="danger"
                                         title="Remove rating"
-                                        [ariaLabel]="'Remove rating from ' + item.title"
+                                        ariaLabel="Remove rating from {{ item.title }}"
                                         (onClick)="onRemoveMediaRating(item)"
                                     >
                                         <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
                                     </app-icon-button>
                                 </div>
-                            </app-account-media-item>
+                            </app-media-list-item>
                         }
                     </div>
 

@@ -1,116 +1,100 @@
 @use "breakpoints" as *;
 @use "mixins" as *;
 
+// Cover-led: the list's chosen still carries the card, its name set over it like a title card.
 .list-card {
     position: relative;
     display: flex;
     flex-direction: column;
-    min-height: 8rem;
-    padding: var(--space-4);
+    overflow: hidden;
     color: inherit;
+    box-shadow: var(--shadow-sm);
     @include surface-panel(var(--surface-panel-soft));
-    @include surface-hover();
+    @include card-hover('.list-card__cover-image', '.list-card__title', $border-color: var(--color-border));
 
-    &__link,
-    &__main {
-        display: flex;
-        flex-direction: column;
+    &--preview {
+        pointer-events: none;
     }
 
     &__link {
+        display: flex;
         flex: 1 1 auto;
-        gap: var(--space-4);
-        height: 100%;
+        flex-direction: column;
         color: inherit;
         text-decoration: none;
     }
 
-    &__main {
-        gap: var(--space-2);
+    &__cover {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        aspect-ratio: 16 / 7;
+        overflow: hidden;
+        background: var(--surface-raised);
+
+        &::after {
+            content: '';
+            @include absolute-fill;
+            background: var(--gradient-overlay-bottom);
+            pointer-events: none;
+        }
+
+        &--poster {
+            --image-position: center 22%;
+        }
     }
 
-    &__title-row,
-    &__meta-row,
-    &__footer,
-    &__actions,
-    &__meta,
-    &__status {
+    &__cover-image {
+        @include absolute-fill;
+        --image-radius: 0;
+    }
+
+    &__cover-empty {
+        @include absolute-fill;
         display: flex;
         align-items: center;
-    }
-
-    &__title-row,
-    &__meta-row,
-    &__footer {
-        flex-wrap: wrap;
-    }
-
-    &__title-row {
-        align-items: flex-start;
-        gap: var(--space-2);
-        padding-inline-end: 6.75rem;
-    }
-
-    &__meta-row {
-        gap: var(--space-1) var(--space-3);
-    }
-
-    &__meta {
-        gap: var(--space-1);
-
-        i {
-            width: 0.875rem;
-            color: var(--text-muted);
-            font-size: var(--text-xs);
-        }
+        justify-content: center;
+        color: var(--text-disabled);
+        font-size: var(--text-3xl);
     }
 
     &__title {
+        position: relative;
+        z-index: 1;
         min-width: 0;
-        transition: color var(--motion-base);
+        padding: var(--space-4);
+        text-shadow: var(--shadow-text-hero);
         @include line-clamp(2);
     }
 
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-4) var(--space-4);
+    }
+
+    &__meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1) var(--space-3);
+    }
+
     &__description {
-        max-width: 52ch;
-        @include line-clamp(1);
-
-        &--placeholder {
-            color: var(--text-muted);
-        }
-    }
-
-    &__footer {
-        justify-content: space-between;
-        gap: var(--space-3);
-        margin-top: auto;
-    }
-
-    &__timestamp {
-        min-width: 0;
+        @include line-clamp(2);
     }
 
     &__actions {
         position: absolute;
         top: var(--space-2);
         right: var(--space-2);
-        opacity: 1;
+        z-index: 2;
+        display: flex;
+        align-items: center;
         transition: opacity var(--motion-base);
         @include overlay-action-surface();
     }
 
-    &__status {
-        justify-content: center;
-        width: var(--control-height-sm);
-        height: var(--control-height-sm);
-        padding: 0;
-        border: 1px solid transparent;
-        border-radius: var(--radius-md);
-        background: transparent;
-        color: var(--text-muted);
-        font-size: var(--text-sm);
-        line-height: 1;
-    }
 }
 
 @include hover-capable {
@@ -126,7 +110,6 @@
             pointer-events: auto;
         }
 
-        &:hover &__title,
         &:focus-within &__title {
             color: var(--text-accent);
         }
@@ -135,6 +118,12 @@
 
 @include mobile() {
     .list-card {
-        padding: var(--space-3);
+        &__title {
+            padding: var(--space-3);
+        }
+
+        &__body {
+            padding: var(--space-3);
+        }
     }
 }

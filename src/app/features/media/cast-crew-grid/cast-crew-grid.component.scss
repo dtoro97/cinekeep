@@ -2,246 +2,107 @@
 @use 'mixins' as *;
 
 :host {
+    --credit-photo-size: 3.5rem;
+
     display: block;
 }
 
-.credit-section {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    scroll-margin-top: var(--space-8);
+// Open rows in columns, like the other people lists: round portraits, name over role, a hairline between rows.
+.credit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    column-gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
 
-    &--skeleton {
-        gap: 0;
-    }
-
-    &__toggle {
-        padding-block: var(--space-4);
-    }
-
-    &__group-label {
-        flex-wrap: wrap;
+    > li {
         min-width: 0;
-    }
-
-    &__title-skeleton {
-        width: 4.75rem;
-        height: 1.5rem;
-    }
-
-    &__count {
-        display: inline-flex;
-        align-items: center;
-
-        &::before {
-            content: '\2022';
-            margin-right: var(--space-2);
-            color: var(--text-disabled);
-        }
-    }
-
-    &__count-skeleton {
-        width: 2.25rem;
-        height: 1rem;
+        border-bottom: 1px solid var(--row-divider);
     }
 }
 
-.credit-list {
-    &__item:not(:last-child) {
-        border-bottom: 1px solid var(--color-border-subtle);
-    }
-
-    &--directory {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--space-3);
-
-        .credit-list__item {
-            border-bottom: 0;
-        }
-
-        .credit-row {
-            height: 100%;
-            border-color: var(--color-border-subtle);
-            border-radius: var(--radius-md);
-            background: var(--surface-panel-soft);
-        }
-
-        .credit-row:is(:hover, :focus-visible) {
-            background: var(--control-subtle-surface-hover);
-            border-color: var(--color-border);
-        }
-    }
-}
-
-.credit-directory {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-}
-
-.credit-directory__section {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: var(--space-3);
-}
-
-.credit-directory__head {
-    display: flex;
-    min-width: 0;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-}
-
-.credit-directory__count {
-    color: var(--text-muted);
-}
-
-.credit-row {
-    display: flex;
+.credit {
+    grid-template-columns: var(--credit-photo-size) minmax(0, 1fr) auto;
+    @include list-row('.credit__photo', '.credit__name');
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3);
-    text-decoration: none;
-    color: inherit;
-    border-radius: var(--radius-sm);
-    border: 1px solid transparent;
-    @include surface-hover();
 
     &--skeleton {
-        padding: var(--space-2) var(--space-3);
-        border: 0;
-        border-radius: 0;
+        pointer-events: none;
     }
 
-    &__thumb {
-        width: var(--media-square-sm);
-        height: var(--media-square-sm);
-        border-radius: var(--radius-full);
-        overflow: hidden;
-        flex-shrink: 0;
-        border: 1px solid var(--color-border-subtle);
-        @include media-hover();
-    }
-
-    &__thumb-skeleton {
-        width: var(--media-square-sm);
-        height: var(--media-square-sm);
-        flex-shrink: 0;
-        --skeleton-radius: var(--radius-full);
-    }
-
-    &__content {
-        display: flex;
-        align-items: center;
-        flex: 1;
-        gap: var(--space-3);
-        min-width: 0;
+    &__photo {
+        width: var(--credit-photo-size);
+        height: var(--credit-photo-size);
+        @include media-frame(var(--radius-full));
     }
 
     &__body {
-        gap: var(--space-1-5);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
         min-width: 0;
-        flex: 1;
     }
 
     &__name {
-        min-width: 0;
-        transition: color var(--motion-base);
+        color: var(--text-primary);
         @include line-clamp(1);
     }
 
-    &__name-skeleton {
-        width: min(12rem, 52vw);
-        height: 1rem;
-    }
-
-    &__meta {
-        min-width: 0;
-        overflow-wrap: anywhere;
+    &__role {
         @include line-clamp(2);
     }
 
-    &__meta-skeleton {
-        width: min(9rem, 38vw);
-        height: 0.75rem;
+    &__episodes {
+        color: var(--text-muted);
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
     }
 
-    &__count {
-        flex-shrink: 0;
-        margin-left: auto;
-    }
+    &__line {
+        width: 60%;
+        --skeleton-height: 0.8rem;
 
-    &__count-skeleton {
-        width: 3rem;
-        height: 0.9rem;
-        flex-shrink: 0;
-        margin-left: auto;
+        &--name {
+            width: 75%;
+            --skeleton-height: 1rem;
+        }
     }
 }
 
-@include hover-capable {
-    .credit-row:is(:hover, :focus-visible) {
-        .credit-row__name {
-            color: var(--text-accent);
-        }
+.credit-departments {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+}
+
+.credit-department {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    scroll-margin-top: var(--space-8);
+
+    &__head {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-3);
     }
 }
 
 @include mobile() {
-    .credit-list--directory {
-        grid-template-columns: minmax(0, 1fr);
-        gap: var(--space-2);
+    :host {
+        --credit-photo-size: 3rem;
     }
 
-    .credit-directory {
-        gap: var(--space-5);
-    }
+    .credit {
+        grid-template-columns: var(--credit-photo-size) minmax(0, 1fr);
 
-    .credit-section {
-        gap: var(--space-2);
-
-        &__toggle {
-            padding-block: var(--space-3);
+        &__episodes {
+            grid-column: 2;
         }
     }
 
-    .credit-row {
-        align-items: start;
-        gap: var(--space-2);
-        padding: var(--space-2) var(--space-3);
-
-        &--skeleton {
-            padding: var(--space-2);
-        }
-
-        &__content {
-            flex-direction: column;
-            align-items: stretch;
-            gap: var(--space-1-5);
-        }
-
-        &__name,
-        &__meta {
-            white-space: normal;
-            overflow: visible;
-            text-overflow: clip;
-            -webkit-line-clamp: unset;
-            line-clamp: unset;
-        }
-
-        &__name {
-            overflow-wrap: anywhere;
-        }
-
-        &__count {
-            margin-left: 0;
-        }
-
-        &__count-skeleton {
-            margin-left: 0;
-        }
+    .credit-departments {
+        gap: var(--space-8);
     }
 }

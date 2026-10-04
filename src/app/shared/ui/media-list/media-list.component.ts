@@ -10,14 +10,12 @@ import { RemoteData } from '../../types';
 import { MediaListEntry } from '../../models';
 import { RepeatPipe } from '../../pipes/repeat.pipe';
 import { MediaListItemComponent } from '../media-list-item/media-list-item.component';
-import { SkeletonComponent } from '../skeleton/skeleton.component';
 
 @Component({
     selector: 'app-media-list',
     imports: [
         NgTemplateOutlet,
         MediaListItemComponent,
-        SkeletonComponent,
         RepeatPipe,
     ],
     templateUrl: './media-list.component.html',

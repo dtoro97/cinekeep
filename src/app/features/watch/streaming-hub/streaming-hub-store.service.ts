@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
-import { combineLatest, forkJoin, map, of, startWith, switchMap } from 'rxjs';
+import { forkJoin, map, of, startWith, switchMap } from 'rxjs';
 
 import {
     WatchProviderOption,
@@ -33,14 +33,8 @@ interface StreamingHubData {
 
 @Injectable()
 export class StreamingHubStoreService extends ComponentStore<Record<string, never>> {
-    readonly vm$ = combineLatest({
-        providersLoaded: this.watchProviderStore.loaded$,
-        movieProviders: this.watchProviderStore.movieProviders$,
-        tvProviders: this.watchProviderStore.tvProviders$,
-    }).pipe(
-        map(({ providersLoaded, movieProviders, tvProviders }) =>
-            this.buildHubData(providersLoaded, movieProviders, tvProviders),
-        ),
+    readonly vm$ = this.watchProviderStore.catalog$.pipe(
+        map(({ loaded, movieProviders, tvProviders }) => this.buildHubData(loaded, movieProviders, tvProviders)),
         switchMap((hubData) => {
             const providerCards$ = hubData.providerCards.length
                 ? forkJoin(

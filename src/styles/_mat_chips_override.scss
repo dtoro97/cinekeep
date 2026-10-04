@@ -26,10 +26,11 @@
     --mat-chip-selected-focus-state-layer-opacity: 0;
 }
 
+// Chips are neutral by default; gold is reserved for ratings and the primary action.
 .mat-mdc-standard-chip {
-    --tmdb-chip-bg: var(--chip-primary-bg);
-    --tmdb-chip-text: var(--chip-primary-text);
-    --tmdb-chip-border: var(--chip-primary-border);
+    --tmdb-chip-bg: var(--chip-muted-bg);
+    --tmdb-chip-text: var(--chip-muted-text);
+    --tmdb-chip-border: var(--chip-muted-border);
     --mat-chip-elevated-container-color: var(--tmdb-chip-bg);
     --mat-chip-label-text-color: var(--tmdb-chip-text);
     --mat-chip-container-shape-radius: var(--chip-radius);
@@ -60,6 +61,7 @@
 .mat-mdc-standard-chip.chip--accent {
     --tmdb-chip-bg: var(--chip-primary-bg);
     --tmdb-chip-text: var(--chip-primary-text);
+    --tmdb-chip-border: var(--chip-primary-border);
 }
 
 .mat-mdc-standard-chip.chip--muted {
@@ -70,6 +72,14 @@
 
 .mat-mdc-standard-chip.chip--link {
     cursor: pointer;
+
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            --tmdb-chip-text: var(--text-primary);
+            --tmdb-chip-border: var(--border-brand-soft);
+        }
+    }
+
     --mat-chip-hover-state-layer-opacity: var(
         --mat-button-filled-hover-state-layer-opacity
     );

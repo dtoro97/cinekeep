@@ -6,13 +6,13 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import {
     SeoService,
+    HeroSurfaceComponent,
     ImageComponent,
     PageSectionComponent,
     PhotoViewerComponent,
     PhotosPreviewComponent,
     ToggleGroupComponent,
     SkeletonComponent,
-    SubPageHeaderComponent,
     TmdbRatingComponent,
     VideosGridComponent,
     ViewerImage,
@@ -23,6 +23,8 @@ import { EpisodeListComponent } from '../episode-list/episode-list.component';
 import { MediaStoreService } from '../media-store.service';
 import { MediaTarget } from '../media-target';
 import { toMediaSectionSeoMetadata } from '../media-seo';
+import { SeasonRatingsStripComponent } from '../season-ratings-strip/season-ratings-strip.component';
+import { toSeasonRatingBars } from '../season-ratings-strip/season-ratings.mapper';
 
 interface SeasonDetailRouteData {
     readonly seriesId: number;
@@ -39,12 +41,13 @@ interface SeasonDetailRouteData {
         DatePipe,
         RouterLink,
         MatDialogModule,
+        HeroSurfaceComponent,
         ImageComponent,
         PageSectionComponent,
         PhotosPreviewComponent,
         ToggleGroupComponent,
         EpisodeListComponent,
-        SubPageHeaderComponent,
+        SeasonRatingsStripComponent,
         SkeletonComponent,
         TmdbRatingComponent,
         VideosGridComponent,
@@ -92,6 +95,7 @@ export class SeasonDetailPageComponent {
                 seasonOptions,
                 selectedSeason,
                 episodesState,
+                ratingBars: episodesState.state === 'success' ? toSeasonRatingBars(episodesState.data) : [],
                 seasonImagesState,
                 seasonImages: seasonImagesState.state === 'success' ? seasonImagesState.data : [],
                 seasonImagesTotalCount: seasonImagesState.state === 'success' ? seasonImagesState.data.length : 0,

@@ -3,7 +3,7 @@
         @if (externalLinks.links?.facebook_id; as facebookId) {
             <a
                 class="external-links__link"
-                [href]="'https://facebook.com/' + facebookId"
+                href="https://facebook.com/{{ facebookId }}"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Facebook"
@@ -15,7 +15,7 @@
         @if (externalLinks.links?.imdb_id; as imdbId) {
             <a
                 class="external-links__link"
-                [href]="'https://imdb.com/' + externalLinks.imdbType + '/' + imdbId"
+                href="https://imdb.com/{{ externalLinks.imdbType }}/{{ imdbId }}"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="IMDb"
@@ -27,7 +27,7 @@
         @if (externalLinks.links?.instagram_id; as instagramId) {
             <a
                 class="external-links__link"
-                [href]="'https://instagram.com/' + instagramId"
+                href="https://instagram.com/{{ instagramId }}"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Instagram"
@@ -39,7 +39,7 @@
         @if (externalLinks.links?.twitter_id; as twitterId) {
             <a
                 class="external-links__link"
-                [href]="'https://twitter.com/' + twitterId"
+                href="https://twitter.com/{{ twitterId }}"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="X"

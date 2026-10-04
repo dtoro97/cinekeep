@@ -3,7 +3,6 @@
         parentTitle="Profile"
         backLink="/me"
         pageTitle="Favorites"
-        subtitle="Movies and TV series you marked as favorites."
     />
 
     <main class="page-main page">
@@ -52,11 +51,12 @@
 
                             <app-icon-button
                                 class="page__remove"
-                                tone="danger"
-                                [ariaLabel]="'Remove ' + item.title + ' from favorites'"
+                                [selected]="true"
+                                title="Remove from favorites"
+                                ariaLabel="Remove {{ item.title }} from favorites"
                                 (onClick)="onRemoveFromFavourites(item)"
                             >
-                                <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                                <i class="fa-solid fa-heart" aria-hidden="true"></i>
                             </app-icon-button>
                         </article>
                     }

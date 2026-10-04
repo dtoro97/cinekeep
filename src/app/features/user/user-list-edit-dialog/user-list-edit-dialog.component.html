@@ -1,117 +1,75 @@
-<div class="dialog">
-    <header class="dialog__header">
-        <h2 class="text-title">
-            Edit list
-        </h2>
-        <p class="text-body-sm">
-            Change the list name, description, visibility, and default order.
-        </p>
-    </header>
+<form class="dialog" [formGroup]="form" (ngSubmit)="submit()">
+    <h2 id="edit-list-title" class="dialog__title text-display-sm">Edit list</h2>
 
-    <form [formGroup]="form" (ngSubmit)="submit()">
-        <mat-dialog-content class="dialog__content">
-            <label class="dialog__field">
-                <span class="text-body-sm">List name</span>
-                <mat-form-field appearance="outline" subscriptSizing="fixed">
-                    <input
-                        matInput
-                        type="text"
-                        formControlName="name"
-                        autocomplete="off"
-                        [maxlength]="nameMaxLength"
-                        placeholder="Enter a list name"
-                    />
-                    @if (
-                        form.controls.name.touched &&
-                        form.controls.name.hasError("required")
-                    ) {
-                        <mat-error>Give your list a name.</mat-error>
-                    } @else if (form.controls.name.hasError("maxlength")) {
-                        <mat-error>
-                            List names can be at most
-                            {{ nameMaxLength }} characters.
-                        </mat-error>
-                    }
-                    <mat-hint align="end">
-                        {{ form.controls.name.value.length }} /
-                        {{ nameMaxLength }}
-                    </mat-hint>
-                </mat-form-field>
-            </label>
+    <mat-dialog-content class="dialog__content">
+        <app-user-list-form-fields [form]="form" idPrefix="edit-list" [showSortSelector]="showSortSelector" />
 
-            <label class="dialog__field">
-                <span class="dialog__field-label text-body-sm">
-                    <span>Description</span>
-                    <span class="text-caption">Optional</span>
-                </span>
-                <mat-form-field
-                    appearance="outline"
-                    subscriptSizing="dynamic"
-                    class="dialog__description-field"
-                >
-                    <textarea
-                        matInput
-                        rows="4"
-                        formControlName="description"
-                        [maxlength]="descriptionMaxLength"
-                        placeholder="Add a short description"
-                    ></textarea>
-                    @if (form.controls.description.hasError("maxlength")) {
-                        <mat-error>
-                            Descriptions can be at most
-                            {{ descriptionMaxLength }} characters.
-                        </mat-error>
-                    }
-                    <mat-hint align="end">
-                        {{ form.controls.description.value.length }} /
-                        {{ descriptionMaxLength }}
-                    </mat-hint>
-                </mat-form-field>
-            </label>
-
-            @if (showSortSelector) {
-                <label class="dialog__field">
-                    <span class="text-body-sm">Default order</span>
-                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                        <mat-select formControlName="sortBy">
-                            @for (option of sortOptions; track option.value) {
-                                <mat-option [value]="option.value">
-                                    {{ option.label }}
-                                </mat-option>
-                            }
-                        </mat-select>
-                    </mat-form-field>
-                </label>
-            }
-
-            <fieldset
-                class="dialog__properties"
-                aria-label="List visibility"
-            >
-                <div class="dialog__property">
-                    <mat-slide-toggle
-                        formControlName="isPublic"
-                        aria-describedby="edit-list-visibility-description"
-                    >
-                        Visible on profile
-                    </mat-slide-toggle>
-                    <span
-                        id="edit-list-visibility-description"
-                        class="text-caption"
-                    >
-                        People who can view your profile can see this
-                        list.
+        @if (coverVm$ | async; as cover) {
+            <div class="cover-section">
+                <fieldset class="cover-picker">
+                    <legend class="cover-picker__legend text-body-sm">Cover</legend>
+                    <span class="cover-picker__hint text-caption">
+                        Pick a title from this list, or let the latest addition lead.
                     </span>
-                </div>
-            </fieldset>
-        </mat-dialog-content>
 
-        <mat-dialog-actions align="end">
-            <button matButton class="text-button" mat-dialog-close>
-                Cancel
-            </button>
-            <button matButton="filled" type="submit">Save changes</button>
-        </mat-dialog-actions>
-    </form>
-</div>
+                    <div class="cover-picker__grid">
+                        <label class="cover-picker__option">
+                            <input
+                                class="u-visually-hidden"
+                                type="radio"
+                                name="edit-list-cover"
+                                [checked]="cover.automaticSelected"
+                                (change)="onSelectAutomaticCover()"
+                            />
+                            <span class="cover-picker__frame cover-picker__frame--automatic" aria-hidden="true">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                            </span>
+                            <span class="cover-picker__name text-caption">Latest added</span>
+                        </label>
 
+                        @if (cover.options.state === 'loading') {
+                            @for (placeholder of coverSkeletonCount | repeat; track placeholder) {
+                                <span class="cover-picker__option" aria-hidden="true">
+                                    <app-skeleton class="cover-picker__frame" />
+                                    <app-skeleton class="cover-picker__name-skeleton" />
+                                </span>
+                            }
+                        } @else if (cover.options.state === 'success') {
+                            @for (option of cover.options.data; track option.candidate.key) {
+                                <label class="cover-picker__option">
+                                    <input
+                                        class="u-visually-hidden"
+                                        type="radio"
+                                        name="edit-list-cover"
+                                        [checked]="option.selected"
+                                        (change)="onSelectCover(option.candidate)"
+                                    />
+                                    <span class="cover-picker__frame">
+                                        <app-image
+                                            class="cover-picker__image"
+                                            [src]="option.candidate.backdropPath"
+                                            params="w300"
+                                            alt=""
+                                        />
+                                    </span>
+                                    <span class="cover-picker__name text-caption">{{ option.candidate.title }}</span>
+                                </label>
+                            }
+                        }
+                    </div>
+
+                    @if (cover.options.state === 'success' && !cover.options.data.length) {
+                        <p class="cover-picker__empty text-caption">
+                            Titles you add with artwork will show up here as cover options.
+                        </p>
+                    }
+                </fieldset>
+            </div>
+        }
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+        <button matButton class="text-button" type="button" mat-dialog-close>Cancel</button>
+        <button matButton="filled" type="submit">Save changes</button>
+    </mat-dialog-actions>
+</form>

@@ -52,6 +52,7 @@ export class PersonDetailsComponent {
     readonly aliasPreviewCount = 3;
     readonly bioPreviewThreshold = 300;
     bioExpanded = false;
+    bioToggleLabel = 'Read more';
 
     constructor(
         public personDetailStore: PersonDetailStoreService,
@@ -77,6 +78,7 @@ export class PersonDetailsComponent {
                 distinctUntilChanged((previous, current) => previous?.id === current?.id),
                 tap((person) => {
                     this.bioExpanded = false;
+                    this.bioToggleLabel = 'Read more';
 
                     if (!person || typeof person.id !== 'number') {
                         return;
@@ -131,6 +133,7 @@ export class PersonDetailsComponent {
 
     toggleBio(): void {
         this.bioExpanded = !this.bioExpanded;
+        this.bioToggleLabel = this.bioExpanded ? 'Show less' : 'Read more';
     }
 
     onCreditsMediaTypeChange(value: PersonCreditsMediaType): void {

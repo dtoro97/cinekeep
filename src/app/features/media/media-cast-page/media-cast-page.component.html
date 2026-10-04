@@ -5,56 +5,68 @@
             [parentTitle]="vm.media?.title"
             [backLink]="['../']"
             pageTitle="Cast & Crew"
-            [subtitle]="vm.media?.title ?? null"
             [loading]="!vm.media"
         />
 
         <main class="page-main cast-page">
             @if (vm.isEmpty) {
                 <app-empty-state
-                    class="empty"
-                    iconClass="fa-solid fa-sliders"
+                    class="cast-page__empty"
+                    iconClass="fa-solid fa-users"
                     iconStyle="plain"
                     text="No cast or crew information is available for this title."
                 />
             } @else {
-                <section class="directory">
+                <app-browse-toolbar class="cast-page__toolbar">
                     @if (vm.isLoading) {
-                        <app-skeleton class="directory__toolbar-skeleton" />
+                        <app-skeleton start class="cast-page__toggle-skeleton" />
                     } @else {
-                        <header class="directory__head">
-                            <div class="directory__counts text-card-meta">
-                                @if (vm.cast.length) {
-                                    <span>
-                                        {{ vm.cast.length }}
-                                        {{ vm.cast.length === 1 ? 'cast member' : 'cast members' }}
-                                    </span>
-                                }
-                                @if (vm.crew.length) {
-                                    <span>
-                                        {{ vm.crew.length }}
-                                        crew
-                                    </span>
-                                }
-                            </div>
-
-                            <app-toggle-group
-                                [options]="vm.filters"
-                                [selectedValue]="visibleSection"
-                                (selected)="onVisibleSectionsChange($event)"
-                            />
-                        </header>
+                        <app-toggle-group
+                            start
+                            [options]="vm.sectionOptions"
+                            [selectedValue]="vm.section"
+                            (selected)="onSectionChange($event)"
+                        />
                     }
 
+                    <mat-form-field end class="cast-page__filter" appearance="outline" subscriptSizing="dynamic">
+                        <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+                        <input
+                            matInput
+                            type="search"
+                            autocomplete="off"
+                            placeholder="Filter by name or role"
+                            aria-label="Filter cast and crew by name or role"
+                            [value]="vm.query"
+                            (input)="onQueryInput($event)"
+                        />
+                    </mat-form-field>
+                </app-browse-toolbar>
+
+                @if (vm.showDepartments) {
+                    <nav class="cast-page__departments" aria-label="Crew departments">
+                        <app-toggle-group
+                            variant="chips"
+                            [options]="vm.departmentOptions"
+                            [selectedValue]="vm.department"
+                            (selected)="onDepartmentChange($event)"
+                        />
+                    </nav>
+                }
+
+                @if (vm.noMatchesText; as noMatchesText) {
+                    <div class="cast-page__no-matches">
+                        <app-empty-state iconClass="fa-solid fa-magnifying-glass" iconStyle="plain" [text]="noMatchesText" />
+                        <button matButton class="text-button" type="button" (click)="clearQuery()">Clear filter</button>
+                    </div>
+                } @else {
                     <app-cast-crew-grid
                         [cast]="vm.cast"
-                        [groupedCrew]="vm.groupedCrew"
-                        [showCast]="visibleSection === 'cast' && vm.cast.length > 0"
-                        [showCrew]="visibleSection === 'crew' || !vm.cast.length"
+                        [departments]="vm.departments"
+                        [showCast]="vm.showCast"
                         [loading]="vm.isLoading"
-                        variant="directory"
                     />
-                </section>
+                }
             }
         </main>
     }

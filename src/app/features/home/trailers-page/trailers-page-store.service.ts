@@ -48,6 +48,8 @@ export class TrailersPageStoreService extends ComponentStore<TrailersPageState> 
         return {
             selectedFeed: state.selectedFeed,
             trailersState: feed.trailers,
+            loadingMore: feed.trailers.state === 'loading-more',
+            showMoreLabel: feed.trailers.state === 'loading-more' ? 'Loading trailers' : 'Show more trailers',
             featuredSpotlight: featured
                 ? {
                       spotlight: {

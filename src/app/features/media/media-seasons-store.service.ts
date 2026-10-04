@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import { EMPTY, catchError, combineLatest, forkJoin, map, of, switchMap, tap } from 'rxjs';
+import { EMPTY, Observable, catchError, combineLatest, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
 import {
     TvEpisode,
@@ -24,15 +24,19 @@ import {
     remoteSuccess,
     toVideoCardItems,
     toYoutubeVideos,
+    toRating,
+    type MediaListItemBadge,
 } from '../../shared';
 import { MediaStoreService } from './media-store.service';
 import type { EpisodeListEntry } from './episode-list/episode-list.models';
 import { MediaDetails } from './models/media-details.model';
 
-interface SeasonTarget {
+export interface SeasonTarget {
     readonly seriesId: number;
     readonly seasonNumber: number;
 }
+
+const HIGHEST_RATED_BADGES: readonly MediaListItemBadge[] = [{ label: 'Highest rated', variant: 'outline' }];
 
 interface SeasonSummary {
     readonly seasonNumber: number;
@@ -197,6 +201,20 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
         );
     }
 
+    /**
+     * A season's episodes for prev/next links: reuses the season page's cache when present,
+     * otherwise fetches only the season details (no posters or videos).
+     */
+    seasonEpisodes$(target: SeasonTarget): Observable<TvEpisode[]> {
+        const cached = this.get().resourcesByKey[toSeasonKey(target)];
+
+        if (cached?.state === 'success') {
+            return of(cached.data.season?.episodes ?? []);
+        }
+
+        return this.fetchSeasonDetails$(target).pipe(map((season) => season?.episodes ?? []));
+    }
+
     openSeries(seriesId: number): void {
         const state = this.get();
 
@@ -352,6 +370,8 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
         const topRatedEpisode = this.getTopRatedEpisode(episodes);
 
         return episodes.map((episode) => ({
+            isBest: episode === topRatedEpisode,
+            label: `Episode ${episode.episode_number ?? ''}: ${episode.name ?? 'Untitled episode'}`,
             id: [
                 episode.season_number ?? 'season',
                 episode.episode_number ?? 'episode',
@@ -366,11 +386,8 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
                 episodeNumber: episode.episode_number ?? null,
                 airDate: episode.air_date ?? null,
                 runtime: episode.runtime ?? null,
-                voteAverage: episode.vote_average ?? null,
-                badges:
-                    episode === topRatedEpisode
-                        ? [{ label: 'Top rated', variant: 'accent' as const }]
-                        : undefined,
+                voteAverage: toRating(episode.vote_average),
+                badges: episode === topRatedEpisode ? HIGHEST_RATED_BADGES : undefined,
                 routeCommands: this.toEpisodeRouteCommands(episode, seriesId, selectedSeasonNumber),
             },
         }));
@@ -452,7 +469,7 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
             airDate: season.air_date ?? null,
             overview: season.overview ?? '',
             posterPath: season.poster_path ?? null,
-            voteAverage: season.vote_average && season.vote_average > 0 ? season.vote_average : null,
+            voteAverage: toRating(season.vote_average),
         };
     }
 

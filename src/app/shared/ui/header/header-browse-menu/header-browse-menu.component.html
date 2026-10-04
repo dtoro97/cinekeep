@@ -14,8 +14,8 @@
         <div class="browse-menu__inner inner-container">
             <div class="browse-menu__groups">
                 @for (group of browseGroups; track group.title) {
-                    <section class="browse-menu__group" [attr.aria-labelledby]="'browse-menu-' + group.id">
-                        <h2 class="browse-menu__group-title text-title" [id]="'browse-menu-' + group.id">
+                    <section class="browse-menu__group" attr.aria-labelledby="browse-menu-{{ group.id }}">
+                        <h2 class="browse-menu__group-title text-title" id="browse-menu-{{ group.id }}">
                             <mat-icon class="browse-menu__group-icon">{{ group.icon }}</mat-icon>
                             <span>{{ group.title }}</span>
                         </h2>
@@ -54,7 +54,7 @@
                     >
                         @if (link.iconClass) {
                             <i
-                                [attr.class]="'browse-menu__action-icon ' + link.iconClass"
+                                attr.class="browse-menu__action-icon {{ link.iconClass }}"
                                 aria-hidden="true"
                             ></i>
                         }

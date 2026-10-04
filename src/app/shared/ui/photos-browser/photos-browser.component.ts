@@ -1,3 +1,4 @@
+import { pluralize } from '../../utils/pluralize';
 import { ChangeDetectionStrategy, Component, computed, effect, EventEmitter, input, Output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -97,10 +98,9 @@ export class PhotosBrowserComponent {
     );
 
     private readonly visibleCountLabel = computed(() => {
-        const visible = this.visibleImages();
         const total = this.filteredSortedImages();
 
-        return total.length > 0 ? `${visible.length ? 1 : 0} - ${visible.length} of ${total.length}` : undefined;
+        return total.length > 0 ? pluralize(total.length, 'photo') : undefined;
     });
 
     readonly vm = computed(() => ({

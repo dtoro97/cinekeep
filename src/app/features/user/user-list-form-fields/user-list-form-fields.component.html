@@ -1,0 +1,55 @@
+@let name = form.controls.name;
+@let nameInvalid = name.touched && name.invalid;
+
+<div class="list-fields" [formGroup]="form">
+    <div class="list-fields__writing">
+        <label class="u-visually-hidden" for="{{ idPrefix }}-name">List name</label>
+        <input
+            class="list-fields__name"
+            type="text"
+            formControlName="name"
+            autocomplete="off"
+            placeholder="Name your list"
+            id="{{ idPrefix }}-name"
+            aria-describedby="{{ idPrefix }}-name-error"
+            [attr.aria-invalid]="nameInvalid || null"
+            [class.list-fields__name--invalid]="nameInvalid"
+            [maxlength]="nameMaxLength"
+        />
+        <p class="list-fields__error text-caption" id="{{ idPrefix }}-name-error" aria-live="polite">
+            @if (nameInvalid) {
+                Give your list a name.
+            }
+        </p>
+
+        <label class="u-visually-hidden" for="{{ idPrefix }}-description">Description, optional</label>
+        <textarea
+            class="list-fields__description text-body"
+            rows="3"
+            formControlName="description"
+            placeholder="What ties these titles together? (optional)"
+            id="{{ idPrefix }}-description"
+            aria-describedby="{{ idPrefix }}-description-count"
+            [maxlength]="descriptionMaxLength"
+        ></textarea>
+        <span class="list-fields__count text-caption" id="{{ idPrefix }}-description-count">
+            {{ form.controls.description.value.length }} / {{ descriptionMaxLength }}
+        </span>
+    </div>
+
+    @if (showSortSelector) {
+        <div class="list-fields__setting">
+            <div class="list-fields__setting-copy">
+                <span class="text-body-sm" id="{{ idPrefix }}-sort-label">Default order</span>
+                <span class="text-caption">How the list is sorted when it opens.</span>
+            </div>
+            <mat-form-field class="list-fields__sort" appearance="outline" subscriptSizing="dynamic">
+                <mat-select formControlName="sortBy" aria-labelledby="{{ idPrefix }}-sort-label">
+                    @for (option of sortOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
+    }
+</div>

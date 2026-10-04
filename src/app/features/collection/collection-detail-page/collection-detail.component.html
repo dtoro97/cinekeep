@@ -51,20 +51,14 @@
                     <aside class="collection-hero__side" aria-label="Collection facts">
                         <div class="collection-facts">
                             @if (store.averageRating$ | async; as rating) {
-                                @if (rating > 0) {
-                                    <div class="collection-facts__item">
-                                        <span class="text-card-meta">Average rating</span>
-                                        <app-rating class="summary-rating__value" [value]="rating" />
-                                    </div>
-                                }
+                                <app-tmdb-rating prominent label="Average rating" [value]="rating" />
                             }
 
                             @if (store.partsCount$ | async; as count) {
                                 <div class="collection-facts__item">
                                     <span class="text-card-meta">Movies</span>
                                     <span class="text-body-sm">
-                                        {{ count }}
-                                        {{ count === 1 ? 'movie' : 'movies' }}
+                                        {{ count | pluralize: 'movie' : 'movies' }}
                                     </span>
                                 </div>
                             }

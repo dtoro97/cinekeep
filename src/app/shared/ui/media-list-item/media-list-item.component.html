@@ -1,69 +1,81 @@
-<div class="media-list-item">
-    @if (index) {
-        <span class="media-list-item__index text-caption">{{ index }}.</span>
-    }
+@if (loading) {
+    <div class="media-list-item" aria-hidden="true">
+        @if (index) {
+            <app-skeleton class="media-list-item__index media-list-item__index--skeleton" />
+        }
+        <app-skeleton class="media-list-item__poster" />
 
-    <a class="media-list-item__poster-link" [routerLink]="link" [attr.aria-label]="'Open ' + item.title">
-        <app-image class="media-list-item__poster" [src]="item.thumb" [alt]="item.title" type="media" />
-    </a>
+        <div class="media-list-item__content">
+            <app-skeleton class="media-list-item__line media-list-item__line--title" />
+            <app-skeleton class="media-list-item__line media-list-item__line--meta" />
+            <app-skeleton class="media-list-item__line" />
+            <app-skeleton class="media-list-item__line media-list-item__line--end" />
+        </div>
+    </div>
+} @else if (item; as currentItem) {
+    <div class="media-list-item">
+        @if (index) {
+            <span class="media-list-item__index text-numeral">{{ index }}</span>
+        }
 
-    <div class="media-list-item__content">
-        <span class="media-list-item__heading text-subtitle">
-            <a class="media-list-item__title" [routerLink]="link">
-                {{ item.title }}
+        @if (link; as route) {
+            <a class="media-list-item__poster-link" [routerLink]="route" tabindex="-1" aria-hidden="true">
+                <app-image class="media-list-item__poster" [src]="currentItem.thumb" alt="" type="media" params="w185" />
             </a>
-            @if (item.date) {
-                <span class="text-caption">({{ item.date | date: 'yyyy' }})</span>
-            }
-        </span>
+        } @else {
+            <app-image class="media-list-item__poster" [src]="currentItem.thumb" alt="" type="media" params="w185" />
+        }
 
-        @if (item.badges; as badges) {
-            @if (badges.length) {
-                <div class="media-list-item__badges">
+        <div class="media-list-item__content">
+            <div class="media-list-item__heading">
+                @if (link; as route) {
+                    <a class="media-list-item__title text-subtitle" [routerLink]="route">{{ currentItem.title }}</a>
+                } @else {
+                    <span class="media-list-item__title text-subtitle">{{ currentItem.title }}</span>
+                }
+                @if (currentItem.rating) {
+                    <app-rating [value]="currentItem.rating" />
+                }
+                @if (currentItem.badges; as badges) {
                     @for (badge of badges; track badge.label) {
                         <app-badge [label]="badge.label" [variant]="badge.variant ?? 'neutral'" />
                     }
-                </div>
-            }
-        }
-
-        @if (genreNames.length) {
-            <div class="media-list-item__genres">
-                @for (genreName of genreNames; track genreName) {
-                    <app-badge [label]="genreName"></app-badge>
                 }
             </div>
-        }
 
-        <p class="media-list-item__overview text-body-sm">
-            {{ item.overview }}
-        </p>
-
-        @if (item.castLinks; as castLinks) {
-            @if (castLinks.length) {
-                <p class="media-list-item__cast text-meta">
-                    @for (actor of castLinks; track actor.id; let i = $index) {
-                        <a class="media-list-item__actor-link" [routerLink]="['/name', actor.id]">
-                            {{ actor.name }}
-                        </a>
-                        @if (i < castLinks.length - 1) {
-                            <span>, </span>
-                        }
+            @if (currentItem.date || genreNames.length) {
+                <p class="media-list-item__meta text-card-meta">
+                    @if (currentItem.date) {
+                        <span>{{ currentItem.date | date: 'yyyy' }}</span>
+                    }
+                    @for (genreName of genreNames; track genreName) {
+                        <span>{{ genreName }}</span>
                     }
                 </p>
             }
-        }
-    </div>
 
-    @if (item.rating) {
-        <app-rating class="media-list-item__score-badge" [value]="item.rating" />
-    }
+            @if (currentItem.overview) {
+                <p class="media-list-item__overview text-body-sm">{{ currentItem.overview }}</p>
+            }
 
-    <div class="media-list-item__extra">
-        <ng-content select="[media-list-item-action]" />
-    </div>
+            @if (currentItem.castLinks; as castLinks) {
+                @if (castLinks.length) {
+                    <p class="media-list-item__cast text-card-meta">
+                        <!-- prettier-ignore -->
+                        @for (actor of castLinks; track actor.id; let last = $last) {
+                            <a class="media-list-item__actor-link" [routerLink]="['/name', actor.id]">{{ actor.name }}</a>@if (!last) {<span>, </span>}
+                        }
+                    </p>
+                }
+            }
 
-    <div class="media-list-item__note">
-        <ng-content select="[media-list-item-note]" />
+            <div class="media-list-item__note">
+                <ng-content select="[media-list-item-note]" />
+            </div>
+        </div>
+
+        <div class="media-list-item__extra">
+            <ng-content select="[media-list-item-action]" />
+        </div>
     </div>
-</div>
+}

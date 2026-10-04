@@ -9,6 +9,7 @@
                             class="photos-browser__filters"
                             [options]="vm.typePillOptions"
                             [multiple]="true"
+                            variant="chips"
                             [selectedValues]="vm.selectedTypes"
                             (selected)="setSelectedTypes($event)"
                         />

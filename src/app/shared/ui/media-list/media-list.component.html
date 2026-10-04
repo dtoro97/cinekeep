@@ -1,6 +1,6 @@
 <div class="media-list">
     @if (state.state === 'loading') {
-        <ng-container *ngTemplateOutlet="skeleton; context: { $implicit: skeletonCount }" />
+        <ng-container *ngTemplateOutlet="skeleton" />
     } @else if (state.state === 'success' || state.state === 'loading-more') {
         @for (entry of state.data; track entry.item.id; let position = $index) {
             <app-media-list-item
@@ -11,25 +11,13 @@
             />
         }
         @if (state.state === 'loading-more') {
-            <ng-container *ngTemplateOutlet="skeleton; context: { $implicit: skeletonCount }" />
+            <ng-container *ngTemplateOutlet="skeleton" />
         }
     }
 </div>
 
-<ng-template #skeleton let-count>
-    @for (i of count | repeat; track i) {
-        <div class="media-list__skeleton-row">
-            @if (showIndex) {
-                <app-skeleton class="media-list__index-skeleton" />
-            }
-            <app-skeleton class="media-list__poster-skeleton" />
-            <div class="media-list__content-skeleton">
-                <app-skeleton class="media-list__line media-list__line--title" />
-                <app-skeleton class="media-list__line media-list__line--meta" />
-                <app-skeleton class="media-list__line media-list__line--body" />
-                <app-skeleton class="media-list__line media-list__line--body-short" />
-                <app-skeleton class="media-list__line media-list__line--cast" />
-            </div>
-        </div>
+<ng-template #skeleton>
+    @for (i of skeletonCount | repeat; track i) {
+        <app-media-list-item [loading]="true" [index]="showIndex ? i + 1 : null" />
     }
 </ng-template>

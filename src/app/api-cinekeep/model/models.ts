@@ -10,6 +10,7 @@ export * from './listItemRequest';
 export * from './listMembershipResponse';
 export * from './loginRequest';
 export * from './mediaStateResponse';
+export * from './mediaStatesResponse';
 export * from './pageResponseEpisodeRatingResponse';
 export * from './pageResponseFavoriteItemResponse';
 export * from './pageResponseRatingResponse';

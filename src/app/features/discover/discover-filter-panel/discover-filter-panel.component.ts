@@ -41,6 +41,8 @@ export class DiscoverFilterPanelComponent {
     companySearchText = '';
 
     private readonly languageFilter = signal('');
+    /** Starts closed even when a default (like 250+ votes) is active; the toggle's badge shows the count. */
+    readonly moreVisible = signal(false);
 
     readonly filteredLanguageOptions = computed(() => {
         const options = this.filters().languageOptions;
@@ -79,6 +81,10 @@ export class DiscoverFilterPanelComponent {
     onCompanyAdd(value: unknown): void {
         this.companySearchText = '';
         this.change('company', value);
+    }
+
+    toggleMore(): void {
+        this.moreVisible.update((visible) => !visible);
     }
 
     updateLanguageFilter(filter: string | null): void {

@@ -4,9 +4,8 @@ import { RouterLink } from '@angular/router';
 
 import { CardItem } from '../../models';
 import { ImageComponent } from '../image/image.component';
+import { CARD_DATE_PATTERNS, CardDateFormat } from '../card/card.component';
 import { RatingComponent } from '../rating/rating.component';
-
-export type BackdropCardDateFormat = 'year' | 'dayMonth';
 
 @Component({
     selector: 'app-backdrop-card',
@@ -19,5 +18,7 @@ export class BackdropCardComponent {
     @Input({ required: true }) item!: CardItem;
     @Input() showDate = false;
     @Input() showRating = true;
-    @Input() dateFormat: BackdropCardDateFormat = 'year';
+    @Input() dateFormat: CardDateFormat = 'year';
+
+    protected readonly datePatterns = CARD_DATE_PATTERNS;
 }

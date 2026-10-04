@@ -1,4 +1,4 @@
-import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
+import { AsyncPipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,6 +18,7 @@ import {
 import { MediaReviewsStoreService } from '../media-reviews-store.service';
 import { MediaStoreService } from '../media-store.service';
 import { ReviewCardComponent } from '../review-card/review-card.component';
+import { ReviewMediaSummaryComponent } from '../review-media-summary/review-media-summary.component';
 import { toMediaSectionSeoMetadata } from '../media-seo';
 import { MediaDetails } from '../models/media-details.model';
 
@@ -27,9 +28,11 @@ import { MediaDetails } from '../models/media-details.model';
         AsyncPipe,
         NgTemplateOutlet,
         MatButtonModule,
+        DecimalPipe,
         EmptyStateComponent,
         RepeatPipe,
         ReviewCardComponent,
+        ReviewMediaSummaryComponent,
         SkeletonComponent,
         SubPageHeaderComponent,
     ],
@@ -45,13 +48,23 @@ export class MediaReviewsPageComponent {
         reviewsState: this.mediaReviewsStoreService.reviewsState$,
         totalResults: this.mediaReviewsStoreService.totalResults$,
         hasMore: this.mediaReviewsStoreService.hasMore$,
+        ratingSummary: this.mediaReviewsStoreService.ratingSummary$,
     }).pipe(
-        map(({ mediaState, reviewsState, totalResults, hasMore }) => ({
-            media: mediaState.state === 'success' ? mediaState.data : null,
-            reviewsState,
-            totalResults,
-            hasMore,
-        })),
+        map(({ mediaState, reviewsState, totalResults, hasMore, ratingSummary }) => {
+            const loadedCount =
+                reviewsState.state === 'success' || reviewsState.state === 'loading-more'
+                    ? reviewsState.data.length
+                    : 0;
+
+            return {
+                media: mediaState.state === 'success' ? mediaState.data : null,
+                reviewsState,
+                hasMore,
+                reviewCount: totalResults || loadedCount,
+                ratingSummary,
+                ratedCountLabel: ratingSummary.ratedCount === 1 ? 'from 1 rating' : `from ${ratingSummary.ratedCount} ratings`,
+            };
+        }),
     );
 
     constructor(

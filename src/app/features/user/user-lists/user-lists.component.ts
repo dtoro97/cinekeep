@@ -14,10 +14,12 @@ import {
     SnackbarComponent,
     SnackbarService,
     SnackbarType,
+    PluralizePipe,
 } from '../../../shared';
 import { UserListCardComponent } from '../user-list-card/user-list-card.component';
 import { UserListCardSkeletonComponent } from '../user-list-card-skeleton/user-list-card-skeleton.component';
 import { UserListSummaryItem, UserListsStore } from '../user-lists-store.service';
+import { isSameUserListCover } from '../user-list-cover';
 import {
     UserListEditDialogComponent,
     UserListEditDialogData,
@@ -26,6 +28,7 @@ import {
 @Component({
     selector: 'app-user-lists',
     imports: [
+        PluralizePipe,
         AsyncPipe,
         MatPaginatorModule,
         EmptyStateComponent,
@@ -51,9 +54,7 @@ export class UserListsComponent {
     ) {
         this.store
             .load$()
-            .pipe(
-                catchError(() => this.showError('Could not load your lists.')),
-            )
+            .pipe(catchError(() => this.showError('Could not load your lists.')))
             .subscribe();
     }
 
@@ -62,22 +63,22 @@ export class UserListsComponent {
 
         this.store
             .loadPage$(event.pageIndex)
-            .pipe(
-                catchError(() => this.showError('Could not load your lists.')),
-            )
+            .pipe(catchError(() => this.showError('Could not load your lists.')))
             .subscribe();
     }
 
     onEditList(item: UserListSummaryItem): void {
         this.dialog
             .open<UserListEditDialogComponent, UserListEditDialogData>(UserListEditDialogComponent, {
+                ariaLabelledBy: 'edit-list-title',
                 autoFocus: false,
                 data: {
+                    listId: item.id,
+                    cover: item.coverChoice,
                     name: item.name,
                     description: item.description ?? null,
-                    isPublic: item.isPublic,
                 },
-                maxWidth: '34rem',
+                maxWidth: '40rem',
                 panelClass: 'media-list-dialog-panel',
                 width: '100%',
             })
@@ -91,14 +92,12 @@ export class UserListsComponent {
                     if (
                         result.name === item.name &&
                         result.description === (item.description ?? '') &&
-                        result.isPublic === item.isPublic
+                        isSameUserListCover(result.cover, item.coverChoice)
                     ) {
                         return EMPTY;
                     }
 
-                    return this.store
-                        .updateList$(item.id, { ...result, sortBy: result.sortBy ?? item.sortBy })
-                        .pipe(
+                    return this.store.updateList$(item.id, { ...result, sortBy: result.sortBy ?? item.sortBy }).pipe(
                         tap(() => {
                             this.showSuccess('List details updated.');
                         }),
@@ -113,8 +112,7 @@ export class UserListsComponent {
         this.confirmationDialog
             .confirm$({
                 title: `Delete ${item.name}?`,
-                message:
-                    'This permanently removes the list and every item saved to it from your account.',
+                message: 'This permanently removes the list and every item saved to it from your account.',
                 confirmLabel: 'Delete list',
                 tone: 'danger',
             })

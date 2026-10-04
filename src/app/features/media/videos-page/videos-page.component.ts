@@ -15,6 +15,7 @@ import {
     SortDirection,
     VideoCardItem,
     compareValues,
+    PluralizePipe,
 } from '../../../shared';
 import { MediaVideoStoreService } from '../media-video-store.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -27,6 +28,7 @@ type SortField = 'published_at' | 'name';
 @Component({
     selector: 'app-videos-page',
     imports: [
+        PluralizePipe,
         AsyncPipe,
         BrowseToolbarComponent,
         EmptyStateComponent,

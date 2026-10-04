@@ -1,6 +1,7 @@
 import { CollectionPart, MultiListItem } from '../../api';
 import type { MediaType, RemoteData } from '../types';
 import { mapRemoteData } from '../utils/remote-data';
+import { toRating } from '../utils/rating';
 import {
     CardItem,
     KnownForLink,
@@ -119,7 +120,7 @@ export const toMediaListItem = (
         thumb: item.poster_path ?? null,
         title,
         overview: item.overview ?? '',
-        rating: item.vote_average ?? null,
+        rating: toRating(item.vote_average),
         date: toDateValue(date, datePrecision),
         mediaType,
         genreIds: item.genre_ids ?? [],
@@ -150,6 +151,14 @@ export const toMediaListEntryState = (
     genreMap: ReadonlyMap<number, string> = EMPTY_GENRE_MAP,
 ): RemoteData<MediaListEntry[]> => mapRemoteData(state, (items) => toMediaListEntries(items, genreMap));
 
+// TMDb's long genre names crowd compact rows; IMDb-style short forms keep three on one line.
+const SHORT_GENRE_NAMES: Readonly<Record<string, string>> = {
+    'Science Fiction': 'Sci-Fi',
+    'Sci-Fi & Fantasy': 'Sci-Fi',
+    'Action & Adventure': 'Action',
+    'War & Politics': 'War',
+};
+
 /** List rows with up to three genre names and a link to the title. */
 export const toMediaListEntries = (
     items: readonly MediaListItem[],
@@ -160,6 +169,7 @@ export const toMediaListEntries = (
         genreNames: (item.genreIds ?? [])
             .map((genreId) => genreMap.get(genreId))
             .filter((genreName): genreName is string => !!genreName)
+            .map((genreName) => SHORT_GENRE_NAMES[genreName] ?? genreName)
             .slice(0, 3),
         routerLink: ['/title', item.id, item.mediaType],
     }));
@@ -177,6 +187,12 @@ export const toPersonCardItem = (person: PersonLike): PersonCardItem => ({
     name: person.name ?? '',
     imagePath: person.profile_path ?? null,
     subtitle: person.known_for_department ?? '',
+});
+
+/** Department plus the best-known title, e.g. "Acting · Reacher". */
+export const toKnownForPersonCardItem = (person: PersonLike): PersonCardItem => ({
+    ...toPersonCardItem(person),
+    subtitle: [person.known_for_department, toKnownForLinks(person.known_for)[0]?.title].filter(Boolean).join(' · '),
 });
 
 export const toCastPersonCardItem = (person: CastLike): PersonCardItem => ({
@@ -227,7 +243,7 @@ export const multiToSearchResultItem = (
         mediaType: item.media_type || 'movie',
         mediaTypeLabel: toSearchResultMediaTypeLabel(item.media_type || 'movie'),
         overview: item.overview || '',
-        rating: item.vote_average ?? null,
+        rating: toRating(item.vote_average),
         department: item.known_for_department || '',
         known_for: toKnownForText(knownForLinks),
     };
@@ -260,11 +276,23 @@ export const toCardItem = (
         title,
         imagePath: item.poster_path ?? null,
         backdropPath: item.backdrop_path ?? null,
-        rating: item.vote_average ?? null,
+        rating: toRating(item.vote_average),
         date,
         overview: item.overview ?? '',
     };
 };
+
+/** A list row's title as a poster card. */
+export const mediaListItemToCardItem = (item: MediaListItem): CardItem => ({
+    id: item.id,
+    mediaType: item.mediaType,
+    title: item.title,
+    imagePath: item.thumb,
+    backdropPath: null,
+    rating: item.rating,
+    date: item.date,
+    overview: item.overview,
+});
 
 export const toVideoTrailerSeedItem = (
     item: MediaItemLike,

@@ -1,4 +1,35 @@
 :root {
+    // ---- Primitive ramps (OKLCH, one warm hue family) ----
+    // Ink: surfaces, evenly spaced in perceived lightness.
+    --ink-0: oklch(0.15 0.005 75);
+    --ink-1: oklch(0.18 0.007 75);
+    --ink-2: oklch(0.21 0.008 75);
+    --ink-3: oklch(0.245 0.01 75);
+    --ink-4: oklch(0.28 0.012 75);
+    --ink-5: oklch(0.31 0.015 75);
+    --ink-shadow: oklch(0.08 0.008 75);
+
+    // Paper: text on ink.
+    --paper-0: oklch(0.95 0.012 78);
+    --paper-1: oklch(0.79 0.024 76);
+    --paper-2: oklch(0.63 0.026 74);
+    --paper-3: oklch(0.49 0.022 74);
+
+    // Gold: the only accent. `vivid` is reserved for rating stars.
+    --gold-300: oklch(0.85 0.075 85);
+    --gold-400: oklch(0.8 0.082 84);
+    --gold-500: oklch(0.74 0.085 81);
+    --gold-600: oklch(0.64 0.078 80);
+    --gold-vivid: oklch(0.79 0.12 85);
+
+    // Status hues, pulled toward the warm palette instead of stock UI-kit red/green.
+    --red-300: oklch(0.79 0.11 38);
+    --red-500: oklch(0.68 0.15 35);
+    --red-900: oklch(0.26 0.05 35);
+    --green-300: oklch(0.79 0.1 145);
+    --green-500: oklch(0.62 0.11 148);
+    --green-900: oklch(0.27 0.045 148);
+
     --font-body: "IBM Plex Sans", system-ui, sans-serif;
     --font-display: "Newsreader", "IBM Plex Sans", system-ui, sans-serif;
     --font-brand: var(--font-display);
@@ -12,7 +43,7 @@
     --text-2xl: 1.5rem;
     --text-3xl: 1.875rem;
     --text-4xl: 2.5rem;
-    --text-5xl: 3rem;
+    --text-5xl: clamp(2.5rem, 1.55rem + 3.4vw, 4rem);
 
     --weight-regular: 400;
     --weight-medium: 500;
@@ -22,6 +53,11 @@
     --lh-tight: 1.2;
     --lh-normal: 1.45;
     --lh-relaxed: 1.6;
+
+    --tracking-tighter: -0.028em;
+    --tracking-tight: -0.014em;
+    --tracking-wide: 0.06em;
+    --tracking-widest: 0.14em;
 
     --space-1: 0.25rem;
     --space-1-5: 0.375rem;
@@ -36,6 +72,8 @@
     --space-20: 5rem;
 
     --layout-content-max-width: 1440px;
+    /** Row lists use the full content width, aligned with the header; row text caps its own measure. */
+    --layout-list-max-width: var(--layout-content-max-width);
 
     --control-height-sm: 2.125rem;
     --control-height-md: 2.375rem;
@@ -45,29 +83,29 @@
         background-color var(--motion-fast), color var(--motion-fast), opacity var(--motion-fast),
         box-shadow var(--motion-fast);
 
-    --control-surface: #171512;
-    --control-surface-hover: #1e1b17;
+    --control-surface: var(--ink-2);
+    --control-surface-hover: var(--ink-3);
     --control-border: var(--color-border-subtle);
     --control-text: var(--text-secondary);
     --control-text-hover: var(--text-primary);
     --control-focus-border: var(--color-brand);
-    --control-focus-ring-inner: rgba(199, 166, 110, 0.24);
-    --control-focus-ring-outer: rgba(199, 166, 110, 0.14);
+    --control-focus-ring-inner: color-mix(in oklch, var(--gold-500) 24%, transparent);
+    --control-focus-ring-outer: color-mix(in oklch, var(--gold-500) 14%, transparent);
 
-    --control-subtle-surface: rgba(20, 18, 15, 0.86);
-    --control-subtle-surface-hover: rgba(29, 26, 22, 0.98);
-    --control-subtle-surface-active: #211d18;
+    --control-subtle-surface: color-mix(in oklch, var(--ink-1) 86%, transparent);
+    --control-subtle-surface-hover: var(--ink-2);
+    --control-subtle-surface-active: var(--ink-3);
     --control-subtle-border: var(--color-border-subtle);
     --control-subtle-text: var(--text-muted);
     --control-subtle-text-hover: var(--text-primary);
     --control-subtle-text-active: var(--text-primary);
-    --control-subtle-shadow-active: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --control-subtle-shadow-active: inset 0 1px 0 color-mix(in oklch, var(--paper-0) 6%, transparent);
 
     --control-accent-surface: var(--color-brand);
     --control-accent-surface-hover: var(--color-brand-hover);
     --control-accent-border: var(--color-brand);
-    --control-accent-text: var(--color-surface);
-    --control-accent-ripple: rgba(255, 255, 255, 0.15);
+    --control-accent-text: var(--surface-page);
+    --control-accent-ripple: color-mix(in oklch, var(--paper-0) 15%, transparent);
 
     --slide-toggle-track-width: 2.5rem;
     --slide-toggle-track-height: 1.375rem;
@@ -104,63 +142,85 @@
     --radius-pill: 999px;
     --radius-full: 50%;
 
-    --shadow-dialog: 0 18px 48px rgba(0, 0, 0, 0.38);
+    --shadow-sm:
+        0 1px 2px color-mix(in oklch, var(--ink-shadow) 30%, transparent),
+        0 2px 6px color-mix(in oklch, var(--ink-shadow) 20%, transparent);
+    --shadow-md:
+        0 2px 4px color-mix(in oklch, var(--ink-shadow) 32%, transparent),
+        0 10px 24px color-mix(in oklch, var(--ink-shadow) 30%, transparent);
+    --shadow-lg:
+        0 4px 10px color-mix(in oklch, var(--ink-shadow) 36%, transparent),
+        0 18px 40px color-mix(in oklch, var(--ink-shadow) 34%, transparent);
+    --shadow-xl:
+        0 8px 20px color-mix(in oklch, var(--ink-shadow) 40%, transparent),
+        0 28px 64px color-mix(in oklch, var(--ink-shadow) 40%, transparent);
+    --shadow-dialog: var(--shadow-xl);
 
-    --motion-fast: 0.08s ease-out;
-    --motion-base: 0.1s ease-out;
+    // Floating layers (menus, selects, dialogs, snackbars, tooltips) share one recipe so
+    // they read as sitting above the page, not as cards glued onto it.
+    --overlay-surface: var(--surface-overlay);
+    --overlay-border: var(--color-border-subtle);
+    --overlay-radius: var(--radius-lg);
+    --overlay-shadow: var(--shadow-lg);
+    --overlay-item-hover: color-mix(in oklch, var(--paper-0) 7%, transparent);
+    --backdrop-blur: 6px;
 
-    --color-brand-300: #e4cc95;
-    --color-brand-400: #d6ba80;
-    --color-brand-500: #c7a66e;
-    --color-brand-600: #a48655;
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
-    --color-brand: var(--color-brand-500);
-    --color-brand-hover: var(--color-brand-400);
-    --color-brand-active: var(--color-brand-600);
-    --color-brand-light: var(--color-brand-300);
+    --motion-fast: 0.14s var(--ease-out-quart);
+    --motion-base: 0.24s var(--ease-out-quart);
+    --motion-slow: 0.42s var(--ease-out-expo);
 
-    --color-surface: #0b0b0a;
-    --color-surface-dim: #10100e;
-    --color-surface-raised: #181713;
-    --color-surface-overlay: rgba(12, 12, 10, 0.9);
+    // ---- Semantic roles (components use these, never the ramps) ----
+    --color-brand: var(--gold-500);
+    --color-brand-hover: var(--gold-400);
+    --color-brand-active: var(--gold-600);
+    --color-brand-light: var(--gold-300);
+    --color-rating: var(--gold-vivid);
 
-    --color-border: #26231d;
-    --color-border-subtle: rgba(245, 235, 220, 0.08);
+    --surface-page: var(--ink-0);
+    --surface-panel-soft: var(--ink-1);
+    --surface-panel: var(--ink-2);
+    --surface-raised: var(--ink-3);
+    --surface-overlay: var(--ink-4);
+    --surface-scrim: color-mix(in oklch, var(--ink-0) 90%, transparent);
+    --surface-backdrop: color-mix(in oklch, var(--ink-shadow) 55%, transparent);
+    --surface-brand-soft: color-mix(in oklch, var(--gold-500) 10%, transparent);
+    --surface-success-soft: var(--green-900);
+    --surface-danger-soft: var(--red-900);
 
-    --text-primary: #f4eee6;
-    --text-secondary: #c4b9aa;
-    --text-muted: #948879;
-    --text-disabled: #675e52;
+    --color-border: var(--ink-5);
+    --color-border-subtle: color-mix(in oklch, var(--paper-0) 10%, transparent);
+    /** Hairline between rows of a list; strong enough to read on near-black without boxes. */
+    --row-divider: var(--color-border);
+    --border-overlay-soft: color-mix(in oklch, var(--paper-0) 12%, transparent);
+    --border-brand-soft: color-mix(in oklch, var(--gold-500) 28%, transparent);
+    --border-success-soft: color-mix(in oklch, var(--green-500) 30%, transparent);
+    --border-danger-soft: color-mix(in oklch, var(--red-300) 34%, transparent);
+    --ripple-success-soft: color-mix(in oklch, var(--green-300) 22%, transparent);
+    --ripple-danger-soft: color-mix(in oklch, var(--red-300) 18%, transparent);
 
+    --text-primary: var(--paper-0);
+    --text-secondary: var(--paper-1);
+    --text-muted: var(--paper-2);
+    --text-disabled: var(--paper-3);
     --text-accent: var(--color-brand-light);
-    --color-danger-text: #ef5350;
-    --color-danger-light: #ff9f87;
 
-    --color-success: #2f8f52;
-    --color-success-light: #78d79f;
+    --color-danger-text: var(--red-500);
+    --color-danger-light: var(--red-300);
+    --color-success-light: var(--green-300);
 
-    --color-rating: #d9b45a;
-    --surface-page: var(--color-surface);
-    --surface-panel: #141310;
-    --surface-panel-soft: #11100e;
-    --surface-brand-soft: rgba(199, 166, 110, 0.1);
-    --surface-success-soft: #183626;
-    --surface-danger-soft: #321b14;
-    --border-brand-soft: rgba(199, 166, 110, 0.28);
-    --border-overlay-soft: rgba(255, 255, 255, 0.1);
-    --border-success-soft: rgba(47, 143, 82, 0.3);
-    --border-danger-soft: rgba(255, 159, 135, 0.34);
-    --ripple-success-soft: rgba(120, 215, 159, 0.22);
-    --ripple-danger-soft: rgba(255, 159, 135, 0.18);
-    --interactive-media-hover-opacity: 0.88;
+    --interactive-media-hover-filter: brightness(1.1) saturate(1.06);
+    --hover-lift: -2px;
+    --media-hover-scale: 1.04;
     --control-disabled-opacity: 0.6;
-    --text-soft: rgba(244, 238, 230, 0.68);
 
-    --skeleton-base: rgba(244, 238, 230, 0.055);
-    --skeleton-highlight: rgba(244, 238, 230, 0.115);
+    --skeleton-base: color-mix(in oklch, var(--paper-0) 5.5%, transparent);
+    --skeleton-highlight: color-mix(in oklch, var(--paper-0) 11.5%, transparent);
     --skeleton-duration: 1.8s;
 
-    --media-placeholder-surface: var(--color-surface-raised);
+    --media-placeholder-surface: var(--surface-raised);
     --media-placeholder-color: var(--text-muted);
     --media-placeholder-opacity: 0.45;
     --media-placeholder-icon-size: 45%;
@@ -173,14 +233,26 @@
     --round-media-sm: 2.25rem;
     --round-media-md: 2.5rem;
 
+    // List rows (media, people, episodes, charts); `-compact` values apply on mobile.
+    --row-padding: var(--space-4) var(--space-2);
+    --row-padding-compact: var(--space-3) var(--space-1);
+    --row-gap: var(--space-4);
+    --row-gap-compact: var(--space-3);
+    --row-rank-width: 2.5rem;
+    --row-rank-width-compact: 1.75rem;
+    --row-thumb-poster: 4.5rem;
+    --row-thumb-poster-compact: 4rem;
+    --row-thumb-still: 13rem;
+    --row-thumb-still-compact: 7.5rem;
+
     --gradient-overlay-bottom: linear-gradient(
         to top,
-        rgba(17, 17, 17, 0.9) 0%,
-        var(--color-surface-overlay) 45%,
+        var(--surface-scrim) 0%,
+        color-mix(in oklch, var(--ink-0) 80%, transparent) 45%,
         transparent 85%
     );
 
-    --shadow-text-hero: 0 1px 3px rgba(17, 17, 17, 0.4);
+    --shadow-text-hero: 0 1px 3px color-mix(in oklch, var(--ink-shadow) 55%, transparent);
 
     --z-overlay: 1000;
     --z-dialog: 1100;

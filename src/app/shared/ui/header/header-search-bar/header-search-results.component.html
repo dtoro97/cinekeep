@@ -1,76 +1,165 @@
-@if (state.state === "loading") {
-    <ul class="header-search-results u-list-none" aria-hidden="true">
-        @for (_ of skeletonRows; track $index) {
-            <li class="header-search-results__row">
-                <div class="header-search-results__item">
-                    <app-skeleton class="header-search-results__thumb header-search-results__thumb--skeleton" />
-                    <div class="header-search-results__content u-flex-1 u-flex-column u-gap-1">
-                        <div class="header-search-results__meta">
-                            <app-skeleton class="header-search-results__skeleton-chip" />
-                            <app-skeleton
-                                class="header-search-results__skeleton-line header-search-results__skeleton-line--xs"
-                            />
-                        </div>
-                        <app-skeleton
-                            class="header-search-results__title header-search-results__skeleton-line header-search-results__skeleton-line--title"
-                        />
-                        <app-skeleton
-                            class="header-search-results__overview header-search-results__skeleton-line header-search-results__skeleton-line--md"
-                        />
-                        <app-skeleton
-                            class="header-search-results__overview header-search-results__skeleton-line header-search-results__skeleton-line--sm"
-                        />
+@switch (panel.kind) {
+    @case ('loading') {
+        <div class="search-panel" aria-hidden="true">
+            <div class="search-panel__layout">
+                <div class="search-top-hit search-top-hit--skeleton">
+                    <app-skeleton class="search-top-hit__thumb" />
+                    <div class="search-top-hit__copy">
+                        <app-skeleton class="search-panel__line search-panel__line--display" />
+                        <app-skeleton class="search-panel__line search-panel__line--meta" />
+                        <app-skeleton class="search-panel__line search-panel__line--wide" />
+                        <app-skeleton class="search-panel__line search-panel__line--medium" />
                     </div>
                 </div>
-            </li>
-        }
-    </ul>
-} @else if (state.state === "success") {
-    <ul class="header-search-results u-list-none">
-        @for (item of state.data; track item.id) {
-            <li class="header-search-results__row">
+
+                <div class="search-panel__list">
+                    @for (_ of skeletonRows; track $index) {
+                        <div class="search-option search-option--skeleton">
+                            <app-skeleton class="search-option__thumb" />
+                            <span class="search-option__copy">
+                                <app-skeleton class="search-panel__line search-panel__line--title" />
+                                <app-skeleton class="search-panel__line search-panel__line--meta" />
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    @case ('empty') {
+        <div class="search-state">
+            <p class="search-state__title text-card-title">
+                No matches for <q>{{ panel.query }}</q>
+            </p>
+            <p class="text-card-meta">Try a shorter title or check the spelling.</p>
+            @if (panel.canWiden) {
                 <button
+                    class="search-state__action button--subtle"
+                    matButton="outlined"
                     type="button"
-                    class="header-search-results__item header-search-results__action"
-                    (click)="selectResult(item)"
+                    (click)="widenSearch()"
+                >
+                    Search all types
+                </button>
+            }
+        </div>
+    }
+
+    @case ('error') {
+        <div class="search-state">
+            <p class="search-state__title text-card-title">Search isn't responding.</p>
+            <p class="text-card-meta">Check your connection, then try again.</p>
+            <button
+                class="search-state__action button--subtle"
+                matButton="outlined"
+                type="button"
+                (click)="retrySearch()"
+            >
+                Try again
+            </button>
+        </div>
+    }
+}
+
+@if (panel.kind === 'recent' || panel.kind === 'results') {
+    <div class="search-panel" role="listbox" [id]="listboxId" [attr.aria-label]="panel.label">
+
+        <div class="search-panel__layout" [class.search-panel__layout--single]="panel.kind === 'recent'">
+            @if (panel.kind === 'results') {
+                @let topHit = panel.topHit;
+                <a
+                    class="search-top-hit"
+                    role="option"
+                    tabindex="-1"
+                    [id]="topHit.optionId"
+                    [attr.aria-selected]="topHit.optionId === activeOptionId"
+                    [class.search-top-hit--active]="topHit.optionId === activeOptionId"
+                    [class.search-top-hit--person]="topHit.kind === 'person'"
+                    [routerLink]="topHit.routeCommands"
+                    (click)="selectOption()"
                 >
                     <app-image
-                        class="header-search-results__thumb"
-                        [src]="item.thumb"
-                        [type]="item.mediaType === 'person' ? 'person' : 'media'"
-                        [alt]="item.title"
+                        class="search-top-hit__thumb"
+                        [src]="topHit.thumb"
+                        [type]="topHit.imageType"
+                        params="w185"
                     />
-                    <div class="header-search-results__content u-flex-1 u-flex-column u-gap-1">
-                        <div class="header-search-results__meta">
-                            <app-badge [label]="item.mediaTypeLabel" />
-                            @if (item.year) {
-                                <span class="text-card-meta">{{ item.year }}</span>
+                    <span class="search-top-hit__copy">
+                        <span class="search-top-hit__title text-display-sm">{{ topHit.title }}</span>
+                        <span class="search-top-hit__meta text-card-meta">
+                            <span>{{ topHit.meta }}</span>
+                            @if (topHit.rating) {
+                                <app-rating [value]="topHit.rating" />
                             }
-                            @if (item.rating && item.rating > 0) {
-                                <app-rating class="header-search-results__rating" [value]="item.rating" />
-                            }
-                            @if (item.department) {
-                                <span class="text-card-meta">
-                                    {{ item.department }}
-                                </span>
-                            }
-                        </div>
-                        <p class="header-search-results__title text-card-title">
-                            {{ item.title }}
-                        </p>
-                        @if (item.overview) {
-                            <p class="header-search-results__overview text-card-meta">
-                                {{ item.overview }}
-                            </p>
+                        </span>
+                        @if (topHit.detail) {
+                            <span class="search-top-hit__detail text-body-sm">{{ topHit.detail }}</span>
                         }
-                        @if (item.mediaType === "person" && item.known_for) {
-                            <p class="header-search-results__known-for text-card-meta">
-                                {{ item.known_for }}
-                            </p>
+                    </span>
+                </a>
+            }
+
+            <div class="search-panel__list">
+                @for (group of panel.groups; track group.label) {
+                    <div class="search-panel__group" role="group" [attr.aria-label]="group.label">
+                        @if (group.showLabel) {
+                            <span class="search-panel__label text-overline" aria-hidden="true">{{ group.label }}</span>
+                        }
+
+                        @for (option of group.options; track option.optionId) {
+                            <a
+                                class="search-option"
+                                role="option"
+                                tabindex="-1"
+                                [id]="option.optionId"
+                                [attr.aria-selected]="option.optionId === activeOptionId"
+                                [class.search-option--active]="option.optionId === activeOptionId"
+                                [class.search-option--person]="option.kind === 'person'"
+                                [routerLink]="option.routeCommands"
+                                (click)="selectOption()"
+                            >
+                                <app-image
+                                    class="search-option__thumb"
+                                    [src]="option.thumb"
+                                    [type]="option.imageType"
+                                    params="w92"
+                                />
+                                <span class="search-option__copy">
+                                    <!-- prettier-ignore -->
+                                    <span class="search-option__title text-body-sm">@for (segment of option.titleSegments; track $index) {@if (segment.match) {<mark class="search-option__match">{{ segment.text }}</mark>} @else {<span>{{ segment.text }}</span>}}</span>
+                                    <span class="search-option__meta text-card-meta">
+                                        <span class="search-option__meta-text">{{ option.compactMeta }}</span>
+                                        @if (option.rating) {
+                                            <app-rating class="search-option__rating" [value]="option.rating" />
+                                        }
+                                    </span>
+                                </span>
+                            </a>
                         }
                     </div>
-                </button>
-            </li>
+                }
+            </div>
+        </div>
+
+        @if (panel.kind === 'results') {
+            @let seeAll = panel.seeAll;
+            <a
+                class="search-see-all text-body-sm"
+                role="option"
+                tabindex="-1"
+                routerLink="/search"
+                [id]="seeAll.optionId"
+                [queryParams]="seeAll.queryParams"
+                [attr.aria-selected]="seeAll.optionId === activeOptionId"
+                [class.search-see-all--active]="seeAll.optionId === activeOptionId"
+                (click)="selectOption()"
+            >
+                <span class="search-see-all__label"
+                    >See all results for <q>{{ seeAll.query }}</q></span
+                >
+                <mat-icon class="search-see-all__icon" aria-hidden="true">arrow_forward</mat-icon>
+            </a>
         }
-    </ul>
+    </div>
 }

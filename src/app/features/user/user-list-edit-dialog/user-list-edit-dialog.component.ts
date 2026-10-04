@@ -1,109 +1,81 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
-import {
-    AbstractControl,
-    FormControl,
-    NonNullableFormBuilder,
-    FormGroup,
-    ReactiveFormsModule,
-    ValidationErrors,
-    ValidatorFn,
-    Validators,
-} from '@angular/forms';
+import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 
+import { AsyncPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+
+import { ImageComponent, RepeatPipe, SkeletonComponent, UserListSortBy } from '../../../shared';
+import { UserListCoverCandidate, UserListCoverChoice } from '../user-list-cover';
 import {
-    MAT_DIALOG_DATA,
-    MatDialogModule,
-    MatDialogRef,
-} from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-
-
-import { UserListSortBy } from '../../../shared';
-import { DEFAULT_USER_LIST_SORT_BY, USER_LIST_SORT_OPTIONS } from '../user-list-sort-options';
+    UserListForm,
+    UserListFormFieldsComponent,
+    createUserListForm,
+} from '../user-list-form-fields/user-list-form-fields.component';
+import { UserListEditDialogStore } from './user-list-edit-dialog.store.service';
 
 export interface UserListEditDialogData {
+    readonly listId: number;
+    /** The cover the user picked earlier; `null` when the list uses the automatic cover. */
+    readonly cover: UserListCoverChoice | null;
     readonly name: string;
     readonly description: string | null;
-    readonly isPublic: boolean;
     readonly sortBy?: UserListSortBy;
 }
 
 export interface UserListEditDialogResult {
     readonly name: string;
     readonly description: string;
-    readonly isPublic: boolean;
     readonly sortBy?: UserListSortBy;
+    /** Always sent: the backend resets to the automatic cover when it is missing. */
+    readonly cover: UserListCoverChoice | null;
 }
-
-const trimmedRequiredValidator: ValidatorFn = (
-    control: AbstractControl,
-): ValidationErrors | null => {
-    const value = typeof control.value === 'string' ? control.value.trim() : '';
-
-    return value ? null : { required: true };
-};
-
-const LIST_NAME_MAX_LENGTH = 100;
-const LIST_DESCRIPTION_MAX_LENGTH = 280;
 
 @Component({
     selector: 'app-user-list-edit-dialog',
     imports: [
+        AsyncPipe,
+        ImageComponent,
         MatButtonModule,
         MatDialogModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatSelectModule,
-        MatSlideToggleModule,
         ReactiveFormsModule,
+        RepeatPipe,
+        SkeletonComponent,
+        UserListFormFieldsComponent,
     ],
+    providers: [UserListEditDialogStore],
     templateUrl: './user-list-edit-dialog.component.html',
     styleUrl: './user-list-edit-dialog.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserListEditDialogComponent {
-    readonly nameMaxLength: number;
-    readonly descriptionMaxLength: number;
-    readonly sortOptions = USER_LIST_SORT_OPTIONS;
     readonly showSortSelector: boolean;
-    readonly form: FormGroup<{
-        name: FormControl<string>;
-        description: FormControl<string>;
-        isPublic: FormControl<boolean>;
-        sortBy: FormControl<UserListSortBy>;
-    }>;
+    readonly form: UserListForm;
+    readonly coverVm$ = this.coverStore.vm$;
+    readonly coverSkeletonCount = 6;
 
     constructor(
         @Inject(MAT_DIALOG_DATA)
         public readonly data: UserListEditDialogData,
-        private readonly dialogRef: MatDialogRef<
-            UserListEditDialogComponent,
-            UserListEditDialogResult
-        >,
+        private readonly dialogRef: MatDialogRef<UserListEditDialogComponent, UserListEditDialogResult>,
         private readonly formBuilder: NonNullableFormBuilder,
+        private readonly coverStore: UserListEditDialogStore,
     ) {
-        this.nameMaxLength = LIST_NAME_MAX_LENGTH;
-        this.descriptionMaxLength = LIST_DESCRIPTION_MAX_LENGTH;
+        this.coverStore.initialize(this.data.listId, this.data.cover);
         this.showSortSelector = this.data.sortBy !== undefined;
-        this.form = this.formBuilder.group({
-            name: [
-                this.data.name,
-                [
-                    trimmedRequiredValidator,
-                    Validators.maxLength(this.nameMaxLength),
-                ],
-            ],
-            description: [
-                this.data.description ?? '',
-                [Validators.maxLength(this.descriptionMaxLength)],
-            ],
-            isPublic: [this.data.isPublic],
-            sortBy: [this.data.sortBy ?? DEFAULT_USER_LIST_SORT_BY],
+        this.form = createUserListForm(this.formBuilder, {
+            name: this.data.name,
+            description: this.data.description ?? '',
+            sortBy: this.data.sortBy,
         });
+    }
+
+    onSelectAutomaticCover(): void {
+        this.coverStore.selectCover(null);
+    }
+
+    onSelectCover(candidate: UserListCoverCandidate): void {
+        this.coverStore.selectCover({ tmdbId: candidate.tmdbId, mediaType: candidate.mediaType });
     }
 
     submit(): void {
@@ -112,13 +84,13 @@ export class UserListEditDialogComponent {
             return;
         }
 
-        const { name, description, isPublic, sortBy } = this.form.getRawValue();
+        const { name, description, sortBy } = this.form.getRawValue();
 
         this.dialogRef.close({
             name: name.trim(),
             description: description.trim(),
-            isPublic,
             sortBy: this.showSortSelector ? sortBy : undefined,
+            cover: this.coverStore.selectedCover(),
         });
     }
 }

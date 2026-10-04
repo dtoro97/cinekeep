@@ -1,7 +1,7 @@
 @if (vm$ | async; as vm) {
     <div class="dialog">
         <header>
-            <h2 class="text-title">Add titles</h2>
+            <h2 class="text-display-sm">Add titles</h2>
         </header>
 
         <div class="dialog__search">
@@ -51,9 +51,7 @@
                                     {{ item.title }}
                                 </h3>
                                 <div class="dialog__meta text-card-meta">
-                                    <app-badge
-                                        [label]="item.mediaType === 'movie' ? 'Movie' : 'TV series'"
-                                    />
+                                    <app-badge [label]="item.mediaTypeLabel" />
                                     @if (item.year) {
                                         <span>{{ item.year }}</span>
                                     }

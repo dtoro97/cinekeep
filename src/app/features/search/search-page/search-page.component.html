@@ -13,7 +13,7 @@
             }
         </div>
 
-        <div class="results inner-container u-flex-column u-gap-8">
+        <div class="results inner-container page-list-column">
             @if (!vm.hasQuery) {
                 <div class="empty-panel">
                     <app-empty-state
@@ -33,14 +33,12 @@
                     (vm.movieListState.state === 'success' && vm.movieListState.data.length)
                 )
             ) {
-                <section>
-                    <h2 class="section-title text-title">Movies</h2>
+                <app-page-section subtitle="Movies">
                     <div>
                         <app-media-list
                             [state]="vm.movieListState"
                             [skeletonCount]="vm.listSkeletonCount"
                             density="compact"
-                            [showIndex]="true"
                         />
                     </div>
                     @if (vm.movieHasMore) {
@@ -48,7 +46,7 @@
                             <button mat-stroked-button (click)="loadMoreMovies()">Show more movies</button>
                         </div>
                     }
-                </section>
+                </app-page-section>
             }
 
             @if (
@@ -59,14 +57,12 @@
                     (vm.tvListState.state === 'success' && vm.tvListState.data.length)
                 )
             ) {
-                <section>
-                    <h2 class="section-title text-title">TV series</h2>
+                <app-page-section subtitle="TV series">
                     <div>
                         <app-media-list
                             [state]="vm.tvListState"
                             [skeletonCount]="vm.listSkeletonCount"
                             density="compact"
-                            [showIndex]="true"
                         />
                     </div>
                     @if (vm.tvHasMore) {
@@ -74,7 +70,7 @@
                             <button mat-stroked-button (click)="loadMoreTv()">Show more TV series</button>
                         </div>
                     }
-                </section>
+                </app-page-section>
             }
 
             @if (
@@ -85,13 +81,12 @@
                     (vm.personState.state === 'success' && vm.personState.data.length)
                 )
             ) {
-                <section>
-                    <h2 class="section-title text-title">People</h2>
+                <app-page-section subtitle="People">
                     <div>
                         <app-person-list
                             [state]="vm.personState"
                             [skeletonCount]="vm.listSkeletonCount"
-                            [indexStart]="1"
+                            [showIndex]="false"
                         />
                     </div>
                     @if (vm.personHasMore) {
@@ -99,7 +94,7 @@
                             <button mat-stroked-button (click)="loadMorePeople()">Show more people</button>
                         </div>
                     }
-                </section>
+                </app-page-section>
             }
 
             @if (vm.noSearchResults) {

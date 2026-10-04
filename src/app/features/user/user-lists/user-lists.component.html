@@ -3,7 +3,6 @@
         parentTitle="Profile"
         backLink="/me"
         pageTitle="Lists"
-        subtitle="Collections you have built."
     />
 
     <div class="page-main">
@@ -21,8 +20,7 @@
             } @else if (vm.state.state === "success") {
                 @if (vm.state.data.length) {
                     <p class="lists__summary text-caption">
-                        {{ vm.start }} - {{ vm.end }} of
-                        {{ vm.total }}
+                        {{ vm.total | pluralize: "list" }}
                     </p>
 
                     <div class="lists__grid">

@@ -38,9 +38,7 @@ import type { PersonCreditsMediaType, PersonCreditsSortBy, PersonDetailVm } from
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PersonCreditsComponent {
-    @Input({ required: true }) state: PersonDetailVm['creditsDisplay'] = {
-        state: 'loading',
-    };
+    @Input({ required: true }) state!: PersonDetailVm['creditsDisplay'];
     @Input() mediaType: PersonCreditsMediaType = 'all';
     @Input() sortBy: PersonCreditsSortBy = 'year';
     @Input() sortDirection: SortDirection = 'desc';

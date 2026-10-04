@@ -55,7 +55,7 @@
     width: var(--collection-detail-poster-width);
     max-height: 300px;
     overflow: hidden;
-    border: 1px solid var(--mat-sys-outline-variant);
+    border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-lg);
     background: var(--surface-panel);
 
@@ -86,12 +86,6 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-3);
-}
-
-.summary-rating__value {
-    --rating-font-size: var(--text-md);
-    --rating-font-weight: var(--weight-semibold);
-    --rating-color: var(--text-primary);
 }
 
 .overview,

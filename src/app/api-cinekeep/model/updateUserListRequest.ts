@@ -13,7 +13,6 @@ import { ListCoverRequest } from './listCoverRequest';
 export interface UpdateUserListRequest { 
     name: string;
     description?: string;
-    isPublic: boolean;
     sortBy: UpdateUserListRequest.SortByEnum;
     cover?: ListCoverRequest;
 }

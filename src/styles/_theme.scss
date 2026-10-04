@@ -2,15 +2,16 @@
     color-scheme: dark;
 
     --mat-sys-primary: var(--color-brand);
-    --mat-sys-on-primary: var(--color-surface);
+    --mat-sys-on-primary: var(--surface-page);
 
+    // Material's surface ramp, mapped in order onto the app's ink levels.
     --mat-sys-surface: var(--surface-page);
-    --mat-sys-surface-dim: var(--color-surface-dim);
+    --mat-sys-surface-dim: var(--surface-page);
     --mat-sys-surface-container-lowest: var(--surface-page);
-    --mat-sys-surface-container-low: var(--color-surface-raised);
+    --mat-sys-surface-container-low: var(--surface-panel-soft);
     --mat-sys-surface-container: var(--surface-panel);
-    --mat-sys-surface-container-high: #201e19;
-    --mat-sys-surface-container-highest: #2a261f;
+    --mat-sys-surface-container-high: var(--surface-raised);
+    --mat-sys-surface-container-highest: var(--surface-overlay);
 
     --mat-sys-on-surface: var(--text-primary);
     --mat-sys-on-surface-variant: var(--text-muted);

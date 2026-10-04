@@ -33,6 +33,7 @@ export interface UserListAddItemsSearchResult {
     readonly key: string;
     readonly id: number;
     readonly mediaType: MediaType;
+    readonly mediaTypeLabel: string;
     readonly title: string;
     readonly year: string;
     readonly posterPath: string | null;
@@ -85,11 +86,9 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
             distinctUntilChanged(),
             switchMap((query) => {
                 if (!query) {
-                    this.patchState({ resultsState: { state: 'loading' } });
+                    this.patchState({ resultsState: { state: 'notAsked' } });
                     return of(null);
                 }
-
-                this.patchState({ resultsState: { state: 'loading' } });
 
                 return this.search$(query).pipe(
                     catchError(() => {
@@ -129,7 +128,8 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
         this.patchState({
             query: nextQuery,
             errorMessage: null,
-            resultsState: nextQuery ? this.get().resultsState : { state: 'loading' },
+            // Skeletons only once there is something to search for; an empty box shows the prompt.
+            resultsState: nextQuery ? { state: 'loading' } : { state: 'notAsked' },
         });
     }
 
@@ -206,6 +206,7 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
             key,
             id: item.id,
             mediaType,
+            mediaTypeLabel: mediaType === 'movie' ? 'Movie' : 'TV series',
             title,
             year: date.slice(0, 4),
             posterPath: item.poster_path ?? null,

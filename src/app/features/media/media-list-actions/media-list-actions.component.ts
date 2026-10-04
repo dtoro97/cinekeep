@@ -2,6 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -27,15 +28,17 @@ import {
 
 @Component({
     selector: 'app-media-list-actions',
-    imports: [AsyncPipe, MatTooltipModule, IconButtonComponent],
+    imports: [AsyncPipe, MatButtonModule, MatTooltipModule, IconButtonComponent],
     templateUrl: './media-list-actions.component.html',
     styleUrl: './media-list-actions.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MediaListActionsComponent {
     @Input({ required: true }) mediaId!: number;
-    @Input({ required: true }) title = '';
+    @Input({ required: true }) title!: string;
     @Input({ required: true }) mediaType!: MediaType;
+    /** Carried to the new-list page so its preview can use the title as the list cover. */
+    @Input() backdropPath: string | null = null;
 
     readonly vm$ = this.mediaDetailActionsStore.listActionsVm$;
     readonly listDialogPending = signal(false);
@@ -132,6 +135,7 @@ export class MediaListActionsComponent {
                     mediaId: this.mediaId,
                     mediaType: this.mediaType,
                     mediaTitle: result.mediaTitle,
+                    mediaBackdrop: this.backdropPath,
                     returnUrl: this.router.url,
                 },
             });
@@ -161,7 +165,7 @@ export class MediaListActionsComponent {
             link: listId
                 ? {
                       label: 'Open list',
-                      routerLink: ['/lists', listId],
+                      routerLink: ['/me/lists', listId],
                   }
                 : undefined,
         });

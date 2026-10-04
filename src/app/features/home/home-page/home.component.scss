@@ -43,9 +43,8 @@
 }
 
 .tonight-meta {
-    flex-wrap: wrap;
-    gap: var(--space-1-5);
     color: var(--text-muted);
+    @include meta-list(var(--space-1-5));
 }
 
 .tonight-empty {
@@ -81,14 +80,11 @@
     background: var(--surface-panel-soft);
     color: inherit;
     text-decoration: none;
-    transition:
-        background-color var(--motion-base),
-        border-color var(--motion-base);
-    @include media-card-hover(
+    @include card-hover(
         '.streaming-card__image',
         '.streaming-card__title',
-        var(--color-border),
-        var(--surface-panel)
+        $border-color: var(--color-border),
+        $background: var(--surface-panel)
     );
 }
 
@@ -104,7 +100,7 @@
     min-width: 0;
     height: 100%;
     --image-radius: 0;
-    transition: opacity var(--motion-base);
+    transition: filter var(--motion-base);
 }
 
 .streaming-card__copy {
@@ -125,7 +121,7 @@
 }
 
 .streaming-card__cta {
-    color: var(--text-accent);
+    color: var(--text-primary);
 }
 
 .streaming-card__poster-skeleton {

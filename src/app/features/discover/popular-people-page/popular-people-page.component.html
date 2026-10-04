@@ -10,7 +10,7 @@
                 <div start class="popular-people__toolbar-start">
                     @if (vm.showResultCount) {
                         <span class="popular-people__result-count text-caption">
-                            {{ vm.resultStart }} - {{ vm.resultEnd }} of {{ vm.totalResults }}
+                            {{ vm.totalResults | pluralize: "person" : "people" }}
                         </span>
                     }
                 </div>
@@ -24,10 +24,17 @@
                     />
                 </div>
             } @else {
-                <app-person-list
-                    [state]="vm.resultsState"
-                    [indexStart]="vm.resultStart"
-                />
+                <ul class="popular-people__grid u-list-none">
+                    @if (vm.isLoading) {
+                        @for (slot of skeletonCount | repeat; track slot) {
+                            <li><app-person-card [loading]="true" /></li>
+                        }
+                    } @else {
+                        @for (person of vm.people; track person.id) {
+                            <li><app-person-card [person]="person" /></li>
+                        }
+                    }
+                </ul>
             }
 
             @if (vm.showPaginator) {

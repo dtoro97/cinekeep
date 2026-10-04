@@ -37,6 +37,7 @@ model/listItemRequest.ts
 model/listMembershipResponse.ts
 model/loginRequest.ts
 model/mediaStateResponse.ts
+model/mediaStatesResponse.ts
 model/models.ts
 model/pageResponseEpisodeRatingResponse.ts
 model/pageResponseFavoriteItemResponse.ts

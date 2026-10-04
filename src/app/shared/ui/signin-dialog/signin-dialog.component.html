@@ -1,6 +1,6 @@
 <section class="signin-dialog">
     <header class="signin-dialog__header">
-        <h2 class="text-title">{{ title() }}</h2>
+        <h2 class="text-display-sm">{{ title() }}</h2>
         <p class="text-body-sm signin-dialog__description">{{ description }}</p>
     </header>
 
@@ -43,7 +43,7 @@
                         matInput
                         type="password"
                         formControlName="password"
-                        [attr.autocomplete]="isRegister() ? 'new-password' : 'current-password'"
+                        [attr.autocomplete]="passwordAutocomplete()"
                     />
                     @if (form.controls.password.hasError('required')) {
                         <mat-error>Enter your password.</mat-error>

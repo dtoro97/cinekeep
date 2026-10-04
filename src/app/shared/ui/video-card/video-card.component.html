@@ -29,19 +29,19 @@
         @if (item.typeLabel || item.contextLabel || item.publishedAt) {
             <p class="video-card__metadata text-caption">
                 @if (item.typeLabel) {
-                    <span class="video-card__metadata-item">{{ item.typeLabel }}</span>
+                    <span>{{ item.typeLabel }}</span>
                 }
                 @if (item.contextLabel) {
                     @if (item.contextLink) {
-                        <a class="video-card__metadata-item" [routerLink]="item.contextLink">
+                        <a [routerLink]="item.contextLink">
                             {{ item.contextLabel }}
                         </a>
                     } @else {
-                        <span class="video-card__metadata-item">{{ item.contextLabel }}</span>
+                        <span>{{ item.contextLabel }}</span>
                     }
                 }
                 @if (item.publishedAt) {
-                    <span class="video-card__metadata-item">
+                    <span>
                         {{ item.publishedAt | date: 'mediumDate' }}
                     </span>
                 }

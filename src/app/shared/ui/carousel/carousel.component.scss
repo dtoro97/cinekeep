@@ -1,7 +1,8 @@
 @use "breakpoints" as *;
 
+// Content width caps at the page container, so density only steps down below it.
 :host {
-    --carousel-columns: 6;
+    --carousel-columns: 7;
 }
 
 :host([data-columns="2"]) { --carousel-columns: 2; }
@@ -12,21 +13,28 @@
 :host([data-columns="8"]) { --carousel-columns: 8; }
 :host([data-columns="10"]) { --carousel-columns: 10; }
 
-@include carousel-md() {
+@include carousel-sm() {
+    :host,
+    :host([data-columns]) {
+        --carousel-columns: 6;
+    }
+}
+
+@include content-md() {
     :host,
     :host([data-columns]) {
         --carousel-columns: 5;
     }
 }
 
-@include carousel-sm() {
+@include carousel-xs() {
     :host,
     :host([data-columns]) {
         --carousel-columns: 4;
     }
 }
 
-@include carousel-xs() {
+@include mobile() {
     :host,
     :host([data-columns]) {
         --carousel-columns: 3;

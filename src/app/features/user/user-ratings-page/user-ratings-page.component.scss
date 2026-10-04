@@ -28,7 +28,10 @@
     &__episode-list {
         display: flex;
         flex-direction: column;
-        gap: var(--space-2);
+
+        > * + * {
+            border-block-start: 1px solid var(--row-divider);
+        }
     }
 
     &__episode-list {

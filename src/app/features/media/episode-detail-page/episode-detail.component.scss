@@ -1,169 +1,202 @@
 @use 'breakpoints' as *;
 @use 'mixins' as *;
 
-.detail {
+.episode-hero {
     display: flex;
     flex-direction: column;
     gap: var(--space-6);
-    padding-block: var(--space-6) var(--space-8);
-}
 
-.episode-summary {
-    display: grid;
-    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
-    align-items: start;
-    gap: var(--space-5);
-    padding-bottom: var(--space-6);
-    border-bottom: 1px solid var(--color-border-subtle);
-}
+    &__back {
+        display: inline-flex;
+        align-self: flex-start;
+        align-items: center;
+        gap: var(--space-1);
+        @include text-link(var(--text-primary));
 
-.episode-summary__still,
-.episode-summary__still--skeleton {
-    width: 100%;
-    border: 1px solid var(--color-border-subtle);
-    --image-radius: var(--radius-lg);
-    --skeleton-height: auto;
-    --skeleton-radius: var(--radius-lg);
-}
+        i {
+            font-size: var(--text-2xs);
+        }
+    }
 
-.episode-summary__content {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-3);
-}
+    &__text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-3);
+        max-width: 46rem;
+        text-shadow: var(--shadow-text-hero);
+    }
 
-.episode-summary__meta {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-}
+    &__eyebrow,
+    &__meta {
+        @include meta-list();
+    }
 
-.episode-summary__ratings {
-    display: flex;
-    min-width: 0;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-4) var(--space-5);
-}
+    &__series {
+        @include text-link(var(--text-secondary));
+    }
 
-.episode-summary__user-rating {
-    min-width: 0;
-}
+    &__line {
+        width: 18rem;
 
-.episode-summary__user-rating--with-divider {
-    position: relative;
-    padding-left: var(--space-5);
+        &--title {
+            width: min(28rem, 100%);
+            --skeleton-height: 3rem;
+        }
 
-    &::before {
-        content: '';
-        position: absolute;
-        inset: 0 auto 0 0;
-        width: 1px;
-        background: var(--border-overlay-soft);
+        &--meta {
+            width: 12rem;
+        }
     }
 }
 
-.episode-summary__overview {
-    max-width: 64ch;
-    color: var(--text-secondary);
+.episode-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+}
 
-    &--empty {
+.episode-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 46rem) auto;
+    justify-content: space-between;
+    align-items: start;
+    gap: var(--space-8);
+
+    &__text {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-5);
+        min-width: 0;
+    }
+
+    &__overview--empty {
         color: var(--text-muted);
     }
-}
 
-.episode-summary__crew {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: var(--space-1);
-    padding-top: var(--space-1);
+    &__ratings {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-6);
+        padding-inline-start: var(--space-6);
+        border-inline-start: 1px solid var(--color-border-subtle);
+    }
 
-    a {
-        @include text-link(var(--text-secondary));
+    &__line {
+        width: 100%;
 
-        font-weight: var(--weight-medium);
+        &--short {
+            width: 60%;
+        }
     }
 }
 
-.episode-summary__line-skeleton {
-    --skeleton-height: 0.875rem;
-    --skeleton-radius: var(--radius-sm);
+.episode-crew {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: var(--space-2) var(--space-6);
+    margin: 0;
+
+    &__row {
+        display: contents;
+    }
+
+    &__label {
+        padding-block-start: 0.125rem;
+        color: var(--text-muted);
+    }
+
+    &__names {
+        margin: 0;
+        color: var(--text-secondary);
+    }
+
+    &__link {
+        @include text-link(var(--text-primary));
+    }
 }
 
-.episode-summary__line-skeleton--meta {
-    width: 9.5rem;
-}
+// Previous / next episode, styled like the ends of a reel rather than as buttons.
+.episode-pager {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    padding-block: var(--space-4);
+    border-block: 1px solid var(--color-border-subtle);
 
-.episode-summary__line-skeleton--rating {
-    width: 5.5rem;
-}
+    &__link {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        min-width: 0;
+        padding: var(--space-2) var(--space-3);
+        border-radius: var(--radius-md);
+        color: inherit;
+        text-decoration: none;
+        transition: background-color var(--motion-fast);
 
-.episode-summary__line-skeleton--crew-primary {
-    width: min(100%, 12rem);
-}
+        @include hover-capable {
+            &:hover {
+                background: var(--control-subtle-surface-hover);
 
-.episode-summary__line-skeleton--crew-secondary {
-    width: min(100%, 14rem);
-}
+                .episode-pager__title {
+                    color: var(--text-accent);
+                }
+            }
+        }
 
-.episode-summary__copy-skeleton {
-    --skeleton-height: 1rem;
-    --skeleton-radius: var(--radius-sm);
-}
+        &:focus-visible {
+            outline: 2px solid var(--control-focus-ring-inner);
+            outline-offset: 2px;
+        }
 
-.episode-summary__copy-skeleton--full {
-    width: min(100%, 40rem);
-}
+        &--next {
+            align-items: flex-end;
+            text-align: end;
+        }
+    }
 
-.episode-summary__copy-skeleton--wide {
-    width: min(92%, 36rem);
-}
+    &__direction {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--text-muted);
 
-.episode-summary__copy-skeleton--medium {
-    width: min(78%, 30rem);
-}
+        i {
+            font-size: var(--text-2xs);
+        }
+    }
 
-.sections {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-}
-
-.credits {
-    padding: var(--space-4);
-}
-
-@include tablet() {
-    .episode-summary {
-        grid-template-columns: minmax(12rem, 17.5rem) minmax(0, 1fr);
-        gap: var(--space-4);
+    &__title {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        transition: color var(--motion-fast);
     }
 }
 
 @include mobile() {
-    .detail {
-        padding-block: var(--space-5) var(--space-6);
+    .episode-page {
+        gap: var(--space-6);
     }
 
-    .episode-summary {
+    .episode-intro {
         grid-template-columns: minmax(0, 1fr);
-        gap: var(--space-4);
+        gap: var(--space-5);
+
+        &__ratings {
+            grid-row: 1;
+            padding-inline-start: 0;
+            border-inline-start: 0;
+        }
     }
 
-    .episode-summary__ratings {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        align-items: flex-start;
-        gap: var(--space-3);
+    .episode-crew {
+        column-gap: var(--space-4);
     }
 
-    .episode-summary__user-rating--with-divider {
-        padding-left: var(--space-3);
+    .episode-pager__link {
+        padding-inline: var(--space-1);
     }
-
 }

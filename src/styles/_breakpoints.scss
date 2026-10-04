@@ -2,7 +2,6 @@ $mobile-max: 768px;
 $tablet-max: 1024px;
 $content-md-max: 1200px;
 $content-sm-max: 960px;
-$carousel-md-max: 1600px;
 $carousel-sm-max: 1400px;
 $carousel-xs-max: 920px;
 
@@ -26,12 +25,6 @@ $carousel-xs-max: 920px;
 
 @mixin content-sm() {
     @media (max-width: $content-sm-max) {
-        @content;
-    }
-}
-
-@mixin carousel-md() {
-    @media (max-width: $carousel-md-max) {
         @content;
     }
 }

@@ -1,6 +1,6 @@
 <section class="page-section">
     @if (title || subtitle) {
-        <header class="page-section__header">
+        <header class="page-section__header" [class.page-section__header--label]="!title">
             <div class="page-section__heading">
                 @if (title) {
                     <h2 class="page-section__title text-headline">{{ title }}</h2>
@@ -10,7 +10,7 @@
                     @if (title) {
                         <p class="page-section__subtitle text-body">{{ subtitle }}</p>
                     } @else {
-                        <h2 class="page-section__subtitle text-title">
+                        <h2 class="page-section__label text-section-label">
                             {{ subtitle }}
                         </h2>
                     }

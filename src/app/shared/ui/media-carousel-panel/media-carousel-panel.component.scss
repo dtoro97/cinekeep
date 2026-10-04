@@ -1,9 +1,13 @@
 @use "breakpoints" as *;
 
 .media-carousel-panel--backdrop {
-    --carousel-columns: 3;
+    --carousel-columns: 4;
 
-    @include carousel-md() {
+    @include carousel-sm() {
+        --carousel-columns: 3;
+    }
+
+    @include tablet() {
         --carousel-columns: 2;
     }
 

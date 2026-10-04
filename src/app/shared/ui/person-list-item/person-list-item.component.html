@@ -1,48 +1,43 @@
-<div class="person-list-item" role="listitem">
-    <span class="person-list-item__index text-caption">{{ index }}.</span>
+@if (loading) {
+    <div class="person-list-item" role="listitem" aria-hidden="true">
+        @if (index) {
+            <app-skeleton class="person-list-item__index person-list-item__index--skeleton" />
+        }
+        <app-skeleton class="person-list-item__avatar" />
 
-    <app-image
-        class="person-list-item__avatar"
-        [src]="person.thumb"
-        [alt]="''"
-        type="person"
-    />
+        <div class="person-list-item__content">
+            <app-skeleton class="person-list-item__line person-list-item__line--title" />
+            <app-skeleton class="person-list-item__line person-list-item__line--known-for" />
+        </div>
+    </div>
+} @else if (person; as currentPerson) {
+    <div class="person-list-item" role="listitem">
+        @if (index) {
+            <span class="person-list-item__index text-numeral">{{ index }}</span>
+        }
 
-    <div class="person-list-item__content">
-        <div class="person-list-item__primary">
-            <a
-                class="person-list-item__title text-subtitle"
-                [routerLink]="['/name', person.id]"
-            >
-                {{ person.title }}
-            </a>
+        <app-image class="person-list-item__avatar" [src]="currentPerson.thumb" alt="" type="person" />
 
-            @if (person.department) {
-                <span class="person-list-item__department text-caption">
-                    {{ person.department }}
-                </span>
+        <div class="person-list-item__content">
+            <div class="person-list-item__primary">
+                <a class="person-list-item__title text-subtitle" [routerLink]="['/name', currentPerson.id]">
+                    {{ currentPerson.title }}
+                </a>
+
+                @if (currentPerson.department) {
+                    <span class="person-list-item__department text-card-meta">{{ currentPerson.department }}</span>
+                }
+            </div>
+
+            @if (currentPerson.knownForLinks.length) {
+                <p class="person-list-item__known-for text-card-meta">
+                    <span class="person-list-item__known-for-label">Known for </span>
+                    <!-- prettier-ignore -->
+                    @for (kf of currentPerson.knownForLinks; track kf.id; let last = $last) {
+                        <a class="person-list-item__known-for-link" [routerLink]="['/title', kf.id, kf.mediaType]">{{ kf.title }}</a>@if (!last) {<span>, </span>}
+                    }
+                </p>
             }
         </div>
-
-        @if (person.knownForLinks.length) {
-            <p class="person-list-item__known-for text-meta">
-                <span class="person-list-item__known-for-label">Known for </span>
-                @for (
-                    kf of person.knownForLinks;
-                    track kf.id;
-                    let last = $last
-                ) {
-                    <a
-                        class="person-list-item__known-for-link"
-                        [routerLink]="['/title', kf.id, kf.mediaType]"
-                    >
-                        {{ kf.title }}
-                    </a>
-                    @if (!last) {
-                        <span>, </span>
-                    }
-                }
-            </p>
-        }
     </div>
-</div>
+}

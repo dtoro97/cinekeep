@@ -14,7 +14,6 @@ export interface UserListResponse {
     id?: number;
     name?: string;
     description?: string;
-    isPublic?: boolean;
     sortBy?: UserListResponse.SortByEnum;
     itemCount?: number;
     cover?: ListCoverResponse;

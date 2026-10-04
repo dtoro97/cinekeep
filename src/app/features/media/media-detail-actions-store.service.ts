@@ -70,9 +70,9 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
             isFavorite: favoriteState.state === 'success' ? favoriteState.data : false,
             pending: watchlistState.state === 'loading' || favoriteState.state === 'loading',
             watchlistLabel:
-                watchlistState.state === 'success' && watchlistState.data ? 'On Watchlist' : 'Add to Watchlist',
-            favoriteLabel:
-                favoriteState.state === 'success' && favoriteState.data ? 'In favorites' : 'Add to favorites',
+                watchlistState.state === 'success' && watchlistState.data ? 'On watchlist' : 'Add to watchlist',
+            favoriteActionLabel:
+                favoriteState.state === 'success' && favoriteState.data ? 'Remove from favorites' : 'Add to favorites',
         }),
     );
 

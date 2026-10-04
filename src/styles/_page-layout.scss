@@ -21,6 +21,10 @@
     padding: var(--space-8) var(--space-6);
 }
 
+.page-list-column > * {
+    max-width: var(--layout-list-max-width);
+}
+
 .page-sections {
     box-sizing: border-box;
     display: flex;

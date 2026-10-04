@@ -18,6 +18,7 @@ import {
     isDefined,
     remoteSuccess,
     toSnapshotCardItem,
+    toRating,
 } from '../../../shared';
 import { toRatedEpisodeRef } from '../user-account-media.helpers';
 import { DEFAULT_USER_ACCOUNT_SORT_DIRECTION } from '../user-list-sort-options';
@@ -75,7 +76,7 @@ export class UserProfilePreviewStore extends ComponentStore<UserProfilePreviewSt
             this.favoriteController.getFavorites(FIRST_PAGE).pipe(
                 map((result) => ({
                     items: (result.content ?? [])
-                        .map((item) => toSnapshotCardItem(item, item.voteAverage ?? null))
+                        .map((item) => toSnapshotCardItem(item, toRating(item.voteAverage)))
                         .filter(isDefined),
                     total: result.totalElements ?? 0,
                 })),
@@ -89,7 +90,7 @@ export class UserProfilePreviewStore extends ComponentStore<UserProfilePreviewSt
             this.watchlistController.getWatchlist(FIRST_PAGE).pipe(
                 map((result) => ({
                     items: (result.content ?? [])
-                        .map((item) => toSnapshotCardItem(item, item.voteAverage ?? null))
+                        .map((item) => toSnapshotCardItem(item, toRating(item.voteAverage)))
                         .filter(isDefined),
                     total: result.totalElements ?? 0,
                 })),

@@ -1,55 +1,37 @@
 <div class="page-container">
-    @if (reviewState$ | async; as reviewState) {
-        @if (mediaStore.mediaDetailsState$ | async; as mediaState) {
-            <app-sub-page-header
-                [backdropPath]="mediaState.state === 'success' ? mediaState.data?.backdropPath : undefined"
-                parentTitle="Reviews"
-                [backLink]="['../']"
-                pageTitle="Review"
-                [subtitle]="
-                    (reviewState.state === 'success' ? reviewState.data?.media_title : null) ??
-                    (mediaState.state === 'success' ? (mediaState.data?.title ?? null) : null)
-                "
-            />
-        }
+    @if (vm$ | async; as vm) {
+        <app-sub-page-header
+            [backdropPath]="vm.media?.backdropPath"
+            parentTitle="Reviews"
+            [backLink]="['../']"
+            [pageTitle]="vm.pageTitle"
+        />
 
-        <main class="page-main">
-            @if (reviewState.state === 'loading') {
-                <section class="review-detail-layout" aria-hidden="true">
-                    <app-skeleton class="review-detail-poster review-detail-poster--skeleton" />
-                    <div class="review-detail">
-                        <app-skeleton class="review-detail__meta-skeleton" />
-                        <app-skeleton class="review-detail__content-skeleton" />
-                    </div>
-                </section>
-            } @else if (reviewState.state === 'success') {
-                @if (reviewState.data; as review) {
-                    <section class="review-detail-layout">
-                        @if (mediaStore.mediaDetailsState$ | async; as mediaState) {
-                            @if (mediaState.state === 'success' && mediaState.data; as media) {
-                                <app-image
-                                    class="review-detail-poster"
-                                    [src]="media.posterPath"
-                                    type="media"
-                                    [alt]="media.title"
-                                />
-                            } @else {
-                                <app-skeleton class="review-detail-poster review-detail-poster--skeleton" />
+        <main class="page-main review-detail-layout">
+            <aside class="review-detail-layout__summary">
+                <app-review-media-summary [media]="vm.media" />
+            </aside>
+
+            <section class="review-detail-layout__body">
+                @if (vm.reviewState.state === 'loading') {
+                    <div class="review-detail-skeleton" aria-hidden="true">
+                        <app-skeleton class="review-detail-skeleton__score" />
+                        <div class="review-detail-skeleton__body">
+                            <app-skeleton class="review-detail-skeleton__line review-detail-skeleton__line--byline" />
+                            @for (line of skeletonLines; track $index) {
+                                <app-skeleton class="review-detail-skeleton__line" />
                             }
-                        } @else {
-                            <app-skeleton class="review-detail-poster review-detail-poster--skeleton" />
-                        }
-
-                        <div class="review-detail">
-                            <app-review-card [review]="review" variant="detail" />
+                            <app-skeleton class="review-detail-skeleton__line review-detail-skeleton__line--short" />
                         </div>
-                    </section>
-                } @else {
-                    <section class="review-detail__empty">
+                    </div>
+                } @else if (vm.reviewState.state === 'success') {
+                    @if (vm.reviewState.data; as review) {
+                        <app-review-card [review]="review" variant="detail" />
+                    } @else {
                         <app-empty-state iconClass="fa-regular fa-comment-dots" text="This review is unavailable." />
-                    </section>
+                    }
                 }
-            }
+            </section>
         </main>
     }
 </div>

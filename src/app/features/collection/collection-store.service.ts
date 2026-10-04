@@ -59,12 +59,12 @@ export class CollectionStoreService extends ComponentStore<CollectionState> {
     );
 
     averageRating$ = this.select((state) => state.parts).pipe(
-        map((parts) => {
-            if (parts.state !== 'success') return 0;
+        map((parts): number | null => {
+            if (parts.state !== 'success') return null;
 
-            const rated = parts.data.filter((p) => (p.rating ?? 0) > 0);
-            if (!rated.length) return 0;
-            return rated.reduce((sum, p) => sum + (p.rating ?? 0), 0) / rated.length;
+            const ratings = parts.data.map((p) => p.rating).filter(isDefined);
+            if (!ratings.length) return null;
+            return ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
         }),
     );
 
@@ -183,10 +183,6 @@ function withCollectionBadges(items: MediaListItem[]): MediaListItem[] {
 
     return items.map((item) => {
         const badges = [...(item.badges ?? [])];
-
-        if (highestRated?.id === item.id) {
-            badges.push({ label: 'Top rated', variant: 'accent' });
-        }
 
         if (latestReleased?.id === item.id) {
             badges.push({ label: 'Latest', variant: 'neutral' });
