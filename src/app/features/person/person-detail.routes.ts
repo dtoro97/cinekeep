@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { PersonDetailsComponent } from './person-detail-page/person-details.component';
-import { PersonPhotosPageComponent } from './photos-page/person-photos-page.component';
+import { PersonDetailPageComponent } from './person-detail-page/person-detail-page.component';
+import { PersonPhotosPageComponent } from './person-photos-page/person-photos-page.component';
 import { PersonDetailWrapperComponent } from './person-detail-wrapper.component';
 
 export const personDetailRoutes: Routes = [
@@ -15,7 +15,7 @@ export const personDetailRoutes: Routes = [
         children: [
             {
                 path: '',
-                component: PersonDetailsComponent,
+                component: PersonDetailPageComponent,
             },
             {
                 path: 'photos',

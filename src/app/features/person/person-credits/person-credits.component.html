@@ -1,4 +1,4 @@
-@if (state.state === 'loading') {
+@if (filmography.state === 'loading') {
     <app-skeleton class="loading__toolbar" />
     <div class="loading">
         @for (section of 2 | repeat; track section) {
@@ -15,31 +15,31 @@
             </div>
         }
     </div>
-} @else if (state.state === 'success') {
+} @else if (filmography.state === 'success') {
     <app-browse-toolbar>
         <app-toggle-group
             start
-            [options]="state.data.mediaOptions"
-            [selectedValue]="mediaType"
-            (selected)="onMediaTypeChange($event)"
+            [options]="filmography.data.mediaOptions"
+            [selectedValue]="filters.mediaType"
+            (selected)="changeMediaType($event)"
         />
         <app-sort-button
             end
             [options]="sortOptions"
-            [selectedValue]="sortBy"
-            [direction]="sortDirection"
-            (sortChange)="onSortByChange($event)"
+            [selectedValue]="filters.sortBy"
+            [direction]="filters.sortDirection"
+            (sortChange)="changeSortBy($event)"
             (directionToggle)="sortDirectionToggle.emit()"
         />
     </app-browse-toolbar>
 
-    @if (state.data.totalCount) {
+    @if (filmography.data.totalCount) {
         <div class="sections">
-            @if (state.data.acting.totalCount) {
+            @for (section of filmography.data.sections; track section.key) {
                 <section class="credit-section">
                     <header class="credit-section__header">
-                        <h3 class="credit-section__title text-title">Acting</h3>
-                        <span class="text-caption">{{ state.data.acting.totalCount }} credits</span>
+                        <h3 class="credit-section__title text-title">{{ section.title }}</h3>
+                        <span class="text-caption">{{ section.totalCount }} credits</span>
                     </header>
 
                     <div class="table-wrap">
@@ -48,13 +48,13 @@
                                 <tr>
                                     <th scope="col">Year</th>
                                     <th scope="col">Title</th>
-                                    <th scope="col">Role</th>
+                                    <th scope="col">{{ section.roleHeading }}</th>
                                     <th scope="col">Type</th>
                                     <th scope="col">Rating</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @for (credit of state.data.acting.rows; track credit.mediaType + '-' + credit.id) {
+                                @for (credit of section.credits; track credit.mediaType + '-' + credit.id) {
                                     <tr>
                                         <td class="credits-table__year text-caption">{{ credit.year }}</td>
                                         <td class="credits-table__title">
@@ -89,71 +89,9 @@
                         </table>
                     </div>
 
-                    @if (state.data.acting.hiddenCount || state.data.acting.expanded) {
-                        <button class="show-all text-body-sm" type="button" (click)="actingCreditsToggle.emit()">
-                            {{ state.data.acting.toggleLabel }}
-                        </button>
-                    }
-                </section>
-            }
-
-            @if (state.data.production.totalCount) {
-                <section class="credit-section">
-                    <header class="credit-section__header">
-                        <h3 class="credit-section__title text-title">Production</h3>
-                        <span class="text-caption">{{ state.data.production.totalCount }} credits</span>
-                    </header>
-
-                    <div class="table-wrap">
-                        <table class="credits-table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Year</th>
-                                    <th scope="col">Title</th>
-                                    <th scope="col">Job</th>
-                                    <th scope="col">Type</th>
-                                    <th scope="col">Rating</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for (credit of state.data.production.rows; track credit.mediaType + '-' + credit.id) {
-                                    <tr>
-                                        <td class="credits-table__year text-caption">{{ credit.year }}</td>
-                                        <td class="credits-table__title">
-                                            <a
-                                                class="title-link text-body-strong"
-                                                [routerLink]="['/title', credit.id, credit.mediaType]"
-                                            >
-                                                {{ credit.title }}
-                                            </a>
-                                        </td>
-                                        <td class="credits-table__role text-body-sm">
-                                            {{ credit.roleLabel || 'Credit' }}
-                                            @if (credit.episodeLabel) {
-                                                <span class="credits-table__episode text-caption">{{
-                                                    credit.episodeLabel
-                                                }}</span>
-                                            }
-                                        </td>
-                                        <td class="credits-table__type">
-                                            <app-badge [label]="credit.mediaTypeLabel" />
-                                        </td>
-                                        <td class="credits-table__rating">
-                                            @if (credit.rating) {
-                                                <app-rating [value]="credit.rating" />
-                                            } @else {
-                                                <span class="text-caption">Not rated</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-
-                    @if (state.data.production.hiddenCount || state.data.production.expanded) {
-                        <button class="show-all text-body-sm" type="button" (click)="productionCreditsToggle.emit()">
-                            {{ state.data.production.toggleLabel }}
+                    @if (section.hasToggle) {
+                        <button class="show-all text-body-sm" type="button" (click)="sectionToggle.emit(section.key)">
+                            {{ section.toggleLabel }}
                         </button>
                     }
                 </section>
@@ -163,11 +101,11 @@
         <div class="empty-panel u-flex-column u-items-center u-gap-3">
             <app-empty-state
                 iconClass="fa-solid fa-table-list"
-                [title]="state.data.emptyTitle"
-                [text]="state.data.emptyText"
+                [title]="filmography.data.emptyTitle"
+                [text]="filmography.data.emptyText"
             />
-            @if (state.data.hasActiveFilters) {
-                <button class="reset text-caption" type="button" (click)="onResetFilters()">Reset filters</button>
+            @if (filmography.data.hasActiveFilters) {
+                <button class="reset text-caption" type="button" (click)="resetFilters.emit()">Reset filters</button>
             }
         </div>
     }

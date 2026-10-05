@@ -3,48 +3,40 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 
-import { tap } from 'rxjs';
-
 import {
-    PhotoViewerComponent,
     PhotosBrowserComponent,
     PhotosBrowserSelection,
-    SubPageHeaderComponent,
     PhotosBrowserSkeletonComponent,
+    PhotoViewerComponent,
     SeoService,
+    SubPageHeaderComponent,
 } from '../../../shared';
 import { PersonDetailStoreService } from '../person-detail-store.service';
 import { toPersonSeoMetadata } from '../person-seo';
 
 @Component({
     selector: 'app-person-photos-page',
-    imports: [
-        AsyncPipe,
-        PhotosBrowserComponent,
-        SubPageHeaderComponent,
-        PhotosBrowserSkeletonComponent,
-    ],
+    imports: [AsyncPipe, PhotosBrowserComponent, PhotosBrowserSkeletonComponent, SubPageHeaderComponent],
     templateUrl: './person-photos-page.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PersonPhotosPageComponent {
+    readonly personDetail$ = this.store.personDetail$;
+
     constructor(
-        public personDetailStore: PersonDetailStoreService,
-        private dialog: MatDialog,
-        private readonly seo: SeoService,
+        private store: PersonDetailStoreService,
+        private matDialog: MatDialog,
+        seoService: SeoService,
     ) {
-        this.personDetailStore.seoSource$
-            .pipe(
-                tap(({ person, knownForTitles }) =>
-                    this.seo.setPage(toPersonSeoMetadata(person, knownForTitles, 'photos')),
-                ),
-                takeUntilDestroyed(),
-            )
-            .subscribe();
+        this.store.seoSource$
+            .pipe(takeUntilDestroyed())
+            .subscribe(({ person, knownForTitles }) =>
+                seoService.setPage(toPersonSeoMetadata(person, knownForTitles, 'photos')),
+            );
     }
 
     openPhotoViewer(selection: PhotosBrowserSelection): void {
-        this.dialog.open(PhotoViewerComponent, {
+        this.matDialog.open(PhotoViewerComponent, {
             data: { images: selection.images, activeIndex: selection.index },
             panelClass: 'photo-viewer-panel',
             maxWidth: '100vw',
