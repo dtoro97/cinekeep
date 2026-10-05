@@ -1,4 +1,8 @@
-import { getCurrentMonthName, MediaType, TmdbDiscoverSortKey, WatchProviderOption } from '../../shared';
+import { CURATED_TV_EXCLUDED_GENRE_IDS } from '../../constants';
+import type { WatchProviderOption } from '../services/watch-provider-store.service';
+import type { MediaType } from '../types/media.types';
+import { getCurrentMonthName } from '../utils/get-iso-date';
+import type { TmdbDiscoverSortKey } from '../utils/tmdb-discover-sort';
 
 export type StreamingDatePreset = 'today' | 'current-month' | 'current-season' | 'current-two-months';
 export type StreamingMonetizationType = 'ads' | 'buy' | 'flatrate' | 'free' | 'rent';
@@ -9,6 +13,7 @@ export interface StreamingBaseQuery {
     readonly providerIds?: readonly number[];
     readonly monetization?: StreamingMonetizationType;
     readonly genreIds?: readonly number[];
+    readonly excludedGenreIds?: readonly number[];
     readonly keywordIds?: readonly number[];
     readonly originalLanguage?: string;
     readonly originCountry?: string;
@@ -34,30 +39,31 @@ export const AIRING_TODAY_SLUG = 'airing-today';
 
 export const getStreamingThisMonthTitle = (): string => `Streaming in ${getCurrentMonthName()}`;
 
+export const STREAMING_THIS_MONTH_SECTION: StreamingEditorialSection = {
+    slug: STREAMING_THIS_MONTH_SLUG,
+    title: "This month's streaming arrivals",
+    description: 'Fresh premieres and returning seasons landing on major streaming services.',
+    ctaLabel: 'Browse arrivals',
+    baseQuery: {
+        mediaTypes: ['movie', 'tv'],
+        monetization: 'flatrate',
+        datePreset: 'current-month',
+        // Daily talk, news, reality and soap episodes would otherwise crowd out the premieres.
+        excludedGenreIds: CURATED_TV_EXCLUDED_GENRE_IDS,
+        sortBy: 'release_date',
+    },
+};
+
 /** The "this month" list is narrowed to TV series on the region's top three providers once they are known. */
-export const toStreamingThisMonthQuery = (
-    section: StreamingEditorialSection,
-    tvProviders: readonly WatchProviderOption[],
-): StreamingBaseQuery => ({
-    ...section.baseQuery,
+export const toStreamingThisMonthQuery = (tvProviders: readonly WatchProviderOption[]): StreamingBaseQuery => ({
+    ...STREAMING_THIS_MONTH_SECTION.baseQuery,
     mediaTypes: ['tv'],
     providerIds: tvProviders.slice(0, 3).map((provider) => provider.id),
     sortBy: 'popularity',
 });
 
 export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] = [
-    {
-        slug: STREAMING_THIS_MONTH_SLUG,
-        title: "This month's streaming arrivals",
-        description: 'Fresh premieres and returning seasons landing on major streaming services.',
-        ctaLabel: 'Browse arrivals',
-        baseQuery: {
-            mediaTypes: ['movie', 'tv'],
-            monetization: 'flatrate',
-            datePreset: 'current-month',
-            sortBy: 'release_date',
-        },
-    },
+    STREAMING_THIS_MONTH_SECTION,
     {
         slug: AIRING_TODAY_SLUG,
         title: 'Airing today',

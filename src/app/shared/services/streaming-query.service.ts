@@ -2,22 +2,20 @@ import { Injectable } from '@angular/core';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 
 import { DiscoverRestControllerService, MoviePage, TvSeriesPage } from '../../api';
+import { toCardItem, toMediaListItem } from '../mappers/content-items.mapper';
+import type { CardItem } from '../models/content-items.model';
+import type { StreamingBaseQuery, StreamingDatePreset } from '../models/streaming-browse.model';
+import type { MediaType } from '../types/media.types';
+import type { SortDirection } from '../types/sort.types';
+import { getCurrentMonthDateWindow, toISODate } from '../utils/get-iso-date';
+import { isDefined } from '../utils/is-defined';
+import { serializeNumberListParam } from '../utils/route-utils';
 import {
-    CardItem,
-    getCurrentMonthDateWindow,
-    isDefined,
-    LocaleStoreService,
-    MediaType,
-    serializeNumberListParam,
-    SortDirection,
     TmdbDiscoverSortKey,
-    toCardItem,
-    toISODate,
-    toMediaListItem,
     toTmdbMovieDiscoverSort,
     toTmdbTvDiscoverSort,
-} from '../../shared';
-import { StreamingBaseQuery, StreamingDatePreset } from './streaming-browse';
+} from '../utils/tmdb-discover-sort';
+import { LocaleStoreService } from './locale-store.service';
 
 const PREVIEW_COUNT = 3;
 
@@ -123,6 +121,7 @@ export class StreamingQueryService {
             voteCountLte: query.voteCountMax,
             watchRegion: filtersByProvider ? this.localeStoreService.region() : undefined,
             withGenres: serializeNumberListParam(query.genreIds) ?? undefined,
+            withoutGenres: serializeNumberListParam(query.excludedGenreIds) ?? undefined,
             withKeywords: serializeNumberListParam(query.keywordIds) ?? undefined,
             withOriginCountry: query.originCountry,
             withOriginalLanguage: query.originalLanguage,

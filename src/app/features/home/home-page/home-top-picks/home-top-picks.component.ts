@@ -1,12 +1,11 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { CardItem, ImageComponent, RatingComponent, RepeatPipe, SkeletonComponent } from '../../../shared';
+import { ImageComponent, MediaListItem, RatingComponent, RepeatPipe, SkeletonComponent } from '../../../../shared';
 
 interface TopPickItem {
-    readonly item: CardItem;
+    readonly item: MediaListItem;
     readonly rank: number;
-    readonly year: string;
 }
 
 @Component({

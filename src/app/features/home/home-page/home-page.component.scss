@@ -7,6 +7,10 @@
 }
 
 .section-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    white-space: nowrap;
     @include text-link(inherit);
 }
 
@@ -39,7 +43,20 @@
 }
 
 .tonight-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
     min-width: 0;
+}
+
+.tonight-content--loading {
+    gap: var(--space-2);
+}
+
+.tonight-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .tonight-meta {

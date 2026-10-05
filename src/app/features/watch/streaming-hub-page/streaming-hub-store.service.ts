@@ -1,15 +1,18 @@
 import { Injectable } from '@angular/core';
 import { forkJoin, map, of, startWith, switchMap } from 'rxjs';
 
-import { CardItem, getCurrentMonthName, sortWatchProviders, WatchProviderStoreService } from '../../../shared';
 import {
+    CardItem,
+    getCurrentMonthName,
     getStreamingThisMonthTitle,
+    sortWatchProviders,
     STREAMING_EDITORIAL_SECTIONS,
-    STREAMING_THIS_MONTH_SLUG,
+    STREAMING_THIS_MONTH_SECTION,
     StreamingBaseQuery,
+    StreamingQueryService,
     toStreamingThisMonthQuery,
-} from '../streaming-browse';
-import { StreamingQueryService } from '../streaming-query.service';
+    WatchProviderStoreService,
+} from '../../../shared';
 
 const PROVIDER_CARD_COUNT = 3;
 
@@ -18,21 +21,17 @@ export class StreamingHubStoreService {
     readonly streamingHub$ = this.watchProviderStoreService.catalog$.pipe(
         map(({ loaded, movieProviders, tvProviders }) => {
             const sortedProviders = sortWatchProviders([...movieProviders, ...tvProviders]);
-            const thisMonthSection = STREAMING_EDITORIAL_SECTIONS.find(
-                (section) => section.slug === STREAMING_THIS_MONTH_SLUG,
-            );
-            const featuredSection =
-                loaded && thisMonthSection
-                    ? {
-                          ...thisMonthSection,
-                          routerLink: ['/watch', 'streaming', 'list', thisMonthSection.slug],
-                          isFeatured: true,
-                          previews: [] as readonly CardItem[],
-                          title: getStreamingThisMonthTitle(),
-                          ctaLabel: `Browse ${getCurrentMonthName()} arrivals`,
-                          baseQuery: toStreamingThisMonthQuery(thisMonthSection, tvProviders),
-                      }
-                    : null;
+            const featuredSection = loaded
+                ? {
+                      ...STREAMING_THIS_MONTH_SECTION,
+                      routerLink: ['/watch', 'streaming', 'list', STREAMING_THIS_MONTH_SECTION.slug],
+                      isFeatured: true,
+                      previews: [] as readonly CardItem[],
+                      title: getStreamingThisMonthTitle(),
+                      ctaLabel: `Browse ${getCurrentMonthName()} arrivals`,
+                      baseQuery: toStreamingThisMonthQuery(tvProviders),
+                  }
+                : null;
 
             return {
                 providerCards: sortedProviders
@@ -58,7 +57,7 @@ export class StreamingHubStoreService {
                     }),
                 routeSections: [
                     ...(featuredSection ? [featuredSection] : []),
-                    ...STREAMING_EDITORIAL_SECTIONS.filter((section) => section.slug !== STREAMING_THIS_MONTH_SLUG).map(
+                    ...STREAMING_EDITORIAL_SECTIONS.filter((section) => section !== STREAMING_THIS_MONTH_SECTION).map(
                         (section) => ({
                             ...section,
                             routerLink: ['/watch', 'streaming', 'list', section.slug],

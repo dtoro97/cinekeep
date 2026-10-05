@@ -24,6 +24,7 @@ import {
     MediaType,
     UserLibraryService,
     isDefined,
+    isMediaResult,
     toMediaSnapshotRequest,
     updateRemoteData,
 } from '../../../shared';
@@ -185,14 +186,11 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
     }
 
     private toSearchResult(item: MultiListItem): UserListAddItemsSearchResult | null {
-        if (
-            item.media_type !== MultiListItem.MediaTypeEnum.Movie &&
-            item.media_type !== MultiListItem.MediaTypeEnum.Tv
-        ) {
+        if (!isMediaResult(item)) {
             return null;
         }
 
-        const mediaType: MediaType = item.media_type === MultiListItem.MediaTypeEnum.Tv ? 'tv' : 'movie';
+        const mediaType = item.media_type;
         const title = mediaType === 'movie' ? item.title : item.name;
 
         if (!item.id || !title) {
