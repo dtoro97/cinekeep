@@ -1,6 +1,6 @@
 @if (data.state === 'loading') {
     <ul class="cast-grid u-list-none" aria-hidden="true">
-        @for (i of skeletonItems; track i) {
+        @for (slot of skeletonCount | repeat; track slot) {
             <li class="cast-member cast-member--skeleton">
                 <app-skeleton class="cast-member__avatar" />
                 <span class="cast-member__text">

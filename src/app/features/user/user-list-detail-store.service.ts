@@ -3,21 +3,27 @@ import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 import { EMPTY, catchError, of, switchMap, tap, throwError } from 'rxjs';
 
-import { UserListDetailsResponse, UserListItemResponse } from '../../api-cinekeep';
+import {
+    UserListControllerService,
+    UserListDetailsResponse,
+    UserListItemControllerService,
+    UserListItemResponse,
+    UserListResponse,
+} from '../../api-cinekeep';
 import { PAGE_SIZE } from '../../constants';
 import {
-    RemoteData,
+    isDefined,
+    MEDIA_TYPE_LABEL,
     MediaListItem,
     MediaType,
-    UserLibraryService,
-    UserListSortBy,
-    isDefined,
-    remoteSuccess,
-    toSnapshotMediaListItem,
-    toUpdatedAtLabel,
-    updateRemoteData,
     pluralize,
+    RemoteData,
+    remoteSuccess,
+    RouteCommands,
+    toMediaKey,
     toRating,
+    toSnapshotMediaListItem,
+    updateRemoteData,
 } from '../../shared';
 import { UserListCoverChoice, isSameUserListCover, toUserListCoverChoice } from './user-list-cover';
 import { DEFAULT_USER_LIST_SORT_BY, toUserListSort } from './user-list-sort-options';
@@ -43,7 +49,7 @@ export interface UserListDetailItem {
     readonly comment: string;
     /** "Add comment" or "Edit comment", matching whether the item has one. */
     readonly commentActionLabel: string;
-    readonly link: (string | number)[];
+    readonly link: RouteCommands;
 }
 
 interface UserListDetailState {
@@ -53,8 +59,8 @@ interface UserListDetailState {
     readonly page: number;
     readonly totalPages: number;
     readonly totalResults: number;
-    readonly activeSortBy: UserListSortBy;
-    readonly defaultSortBy: UserListSortBy;
+    readonly activeSortBy: UserListResponse.SortByEnum;
+    readonly defaultSortBy: UserListResponse.SortByEnum;
 }
 
 const INITIAL_STATE: UserListDetailState = {
@@ -68,9 +74,11 @@ const INITIAL_STATE: UserListDetailState = {
     defaultSortBy: DEFAULT_USER_LIST_SORT_BY,
 };
 
+const UPDATED_DATE_FORMAT = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
 @Injectable()
 export class UserListDetailStore extends ComponentStore<UserListDetailState> {
-    readonly userListDetailVm$ = this.select((state) => ({
+    readonly userListDetail$ = this.select((state) => ({
         header: state.headerState,
         headerSubtitle: state.headerState.state === 'success' ? toHeaderSubtitle(state.headerState.data) : null,
         items: state.itemsState,
@@ -82,7 +90,10 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
         defaultSortBy: state.defaultSortBy,
     }));
 
-    constructor(private readonly userLibraryService: UserLibraryService) {
+    constructor(
+        private readonly userListControllerService: UserListControllerService,
+        private readonly userListItemControllerService: UserListItemControllerService,
+    ) {
         super(INITIAL_STATE);
     }
 
@@ -128,7 +139,7 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
         return this.fetchAndPatchPage$(state.listId, page, state.activeSortBy, state.defaultSortBy, state);
     }
 
-    setSortBy$(sortBy: UserListSortBy) {
+    setSortBy$(sortBy: UserListResponse.SortByEnum) {
         const state = this.get();
 
         if (state.listId === null || sortBy === state.activeSortBy) {
@@ -149,7 +160,7 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
     updateList$(request: {
         readonly name: string;
         readonly description: string;
-        readonly sortBy?: UserListSortBy;
+        readonly sortBy?: UserListResponse.SortByEnum;
         readonly cover: UserListCoverChoice | null;
     }) {
         const state = this.get();
@@ -160,12 +171,15 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
 
         const nextDefaultSortBy = request.sortBy ?? state.defaultSortBy;
 
-        return this.userLibraryService
-            .updateList$(state.listId, {
-                name: request.name,
-                description: request.description,
-                sortBy: nextDefaultSortBy,
-                cover: request.cover ?? undefined,
+        return this.userListControllerService
+            .updateList({
+                listId: state.listId,
+                updateUserListRequest: {
+                    name: request.name,
+                    description: request.description,
+                    sortBy: nextDefaultSortBy,
+                    cover: request.cover ?? undefined,
+                },
             })
             .pipe(
                 tap((list) => {
@@ -200,7 +214,7 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             return throwError(() => new Error('List detail is not loaded yet.'));
         }
 
-        return this.userLibraryService.clearList$(state.listId).pipe(
+        return this.userListItemControllerService.clearItems({ listId: state.listId }).pipe(
             tap(() => {
                 this.patchState((state) => ({
                     headerState:
@@ -228,7 +242,7 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             return throwError(() => new Error('List detail is not loaded yet.'));
         }
 
-        return this.userLibraryService.deleteList$(state.listId);
+        return this.userListControllerService.deleteList({ listId: state.listId });
     }
 
     removeItem$(item: UserListDetailItem) {
@@ -238,45 +252,47 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             return throwError(() => new Error('List detail is not loaded yet.'));
         }
 
-        return this.userLibraryService.removeItem$(state.listId, item.id, item.mediaType).pipe(
-            switchMap(() => {
-                const state = this.get();
-                const totalResults = Math.max(0, state.totalResults - 1);
-                const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
-                const page = Math.min(state.page, totalPages);
-                const nextItems =
-                    state.itemsState.state === 'success'
-                        ? state.itemsState.data.filter((existingItem) => existingItem.key !== item.key)
-                        : null;
+        return this.userListItemControllerService
+            .removeItem({ listId: state.listId, mediaType: item.mediaType, tmdbId: item.id })
+            .pipe(
+                switchMap(() => {
+                    const state = this.get();
+                    const totalResults = Math.max(0, state.totalResults - 1);
+                    const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+                    const page = Math.min(state.page, totalPages);
+                    const nextItems =
+                        state.itemsState.state === 'success'
+                            ? state.itemsState.data.filter((existingItem) => existingItem.key !== item.key)
+                            : null;
 
-                this.patchState({
-                    itemsState: nextItems ? remoteSuccess(nextItems) : state.itemsState,
-                    page,
-                    totalPages,
-                    totalResults,
-                    headerState:
-                        state.headerState.state === 'success'
-                            ? remoteSuccess({
-                                  ...state.headerState.data,
-                                  itemCount: Math.max(0, state.headerState.data.itemCount - 1),
-                                  // The backend drops a picked cover when its item leaves the list.
-                                  cover: isSameUserListCover(state.headerState.data.cover, {
-                                      tmdbId: item.id,
-                                      mediaType: item.mediaType,
+                    this.patchState({
+                        itemsState: nextItems ? remoteSuccess(nextItems) : state.itemsState,
+                        page,
+                        totalPages,
+                        totalResults,
+                        headerState:
+                            state.headerState.state === 'success'
+                                ? remoteSuccess({
+                                      ...state.headerState.data,
+                                      itemCount: Math.max(0, state.headerState.data.itemCount - 1),
+                                      // The backend drops a picked cover when its item leaves the list.
+                                      cover: isSameUserListCover(state.headerState.data.cover, {
+                                          tmdbId: item.id,
+                                          mediaType: item.mediaType,
+                                      })
+                                          ? null
+                                          : state.headerState.data.cover,
                                   })
-                                      ? null
-                                      : state.headerState.data.cover,
-                              })
-                            : state.headerState,
-                });
+                                : state.headerState,
+                    });
 
-                if (totalResults > 0 && nextItems && (page !== state.page || nextItems.length === 0)) {
-                    return this.loadPage$(page - 1);
-                }
+                    if (totalResults > 0 && nextItems && (page !== state.page || nextItems.length === 0)) {
+                        return this.loadPage$(page - 1);
+                    }
 
-                return of(undefined);
-            }),
-        );
+                    return of(undefined);
+                }),
+            );
     }
 
     updateItemComment$(item: UserListDetailItem, comment: string) {
@@ -286,27 +302,34 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
             return throwError(() => new Error('List detail is not loaded yet.'));
         }
 
-        return this.userLibraryService.updateItemComment$(state.listId, item.id, item.mediaType, comment).pipe(
-            tap(() => {
-                this.patchState((state) => ({
-                    itemsState: updateRemoteData(state.itemsState, (items) =>
-                        items.map((existingItem) =>
-                            existingItem.key === item.key ? withComment(existingItem, comment) : existingItem,
+        return this.userListItemControllerService
+            .updateItem({
+                listId: state.listId,
+                mediaType: item.mediaType,
+                tmdbId: item.id,
+                updateListItemRequest: { comment },
+            })
+            .pipe(
+                tap(() => {
+                    this.patchState((state) => ({
+                        itemsState: updateRemoteData(state.itemsState, (items) =>
+                            items.map((existingItem) =>
+                                existingItem.key === item.key ? withComment(existingItem, comment) : existingItem,
+                            ),
                         ),
-                    ),
-                }));
-            }),
-        );
+                    }));
+                }),
+            );
     }
 
     private fetchAndPatchPage$(
         listId: number,
         page: number,
-        sortBy: UserListSortBy | undefined,
-        fallbackDefaultSortBy: UserListSortBy,
+        sortBy: UserListResponse.SortByEnum | undefined,
+        fallbackDefaultSortBy: UserListResponse.SortByEnum,
         restoreState: UserListDetailState,
     ) {
-        return this.userLibraryService.getListDetails$(listId, page - 1, PAGE_SIZE, sortBy).pipe(
+        return this.userListControllerService.getListDetails({ listId, page: page - 1, size: PAGE_SIZE, sortBy }).pipe(
             tap((result) => {
                 const defaultSortBy = result.list?.sortBy ?? fallbackDefaultSortBy;
                 this.patchState(this.toLoadedPageState(result, page, sortBy ?? defaultSortBy, defaultSortBy));
@@ -321,12 +344,23 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
     private toLoadedPageState(
         result: UserListDetailsResponse,
         page: number,
-        activeSortBy: UserListSortBy,
-        fallbackDefaultSortBy: UserListSortBy,
+        activeSortBy: UserListResponse.SortByEnum,
+        fallbackDefaultSortBy: UserListResponse.SortByEnum,
     ) {
         const list = result.list ?? {};
         const items = (result.items?.content ?? []).map((item) => this.toItem(item)).filter(isDefined);
         const totalResults = result.items?.totalElements ?? list.itemCount ?? items.length;
+        const updatedAt = Date.parse(list.updatedAt ?? '');
+        const minutesAgo = Math.floor((Date.now() - updatedAt) / 60_000);
+        const hoursAgo = Math.floor(minutesAgo / 60);
+        const updatedAgo =
+            minutesAgo < 1
+                ? 'just now'
+                : minutesAgo < 60
+                  ? `${pluralize(minutesAgo, 'minute')} ago`
+                  : hoursAgo < 24
+                    ? `${pluralize(hoursAgo, 'hour')} ago`
+                    : `${pluralize(Math.floor(hoursAgo / 24), 'day')} ago`;
 
         return {
             headerState: remoteSuccess({
@@ -334,7 +368,10 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
                 name: list.name || 'Untitled List',
                 description: list.description ?? null,
                 itemCount: list.itemCount ?? totalResults,
-                updatedLabel: toUpdatedAtLabel(list.updatedAt),
+                // A time in the future (clock skew) shows as a date instead.
+                updatedLabel: Number.isNaN(updatedAt)
+                    ? null
+                    : `Updated ${minutesAgo < 0 ? UPDATED_DATE_FORMAT.format(updatedAt) : updatedAgo}`,
                 backdropPath: list.cover?.backdropPath ?? null,
                 cover: toUserListCoverChoice(list.cover),
             }),
@@ -356,12 +393,12 @@ export class UserListDetailStore extends ComponentStore<UserListDetailState> {
 
         return withComment(
             {
-                key: `${mediaItem.mediaType}:${mediaItem.id}`,
+                key: toMediaKey(mediaItem.mediaType, mediaItem.id),
                 id: mediaItem.id,
                 mediaType: mediaItem.mediaType,
                 mediaItem: {
                     ...mediaItem,
-                    badges: [{ label: mediaItem.mediaType === 'tv' ? 'TV series' : 'Movie' }],
+                    badges: [{ label: MEDIA_TYPE_LABEL[mediaItem.mediaType] }],
                 },
                 title: mediaItem.title,
                 link: ['/', 'title', mediaItem.id, mediaItem.mediaType],

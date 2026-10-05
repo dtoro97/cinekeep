@@ -1,11 +1,10 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, ViewportScroller } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 import {
     BrowseToolbarComponent,
     EmptyStateComponent,
-    PageScrollService,
     PersonCardComponent,
     PluralizePipe,
     RepeatPipe,
@@ -33,11 +32,11 @@ export class PopularPeoplePageComponent {
 
     constructor(
         private store: PopularPeopleStoreService,
-        private pageScrollService: PageScrollService,
+        private readonly viewportScroller: ViewportScroller,
     ) {}
 
     changePage(event: PageEvent): void {
-        this.pageScrollService.scrollToTop();
+        this.viewportScroller.scrollToPosition([0, 0]);
         this.store.setPage(event.pageIndex);
     }
 }

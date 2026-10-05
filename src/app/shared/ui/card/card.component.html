@@ -1,5 +1,5 @@
 <div class="media-card">
-    <a class="media-card__link" [routerLink]="item.routeCommands ?? ['/title', item.id, item.mediaType]">
+    <a class="media-card__link" [routerLink]="routeCommands">
         <div class="media-card__media">
             <app-image class="media-card__image" [src]="item.imagePath" [alt]="item.title" [params]="imageParams" />
         </div>
@@ -7,14 +7,14 @@
         <div class="media-card__content">
             <span class="media-card__title text-card-title">{{ item.title }}</span>
 
-            @if ((showRating && item.rating) || item.date) {
+            @if (showMetadata) {
                 <span class="media-card__meta text-card-meta">
                     @if (item.date) {
-                        <span>{{ item.date | date: datePatterns[dateFormat] }}</span>
+                        <span>{{ item.date | date: datePattern }}</span>
                     }
 
-                    @if (showRating && item.rating) {
-                        <app-rating [value]="item.rating" />
+                    @if (rating; as rating) {
+                        <app-rating [value]="rating" />
                     }
                 </span>
             }

@@ -1,98 +1,82 @@
-import {
-    ChangeDetectionStrategy,
-    computed,
-    Component,
-    HostListener,
-    Inject,
-    signal,
-} from '@angular/core';
-import { Router } from '@angular/router';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { AsyncPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, HostListener, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { Router } from '@angular/router';
 
-import type { PhotoViewerData } from '../../models';
+import type { ViewerImage } from '../../models';
 import { ImagePipe } from '../../pipes/image.pipe';
-import { OverlayIconButtonComponent } from '../overlay-icon-button/overlay-icon-button.component';
+import { VoteCountPipe } from '../../pipes/vote-count.pipe';
+import type { RouteCommands } from '../../types';
+import { IconButtonComponent } from '../icon-button/icon-button.component';
 import { RatingComponent } from '../rating/rating.component';
+import { PhotoViewerStoreService } from './photo-viewer-store.service';
 
-function clampIndex(index: number, length: number): number {
-    if (length <= 0) {
-        return 0;
-    }
-
-    const normalizedIndex = Number.isFinite(index) ? Math.trunc(index) : 0;
-
-    return Math.min(Math.max(normalizedIndex, 0), length - 1);
+export interface PhotoViewerData {
+    readonly images: readonly ViewerImage[];
+    readonly activeIndex: number;
+    readonly photosLink?: RouteCommands;
 }
+
+export const PHOTO_VIEWER_DIALOG_CONFIG: MatDialogConfig = {
+    panelClass: 'photo-viewer-panel',
+    maxWidth: '100vw',
+    maxHeight: '100vh',
+    width: '100vw',
+    height: '100vh',
+    autoFocus: false,
+};
 
 @Component({
     selector: 'app-photo-viewer',
-    imports: [MatIconModule, ImagePipe, OverlayIconButtonComponent, RatingComponent],
+    imports: [AsyncPipe, IconButtonComponent, ImagePipe, MatIconModule, RatingComponent, VoteCountPipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [PhotoViewerStoreService],
     templateUrl: './photo-viewer.component.html',
     styleUrl: './photo-viewer.component.scss',
 })
 export class PhotoViewerComponent {
-    private readonly images = this.data.images;
-    private readonly index = signal(
-        clampIndex(this.data.activeIndex, this.images.length),
-    );
-
-    readonly activeImage = computed(() => this.images[this.index()] ?? null);
-    readonly counter = computed(() =>
-        this.images.length ? `${this.index() + 1} / ${this.images.length}` : '',
-    );
-    readonly hasPrev = computed(() => this.index() > 0);
-    readonly hasNext = computed(() => this.index() < this.images.length - 1);
+    readonly photoViewer$ = this.photoViewerStoreService.photoViewer$;
 
     constructor(
-        @Inject(MAT_DIALOG_DATA) public readonly data: PhotoViewerData,
-        private dialogRef: MatDialogRef<PhotoViewerComponent>,
-        private router: Router,
+        @Inject(MAT_DIALOG_DATA) private readonly data: PhotoViewerData,
+        private readonly photoViewerStoreService: PhotoViewerStoreService,
+        private readonly matDialogRef: MatDialogRef<PhotoViewerComponent>,
+        private readonly router: Router,
     ) {
-        if (this.images.length === 0) {
-            this.dialogRef.close();
+        this.photoViewerStoreService.initialize(data);
+
+        if (data.images.length === 0) {
+            this.matDialogRef.close();
         }
     }
 
-    prev(): void {
-        if (this.hasPrev()) {
-            this.index.update((index) => index - 1);
-        }
+    previous(): void {
+        this.photoViewerStoreService.previous();
     }
 
     next(): void {
-        if (this.hasNext()) {
-            this.index.update((index) => index + 1);
-        }
+        this.photoViewerStoreService.next();
     }
 
     close(): void {
-        this.dialogRef.close();
+        this.matDialogRef.close();
     }
 
     openPhotosPage(): void {
-        const { photosLink } = this.data;
-
-        if (!photosLink) {
+        if (!this.data.photosLink) {
             return;
         }
 
-        this.dialogRef.close();
-
-        if (typeof photosLink !== 'string') {
-            this.router.navigate(photosLink);
-            return;
-        }
-
-        this.router.navigateByUrl(photosLink);
+        this.matDialogRef.close();
+        this.router.navigate(this.data.photosLink);
     }
 
     @HostListener('document:keydown', ['$event'])
     onKeydown(event: KeyboardEvent): void {
         if (event.key === 'ArrowLeft') {
             event.preventDefault();
-            this.prev();
+            this.previous();
         }
 
         if (event.key === 'ArrowRight') {

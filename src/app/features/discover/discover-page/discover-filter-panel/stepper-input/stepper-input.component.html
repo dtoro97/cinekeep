@@ -1,0 +1,15 @@
+<div class="stepper-input">
+    <button class="stepper-input__btn" type="button" [attr.aria-label]="decrementLabel" (click)="decrement()">
+        &minus;
+    </button>
+    <input
+        class="stepper-input__field"
+        type="number"
+        [placeholder]="placeholder"
+        [value]="value ?? ''"
+        [min]="min"
+        [max]="max"
+        (change)="changeValue($event)"
+    />
+    <button class="stepper-input__btn" type="button" [attr.aria-label]="incrementLabel" (click)="increment()">+</button>
+</div>

@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 
-import { buildTmdbImageUrl, ImagePipe, RepeatPipe, SeoService, SkeletonComponent } from '../../../shared';
+import { ImagePipe, RepeatPipe, SeoService, SkeletonComponent, toSeoImage } from '../../../shared';
 import { StreamingHubStoreService } from './streaming-hub-store.service';
 
 const STREAMING_HUB_SUBTITLE =
@@ -30,10 +30,8 @@ export class StreamingHubPageComponent {
             seoService.setPage({
                 title: 'Streaming Guide',
                 description: STREAMING_HUB_SUBTITLE,
-                image: buildTmdbImageUrl(seoBackdropPath, 'w1280'),
+                ...toSeoImage(seoBackdropPath),
                 imageAlt: 'CineKeep streaming guide preview',
-                imageWidth: seoBackdropPath ? 1280 : null,
-                imageHeight: seoBackdropPath ? 720 : null,
             }),
         );
     }

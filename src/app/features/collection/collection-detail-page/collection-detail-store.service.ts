@@ -5,15 +5,16 @@ import { catchError, distinctUntilChanged, EMPTY, filter, forkJoin, map, Observa
 
 import { CollectionDetails, CollectionRestControllerService, MovieRestControllerService } from '../../../api';
 import {
+    formatYearRange,
     isDefined,
     mapRemoteData,
     MediaListItem,
     MediaListItemBadge,
     RemoteData,
     remoteSuccess,
-    sortByDate,
-    toCollectionPartMediaListItem,
+    sortBy,
     toISODate,
+    toMediaListItem,
     toMediaListEntries,
 } from '../../../shared';
 
@@ -27,7 +28,7 @@ interface CollectionDetailState {
 }
 
 const TOP_CAST_COUNT = 3;
-const LATEST_BADGE: MediaListItemBadge = { label: 'Latest', variant: 'neutral' };
+const LATEST_BADGE: MediaListItemBadge = { label: 'Latest' };
 
 @Injectable()
 export class CollectionDetailStoreService extends ComponentStore<CollectionDetailState> {
@@ -44,7 +45,7 @@ export class CollectionDetailStoreService extends ComponentStore<CollectionDetai
             heroBackdropPath: details?.backdrop_path ?? null,
             heroAlt: details?.name ?? 'Collection',
             posterAlt: details?.name ?? 'Collection poster',
-            timelineLabel: firstYear && firstYear !== lastYear ? `${firstYear}-${lastYear}` : (firstYear ?? null),
+            timelineLabel: formatYearRange(firstYear, lastYear),
             averageRating: ratings.length ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length : null,
             partsCount: parts.length,
             parts: mapRemoteData(collection, (data) => toMediaListEntries(data.parts)),
@@ -71,7 +72,8 @@ export class CollectionDetailStoreService extends ComponentStore<CollectionDetai
 
         return this.collectionRestControllerService.collectionDetails({ collectionId }).pipe(
             switchMap((collection) => {
-                const sortedParts = sortByDate(collection.parts ?? [], (part) => part.release_date);
+                // ISO dates sort as text; parts without one go last.
+                const sortedParts = sortBy(collection.parts ?? [], (part) => part.release_date || null);
                 const today = toISODate(new Date());
                 const latestReleasedId = sortedParts
                     .filter((part) => part.release_date && part.release_date <= today)
@@ -83,7 +85,7 @@ export class CollectionDetailStoreService extends ComponentStore<CollectionDetai
                     poster_path: collection.poster_path ?? sortedParts.find((part) => part.poster_path)?.poster_path,
                 };
                 const parts$ = sortedParts.map((part) => {
-                    const item = toCollectionPartMediaListItem(part, 'year');
+                    const item = toMediaListItem(part, 'movie', 'year');
                     const badges = part.id === latestReleasedId ? [LATEST_BADGE] : undefined;
 
                     return this.movieRestControllerService.movieCredits({ movieId: item.id }).pipe(

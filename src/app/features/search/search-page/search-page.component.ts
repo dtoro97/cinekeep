@@ -8,14 +8,15 @@ import { distinctUntilChanged, map, switchMap } from 'rxjs';
 import {
     EmptyStateComponent,
     MediaListComponent,
+    MediaOrPersonFilterType,
     MediaOrPersonType,
     PageSectionComponent,
-    PersonListComponent,
     SEARCH_TYPE_OPTIONS,
     SeoService,
     ToggleGroupComponent,
 } from '../../../shared';
-import { SearchStoreService, SearchType } from './search-store.service';
+import { PersonListComponent } from './person-list/person-list.component';
+import { SearchStoreService } from './search-store.service';
 
 @Component({
     selector: 'app-search-page',
@@ -45,14 +46,16 @@ export class SearchPageComponent {
     ) {
         activatedRoute.queryParamMap
             .pipe(
-                map((params): { query: string; type: SearchType } => {
+                map((params): { query: string; type: MediaOrPersonFilterType } => {
                     const type = params.get('type');
                     return {
                         query: params.get('query') ?? '',
                         type: type === 'movie' || type === 'tv' || type === 'person' ? type : 'all',
                     };
                 }),
-                distinctUntilChanged((previous, current) => previous.query === current.query && previous.type === current.type),
+                distinctUntilChanged(
+                    (previous, current) => previous.query === current.query && previous.type === current.type,
+                ),
                 switchMap(({ query, type }) => this.store.search$(query, type)),
                 takeUntilDestroyed(),
             )
@@ -71,7 +74,7 @@ export class SearchPageComponent {
 
     /** The toggle group emits `unknown`, but only ever offers `typeOptions`. */
     setType(type: unknown): void {
-        this.store.setType(type as SearchType);
+        this.store.setType(type as MediaOrPersonFilterType);
     }
 
     loadMore(section: MediaOrPersonType): void {

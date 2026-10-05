@@ -11,17 +11,6 @@ import { MediaTarget, isSameMediaTarget } from './media-target';
 const REVIEW_PREVIEW_COUNT = 3;
 const REVIEW_PREVIEW_MIN_CONTENT_LENGTH = 100;
 
-interface ReviewPaginationState {
-    readonly page: number;
-    readonly totalPages: number;
-    readonly totalResults: number;
-}
-
-export interface ReviewRatingSummary {
-    readonly ratedCount: number;
-    readonly averageRating: number | null;
-}
-
 interface MediaReviewsState {
     readonly target: MediaTarget | null;
     readonly reviewPage: RemoteData<ReviewPage | null>;
@@ -41,7 +30,7 @@ export class MediaReviewsStoreService extends ComponentStore<MediaReviewsState> 
     );
 
     private readonly pagination$ = this.reviewPageState$.pipe(
-        map((state): ReviewPaginationState => {
+        map((state) => {
             const page = state.state === 'success' || state.state === 'loading-more' ? state.data : null;
 
             return {
@@ -57,7 +46,7 @@ export class MediaReviewsStoreService extends ComponentStore<MediaReviewsState> 
     readonly hasMore$ = this.pagination$.pipe(map((pagination) => pagination.page < pagination.totalPages));
 
     readonly ratingSummary$ = this.reviewsState$.pipe(
-        map((state): ReviewRatingSummary => {
+        map((state) => {
             const reviews = state.state === 'success' || state.state === 'loading-more' ? state.data : [];
             const ratings = reviews
                 .map((review) => review.author_details?.rating)

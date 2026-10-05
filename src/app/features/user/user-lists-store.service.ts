@@ -5,8 +5,7 @@ import { catchError, map, of, switchMap, tap, throwError } from 'rxjs';
 
 import { UserListControllerService, UserListResponse } from '../../api-cinekeep';
 import { PAGE_SIZE } from '../../constants';
-import { RemoteData, UserLibraryService, UserListSortBy, isDefined } from '../../shared';
-import { remoteSuccess, toPageItemRange, updateRemoteData } from '../../shared/utils';
+import { isDefined, RemoteData, remoteSuccess, updateRemoteData } from '../../shared';
 import { DEFAULT_USER_LIST_SORT_BY } from './user-list-sort-options';
 import { UserListCoverChoice, toUserListCoverChoice } from './user-list-cover';
 
@@ -21,7 +20,7 @@ export interface UserListSummaryItem {
     readonly id: number;
     readonly name: string;
     readonly description: string | null;
-    readonly sortBy: UserListSortBy;
+    readonly sortBy: UserListResponse.SortByEnum;
     readonly createdAt: string | null;
     readonly updatedAt: string | null;
     readonly numberOfItems: number | null;
@@ -48,26 +47,22 @@ const INITIAL_STATE: UserListsState = {
 
 @Injectable()
 export class UserListsStore extends ComponentStore<UserListsState> {
-    readonly listsViewModel$ = this.select((state) => {
-        const range = toPageItemRange({
-            page: state.page,
-            pageSize: PAGE_SIZE,
-            itemCount: state.items.state === 'success' ? state.items.data.length : 0,
-            totalResults: state.totalResults,
-        });
+    readonly userLists$ = this.select((state) => {
+        const itemCount = state.items.state === 'success' ? state.items.data.length : 0;
+        const hasItems = itemCount > 0 && state.totalResults > 0;
+        const start = (state.page - 1) * PAGE_SIZE + 1;
 
         return {
             state: state.items,
             page: state.page - 1,
             pageSize: PAGE_SIZE,
-            start: range.start,
-            end: range.end,
+            start: hasItems ? start : 0,
+            end: hasItems ? Math.min(state.totalResults, start + itemCount - 1) : 0,
             total: state.totalResults,
         };
     });
 
     constructor(
-        private readonly userLibraryService: UserLibraryService,
         private readonly userListController: UserListControllerService,
     ) {
         super(INITIAL_STATE);
@@ -107,16 +102,19 @@ export class UserListsStore extends ComponentStore<UserListsState> {
         request: {
             readonly name: string;
             readonly description: string;
-            readonly sortBy: UserListSortBy;
+            readonly sortBy: UserListResponse.SortByEnum;
             readonly cover: UserListCoverChoice | null;
         },
     ) {
-        return this.userLibraryService
-            .updateList$(listId, {
-                name: request.name,
-                description: request.description,
-                sortBy: request.sortBy,
-                cover: request.cover ?? undefined,
+        return this.userListController
+            .updateList({
+                listId,
+                updateUserListRequest: {
+                    name: request.name,
+                    description: request.description,
+                    sortBy: request.sortBy,
+                    cover: request.cover ?? undefined,
+                },
             })
             .pipe(
                 tap((list) => {
@@ -141,7 +139,7 @@ export class UserListsStore extends ComponentStore<UserListsState> {
     }
 
     deleteList$(listId: number) {
-        return this.userLibraryService.deleteList$(listId).pipe(
+        return this.userListController.deleteList({ listId }).pipe(
             switchMap(() => {
                 const state = this.get();
                 const totalResults = Math.max(0, state.totalResults - 1);

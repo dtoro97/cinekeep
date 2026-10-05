@@ -45,7 +45,7 @@
 
                 @if (home.showAiringSkeleton) {
                     <div class="tonight-grid" aria-hidden="true">
-                        @for (slot of airingSkeletonCount | repeat; track slot) {
+                        @for (slot of home.airingSkeletonCount | repeat; track slot) {
                             <div class="tonight-row tonight-row--loading">
                                 <app-skeleton class="tonight-poster" />
                                 <div class="tonight-content tonight-content--loading">
@@ -103,7 +103,7 @@
                 @if (home.showStreamingSkeleton) {
                     <div class="streaming-card streaming-card--loading" aria-hidden="true">
                         <span class="streaming-card__preview">
-                            @for (slot of streamingSkeletonCount | repeat; track slot) {
+                            @for (slot of home.streamingSkeletonCount | repeat; track slot) {
                                 <app-skeleton class="streaming-card__poster-skeleton" />
                             }
                         </span>

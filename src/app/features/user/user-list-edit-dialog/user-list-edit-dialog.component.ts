@@ -5,7 +5,8 @@ import { AsyncPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 
-import { ImageComponent, RepeatPipe, SkeletonComponent, UserListSortBy } from '../../../shared';
+import { UserListResponse } from '../../../api-cinekeep';
+import { ImageComponent, RepeatPipe, SkeletonComponent } from '../../../shared';
 import { UserListCoverCandidate, UserListCoverChoice } from '../user-list-cover';
 import {
     UserListForm,
@@ -20,13 +21,13 @@ export interface UserListEditDialogData {
     readonly cover: UserListCoverChoice | null;
     readonly name: string;
     readonly description: string | null;
-    readonly sortBy?: UserListSortBy;
+    readonly sortBy?: UserListResponse.SortByEnum;
 }
 
 export interface UserListEditDialogResult {
     readonly name: string;
     readonly description: string;
-    readonly sortBy?: UserListSortBy;
+    readonly sortBy?: UserListResponse.SortByEnum;
     /** Always sent: the backend resets to the automatic cover when it is missing. */
     readonly cover: UserListCoverChoice | null;
 }
@@ -51,7 +52,7 @@ export interface UserListEditDialogResult {
 export class UserListEditDialogComponent {
     readonly showSortSelector: boolean;
     readonly form: UserListForm;
-    readonly coverVm$ = this.coverStore.vm$;
+    readonly cover$ = this.coverStore.cover$;
     readonly coverSkeletonCount = 6;
 
     constructor(

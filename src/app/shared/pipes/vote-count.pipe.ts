@@ -1,26 +1,28 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
+import { isDefined } from '../utils/is-defined';
+
 @Pipe({
     name: 'voteCount',
 })
 export class VoteCountPipe implements PipeTransform {
     transform(value: number | null | undefined): string {
-        if (value == null || !Number.isFinite(value)) {
+        if (!isDefined(value) || !Number.isFinite(value)) {
             return '0';
         }
 
-        const abs = Math.abs(value);
+        const absoluteValue = Math.abs(value);
         const sign = value < 0 ? '-' : '';
 
-        if (abs < 1000) {
+        if (absoluteValue < 1000) {
             return `${Math.round(value)}`;
         }
 
-        if (abs < 1_000_000) {
-            return `${sign}${this.format(abs / 1000)}K`;
+        if (absoluteValue < 1_000_000) {
+            return `${sign}${this.format(absoluteValue / 1000)}K`;
         }
 
-        return `${sign}${this.format(abs / 1_000_000)}M`;
+        return `${sign}${this.format(absoluteValue / 1_000_000)}M`;
     }
 
     private format(value: number): string {

@@ -6,7 +6,7 @@ import { Observable, filter, map, switchMap } from 'rxjs';
 import { ExternalIds, Movie, TvExternalIds, TvSeries } from '../../api';
 import {
     ConfigStoreService,
-    ExternalLinks,
+    ExternalLink,
     RemoteData,
     buildExternalLinks,
     isDefined,
@@ -105,7 +105,7 @@ export class MediaStoreService extends ComponentStore<MediaState> {
         return media ? toMediaDetails(media, target.type, [...this.configStore.languages()]) : null;
     }
 
-    private toExternalLinks(media: MediaResponse | null): ExternalLinks | null {
+    private toExternalLinks(media: MediaResponse | null): ExternalLink[] | null {
         return media
             ? buildExternalLinks({
                   links: media.external_ids,

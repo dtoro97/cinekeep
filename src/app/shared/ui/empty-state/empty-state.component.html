@@ -1,4 +1,4 @@
-<div class="empty-state u-flex-column u-items-center u-gap-4">
+<div class="empty-state">
     <span
         class="empty-state__icon-shell"
         [class.empty-state__icon-shell--plain]="iconStyle === 'plain'"
@@ -7,7 +7,7 @@
         <i class="empty-state__icon {{ iconClass }}"></i>
     </span>
 
-    <div class="empty-state__content u-flex-column u-gap-1">
+    <div class="empty-state__content">
         @if (title) {
             <p class="empty-state__title text-title">{{ title }}</p>
         }

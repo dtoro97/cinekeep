@@ -1,5 +1,8 @@
 import { PersonCardItem } from '../../../shared';
 
+/** How many cast members the credits summary grid shows. */
+export const TOP_CAST_GRID_COUNT = 12;
+
 export interface CreditsSummary {
     readonly topCast: readonly PersonCardItem[];
     readonly directors: readonly CreditsSummaryLink[];

@@ -1,5 +1,5 @@
-@use "breakpoints" as *;
-@use "mixins" as *;
+@use 'breakpoints' as *;
+@use 'mixins' as *;
 
 :host {
     --photos-browser-gap: var(--space-4);
@@ -20,9 +20,18 @@
         min-width: 0;
     }
 
+    &__count {
+        white-space: nowrap;
+    }
+
     &__filters {
         flex: 1;
         min-width: 0;
+    }
+
+    &__more {
+        display: flex;
+        justify-content: center;
     }
 
     &__grid {

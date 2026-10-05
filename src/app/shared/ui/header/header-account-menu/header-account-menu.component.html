@@ -1,27 +1,18 @@
-@if (vm$ | async; as vm) {
-    @if (!vm.ready) {
-        <button
-            class="account-menu__placeholder"
-            type="button"
-            disabled
-            aria-label="Account menu loading"
-        >
+@if (account$ | async; as account) {
+    @if (!account.isReady) {
+        <button class="account-menu__placeholder" type="button" disabled aria-label="Account menu loading">
             <mat-icon class="account-menu__placeholder-icon" aria-hidden="true">account_circle</mat-icon>
         </button>
-    } @else if (vm.isAuthenticated) {
+    } @else if (account.isAuthenticated) {
         <button
             class="account-menu__trigger"
             type="button"
             [matMenuTriggerFor]="accountMenu"
             [matMenuTriggerRestoreFocus]="false"
-            [disabled]="vm.busy"
-            attr.aria-label="Open account menu for {{ vm.displayName }}"
+            [disabled]="account.isBusy"
+            attr.aria-label="Open account menu for {{ account.displayName }}"
         >
-            <app-user-avatar
-                class="account-menu__avatar"
-                [name]="vm.username ?? vm.displayName"
-                size="sm"
-            />
+            <app-user-avatar class="account-menu__avatar" [name]="account.avatarName" size="sm" />
             <mat-icon class="account-menu__chevron" aria-hidden="true">expand_more</mat-icon>
         </button>
 
@@ -29,10 +20,10 @@
             <div class="account-menu__panel">
                 <a class="account-menu__identity" mat-menu-item routerLink="/me">
                     <span class="account-menu__identity-row">
-                        <app-user-avatar [name]="vm.username ?? vm.displayName" size="sm" />
+                        <app-user-avatar [name]="account.avatarName" size="sm" />
                         <span class="account-menu__identity-copy">
                             <span class="account-menu__identity-name text-body-sm u-truncate">
-                                {{ vm.displayName }}
+                                {{ account.displayName }}
                             </span>
                             <span class="text-caption">View profile</span>
                         </span>
@@ -58,7 +49,7 @@
                     class="account-menu__item"
                     mat-menu-item
                     type="button"
-                    [disabled]="vm.busy"
+                    [disabled]="account.isBusy"
                     (click)="signOut()"
                 >
                     <mat-icon class="account-menu__item-icon" aria-hidden="true">logout</mat-icon>
@@ -70,8 +61,8 @@
         <button
             class="account-menu__signin text-meta"
             type="button"
-            [disabled]="vm.busy"
-            [attr.aria-busy]="vm.busy ? 'true' : null"
+            [disabled]="account.isBusy"
+            [attr.aria-busy]="account.isBusy"
             (click)="startLogin()"
         >
             <mat-icon class="account-menu__signin-icon" aria-hidden="true">login</mat-icon>

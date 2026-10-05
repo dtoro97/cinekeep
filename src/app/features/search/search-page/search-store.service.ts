@@ -17,8 +17,6 @@ import {
     toPersonListItem,
 } from '../../../shared';
 
-export type SearchType = MediaOrPersonFilterType;
-
 interface SearchResultsBySection {
     movie: MediaListItem;
     tv: MediaListItem;
@@ -40,7 +38,7 @@ type SearchSections = { [K in MediaOrPersonType]: SearchSection<SearchResultsByS
 
 interface SearchState {
     query: string;
-    type: SearchType;
+    type: MediaOrPersonFilterType;
     sections: SearchSections;
 }
 
@@ -141,7 +139,7 @@ export class SearchStoreService extends ComponentStore<SearchState> {
         super(INITIAL_STATE);
     }
 
-    search$(query: string, type: SearchType): Observable<unknown> {
+    search$(query: string, type: MediaOrPersonFilterType): Observable<unknown> {
         const trimmedQuery = query.trim();
         const requestedKeys = SECTION_KEYS.filter((key) => trimmedQuery && (type === 'all' || type === key));
         const toInitialSection = (key: MediaOrPersonType): SearchSection<never> => ({
@@ -175,7 +173,7 @@ export class SearchStoreService extends ComponentStore<SearchState> {
         return this.fetchPage$(key, query, section.page + 1, section.results.length + PAGE_SIZE);
     }
 
-    setType(type: SearchType): void {
+    setType(type: MediaOrPersonFilterType): void {
         const { query } = this.get();
         this.router.navigate([], {
             relativeTo: this.activatedRoute,

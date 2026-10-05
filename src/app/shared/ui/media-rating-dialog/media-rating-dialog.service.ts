@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-
 import { MatDialog } from '@angular/material/dialog';
-
 import { EMPTY, Observable, switchMap } from 'rxjs';
 
 import { UserSessionStoreService } from '../../services/user-session-store.service';

@@ -5,11 +5,11 @@ import { Observable, map } from 'rxjs';
 
 import { ImageList } from '../../api';
 import {
+    IMAGE_LANGUAGE_FALLBACK,
+    loadCachedResource$,
     LocaleStoreService,
     RemoteData,
     ViewerImage,
-    buildImageLanguageFallback,
-    loadCachedResource$,
 } from '../../shared';
 import { MediaApiService } from './media-api.service';
 import { MediaTarget, isSameMediaTarget } from './media-target';
@@ -45,7 +45,7 @@ export class MediaImagesStoreService extends ComponentStore<MediaImagesState> {
             state$: this.imagesState$,
             fetch: () =>
                 this.mediaApiService
-                    .getImages$(target, buildImageLanguageFallback(), this.localeStore.language())
+                    .getImages$(target, IMAGE_LANGUAGE_FALLBACK, this.localeStore.language())
                     .pipe(map((images) => this.toViewerImages(images.backdrops ?? [], images.posters ?? []))),
             patch: (images) => this.patchState({ images }),
             fallback: [],

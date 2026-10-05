@@ -11,12 +11,11 @@ import {
 } from '../../api';
 import {
     EpisodeSnapshotRequest,
-    MediaSnapshotRequest,
     toEpisodeSnapshotRequest,
     toMediaSnapshotRequest,
 } from '../mappers/media-snapshot.mapper';
+import { SeriesSnapshotRequest } from '../../api-cinekeep';
 import { MediaType } from '../types';
-import { LocaleStoreService } from './locale-store.service';
 
 /**
  * CineKeep stores a display snapshot (title, poster, ...) with every saved item. Callers that
@@ -25,7 +24,6 @@ import { LocaleStoreService } from './locale-store.service';
 @Injectable({ providedIn: 'root' })
 export class MediaSnapshotService {
     constructor(
-        private readonly localeStore: LocaleStoreService,
         private readonly movieService: MovieRestControllerService,
         private readonly tvEpisodeService: TvEpisodeRestControllerService,
         private readonly tvSeriesService: TvSeriesRestControllerService,
@@ -34,17 +32,16 @@ export class MediaSnapshotService {
     resolveMediaSnapshot$(
         mediaId: number,
         mediaType: MediaType,
-        snapshot?: MediaSnapshotRequest,
-    ): Observable<MediaSnapshotRequest> {
+        snapshot?: SeriesSnapshotRequest,
+    ): Observable<SeriesSnapshotRequest> {
         if (snapshot) {
             return of(snapshot);
         }
 
-        const language = this.localeStore.language();
         const media$: Observable<Movie | TvSeries> =
             mediaType === 'tv'
-                ? this.tvSeriesService.tvSeriesDetails({ seriesId: mediaId, language })
-                : this.movieService.movieDetails({ movieId: mediaId, language });
+                ? this.tvSeriesService.tvSeriesDetails({ seriesId: mediaId })
+                : this.movieService.movieDetails({ movieId: mediaId });
 
         return media$.pipe(map((media) => toMediaSnapshotRequest(media, mediaType)));
     }
@@ -65,7 +62,6 @@ export class MediaSnapshotService {
                 seriesId,
                 seasonNumber,
                 episodeNumber,
-                language: this.localeStore.language(),
             }),
         }).pipe(map(({ series, episode }) => toEpisodeSnapshotRequest(episode, episodeNumber, series)));
     }

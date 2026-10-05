@@ -1,16 +1,16 @@
-@use "breakpoints" as *;
+@use 'breakpoints' as *;
 
 :host {
     --photos-browser-skeleton-row-height: 300px;
 }
 
-.skeleton-browser {
+.photos-browser-skeleton {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
 }
 
-.toolbar-start {
+.photos-browser-skeleton__toolbar-start {
     display: flex;
     flex: 1;
     flex-wrap: wrap;
@@ -19,45 +19,39 @@
     min-width: 0;
 }
 
-.count,
-.filter,
-.language,
-.sort {
+.photos-browser-skeleton__count,
+.photos-browser-skeleton__filter,
+.photos-browser-skeleton__sort {
     --skeleton-radius: var(--radius-pill);
 }
 
-.count {
+.photos-browser-skeleton__count {
     width: 5rem;
     --skeleton-height: 1.25rem;
 }
 
-.filter {
+.photos-browser-skeleton__filter {
     width: 5.5rem;
     flex: 0 0 auto;
     --skeleton-height: var(--control-height-sm);
 }
 
-.filter--short {
+.photos-browser-skeleton__filter--short {
     width: 4.5rem;
 }
 
-.language {
-    flex: 0 1 18rem;
-    --skeleton-height: var(--control-height-sm);
-}
-
-.sort {
+.photos-browser-skeleton__sort {
     width: 14rem;
     --skeleton-height: var(--control-height-sm);
 }
 
-.grid {
+.photos-browser-skeleton__grid {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-4);
 }
 
-.tile {
+.photos-browser-skeleton__tile {
     flex: 1 1 calc(1.5 * var(--photos-browser-skeleton-row-height));
     height: var(--photos-browser-skeleton-row-height);
     min-width: 0;
@@ -70,31 +64,29 @@
         --photos-browser-skeleton-row-height: 140px;
     }
 
-    .skeleton-browser {
+    .photos-browser-skeleton {
         gap: var(--space-3);
     }
 
-    .toolbar-start {
+    .photos-browser-skeleton__toolbar-start {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .filter,
-    .language,
-    .sort {
+    .photos-browser-skeleton__filter,
+    .photos-browser-skeleton__sort {
         flex: none;
     }
 
-    .filter {
+    .photos-browser-skeleton__filter {
         width: 5.5rem;
     }
 
-    .language,
-    .sort {
+    .photos-browser-skeleton__sort {
         width: 100%;
     }
 
-    .grid {
+    .photos-browser-skeleton__grid {
         gap: var(--space-2);
     }
 }

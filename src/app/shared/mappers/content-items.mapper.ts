@@ -1,17 +1,7 @@
-import { CollectionPart, MultiListItem } from '../../api';
 import type { MediaType, RemoteData } from '../types';
 import { mapRemoteData } from '../utils/remote-data';
 import { toRating } from '../utils/rating';
-import {
-    CardItem,
-    KnownForLink,
-    PersonCardItem,
-    VideoTrailerSeedItem,
-    MediaListEntry,
-    MediaListItem,
-    PersonListItem,
-    SearchResultItem,
-} from '../models';
+import { CardItem, KnownForLink, MediaListEntry, MediaListItem, PersonCardItem, PersonListItem } from '../models';
 
 type DatePrecision = 'year' | 'full';
 
@@ -82,33 +72,6 @@ const toKnownForLinks = (
             mediaType: (item.media_type || 'movie') as MediaType,
         }));
 
-const toKnownForText = (knownForLinks: KnownForLink[]): string | undefined => {
-    if (!knownForLinks.length) {
-        return undefined;
-    }
-    return knownForLinks.map((item) => item.title).join(', ');
-};
-
-const toVideoTrailerSeed = (
-    item: {
-        id?: number | null;
-        overview?: string | null;
-        poster_path?: string | null;
-        backdrop_path?: string | null;
-    },
-    mediaType: MediaType,
-    mediaTitle: string | null | undefined,
-    mediaDate: string | null | undefined,
-): VideoTrailerSeedItem => ({
-    mediaId: item.id ?? 0,
-    mediaType,
-    mediaTitle: mediaTitle ?? '',
-    mediaYear: toDateValue(mediaDate, 'year'),
-    mediaOverview: item.overview ?? '',
-    mediaPosterPath: item.poster_path ?? null,
-    backdropPath: item.backdrop_path ?? null,
-});
-
 export const toMediaListItem = (
     item: MediaItemLike,
     mediaType: MediaType,
@@ -124,27 +87,8 @@ export const toMediaListItem = (
         date: toDateValue(date, datePrecision),
         mediaType,
         genreIds: item.genre_ids ?? [],
-        voteCount: item.vote_count ?? 0,
     };
 };
-
-export const toCollectionPartMediaListItem = (
-    item: CollectionPart,
-    datePrecision: DatePrecision = 'full',
-): MediaListItem =>
-    toMediaListItem(
-        {
-            id: item.id,
-            poster_path: item.poster_path,
-            title: item.title,
-            overview: item.overview,
-            vote_average: item.vote_average,
-            vote_count: item.vote_count,
-            release_date: item.release_date,
-        },
-        'movie',
-        datePrecision,
-    );
 
 export const toMediaListEntryState = (
     state: RemoteData<MediaListItem[]>,
@@ -175,10 +119,7 @@ export const toMediaListEntries = (
     }));
 
 export const toPersonListItem = (person: PersonLike): PersonListItem => ({
-    id: person.id ?? 0,
-    thumb: person.profile_path ?? null,
-    title: person.name ?? '',
-    department: person.known_for_department ?? '',
+    ...toPersonCardItem(person),
     knownForLinks: toKnownForLinks(person.known_for),
 });
 
@@ -196,74 +137,9 @@ export const toKnownForPersonCardItem = (person: PersonLike): PersonCardItem => 
 });
 
 export const toCastPersonCardItem = (person: CastLike): PersonCardItem => ({
-    id: person.id ?? 0,
-    name: person.name ?? '',
-    imagePath: person.profile_path ?? null,
+    ...toPersonCardItem(person),
     subtitle: person.character ?? '',
 });
-
-export const mediaToSearchResultItem = (
-    item: MediaItemLike,
-    mediaType: MediaType,
-): SearchResultItem => ({
-    ...toMediaListItem(item, mediaType, 'year'),
-    year: toDateValue(extractMediaFields(item, mediaType).date, 'year'),
-    mediaType,
-    mediaTypeLabel: toSearchResultMediaTypeLabel(mediaType),
-    department: '',
-});
-
-export const personToSearchResultItem = (
-    person: PersonLike,
-): SearchResultItem => {
-    const knownForLinks = toKnownForLinks(person.known_for);
-    return {
-        id: person.id ?? 0,
-        thumb: person.profile_path ?? null,
-        title: person.name ?? '',
-        year: '',
-        mediaType: 'person',
-        mediaTypeLabel: toSearchResultMediaTypeLabel('person'),
-        overview: '',
-        rating: null,
-        department: person.known_for_department ?? '',
-        known_for: toKnownForText(knownForLinks),
-    };
-};
-
-export const multiToSearchResultItem = (
-    item: MultiListItem,
-): SearchResultItem => {
-    const knownForLinks = toKnownForLinks(item.known_for);
-    return {
-        id: item.id ?? 0,
-        thumb: item.poster_path || item.profile_path || null,
-        title: item.title || item.name || '',
-        year: toDateValue(item.release_date || item.first_air_date, 'year'),
-        mediaType: item.media_type || 'movie',
-        mediaTypeLabel: toSearchResultMediaTypeLabel(item.media_type || 'movie'),
-        overview: item.overview || '',
-        rating: toRating(item.vote_average),
-        department: item.known_for_department || '',
-        known_for: toKnownForText(knownForLinks),
-    };
-};
-
-function toSearchResultMediaTypeLabel(mediaType: string): string {
-    if (mediaType === 'movie') {
-        return 'Movie';
-    }
-
-    if (mediaType === 'tv') {
-        return 'TV series';
-    }
-
-    if (mediaType === 'person') {
-        return 'Person';
-    }
-
-    return mediaType;
-}
 
 export const toCardItem = (
     item: MediaItemLike,
@@ -293,11 +169,3 @@ export const mediaListItemToCardItem = (item: MediaListItem): CardItem => ({
     date: item.date,
     overview: item.overview,
 });
-
-export const toVideoTrailerSeedItem = (
-    item: MediaItemLike,
-    mediaType: MediaType,
-): VideoTrailerSeedItem => {
-    const { title, date } = extractMediaFields(item, mediaType);
-    return toVideoTrailerSeed(item, mediaType, title, date);
-};

@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
 
-import { UserListItemResponse } from '../../../api-cinekeep';
-import { RemoteData, UserLibraryService, isDefined, mapRemoteData, remoteSuccess } from '../../../shared';
+import { UserListControllerService, UserListItemResponse } from '../../../api-cinekeep';
+import { RemoteData, isDefined, mapRemoteData, remoteSuccess } from '../../../shared';
 import { UserListCoverCandidate, UserListCoverChoice, toUserListCoverKey } from '../user-list-cover';
 
 const COVER_CANDIDATE_LIMIT = 100;
@@ -15,7 +15,7 @@ interface UserListEditDialogState {
 
 @Injectable()
 export class UserListEditDialogStore extends ComponentStore<UserListEditDialogState> {
-    readonly vm$ = this.select((state) => {
+    readonly cover$ = this.select((state) => {
         const selectedKey = toUserListCoverKey(state.selectedCover);
 
         return {
@@ -30,7 +30,7 @@ export class UserListEditDialogStore extends ComponentStore<UserListEditDialogSt
         listId$.pipe(
             tap(() => this.patchState({ candidates: { state: 'loading' } })),
             switchMap((listId) =>
-                this.userLibraryService.getListDetails$(listId, 0, COVER_CANDIDATE_LIMIT, undefined).pipe(
+                this.userListControllerService.getListDetails({ listId, page: 0, size: COVER_CANDIDATE_LIMIT }).pipe(
                     map((result) => (result.items?.content ?? []).map(toCoverCandidate).filter(isDefined)),
                     catchError(() => of<UserListCoverCandidate[]>([])),
                 ),
@@ -39,7 +39,7 @@ export class UserListEditDialogStore extends ComponentStore<UserListEditDialogSt
         ),
     );
 
-    constructor(private readonly userLibraryService: UserLibraryService) {
+    constructor(private readonly userListControllerService: UserListControllerService) {
         super({ candidates: { state: 'notAsked' }, selectedCover: null });
     }
 

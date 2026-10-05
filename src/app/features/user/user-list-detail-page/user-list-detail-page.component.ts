@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, ViewportScroller } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -24,22 +24,18 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { EMPTY, Observable, catchError, distinctUntilChanged, finalize, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, distinctUntilChanged, finalize, switchMap, tap } from 'rxjs';
 
 import {
     BrowseToolbarComponent,
     ConfirmationDialogService,
     EmptyStateComponent,
     IconButtonComponent,
-    PageScrollService,
     RepeatPipe,
     SeoService,
-    SnackbarComponent,
     SnackbarService,
-    SnackbarType,
     SortButtonComponent,
     SubPageHeaderComponent,
-    UserListSortBy,
     MediaListItemComponent,
 } from '../../../shared';
 import {
@@ -50,6 +46,7 @@ import {
     UserListEditDialogComponent,
     UserListEditDialogData,
 } from '../user-list-edit-dialog/user-list-edit-dialog.component';
+import { UserListResponse } from '../../../api-cinekeep';
 import { UserListDetailHeader, UserListDetailItem, UserListDetailStore } from '../user-list-detail-store.service';
 import { isSameUserListCover } from '../user-list-cover';
 import { USER_LIST_SORT_FIELD_OPTIONS, UserListSort, toUserListSortBy } from '../user-list-sort-options';
@@ -80,7 +77,7 @@ import { USER_LIST_SORT_FIELD_OPTIONS, UserListSort, toUserListSortBy } from '..
 })
 export class UserListDetailPageComponent {
     readonly listId = input.required({ transform: numberAttribute });
-    readonly vm$ = this.store.userListDetailVm$;
+    readonly userListDetail$ = this.store.userListDetail$;
     readonly backLink = ['/', 'me', 'lists'];
     readonly initialSkeletonCount = 6;
     readonly sortFieldOptions = USER_LIST_SORT_FIELD_OPTIONS;
@@ -95,10 +92,10 @@ export class UserListDetailPageComponent {
         private readonly injector: Injector,
         private readonly confirmationDialog: ConfirmationDialogService,
         private readonly dialog: MatDialog,
-        private readonly pageScroll: PageScrollService,
+        private readonly viewportScroller: ViewportScroller,
         private readonly router: Router,
         private readonly seo: SeoService,
-        private readonly snackbar: SnackbarService,
+        private readonly snackbarService: SnackbarService,
         private readonly store: UserListDetailStore,
     ) {
         toObservable(this.listId)
@@ -113,14 +110,13 @@ export class UserListDetailPageComponent {
             )
             .subscribe();
 
-        this.vm$
+        this.userListDetail$
             .pipe(
-                tap((vm) => {
-                    if (vm.header.state === 'success') {
+                tap(({ header }) => {
+                    if (header.state === 'success') {
                         this.seo.setPage({
-                            title: `${vm.header.data.name} | List`,
-                            description:
-                                vm.header.data.description || 'Your saved movies and TV series in one CineKeep list.',
+                            title: `${header.data.name} | List`,
+                            description: header.data.description || 'Your saved movies and TV series in one CineKeep list.',
                             robots: 'noindex, nofollow',
                         });
                         return;
@@ -137,12 +133,12 @@ export class UserListDetailPageComponent {
     }
 
     onPageChange(event: PageEvent): void {
-        this.pageScroll.scrollToTop();
+        this.viewportScroller.scrollToPosition([0, 0]);
 
         this.store
             .loadPage$(event.pageIndex)
             .pipe(
-                catchError(() => this.showError('Could not load list items.')),
+                catchError(() => this.snackbarService.showError$('Could not load list items.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -163,13 +159,13 @@ export class UserListDetailPageComponent {
             .afterClosed()
             .pipe(
                 switchMap((changed) => (changed ? this.store.reload$() : EMPTY)),
-                catchError(() => this.showError('Could not refresh this list.')),
+                catchError(() => this.snackbarService.showError$('Could not refresh this list.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
     }
 
-    onEditDetails(header: UserListDetailHeader, defaultSortBy: UserListSortBy): void {
+    onEditDetails(header: UserListDetailHeader, defaultSortBy: UserListResponse.SortByEnum): void {
         this.dialog
             .open<UserListEditDialogComponent, UserListEditDialogData>(UserListEditDialogComponent, {
                 ariaLabelledBy: 'edit-list-title',
@@ -203,11 +199,11 @@ export class UserListDetailPageComponent {
 
                     return this.store.updateList$(result).pipe(
                         tap(() => {
-                            this.showSuccess('List details updated.');
+                            this.snackbarService.showSuccess('List details updated.');
                         }),
                     );
                 }),
-                catchError(() => this.showError('Could not update this list.')),
+                catchError(() => this.snackbarService.showError$('Could not update this list.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -227,11 +223,11 @@ export class UserListDetailPageComponent {
         this.applySort(toUserListSortBy({ ...current, direction: current.direction === 'asc' ? 'desc' : 'asc' }));
     }
 
-    private applySort(sortBy: UserListSortBy): void {
+    private applySort(sortBy: UserListResponse.SortByEnum): void {
         this.store
             .setSortBy$(sortBy)
             .pipe(
-                catchError(() => this.showError('Could not update list sorting.')),
+                catchError(() => this.snackbarService.showError$('Could not update list sorting.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -248,9 +244,9 @@ export class UserListDetailPageComponent {
             .pipe(
                 switchMap((confirmed) => (confirmed ? this.store.clearList$() : EMPTY)),
                 tap(() => {
-                    this.showSuccess('List cleared.');
+                    this.snackbarService.showSuccess('List cleared.');
                 }),
-                catchError(() => this.showError('Could not clear this list.')),
+                catchError(() => this.snackbarService.showError$('Could not clear this list.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -268,9 +264,9 @@ export class UserListDetailPageComponent {
                 switchMap((confirmed) => (confirmed ? this.store.deleteList$() : EMPTY)),
                 tap(() => {
                     this.router.navigate(this.backLink);
-                    this.showSuccess('List deleted.');
+                    this.snackbarService.showSuccess('List deleted.');
                 }),
-                catchError(() => this.showError('Could not delete this list.')),
+                catchError(() => this.snackbarService.showError$('Could not delete this list.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -287,9 +283,9 @@ export class UserListDetailPageComponent {
             .pipe(
                 switchMap((confirmed) => (confirmed ? this.store.removeItem$(item) : EMPTY)),
                 tap(() => {
-                    this.showSuccess('Item removed from the list.');
+                    this.snackbarService.showSuccess('Item removed from the list.');
                 }),
-                catchError(() => this.showError('Could not remove this item.')),
+                catchError(() => this.snackbarService.showError$('Could not remove this item.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -333,28 +329,12 @@ export class UserListDetailPageComponent {
             .pipe(
                 tap(() => {
                     this.onCancelComment();
-                    this.showSuccess(comment ? 'Comment saved.' : 'Comment removed.');
+                    this.snackbarService.showSuccess(comment ? 'Comment saved.' : 'Comment removed.');
                 }),
-                catchError(() => this.showError('Could not save this comment. Your text is still here, try again.')),
+                catchError(() => this.snackbarService.showError$('Could not save this comment. Your text is still here, try again.')),
                 finalize(() => this.commentPending.set(false)),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
-    }
-
-    private showSuccess(message: string): void {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Success,
-        });
-    }
-
-    private showError(message: string): Observable<never> {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Error,
-        });
-
-        return EMPTY;
     }
 }

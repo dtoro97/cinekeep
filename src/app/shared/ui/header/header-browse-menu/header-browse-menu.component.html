@@ -1,3 +1,5 @@
+@let menuOpen = menuOpen$ | async;
+
 <button
     class="browse-menu__button text-meta"
     type="button"
@@ -13,7 +15,7 @@
     <nav id="browse-menu-panel" class="browse-menu__panel" aria-label="Browse">
         <div class="browse-menu__inner inner-container">
             <div class="browse-menu__groups">
-                @for (group of browseGroups; track group.title) {
+                @for (group of browseGroups; track group.id) {
                     <section class="browse-menu__group" attr.aria-labelledby="browse-menu-{{ group.id }}">
                         <h2 class="browse-menu__group-title text-title" id="browse-menu-{{ group.id }}">
                             <mat-icon class="browse-menu__group-icon">{{ group.icon }}</mat-icon>
@@ -21,15 +23,14 @@
                         </h2>
 
                         <ul class="browse-menu__links u-list-none">
-                            @for (link of group.links; track link.label) {
+                            @for (link of group.links; track link.routerLink) {
                                 <li>
                                     <a
                                         class="browse-menu__link"
                                         [routerLink]="link.routerLink"
                                         routerLinkActive="browse-menu__link--active"
-                                        [routerLinkActiveOptions]="link.activeOptions"
-                                        [attr.aria-current]="rla.isActive ? 'page' : null"
-                                        #rla="routerLinkActive"
+                                        [routerLinkActiveOptions]="exactMatch"
+                                        ariaCurrentWhenActive="page"
                                         (click)="closeMenu()"
                                     >
                                         <span class="text-body-sm browse-menu__link-label">{{ link.label }}</span>
@@ -42,25 +43,17 @@
             </div>
 
             <div class="browse-menu__actions">
-                @for (link of browseActions; track link.label) {
-                    <a
-                        class="browse-menu__action text-body-sm"
-                        [routerLink]="link.routerLink"
-                        routerLinkActive="browse-menu__action--active"
-                        [routerLinkActiveOptions]="link.activeOptions"
-                        [attr.aria-current]="actionRla.isActive ? 'page' : null"
-                        #actionRla="routerLinkActive"
-                        (click)="closeMenu()"
-                    >
-                        @if (link.iconClass) {
-                            <i
-                                attr.class="browse-menu__action-icon {{ link.iconClass }}"
-                                aria-hidden="true"
-                            ></i>
-                        }
-                        <span>{{ link.label }}</span>
-                    </a>
-                }
+                <a
+                    class="browse-menu__action text-body-sm"
+                    routerLink="/discover"
+                    routerLinkActive="browse-menu__action--active"
+                    [routerLinkActiveOptions]="exactMatch"
+                    ariaCurrentWhenActive="page"
+                    (click)="closeMenu()"
+                >
+                    <i class="browse-menu__action-icon fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <span>Explore by filters</span>
+                </a>
             </div>
         </div>
     </nav>

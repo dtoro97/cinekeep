@@ -1,35 +1,37 @@
-@if (state().state === 'loading') {
-    <div class="photos-preview" [class.photos-preview--compact]="variant() === 'compact'" aria-hidden="true">
-        @for (skeletonTile of skeletonTiles(); track skeletonTile) {
-            <app-skeleton class="photos-preview__skeleton" />
-        }
-        <span class="photos-preview__spacer" aria-hidden="true"></span>
-        <span class="photos-preview__spacer" aria-hidden="true"></span>
-    </div>
-} @else if (tiles().length) {
-    <div class="photos-preview" [class.photos-preview--compact]="variant() === 'compact'">
-        @for (tile of tiles(); track tile.image.file_path) {
-            <button
-                type="button"
-                class="photos-preview__item"
-                [style.--photo-aspect-ratio]="tile.layoutAspectRatio"
-                [attr.aria-label]="tile.ariaLabel"
-                (click)="tile.moreCount ? moreClick.emit() : photoClick.emit(tile.clickIndex)"
-            >
-                <app-image
-                    class="photos-preview__image"
-                    [src]="tile.image.file_path"
-                    [params]="tile.imageParams"
-                    [type]="tile.imageType"
-                    alt=""
-                />
-                @if (tile.moreCount; as moreCount) {
-                    <span class="photos-preview__more text-title"> +{{ moreCount > 99 ? 99 : moreCount }} </span>
-                }
-            </button>
-        }
-        <span class="photos-preview__spacer" aria-hidden="true"></span>
-        <span class="photos-preview__spacer" aria-hidden="true"></span>
-        <span class="photos-preview__spacer" aria-hidden="true"></span>
-    </div>
+@if (photosPreview$ | async; as photosPreview) {
+    @if (photosPreview.showSkeleton) {
+        <div class="photos-preview" [class.photos-preview--compact]="photosPreview.isCompact" aria-hidden="true">
+            @for (slot of photosPreview.skeletonCount | repeat; track slot) {
+                <app-skeleton class="photos-preview__skeleton" />
+            }
+            <span class="photos-preview__spacer" aria-hidden="true"></span>
+            <span class="photos-preview__spacer" aria-hidden="true"></span>
+        </div>
+    } @else if (photosPreview.hasTiles) {
+        <div class="photos-preview" [class.photos-preview--compact]="photosPreview.isCompact">
+            @for (tile of photosPreview.tiles; track tile.image.file_path) {
+                <button
+                    type="button"
+                    class="photos-preview__item"
+                    [style.--photo-aspect-ratio]="tile.layoutAspectRatio"
+                    [attr.aria-label]="tile.ariaLabel"
+                    (click)="selectPhoto(tile.clickIndex, tile.hasMore)"
+                >
+                    <app-image
+                        class="photos-preview__image"
+                        [src]="tile.image.file_path"
+                        [params]="tile.imageParams"
+                        [type]="tile.imageType"
+                        alt=""
+                    />
+                    @if (tile.moreLabel; as moreLabel) {
+                        <span class="photos-preview__more text-title">{{ moreLabel }}</span>
+                    }
+                </button>
+            }
+            <span class="photos-preview__spacer" aria-hidden="true"></span>
+            <span class="photos-preview__spacer" aria-hidden="true"></span>
+            <span class="photos-preview__spacer" aria-hidden="true"></span>
+        </div>
+    }
 }

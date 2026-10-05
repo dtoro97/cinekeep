@@ -1,31 +1,31 @@
 <div class="page-container">
-    @if (vm$ | async; as vm) {
+    @if (reviewDetail$ | async; as reviewDetail) {
         <app-sub-page-header
-            [backdropPath]="vm.media?.backdropPath"
+            [backdropPath]="reviewDetail.media?.backdropPath"
             parentTitle="Reviews"
             [backLink]="['../']"
-            [pageTitle]="vm.pageTitle"
+            [pageTitle]="reviewDetail.pageTitle"
         />
 
         <main class="page-main review-detail-layout">
             <aside class="review-detail-layout__summary">
-                <app-review-media-summary [media]="vm.media" />
+                <app-review-media-summary [media]="reviewDetail.media" />
             </aside>
 
             <section class="review-detail-layout__body">
-                @if (vm.reviewState.state === 'loading') {
+                @if (reviewDetail.reviewState.state === 'loading') {
                     <div class="review-detail-skeleton" aria-hidden="true">
                         <app-skeleton class="review-detail-skeleton__score" />
                         <div class="review-detail-skeleton__body">
                             <app-skeleton class="review-detail-skeleton__line review-detail-skeleton__line--byline" />
-                            @for (line of skeletonLines; track $index) {
+                            @for (slot of skeletonLineCount | repeat; track slot) {
                                 <app-skeleton class="review-detail-skeleton__line" />
                             }
                             <app-skeleton class="review-detail-skeleton__line review-detail-skeleton__line--short" />
                         </div>
                     </div>
-                } @else if (vm.reviewState.state === 'success') {
-                    @if (vm.reviewState.data; as review) {
+                } @else if (reviewDetail.reviewState.state === 'success') {
+                    @if (reviewDetail.reviewState.data; as review) {
                         <app-review-card [review]="review" variant="detail" />
                     } @else {
                         <app-empty-state iconClass="fa-regular fa-comment-dots" text="This review is unavailable." />

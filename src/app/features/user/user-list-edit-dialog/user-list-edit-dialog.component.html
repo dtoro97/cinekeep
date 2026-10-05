@@ -4,7 +4,7 @@
     <mat-dialog-content class="dialog__content">
         <app-user-list-form-fields [form]="form" idPrefix="edit-list" [showSortSelector]="showSortSelector" />
 
-        @if (coverVm$ | async; as cover) {
+        @if (cover$ | async; as cover) {
             <div class="cover-section">
                 <fieldset class="cover-picker">
                     <legend class="cover-picker__legend text-body-sm">Cover</legend>

@@ -14,13 +14,11 @@ import { PersonCardComponent } from '../person-card/person-card.component';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RecentlyViewedComponent {
-    readonly items$ = this.recentlyViewedStore.items$;
+    readonly recentlyViewed$ = this.recentlyViewedStoreService.recentlyViewed$;
 
-    constructor(
-        private readonly recentlyViewedStore: RecentlyViewedStoreService,
-    ) {}
+    constructor(private readonly recentlyViewedStoreService: RecentlyViewedStoreService) {}
 
     clearAll(): void {
-        this.recentlyViewedStore.clearAll();
+        this.recentlyViewedStoreService.clearAll();
     }
 }

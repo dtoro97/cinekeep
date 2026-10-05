@@ -1,0 +1,54 @@
+@use 'mixins' as *;
+
+.stepper-input {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+}
+
+.stepper-input__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 32px;
+    padding: 0;
+    background: var(--control-surface);
+    border: none;
+    color: var(--text-primary);
+    font-size: var(--text-md);
+    cursor: pointer;
+    flex-shrink: 0;
+    @include surface-hover-subtle();
+}
+
+.stepper-input__field {
+    flex: 1;
+    min-width: 0;
+    height: 32px;
+    padding: 0 var(--space-1);
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--color-border-subtle);
+    border-right: 1px solid var(--color-border-subtle);
+    color: var(--text-primary);
+    font-size: var(--text-xs);
+    text-align: center;
+    outline: none;
+    appearance: textfield;
+    -moz-appearance: textfield;
+
+    &::placeholder {
+        color: var(--text-muted);
+    }
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+}

@@ -1,11 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import {
-    Inject,
-    Injectable,
-    Optional,
-    PLATFORM_ID,
-    REQUEST,
-} from '@angular/core';
+import { Inject, Injectable, Optional, PLATFORM_ID, REQUEST } from '@angular/core';
 
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
@@ -26,106 +20,40 @@ export class BrowserStorageService {
     }
 
     getRequestHeader(name: string): string | null {
-        if (this.isBrowser) {
-            return null;
-        }
-
-        return this.request?.headers.get(name) ?? null;
+        return this.isBrowser ? null : (this.request?.headers.get(name) ?? null);
     }
 
+    // Storage access throws when the browser blocks it (privacy modes, disabled cookies); the app then runs without it.
     getItem(key: string): string | null {
-        if (typeof localStorage === 'undefined') {
-            return null;
-        }
-
         try {
-            return localStorage.getItem(key);
+            return this.isBrowser ? localStorage.getItem(key) : null;
         } catch {
             return null;
         }
-    }
-
-    getItemOrDefault(key: string, fallback: string): string {
-        return this.getItem(key) ?? fallback;
     }
 
     setItem(key: string, value: string): void {
-        if (typeof localStorage === 'undefined') {
-            return;
-        }
-
         try {
-            localStorage.setItem(key, value);
+            if (this.isBrowser) {
+                localStorage.setItem(key, value);
+            }
         } catch {
             return;
         }
     }
 
-    writeItem(key: string, value: string | null): void {
-        if (value === null) {
-            this.removeItem(key);
-            return;
-        }
-
-        this.setItem(key, value);
-    }
-
     removeItem(key: string): void {
-        if (typeof localStorage === 'undefined') {
-            return;
-        }
-
         try {
-            localStorage.removeItem(key);
+            if (this.isBrowser) {
+                localStorage.removeItem(key);
+            }
         } catch {
             return;
         }
     }
 
     getCookie(key: string): string | null {
-        return this.readCookie(key, this.cookieSource());
-    }
-
-    getCookieOrDefault(key: string, fallback: string): string {
-        return this.getCookie(key) ?? fallback;
-    }
-
-    setCookie(key: string, value: string): void {
-        if (!this.isBrowser || !this.document.defaultView) {
-            return;
-        }
-
-        const secure = this.document.location?.protocol === 'https:' ? '; Secure' : '';
-        this.document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(value)}; Path=/; Max-Age=${COOKIE_MAX_AGE_SECONDS}; SameSite=Lax${secure}`;
-    }
-
-    writeCookie(key: string, value: string | null): void {
-        if (value === null) {
-            this.removeCookie(key);
-            return;
-        }
-
-        this.setCookie(key, value);
-    }
-
-    removeCookie(key: string): void {
-        if (!this.isBrowser || !this.document.defaultView) {
-            return;
-        }
-
-        const secure = this.document.location?.protocol === 'https:' ? '; Secure' : '';
-        this.document.cookie = `${encodeURIComponent(key)}=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
-    }
-
-    private cookieSource(): string {
-        if (this.isBrowser) {
-            return this.document.cookie ?? '';
-        }
-
-        return this.request?.headers.get('cookie') ?? '';
-    }
-
-    private readCookie(key: string, source: string): string | null {
+        const source = this.isBrowser ? this.document.cookie : (this.request?.headers.get('cookie') ?? '');
         const encodedKey = encodeURIComponent(key);
         const pair = source
             .split(';')
@@ -143,5 +71,14 @@ export class BrowserStorageService {
         } catch {
             return value;
         }
+    }
+
+    setCookie(key: string, value: string): void {
+        if (!this.isBrowser) {
+            return;
+        }
+
+        const secure = this.document.location.protocol === 'https:' ? '; Secure' : '';
+        this.document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(value)}; Path=/; Max-Age=${COOKIE_MAX_AGE_SECONDS}; SameSite=Lax${secure}`;
     }
 }

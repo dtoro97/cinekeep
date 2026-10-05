@@ -1,77 +1,46 @@
-import { isPlatformBrowser } from '@angular/common';
-import {
-    Inject,
-    Injectable,
-    Optional,
-    PLATFORM_ID,
-    REQUEST,
-} from '@angular/core';
+import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import {
-    ConfigurationRestControllerService,
-    Country,
-    Language,
-    TmdbConfiguration,
-} from '../../api';
-import { filter, tap } from 'rxjs';
-import { isDefined } from '../utils';
 
-export type ConfigStoreState = {
-    languages?: Language[];
-    countries?: Country[];
-    config?: TmdbConfiguration;
-};
+import { EMPTY, Observable, catchError, filter, merge, tap } from 'rxjs';
+
+import { ConfigurationRestControllerService, Country, Language, TmdbConfiguration } from '../../api';
+import { isDefined } from '../utils/is-defined';
+
+interface ConfigStoreState {
+    readonly languages?: Language[];
+    readonly countries?: Country[];
+    readonly configuration?: TmdbConfiguration;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ConfigStoreService extends ComponentStore<ConfigStoreState> {
-    languages$ = this.select((state) => state.languages).pipe(
-        filter(isDefined),
-    );
-    countries$ = this.select((state) => state.countries).pipe(
-        filter(isDefined),
-    );
-    configuration$ = this.select((state) => state.config).pipe(
-        filter(isDefined),
-    );
-    constructor(
-        private configRestControllerService: ConfigurationRestControllerService,
-        @Inject(PLATFORM_ID) private readonly platformId: object,
-        @Optional() @Inject(REQUEST) private readonly request: Request | null,
-    ) {
+    readonly languages$ = this.select((state) => state.languages).pipe(filter(isDefined));
+    readonly countries$ = this.select((state) => state.countries).pipe(filter(isDefined));
+    readonly configuration$ = this.select((state) => state.configuration).pipe(filter(isDefined));
+
+    constructor(private readonly configurationRestControllerService: ConfigurationRestControllerService) {
         super({});
-
-        if (!this.canLoadAtStartup()) {
-            return;
-        }
-
-        this.getLanguages$().subscribe();
-        this.getCountries$().subscribe();
-        this.getConfiguration$().subscribe();
     }
 
     languages(): readonly Language[] {
         return this.get().languages ?? [];
     }
 
-    getLanguages$() {
-        return this.configRestControllerService
-            .configurationLanguages()
-            .pipe(tap((response) => this.patchState({ languages: response })));
-    }
-
-    getCountries$() {
-        return this.configRestControllerService
-            .configurationCountries()
-            .pipe(tap((response) => this.patchState({ countries: response })));
-    }
-
-    getConfiguration$() {
-        return this.configRestControllerService
-            .configurationDetails()
-            .pipe(tap((response) => this.patchState({ config: response })));
-    }
-
-    private canLoadAtStartup(): boolean {
-        return isPlatformBrowser(this.platformId) || !!this.request;
+    // Each part fails on its own: the menus and image sizes that use it stay empty or on defaults.
+    load$(): Observable<unknown> {
+        return merge(
+            this.configurationRestControllerService.configurationLanguages().pipe(
+                tap((languages) => this.patchState({ languages })),
+                catchError(() => EMPTY),
+            ),
+            this.configurationRestControllerService.configurationCountries().pipe(
+                tap((countries) => this.patchState({ countries })),
+                catchError(() => EMPTY),
+            ),
+            this.configurationRestControllerService.configurationDetails().pipe(
+                tap((configuration) => this.patchState({ configuration })),
+                catchError(() => EMPTY),
+            ),
+        );
     }
 }

@@ -78,10 +78,6 @@
     @include line-clamp(2);
 }
 
-a.video-card__title {
-    @include text-link();
-}
-
 .video-card__metadata {
     @include meta-list(var(--space-1-5));
 }

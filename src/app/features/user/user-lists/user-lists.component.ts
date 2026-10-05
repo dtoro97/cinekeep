@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, ViewportScroller } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -7,13 +7,10 @@ import { EMPTY, catchError, switchMap, tap } from 'rxjs';
 import {
     ConfirmationDialogService,
     EmptyStateComponent,
-    PageScrollService,
     SkeletonComponent,
     SubPageHeaderComponent,
     RepeatPipe,
-    SnackbarComponent,
     SnackbarService,
-    SnackbarType,
     PluralizePipe,
 } from '../../../shared';
 import { UserListCardComponent } from '../user-list-card/user-list-card.component';
@@ -43,27 +40,27 @@ import {
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserListsComponent {
-    readonly vm$ = this.store.listsViewModel$;
+    readonly userLists$ = this.store.userLists$;
 
     constructor(
         private readonly confirmationDialog: ConfirmationDialogService,
         private readonly dialog: MatDialog,
-        private readonly pageScroll: PageScrollService,
-        private readonly snackbar: SnackbarService,
+        private readonly viewportScroller: ViewportScroller,
+        private readonly snackbarService: SnackbarService,
         private readonly store: UserListsStore,
     ) {
         this.store
             .load$()
-            .pipe(catchError(() => this.showError('Could not load your lists.')))
+            .pipe(catchError(() => this.snackbarService.showError$('Could not load your lists.')))
             .subscribe();
     }
 
     onPageChange(event: PageEvent): void {
-        this.pageScroll.scrollToTop();
+        this.viewportScroller.scrollToPosition([0, 0]);
 
         this.store
             .loadPage$(event.pageIndex)
-            .pipe(catchError(() => this.showError('Could not load your lists.')))
+            .pipe(catchError(() => this.snackbarService.showError$('Could not load your lists.')))
             .subscribe();
     }
 
@@ -99,11 +96,11 @@ export class UserListsComponent {
 
                     return this.store.updateList$(item.id, { ...result, sortBy: result.sortBy ?? item.sortBy }).pipe(
                         tap(() => {
-                            this.showSuccess('List details updated.');
+                            this.snackbarService.showSuccess('List details updated.');
                         }),
                     );
                 }),
-                catchError(() => this.showError('Could not update this list.')),
+                catchError(() => this.snackbarService.showError$('Could not update this list.')),
             )
             .subscribe();
     }
@@ -119,26 +116,10 @@ export class UserListsComponent {
             .pipe(
                 switchMap((confirmed) => (confirmed ? this.store.deleteList$(item.id) : EMPTY)),
                 tap(() => {
-                    this.showSuccess('List deleted.');
+                    this.snackbarService.showSuccess('List deleted.');
                 }),
-                catchError(() => this.showError('Could not delete this list.')),
+                catchError(() => this.snackbarService.showError$('Could not delete this list.')),
             )
             .subscribe();
-    }
-
-    private showSuccess(message: string): void {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Success,
-        });
-    }
-
-    private showError(message: string) {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Error,
-        });
-
-        return EMPTY;
     }
 }

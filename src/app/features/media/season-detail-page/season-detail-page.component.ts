@@ -9,6 +9,7 @@ import {
     HeroSurfaceComponent,
     ImageComponent,
     PageSectionComponent,
+    PHOTO_VIEWER_DIALOG_CONFIG,
     PhotoViewerComponent,
     PhotosPreviewComponent,
     ToggleGroupComponent,
@@ -69,7 +70,7 @@ export class SeasonDetailPageComponent {
         shareReplay({ bufferSize: 1, refCount: true }),
     );
 
-    readonly vm$ = combineLatest({
+    readonly seasonDetail$ = combineLatest({
         routeData: this.routeData$,
         mediaState: this.mediaStore.mediaDetailsState$,
         seasonSummary: this.mediaSeasonsStoreService.selectedSeasonSummary$,
@@ -116,21 +117,21 @@ export class SeasonDetailPageComponent {
         private seo: SeoService,
         private dialog: MatDialog,
     ) {
-        this.vm$
+        this.seasonDetail$
             .pipe(
                 takeUntilDestroyed(),
-                tap((vm) => {
-                    if (!vm.media) {
+                tap((seasonDetail) => {
+                    if (!seasonDetail.media) {
                         return;
                     }
 
                     const sectionTitle =
-                        vm.selectedSeason === null
+                        seasonDetail.selectedSeason === null
                             ? 'Episodes'
-                            : `Season ${vm.selectedSeason} Episodes`;
+                            : `Season ${seasonDetail.selectedSeason} Episodes`;
 
                     this.seo.setPage(
-                        toMediaSectionSeoMetadata(vm.media, sectionTitle),
+                        toMediaSectionSeoMetadata(seasonDetail.media, sectionTitle),
                     );
                 }),
             )
@@ -193,13 +194,8 @@ export class SeasonDetailPageComponent {
         }
 
         this.dialog.open(PhotoViewerComponent, {
+            ...PHOTO_VIEWER_DIALOG_CONFIG,
             data: { images, activeIndex: index },
-            panelClass: 'photo-viewer-panel',
-            maxWidth: '100vw',
-            maxHeight: '100vh',
-            width: '100vw',
-            height: '100vh',
-            autoFocus: false,
         });
     }
 

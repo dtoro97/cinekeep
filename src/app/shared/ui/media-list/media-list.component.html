@@ -1,23 +1,18 @@
 <div class="media-list">
-    @if (state.state === 'loading') {
-        <ng-container *ngTemplateOutlet="skeleton" />
-    } @else if (state.state === 'success' || state.state === 'loading-more') {
-        @for (entry of state.data; track entry.item.id; let position = $index) {
-            <app-media-list-item
-                [item]="entry.item"
-                [genreNames]="entry.genreNames"
-                [link]="entry.routerLink"
-                [index]="showIndex ? position + 1 : null"
-            />
+    @if (showSkeleton) {
+        <ng-container [ngTemplateOutlet]="skeleton" />
+    } @else {
+        @for (entry of entries; track entry.item.id) {
+            <app-media-list-item [item]="entry.item" [genreNames]="entry.genreNames" [link]="entry.routerLink" />
         }
-        @if (state.state === 'loading-more') {
-            <ng-container *ngTemplateOutlet="skeleton" />
+        @if (showMoreSkeleton) {
+            <ng-container [ngTemplateOutlet]="skeleton" />
         }
     }
 </div>
 
 <ng-template #skeleton>
-    @for (i of skeletonCount | repeat; track i) {
-        <app-media-list-item [loading]="true" [index]="showIndex ? i + 1 : null" />
+    @for (slot of skeletonCount | repeat; track slot) {
+        <app-media-list-item [loading]="true" />
     }
 </ng-template>

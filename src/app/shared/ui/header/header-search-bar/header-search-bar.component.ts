@@ -1,20 +1,19 @@
-import { AsyncPipe } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { AsyncPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { EventType, Router } from '@angular/router';
-import { filter, tap } from 'rxjs';
-
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { EventType, Router } from '@angular/router';
+import { filter, tap } from 'rxjs';
 
 import { SEARCH_TYPE_OPTIONS } from '../../../models/media-type-options.model';
-import { HeaderSearchResultsComponent } from './header-search-results.component';
-import { HeaderSearchBarStoreService } from './header-search-bar.store.service';
-import { SearchFilterValue } from './header-search.model';
+import type { MediaOrPersonFilterType } from '../../../types';
+import { HeaderSearchBarStoreService } from './header-search-bar-store.service';
+import { HeaderSearchResultsComponent } from './header-search-results/header-search-results.component';
 
 const EDITABLE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
 
@@ -40,16 +39,15 @@ export class HeaderSearchBarComponent {
 
     readonly searchControl = new FormControl('', { nonNullable: true });
     readonly filterOptions = SEARCH_TYPE_OPTIONS;
-    readonly listboxId = 'header-search-listbox';
-    readonly vm$ = this.store.vm$;
+    readonly searchBar$ = this.headerSearchBarStoreService.searchBar$;
 
     constructor(
-        private readonly store: HeaderSearchBarStoreService,
+        private readonly headerSearchBarStoreService: HeaderSearchBarStoreService,
         private readonly router: Router,
-        private readonly el: ElementRef<HTMLElement>,
+        private readonly elementRef: ElementRef<HTMLElement>,
     ) {
         this.searchControl.valueChanges.pipe(takeUntilDestroyed()).subscribe((query) => {
-            this.store.updateQuery(query);
+            this.headerSearchBarStoreService.updateQuery(query);
         });
 
         this.router.events
@@ -63,8 +61,8 @@ export class HeaderSearchBarComponent {
 
     @HostListener('document:click', ['$event'])
     onDocumentClick(event: MouseEvent): void {
-        if (!this.el.nativeElement.contains(event.target as Node)) {
-            this.store.closePanel();
+        if (!this.elementRef.nativeElement.contains(event.target as Node)) {
+            this.headerSearchBarStoreService.closePanel();
         }
     }
 
@@ -76,7 +74,10 @@ export class HeaderSearchBarComponent {
             event.ctrlKey ||
             event.metaKey ||
             event.altKey ||
-            this.isEditableOrOverlayTarget(event.target)
+            (event.target instanceof HTMLElement &&
+                (event.target.isContentEditable ||
+                    EDITABLE_TAGS.has(event.target.tagName) ||
+                    event.target.closest('.cdk-overlay-container') !== null))
         ) {
             return;
         }
@@ -88,19 +89,19 @@ export class HeaderSearchBarComponent {
     onFocusOut(event: FocusEvent): void {
         const next = event.relatedTarget;
 
-        if (next instanceof Node && this.el.nativeElement.contains(next)) {
+        if (next instanceof Node && this.elementRef.nativeElement.contains(next)) {
             return;
         }
 
-        this.store.closePanel();
+        this.headerSearchBarStoreService.closePanel();
     }
 
     openPanel(): void {
-        this.store.openPanel();
+        this.headerSearchBarStoreService.openPanel();
     }
 
     closePanel(): void {
-        this.store.closePanel();
+        this.headerSearchBarStoreService.closePanel();
     }
 
     onInputKeydown(event: KeyboardEvent): void {
@@ -123,17 +124,17 @@ export class HeaderSearchBarComponent {
         }
     }
 
-    setFilter(filter: SearchFilterValue): void {
-        this.store.updateFilter(filter);
+    setFilter(filter: MediaOrPersonFilterType): void {
+        this.headerSearchBarStoreService.updateFilter(filter);
     }
 
     widenSearch(): void {
-        this.store.updateFilter('all');
+        this.headerSearchBarStoreService.updateFilter('all');
         this.searchInput?.nativeElement.focus();
     }
 
     retry(): void {
-        this.store.retry();
+        this.headerSearchBarStoreService.retry();
     }
 
     clearSearch(): void {
@@ -143,23 +144,23 @@ export class HeaderSearchBarComponent {
 
     closeSearch(): void {
         this.searchControl.setValue('', { emitEvent: false });
-        this.store.closeSearch();
+        this.headerSearchBarStoreService.closeSearch();
     }
 
     toggleSearch(): void {
-        this.store.toggleSearch();
+        this.headerSearchBarStoreService.toggleSearch();
     }
 
     private moveActiveOption(delta: 1 | -1): void {
-        const activeOptionId = this.store.moveActiveOption(delta);
+        const activeOptionId = this.headerSearchBarStoreService.moveActiveOption(delta);
 
         if (activeOptionId) {
-            this.el.nativeElement.querySelector(`#${activeOptionId}`)?.scrollIntoView({ block: 'nearest' });
+            this.elementRef.nativeElement.querySelector(`#${activeOptionId}`)?.scrollIntoView({ block: 'nearest' });
         }
     }
 
     private submit(): void {
-        const action = this.store.getSubmitAction();
+        const action = this.headerSearchBarStoreService.getSubmitAction();
 
         switch (action.kind) {
             case 'option':
@@ -172,7 +173,7 @@ export class HeaderSearchBarComponent {
     }
 
     private dismiss(event: KeyboardEvent): void {
-        const step = this.store.dismiss();
+        const step = this.headerSearchBarStoreService.dismiss();
 
         if (step === 'none') {
             return;
@@ -191,23 +192,11 @@ export class HeaderSearchBarComponent {
 
         // On mobile the field lives in a closed sheet; opening it lets the focus trap capture the input.
         if (!input || input.offsetParent === null) {
-            this.store.openSearch();
+            this.headerSearchBarStoreService.openSearch();
             return;
         }
 
         input.focus();
         input.select();
-    }
-
-    private isEditableOrOverlayTarget(target: EventTarget | null): boolean {
-        if (!(target instanceof HTMLElement)) {
-            return false;
-        }
-
-        return (
-            target.isContentEditable ||
-            EDITABLE_TAGS.has(target.tagName) ||
-            target.closest('.cdk-overlay-container') !== null
-        );
     }
 }

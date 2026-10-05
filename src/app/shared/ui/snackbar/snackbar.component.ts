@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import { MAT_SNACK_BAR_DATA, MatSnackBarRef } from '@angular/material/snack-bar';
 
-import { SnackbarData } from '../../services/snackbar.service';
+import type { SnackbarData } from '../../services/snackbar.service';
 
 @Component({
     selector: 'app-snackbar',

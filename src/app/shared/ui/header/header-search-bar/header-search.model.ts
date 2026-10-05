@@ -1,21 +1,19 @@
-import type { MediaOrPersonFilterType } from '../../../types';
-
-export type SearchFilterValue = MediaOrPersonFilterType;
-
-export type HeaderSearchOptionKind = 'movie' | 'tv' | 'person';
+import type { MediaOrPersonType, RouteCommands } from '../../../types';
+import type { ImageType } from '../../image/image.component';
 
 export interface HeaderSearchTitleSegment {
+    readonly key: 'full' | 'before' | 'match' | 'after';
     readonly text: string;
     readonly match: boolean;
 }
 
 export interface HeaderSearchOption {
     readonly optionId: string;
-    readonly kind: HeaderSearchOptionKind;
+    readonly kind: MediaOrPersonType;
     readonly title: string;
     readonly titleSegments: readonly HeaderSearchTitleSegment[];
     readonly thumb: string | null;
-    readonly imageType: 'media' | 'person';
+    readonly imageType: ImageType;
     /** "2021 · Movie" for titles, the department for people. */
     readonly meta: string;
     /** Single-line summary for compact rows; people also get their known-for titles. */
@@ -23,7 +21,7 @@ export interface HeaderSearchOption {
     /** Overview for titles, "Known for …" for people. Only the top hit shows it. */
     readonly detail: string;
     readonly rating: number | null;
-    readonly routeCommands: readonly (string | number)[];
+    readonly routeCommands: RouteCommands;
 }
 
 export interface HeaderSearchGroup {
@@ -62,19 +60,8 @@ export type HeaderSearchPanel =
     | { readonly kind: 'error' };
 
 export type HeaderSearchSubmitAction =
-    | { readonly kind: 'option'; readonly routeCommands: readonly (string | number)[] }
+    | { readonly kind: 'option'; readonly routeCommands: RouteCommands }
     | { readonly kind: 'search'; readonly queryParams: Readonly<Record<string, string>> }
     | { readonly kind: 'none' };
 
 export type HeaderSearchDismissStep = 'panel' | 'query' | 'sheet' | 'none';
-
-export interface HeaderSearchBarViewModel {
-    readonly searchFilter: SearchFilterValue;
-    readonly searchOpen: boolean;
-    readonly placeholder: string;
-    readonly hasQuery: boolean;
-    readonly panel: HeaderSearchPanel;
-    readonly listboxVisible: boolean;
-    readonly activeOptionId: string | null;
-    readonly statusMessage: string;
-}

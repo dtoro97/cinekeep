@@ -1,0 +1,18 @@
+<div class="person-list" role="list">
+    @if (showSkeleton) {
+        <ng-container [ngTemplateOutlet]="skeleton" />
+    } @else {
+        @for (entry of entries; track entry.person.id) {
+            <app-person-list-item [person]="entry.person" [index]="entry.rank" />
+        }
+        @if (showMoreSkeleton) {
+            <ng-container [ngTemplateOutlet]="skeleton" />
+        }
+    }
+
+    <ng-template #skeleton>
+        @for (entry of skeletonEntries; track entry.key) {
+            <app-person-list-item [loading]="true" [index]="entry.rank" />
+        }
+    </ng-template>
+</div>

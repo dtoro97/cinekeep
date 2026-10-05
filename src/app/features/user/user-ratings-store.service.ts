@@ -12,18 +12,20 @@ import {
 } from '../../api-cinekeep';
 import { PAGE_SIZE } from '../../constants';
 import {
-    EpisodeSnapshotRequest,
     EpisodeListItemData,
-    RemoteData,
-    MediaRatingService,
-    MediaListItem,
-    MediaType,
-    SortDirection,
+    formatEpisodeCode,
+    EpisodeSnapshotRequest,
     isDefined,
+    MediaListItem,
+    MediaRatingService,
+    MediaType,
     pluralize,
+    RemoteData,
+    remoteSuccess,
+    SortDirection,
     toSnapshotMediaListItem,
+    updateRemoteData,
 } from '../../shared';
-import { remoteSuccess, updateRemoteData } from '../../shared/utils';
 import { toRatedEpisodeRef, toTotalAfterMediaRemoval } from './user-account-media.helpers';
 import {
     DEFAULT_USER_ACCOUNT_SORT_DIRECTION,
@@ -82,7 +84,7 @@ const INITIAL_STATE: UserRatingsState = {
 
 @Injectable()
 export class UserRatingsStore extends ComponentStore<UserRatingsState> {
-    readonly ratingsPageViewModel$ = this.select((state) => ({
+    readonly ratings$ = this.select((state) => ({
         contentType: state.contentType,
         mediaItems: state.pageItems,
         episodeItems: state.episodePageItems,
@@ -178,8 +180,8 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
             pageTotalResults: optimisticTotal,
         });
 
-        return this.mediaRatingService
-            .deleteMediaRating$(item.id, item.mediaType)
+        return this.ratingController
+            .deleteRating({ mediaType: item.mediaType, tmdbId: item.id })
             .pipe(
                 switchMap(() => this.loadPage$(nextPage - 1)),
                 catchError((error: unknown) => {
@@ -210,12 +212,12 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
             pageTotalResults: optimisticTotal,
         });
 
-        return this.mediaRatingService
-            .deleteEpisodeRating$(
-                item.seriesId,
-                item.seasonNumber,
-                item.episodeNumber,
-            )
+        return this.episodeRatingController
+            .deleteEpisodeRating({
+                seriesTmdbId: item.seriesId,
+                seasonNumber: item.seasonNumber,
+                episodeNumber: item.episodeNumber,
+            })
             .pipe(
                 switchMap(() => this.loadPage$(nextPage - 1)),
                 catchError((error: unknown) => {
@@ -299,7 +301,7 @@ export class UserRatingsStore extends ComponentStore<UserRatingsState> {
                 subtitle: item.seriesTitle?.trim() || null,
                 overview: '',
                 stillPath: item.stillPath ?? null,
-                seasonNumber,
+                code: formatEpisodeCode(seasonNumber, episodeNumber),
                 episodeNumber,
                 airDate: item.airDate ?? null,
                 runtime: null,

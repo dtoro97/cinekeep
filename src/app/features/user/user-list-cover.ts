@@ -1,5 +1,5 @@
 import type { ListCoverResponse } from '../../api-cinekeep';
-import type { MediaType } from '../../shared';
+import { MediaType, toMediaKey } from '../../shared';
 
 /** A cover the user picked from the list's own items. `null` means automatic (latest added). */
 export interface UserListCoverChoice {
@@ -19,7 +19,7 @@ export const toUserListCoverChoice = (cover: ListCoverResponse | undefined): Use
     cover?.selected && cover.tmdbId && cover.mediaType ? { tmdbId: cover.tmdbId, mediaType: cover.mediaType } : null;
 
 export const toUserListCoverKey = (cover: UserListCoverChoice | null): string =>
-    cover ? `${cover.mediaType}:${cover.tmdbId}` : 'automatic';
+    cover ? toMediaKey(cover.mediaType, cover.tmdbId) : 'automatic';
 
 export const isSameUserListCover = (a: UserListCoverChoice | null, b: UserListCoverChoice | null): boolean =>
     toUserListCoverKey(a) === toUserListCoverKey(b);

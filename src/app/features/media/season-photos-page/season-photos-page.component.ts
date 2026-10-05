@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, filter, map, tap } from 'rxjs';
 
 import {
+    PHOTO_VIEWER_DIALOG_CONFIG,
     PhotoViewerComponent,
     PhotosBrowserComponent,
     PhotosBrowserSelection,
@@ -43,7 +44,7 @@ export class SeasonPhotosPageComponent {
         })),
     );
 
-    readonly vm$ = combineLatest({
+    readonly seasonPhotos$ = combineLatest({
         season: this.season$,
         mediaState: this.mediaStore.mediaDetailsState$,
         photosState: this.mediaSeasonsStoreService.seasonImagesState$,
@@ -77,12 +78,12 @@ export class SeasonPhotosPageComponent {
             )
             .subscribe();
 
-        this.vm$
+        this.seasonPhotos$
             .pipe(
-                tap((vm) => {
-                    if (vm.media) {
+                tap((seasonPhotos) => {
+                    if (seasonPhotos.media) {
                         this.seo.setPage(
-                            toMediaSectionSeoMetadata(vm.media, vm.pageTitle),
+                            toMediaSectionSeoMetadata(seasonPhotos.media, seasonPhotos.pageTitle),
                         );
                     }
                 }),
@@ -93,13 +94,8 @@ export class SeasonPhotosPageComponent {
 
     openPhotoViewer(selection: PhotosBrowserSelection): void {
         this.dialog.open(PhotoViewerComponent, {
+            ...PHOTO_VIEWER_DIALOG_CONFIG,
             data: { images: selection.images, activeIndex: selection.index },
-            panelClass: 'photo-viewer-panel',
-            maxWidth: '100vw',
-            maxHeight: '100vh',
-            width: '100vw',
-            height: '100vh',
-            autoFocus: false,
         });
     }
 }

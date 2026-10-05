@@ -3,15 +3,13 @@ import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 
-import { EMPTY, Observable, catchError, combineLatest, defer, map, merge } from 'rxjs';
+import { Observable, catchError, combineLatest, defer, map, merge } from 'rxjs';
 
 import {
     EmptyStateComponent,
     LocaleStoreService,
     MediaCarouselPanelComponent,
-    SnackbarComponent,
     SnackbarService,
-    SnackbarType,
     PluralizePipe,
     UserAvatarComponent,
     UserSessionStoreService,
@@ -49,12 +47,12 @@ export class UserProfileComponent {
     readonly previewCarouselColumns = 7;
     readonly previewPosterImageParams = 'w185';
 
-    readonly vm$ = combineLatest([
+    readonly userProfile$ = combineLatest([
         this.userSessionStore.user$,
         this.previewStore.favourites$,
         this.previewStore.watchlist$,
         this.previewStore.ratings$,
-        this.listsStore.listsViewModel$,
+        this.listsStore.userLists$,
     ]).pipe(
         map(([user, favourites, watchlist, ratings, lists]) => {
             const language = this.localeStore.language();
@@ -80,7 +78,7 @@ export class UserProfileComponent {
         private readonly listsStore: UserListsStore,
         private readonly localeStore: LocaleStoreService,
         private readonly previewStore: UserProfilePreviewStore,
-        private readonly snackbar: SnackbarService,
+        private readonly snackbarService: SnackbarService,
         private readonly userSessionStore: UserSessionStoreService,
     ) {
         merge(
@@ -94,15 +92,6 @@ export class UserProfileComponent {
     }
 
     private loadSection$(request: () => Observable<unknown>, errorMessage: string): Observable<unknown> {
-        return defer(request).pipe(catchError(() => this.showError(errorMessage)));
-    }
-
-    private showError(message: string): Observable<never> {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Error,
-        });
-
-        return EMPTY;
+        return defer(request).pipe(catchError(() => this.snackbarService.showError$(errorMessage)));
     }
 }

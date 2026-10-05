@@ -1,0 +1,33 @@
+<button
+    class="user-rating"
+    type="button"
+    [class.user-rating--rated]="hasRating"
+    [class.user-rating--pending]="pending"
+    [disabled]="disabled"
+    [attr.aria-busy]="ariaBusy"
+    (click)="ratingClick.emit()"
+>
+    <span class="text-overline">Your rating</span>
+
+    @if (loading) {
+        <app-skeleton class="user-rating__skeleton" aria-hidden="true" />
+    } @else {
+        <span class="user-rating__summary">
+            <i
+                class="user-rating__icon fa-star"
+                [class.fa-solid]="hasRating"
+                [class.fa-regular]="!hasRating"
+                aria-hidden="true"
+            ></i>
+
+            <span class="user-rating__value text-subtitle">
+                @if (hasRating) {
+                    {{ currentRating | number: '1.1-1' }}
+                    <span class="user-rating__scale text-caption">/10</span>
+                } @else {
+                    Rate
+                }
+            </span>
+        </span>
+    }
+</button>

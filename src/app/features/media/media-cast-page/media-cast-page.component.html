@@ -1,15 +1,15 @@
 <div class="page-container">
-    @if (vm$ | async; as vm) {
+    @if (castCrew$ | async; as castCrew) {
         <app-sub-page-header
-            [backdropPath]="vm.media?.backdropPath"
-            [parentTitle]="vm.media?.title"
+            [backdropPath]="castCrew.media?.backdropPath"
+            [parentTitle]="castCrew.media?.title"
             [backLink]="['../']"
             pageTitle="Cast & Crew"
-            [loading]="!vm.media"
+            [loading]="!castCrew.media"
         />
 
         <main class="page-main cast-page">
-            @if (vm.isEmpty) {
+            @if (castCrew.isEmpty) {
                 <app-empty-state
                     class="cast-page__empty"
                     iconClass="fa-solid fa-users"
@@ -18,13 +18,13 @@
                 />
             } @else {
                 <app-browse-toolbar class="cast-page__toolbar">
-                    @if (vm.isLoading) {
+                    @if (castCrew.showLoading) {
                         <app-skeleton start class="cast-page__toggle-skeleton" />
                     } @else {
                         <app-toggle-group
                             start
-                            [options]="vm.sectionOptions"
-                            [selectedValue]="vm.section"
+                            [options]="castCrew.sectionOptions"
+                            [selectedValue]="castCrew.section"
                             (selected)="onSectionChange($event)"
                         />
                     }
@@ -37,34 +37,38 @@
                             autocomplete="off"
                             placeholder="Filter by name or role"
                             aria-label="Filter cast and crew by name or role"
-                            [value]="vm.query"
+                            [value]="castCrew.query"
                             (input)="onQueryInput($event)"
                         />
                     </mat-form-field>
                 </app-browse-toolbar>
 
-                @if (vm.showDepartments) {
+                @if (castCrew.showDepartments) {
                     <nav class="cast-page__departments" aria-label="Crew departments">
                         <app-toggle-group
                             variant="chips"
-                            [options]="vm.departmentOptions"
-                            [selectedValue]="vm.department"
+                            [options]="castCrew.departmentOptions"
+                            [selectedValue]="castCrew.department"
                             (selected)="onDepartmentChange($event)"
                         />
                     </nav>
                 }
 
-                @if (vm.noMatchesText; as noMatchesText) {
+                @if (castCrew.noMatchesText; as noMatchesText) {
                     <div class="cast-page__no-matches">
-                        <app-empty-state iconClass="fa-solid fa-magnifying-glass" iconStyle="plain" [text]="noMatchesText" />
+                        <app-empty-state
+                            iconClass="fa-solid fa-magnifying-glass"
+                            iconStyle="plain"
+                            [text]="noMatchesText"
+                        />
                         <button matButton class="text-button" type="button" (click)="clearQuery()">Clear filter</button>
                     </div>
                 } @else {
                     <app-cast-crew-grid
-                        [cast]="vm.cast"
-                        [departments]="vm.departments"
-                        [showCast]="vm.showCast"
-                        [loading]="vm.isLoading"
+                        [cast]="castCrew.cast"
+                        [departments]="castCrew.departments"
+                        [showCast]="castCrew.showCast"
+                        [loading]="castCrew.showLoading"
                     />
                 }
             }

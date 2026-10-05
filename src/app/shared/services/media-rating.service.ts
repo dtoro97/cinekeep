@@ -3,8 +3,8 @@ import { Injectable } from '@angular/core';
 
 import { Observable, catchError, map, of, switchMap, throwError } from 'rxjs';
 
-import { EpisodeRatingControllerService, RatingControllerService } from '../../api-cinekeep';
-import { EpisodeSnapshotRequest, MediaSnapshotRequest } from '../mappers/media-snapshot.mapper';
+import { EpisodeRatingControllerService, RatingControllerService, SeriesSnapshotRequest } from '../../api-cinekeep';
+import { EpisodeSnapshotRequest } from '../mappers/media-snapshot.mapper';
 import { MediaType } from '../types';
 import { normalizeRatingValue } from '../utils/rating';
 import { MediaSnapshotService } from './media-snapshot.service';
@@ -33,7 +33,7 @@ export class MediaRatingService {
         mediaId: number,
         mediaType: MediaType,
         value: number,
-        snapshot?: MediaSnapshotRequest,
+        snapshot?: SeriesSnapshotRequest,
     ) {
         return this.mediaSnapshotService.resolveMediaSnapshot$(mediaId, mediaType, snapshot).pipe(
             switchMap((snapshot) =>
@@ -63,15 +63,5 @@ export class MediaRatingService {
                 }),
             ),
         );
-    }
-
-    deleteMediaRating$(mediaId: number, mediaType: MediaType) {
-        return this.ratingController
-            .deleteRating({ mediaType, tmdbId: mediaId });
-    }
-
-    deleteEpisodeRating$(seriesId: number, seasonNumber: number, episodeNumber: number) {
-        return this.episodeRatingController
-            .deleteEpisodeRating({ seriesTmdbId: seriesId, seasonNumber, episodeNumber });
     }
 }

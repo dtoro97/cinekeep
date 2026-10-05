@@ -5,13 +5,14 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, combineLatest, distinctUntilChanged, map, of, shareReplay, startWith, switchMap, tap } from 'rxjs';
 
 import {
-    buildTmdbImageUrl,
     EmptyStateComponent,
+    RepeatPipe,
     SeoService,
     SkeletonComponent,
     SubPageHeaderComponent,
     remoteSuccess,
     formatTitleWithYear,
+    toSeoImage,
 } from '../../../shared';
 import { MediaApiService } from '../media-api.service';
 import { MediaStoreService } from '../media-store.service';
@@ -24,6 +25,7 @@ import { MediaDetails } from '../models/media-details.model';
     imports: [
         AsyncPipe,
         EmptyStateComponent,
+        RepeatPipe,
         ReviewCardComponent,
         ReviewMediaSummaryComponent,
         SkeletonComponent,
@@ -35,7 +37,7 @@ import { MediaDetails } from '../models/media-details.model';
 })
 export class ReviewDetailPageComponent {
     readonly reviewId = input.required<string>();
-    readonly skeletonLines = Array.from({ length: 8 });
+    readonly skeletonLineCount = 8;
 
     readonly reviewState$ = toObservable(this.reviewId).pipe(
         distinctUntilChanged(),
@@ -53,7 +55,7 @@ export class ReviewDetailPageComponent {
         shareReplay({ bufferSize: 1, refCount: true }),
     );
 
-    readonly vm$ = combineLatest({
+    readonly reviewDetail$ = combineLatest({
         reviewState: this.reviewState$,
         mediaState: this.mediaStore.mediaDetailsState$,
     }).pipe(
@@ -90,21 +92,14 @@ export class ReviewDetailPageComponent {
                     const mediaTitle = media
                         ? formatTitleWithYear(media.title, media.year)
                         : review.media_title ?? 'Review';
-                    const imagePath = getReviewImagePath(media);
-                    const hasBackdrop = !!media?.backdropPath;
 
                     this.seo.setPage({
                         title: `${mediaTitle} | Review`,
                         description:
                             review.content ||
                             `Read a full review of ${mediaTitle}.`,
-                        image: buildTmdbImageUrl(
-                            imagePath,
-                            hasBackdrop ? 'w1280' : 'w780',
-                        ),
+                        ...toSeoImage(media?.backdropPath, media?.posterPath),
                         imageAlt: `${mediaTitle} review preview`,
-                        imageWidth: hasBackdrop ? 1280 : null,
-                        imageHeight: hasBackdrop ? 720 : null,
                         type:
                             media?.mediaType === 'tv'
                                 ? 'video.tv_show'
@@ -117,5 +112,3 @@ export class ReviewDetailPageComponent {
     }
 }
 
-const getReviewImagePath = (media: MediaDetails | null): string | null =>
-    media?.backdropPath ?? media?.posterPath ?? null;

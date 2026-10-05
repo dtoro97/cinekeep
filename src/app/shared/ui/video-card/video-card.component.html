@@ -16,28 +16,22 @@
     }
 
     <div class="video-card__body">
-        @if (item.titleLink) {
-            <a class="video-card__title text-subtitle" [routerLink]="item.titleLink">
-                {{ item.title }}
-            </a>
-        } @else {
-            <p class="video-card__title text-subtitle">
-                {{ item.title }}
-            </p>
-        }
+        <p class="video-card__title text-subtitle">
+            {{ item.title }}
+        </p>
 
-        @if (item.typeLabel || item.contextLabel || item.publishedAt) {
+        @if (item.typeLabel || item.mediaTitle || item.publishedAt) {
             <p class="video-card__metadata text-caption">
                 @if (item.typeLabel) {
                     <span>{{ item.typeLabel }}</span>
                 }
-                @if (item.contextLabel) {
-                    @if (item.contextLink) {
-                        <a [routerLink]="item.contextLink">
-                            {{ item.contextLabel }}
+                @if (item.mediaTitle) {
+                    @if (item.mediaLink) {
+                        <a [routerLink]="item.mediaLink">
+                            {{ item.mediaTitle }}
                         </a>
                     } @else {
-                        <span>{{ item.contextLabel }}</span>
+                        <span>{{ item.mediaTitle }}</span>
                     }
                 }
                 @if (item.publishedAt) {

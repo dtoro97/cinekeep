@@ -13,14 +13,13 @@ import type {
     TaggedImagePage,
 } from '../../api';
 import { PersonRestControllerService } from '../../api';
-import { CAROUSEL_COUNT } from '../../constants';
 import {
     buildExternalLinks,
     CardItem,
     compareValues,
     isDefined,
-    isPreferredImageLanguage,
     LocaleStoreService,
+    MEDIA_TYPE_LABEL,
     MEDIA_TYPE_OPTION,
     MediaType,
     RemoteData,
@@ -100,12 +99,11 @@ interface PersonDetailState {
 }
 
 const PERSON_APPENDED_RESOURCES = 'external_ids,images,tagged_images';
-const KNOWN_FOR_COUNT = CAROUSEL_COUNT * 2;
+const KNOWN_FOR_COUNT = 12;
 const KNOWN_FOR_SEO_TITLE_COUNT = 3;
 const CREDIT_PREVIEW_COUNT = 10;
 const BIOGRAPHY_PREVIEW_LENGTH = 300;
 const ALIAS_PREVIEW_COUNT = 3;
-const DEFAULT_IMAGE_LANGUAGE = 'en';
 
 const DEFAULT_CREDIT_FILTERS: PersonCreditFilters = {
     mediaType: 'all',
@@ -304,12 +302,13 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
             .pipe(
                 map((person) => person as PersonDetail),
                 tap((person) => {
-                    const language = this.localeStoreService.language() || DEFAULT_IMAGE_LANGUAGE;
+                    const language = this.localeStoreService.language();
                     const profiles = (person.images?.profiles ?? []).map(
                         (image): ViewerImage => ({ ...image, photoType: 'profile' }),
                     );
                     const tagged = (person.tagged_images?.results ?? [])
-                        .filter((image) => isPreferredImageLanguage(image.iso_639_1, language))
+                        // English and language-neutral (`null`) images suit every locale.
+                        .filter(({ iso_639_1 }) => iso_639_1 === null || iso_639_1 === 'en' || iso_639_1 === language)
                         .map((image): ViewerImage => {
                             const media = image.media as { title?: string; name?: string } | undefined;
 
@@ -500,7 +499,7 @@ function toPersonCredit(
         roleLabel: mergeRoles('', role),
         episodeCount,
         episodeLabel: toEpisodeLabel(episodeCount),
-        mediaTypeLabel: mediaType === 'tv' ? 'TV series' : 'Movie',
+        mediaTypeLabel: MEDIA_TYPE_LABEL[mediaType],
     };
 }
 

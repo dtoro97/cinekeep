@@ -1,23 +1,60 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener } from '@angular/core';
+import { AsyncPipe, DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IsActiveMatchOptions, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { MatIconModule } from '@angular/material/icon';
 
-interface HeaderBrowseLink {
-    readonly label: string;
-    readonly routerLink: string;
-    readonly activeOptions: IsActiveMatchOptions;
-    readonly iconClass?: string;
-}
+import { BehaviorSubject, filter, fromEvent, merge, take, takeUntil } from 'rxjs';
 
 interface HeaderBrowseGroup {
     readonly id: string;
     readonly title: string;
     readonly icon: string;
-    readonly links: readonly HeaderBrowseLink[];
+    readonly links: readonly { readonly label: string; readonly routerLink: string }[];
 }
 
-const EXACT_ACTIVE_OPTIONS: IsActiveMatchOptions = {
+const BROWSE_GROUPS: readonly HeaderBrowseGroup[] = [
+    {
+        id: 'movies',
+        title: 'Movies',
+        icon: 'movie',
+        links: [
+            { label: 'Popular movies', routerLink: '/movies/popular' },
+            { label: 'Top-rated movies', routerLink: '/movies/top-rated' },
+            { label: 'Now in theaters', routerLink: '/movies/now-playing' },
+            { label: 'Coming soon', routerLink: '/movies/upcoming' },
+        ],
+    },
+    {
+        id: 'tv-shows',
+        title: 'TV series',
+        icon: 'live_tv',
+        links: [
+            { label: 'Popular series', routerLink: '/tv/popular' },
+            { label: 'Top-rated series', routerLink: '/tv/top-rated' },
+            { label: 'Episodes airing today', routerLink: '/tv/airing-today' },
+            { label: 'Airing this week', routerLink: '/tv/on-the-air' },
+        ],
+    },
+    {
+        id: 'people',
+        title: 'People',
+        icon: 'groups',
+        links: [{ label: 'Trending people', routerLink: '/people/popular' }],
+    },
+    {
+        id: 'watch',
+        title: 'Watch',
+        icon: 'play_circle',
+        links: [
+            { label: 'Streaming guide', routerLink: '/watch/streaming' },
+            { label: 'Latest trailers', routerLink: '/trailers/trending' },
+        ],
+    },
+];
+
+const EXACT_MATCH: IsActiveMatchOptions = {
     paths: 'exact',
     queryParams: 'ignored',
     fragment: 'ignored',
@@ -26,142 +63,51 @@ const EXACT_ACTIVE_OPTIONS: IsActiveMatchOptions = {
 
 @Component({
     selector: 'app-header-browse-menu',
-    imports: [MatIconModule, RouterLink, RouterLinkActive],
+    imports: [AsyncPipe, MatIconModule, RouterLink, RouterLinkActive],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './header-browse-menu.component.html',
     styleUrl: './header-browse-menu.component.scss',
 })
 export class HeaderBrowseMenuComponent {
-    readonly browseActions: readonly HeaderBrowseLink[] = [
-        {
-            label: 'Explore by filters',
-            routerLink: '/discover',
-            activeOptions: EXACT_ACTIVE_OPTIONS,
-            iconClass: 'fa-solid fa-magnifying-glass',
-        },
-    ];
+    private readonly menuOpenSubject = new BehaviorSubject(false);
 
-    readonly browseGroups: readonly HeaderBrowseGroup[] = [
-        {
-            id: 'movies',
-            title: 'Movies',
-            icon: 'movie',
-            links: [
-                {
-                    label: 'Popular movies',
-                    routerLink: '/movies/popular',
-                    activeOptions: EXACT_ACTIVE_OPTIONS,
-                },
-                {
-                    label: 'Top-rated movies',
-                    routerLink: '/movies/top-rated',
-                    activeOptions: EXACT_ACTIVE_OPTIONS,
-                },
-                {
-                    label: 'Now in theaters',
-                    routerLink: '/movies/now-playing',
-                    activeOptions: EXACT_ACTIVE_OPTIONS,
-                },
-                {
-                    label: 'Coming soon',
-                    routerLink: '/movies/upcoming',
-                    activeOptions: EXACT_ACTIVE_OPTIONS,
-                },
-            ],
-        },
-        {
-            id: 'tv-shows',
-            title: 'TV series',
-            icon: 'live_tv',
-            links: [
-                {
-                    label: 'Popular series',
-                    routerLink: '/tv/popular',
-                    activeOptions: EXACT_ACTIVE_OPTIONS,
-                },
-                {
-                    label: 'Top-rated series',
-                    routerLink: '/tv/top-rated',
-                    activeOptions: EXACT_ACTIVE_OPTIONS,
-                },
-                {
-                    label: 'Episodes airing today',
-                    routerLink: '/tv/airing-today',
-                    activeOptions: EXACT_ACTIVE_OPTIONS,
-                },
-                {
-                    label: 'Airing this week',
-                    routerLink: '/tv/on-the-air',
-                    activeOptions: EXACT_ACTIVE_OPTIONS,
-                },
-            ],
-        },
-        {
-            id: 'people',
-            title: 'People',
-            icon: 'groups',
-            links: [
-                {
-                    label: 'Trending people',
-                    routerLink: '/people/popular',
-                    activeOptions: EXACT_ACTIVE_OPTIONS,
-                },
-            ],
-        },
-        {
-            id: 'watch',
-            title: 'Watch',
-            icon: 'play_circle',
-            links: [
-                {
-                    label: 'Streaming guide',
-                    routerLink: '/watch/streaming',
-                    activeOptions: EXACT_ACTIVE_OPTIONS,
-                },
-                {
-                    label: 'Latest trailers',
-                    routerLink: '/trailers/trending',
-                    activeOptions: EXACT_ACTIVE_OPTIONS,
-                },
-            ],
-        },
-    ];
-
-    menuOpen = false;
+    readonly browseGroups = BROWSE_GROUPS;
+    readonly exactMatch = EXACT_MATCH;
+    readonly menuOpen$ = this.menuOpenSubject.asObservable();
 
     constructor(
+        private readonly destroyRef: DestroyRef,
         private readonly elementRef: ElementRef<HTMLElement>,
-        private readonly cdr: ChangeDetectorRef,
+        @Inject(DOCUMENT) private readonly document: Document,
     ) {}
 
-    @HostListener('document:click', ['$event'])
-    onDocumentClick(event: MouseEvent): void {
-        if (!this.elementRef.nativeElement.contains(event.target as Node)) {
-            this.closeMenu();
-        }
-    }
-
-    @HostListener('document:keydown.escape')
-    onEscape(): void {
-        this.closeMenu();
-    }
-
-    @HostListener('window:scroll')
-    onWindowScroll(): void {
-        this.closeMenu();
-    }
-
     toggleMenu(): void {
-        this.menuOpen = !this.menuOpen;
-        this.cdr.markForCheck();
-    }
+        const documentWindow = this.document.defaultView;
 
-    closeMenu(): void {
-        if (!this.menuOpen) {
+        if (this.menuOpenSubject.value || !documentWindow) {
+            this.closeMenu();
             return;
         }
 
-        this.menuOpen = false;
-        this.cdr.markForCheck();
+        this.menuOpenSubject.next(true);
+
+        // Listens only while open: a click outside, Escape or a page scroll closes the menu.
+        merge(
+            fromEvent<MouseEvent>(this.document, 'click').pipe(
+                filter((event) => !this.elementRef.nativeElement.contains(event.target as Node)),
+            ),
+            fromEvent<KeyboardEvent>(this.document, 'keydown').pipe(filter((event) => event.key === 'Escape')),
+            fromEvent(documentWindow, 'scroll'),
+        )
+            .pipe(
+                take(1),
+                takeUntil(this.menuOpenSubject.pipe(filter((menuOpen) => !menuOpen))),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(() => this.closeMenu());
+    }
+
+    closeMenu(): void {
+        this.menuOpenSubject.next(false);
     }
 }

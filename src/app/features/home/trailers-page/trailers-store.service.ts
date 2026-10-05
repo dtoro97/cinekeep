@@ -16,15 +16,15 @@ import {
 } from 'rxjs';
 
 import {
-    DiscoverRestControllerService,
     MovieRestControllerService,
     TrendingRestControllerService,
     TvSeasonRestControllerService,
     TvSeriesRestControllerService,
     Video,
 } from '../../../api';
-import { PAGE_SIZE, TRAILERS_PAGE_SEED_COUNT } from '../../../constants';
+import { PAGE_SIZE } from '../../../constants';
 import {
+    CardItem,
     getISODate,
     isDefined,
     isMediaResult,
@@ -33,14 +33,12 @@ import {
     remoteData,
     remoteSuccess,
     SelectOption,
-    toTmdbMovieDiscoverSort,
-    toTmdbTvDiscoverSort,
+    TmdbDiscoverService,
+    toCardItem,
     toVideoCardItem,
-    toVideoTrailerSeedItem,
     VideoCardItem,
-    VideoTrailerSeedItem,
 } from '../../../shared';
-import type { SpotlightItem } from '../hero-spotlight/hero-spotlight.component';
+import { SpotlightItem, toSpotlightItem } from '../hero-spotlight/hero-spotlight.component';
 
 export type TrailerFeedType = 'trending' | 'new';
 
@@ -49,7 +47,7 @@ type TrailerVideoCardItem = VideoCardItem & { readonly spotlight: SpotlightItem 
 interface TrailerFeed {
     readonly trailers: RemoteData<TrailerVideoCardItem[]>;
     /** Titles not turned into trailer cards yet; "show more" works through them a page at a time. */
-    readonly pendingSeeds: readonly VideoTrailerSeedItem[];
+    readonly pendingSeeds: readonly CardItem[];
 }
 
 interface TrailersState {
@@ -66,6 +64,8 @@ const FEED_OPTIONS: SelectOption<TrailerFeedType>[] = [
 
 const TRAILER_CONTENT_REGION = 'US';
 const TRAILER_VIDEO_LANGUAGE = 'en';
+/** Titles a feed draws from; "show more" works through them a page at a time. */
+const TRAILER_SEED_COUNT = 60;
 /** "New" covers titles released within this many days either side of today. */
 const NEW_TRAILER_WINDOW_DAYS = 30;
 
@@ -144,7 +144,7 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
 
     constructor(
         private router: Router,
-        private discoverRestControllerService: DiscoverRestControllerService,
+        private tmdbDiscoverService: TmdbDiscoverService,
         private movieRestControllerService: MovieRestControllerService,
         private trendingRestControllerService: TrendingRestControllerService,
         private tvSeasonRestControllerService: TvSeasonRestControllerService,
@@ -188,43 +188,40 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
     }
 
     /** The titles a feed draws its trailers from, most relevant first. */
-    private seeds$(feedType: TrailerFeedType): Observable<VideoTrailerSeedItem[]> {
-        const seeds$: Observable<VideoTrailerSeedItem[]> =
+    private seeds$(feedType: TrailerFeedType): Observable<CardItem[]> {
+        const newWindow = { from: getISODate(-NEW_TRAILER_WINDOW_DAYS), to: getISODate(NEW_TRAILER_WINDOW_DAYS) };
+        const seeds$: Observable<CardItem[]> =
             feedType === 'trending'
                 ? this.trendingRestControllerService.trendingAll({ timeWindow: 'day' }).pipe(
                       map(({ results }) =>
                           (results ?? [])
                               .filter(isMediaResult)
-                              .map((item) => toVideoTrailerSeedItem(item, item.media_type)),
+                              .map((item) => toCardItem(item, item.media_type)),
                       ),
                   )
                 : forkJoin({
-                      movies: this.discoverRestControllerService.discoverMovie({
-                          includeAdult: false,
-                          includeVideo: false,
-                          page: 1,
-                          primaryReleaseDateGte: getISODate(-NEW_TRAILER_WINDOW_DAYS),
-                          primaryReleaseDateLte: getISODate(NEW_TRAILER_WINDOW_DAYS),
-                          region: TRAILER_CONTENT_REGION,
-                          sortBy: toTmdbMovieDiscoverSort('popularity', 'desc'),
+                      movies: this.tmdbDiscoverService.discover$({
+                          mediaType: 'movie',
+                          sortKey: 'popularity',
+                          sortDirection: 'desc',
+                          watchRegion: TRAILER_CONTENT_REGION,
+                          firstReleaseDates: newWindow,
                       }),
-                      tv: this.discoverRestControllerService.discoverTv({
-                          firstAirDateGte: getISODate(-NEW_TRAILER_WINDOW_DAYS),
-                          firstAirDateLte: getISODate(NEW_TRAILER_WINDOW_DAYS),
-                          includeAdult: false,
-                          includeNullFirstAirDates: false,
-                          page: 1,
-                          sortBy: toTmdbTvDiscoverSort('popularity', 'desc'),
+                      tv: this.tmdbDiscoverService.discover$({
+                          mediaType: 'tv',
+                          sortKey: 'popularity',
+                          sortDirection: 'desc',
+                          firstReleaseDates: newWindow,
                       }),
                   }).pipe(
                       map(({ movies, tv }) =>
                           [
                               ...(movies.results ?? []).map((movie) => ({
-                                  seed: toVideoTrailerSeedItem(movie, 'movie'),
+                                  seed: toCardItem(movie, 'movie'),
                                   popularity: movie.popularity ?? 0,
                               })),
                               ...(tv.results ?? []).map((series) => ({
-                                  seed: toVideoTrailerSeedItem(series, 'tv'),
+                                  seed: toCardItem(series, 'tv'),
                                   popularity: series.popularity ?? 0,
                               })),
                           ]
@@ -234,14 +231,14 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
                   );
 
         return seeds$.pipe(
-            map((seeds) => seeds.filter(({ mediaId }) => mediaId > 0).slice(0, TRAILERS_PAGE_SEED_COUNT)),
+            map((seeds) => seeds.filter(({ id }) => id > 0).slice(0, TRAILER_SEED_COUNT)),
             // A feed that fails to load shows no trailers.
             catchError(() => of([])),
         );
     }
 
     /** One card per title that has a YouTube trailer; titles without one are left out. */
-    private videoCards$(seeds: readonly VideoTrailerSeedItem[]): Observable<TrailerVideoCardItem[]> {
+    private videoCards$(seeds: readonly CardItem[]): Observable<TrailerVideoCardItem[]> {
         // forkJoin of nothing never emits, which would leave the feed loading.
         if (seeds.length === 0) {
             return of([]);
@@ -250,14 +247,14 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
         return forkJoin(
             seeds.map((seed) => {
                 const seriesVideos$ = this.tvSeriesRestControllerService
-                    .tvSeriesVideos({ seriesId: seed.mediaId })
+                    .tvSeriesVideos({ seriesId: seed.id })
                     .pipe(map(({ results }) => results ?? []));
                 const videos$: Observable<Video[]> =
                     seed.mediaType === 'movie'
                         ? this.movieRestControllerService
-                              .movieVideos({ movieId: seed.mediaId })
+                              .movieVideos({ movieId: seed.id })
                               .pipe(map(({ results }) => results ?? []))
-                        : this.tvSeriesRestControllerService.tvSeriesDetails({ seriesId: seed.mediaId }).pipe(
+                        : this.tvSeriesRestControllerService.tvSeriesDetails({ seriesId: seed.id }).pipe(
                               map(({ seasons }) =>
                                   Math.max(0, ...(seasons ?? []).map(({ season_number }) => season_number ?? 0)),
                               ),
@@ -266,12 +263,14 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
                               switchMap((seasonNumber) =>
                                   seasonNumber > 0
                                       ? this.tvSeasonRestControllerService
-                                            .tvSeasonVideos({ seriesId: seed.mediaId, seasonNumber })
+                                            .tvSeasonVideos({ seriesId: seed.id, seasonNumber })
                                             .pipe(
                                                 map(({ results }) =>
-                                                    pickBestYoutubeTrailer(results ?? [], TRAILER_VIDEO_LANGUAGE, {
-                                                        requirePreferredLanguage: true,
-                                                    }),
+                                                    pickBestYoutubeTrailer(
+                                                        (results ?? []).filter(
+                                                            (video) => video.iso_639_1 === TRAILER_VIDEO_LANGUAGE,
+                                                        ),
+                                                    ),
                                                 ),
                                                 // The newest season's trailer is preferred, not required.
                                                 catchError(() => of(null)),
@@ -286,7 +285,7 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
                     catchError(() => of<Video[]>([])),
                     map((videos) => {
                         const video = pickBestYoutubeTrailer(videos, TRAILER_VIDEO_LANGUAGE);
-                        const card = video && toVideoCardItem(video, { title: seed.mediaTitle });
+                        const card = video && toVideoCardItem(video, seed);
 
                         if (!card) {
                             return null;
@@ -294,18 +293,9 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
 
                         return {
                             ...card,
-                            contextLabel: seed.mediaTitle,
-                            contextLink: ['/title', seed.mediaId, seed.mediaType],
-                            spotlight: {
-                                id: seed.mediaId,
-                                mediaType: seed.mediaType,
-                                title: seed.mediaTitle,
-                                overview: seed.mediaOverview,
-                                backdropPath: seed.backdropPath,
-                                rating: null,
-                                year: seed.mediaYear,
-                                mediaTypeLabel: '',
-                            },
+                            mediaTitle: seed.title,
+                            mediaLink: ['/title', seed.id, seed.mediaType],
+                            spotlight: toSpotlightItem(seed),
                         };
                     }),
                 );

@@ -17,7 +17,7 @@
                 <div start class="streaming-list__result-count">
                     @if (streamingList.showResultCount) {
                         <span class="text-caption">
-                            {{ streamingList.totalResults | pluralize: "title" }}
+                            {{ streamingList.totalResults | pluralize: 'title' }}
                         </span>
                     }
                 </div>
@@ -60,9 +60,7 @@
                                 flag="watchlist"
                                 media-list-item-action
                                 class="streaming-list__watchlist"
-                                [mediaId]="entry.item.id"
-                                [mediaType]="entry.item.mediaType"
-                                [title]="entry.item.title"
+                                [media]="entry.item"
                                 [iconOnly]="true"
                                 [libraryState]="entry.libraryState"
                             />

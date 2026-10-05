@@ -7,28 +7,32 @@ import {
     catchError,
     debounceTime,
     distinctUntilChanged,
+    expand,
     filter,
     map,
     of,
+    reduce,
     switchMap,
     take,
     tap,
     throwError,
 } from 'rxjs';
 
+import { SeriesSnapshotRequest, UserListControllerService } from '../../../api-cinekeep';
+import { BACKEND_MAX_PAGE_SIZE } from '../../../constants';
 import { MultiListItem, SearchRestControllerService } from '../../../api';
 import {
-    MediaSnapshotRequest,
-    RemoteData,
-    LocaleStoreService,
-    MediaType,
-    UserLibraryService,
     isDefined,
     isMediaResult,
+    MEDIA_TYPE_LABEL,
+    MediaType,
+    RemoteData,
+    remoteSuccess,
+    toMediaKey,
     toMediaSnapshotRequest,
     updateRemoteData,
+    UserLibraryService,
 } from '../../../shared';
-import { remoteSuccess } from '../../../shared/utils';
 
 export interface UserListAddItemsSearchResult {
     readonly key: string;
@@ -39,7 +43,7 @@ export interface UserListAddItemsSearchResult {
     readonly year: string;
     readonly posterPath: string | null;
     readonly isAdded: boolean;
-    readonly snapshot: MediaSnapshotRequest;
+    readonly snapshot: SeriesSnapshotRequest;
 }
 
 interface UserListAddItemsDialogState {
@@ -63,7 +67,7 @@ const INITIAL_STATE: UserListAddItemsDialogState = {
 
 @Injectable()
 export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItemsDialogState> {
-    readonly vm$ = this.select((state) => ({
+    readonly addItems$ = this.select((state) => ({
         state: state.resultsState,
         errorMessage: state.errorMessage,
         hasChanges: state.hasChanges,
@@ -75,9 +79,29 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
     // Without the keys, duplicates are still rejected by the backend when added.
     private readonly loadListKeys = this.effect((listId$: Observable<number>) =>
         listId$.pipe(
-            switchMap((listId) =>
-                this.userLibraryService.getListItemKeys$(listId).pipe(catchError(() => of(new Set<string>()))),
-            ),
+            switchMap((listId) => {
+                const fetchPage$ = (page: number) =>
+                    this.userListControllerService.getListDetails({ listId, page, size: BACKEND_MAX_PAGE_SIZE });
+
+                return fetchPage$(0).pipe(
+                    expand((result) => {
+                        const nextPage = (result.items?.page ?? 0) + 1;
+
+                        return nextPage < (result.items?.totalPages ?? 0) ? fetchPage$(nextPage) : EMPTY;
+                    }),
+                    reduce(
+                        (keys, result) =>
+                            new Set([
+                                ...keys,
+                                ...(result.items?.content ?? []).flatMap(({ mediaType, tmdbId }) =>
+                                    mediaType && tmdbId ? [toMediaKey(mediaType, tmdbId)] : [],
+                                ),
+                            ]),
+                        new Set<string>(),
+                    ),
+                    catchError(() => of(new Set<string>())),
+                );
+            }),
             tap((addedKeys) => this.patchState({ addedKeys })),
         ),
     );
@@ -110,9 +134,9 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
     );
 
     constructor(
-        private readonly localeStore: LocaleStoreService,
         private readonly searchService: SearchRestControllerService,
         private readonly userLibraryService: UserLibraryService,
+        private readonly userListControllerService: UserListControllerService,
     ) {
         super(INITIAL_STATE);
         this.searchTitles(this.query$);
@@ -168,7 +192,7 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
 
     private search$(query: string) {
         return this.searchService
-            .searchMulti({ query, language: this.localeStore.language(), page: 1 })
+            .searchMulti({ query, page: 1 })
             .pipe(
                 map((page) =>
                     (page.results ?? [])
@@ -197,14 +221,14 @@ export class UserListAddItemsDialogStore extends ComponentStore<UserListAddItems
             return null;
         }
 
-        const key = `${mediaType}:${item.id}`;
+        const key = toMediaKey(mediaType, item.id);
         const date = mediaType === 'movie' ? (item.release_date ?? '') : (item.first_air_date ?? '');
 
         return {
             key,
             id: item.id,
             mediaType,
-            mediaTypeLabel: mediaType === 'movie' ? 'Movie' : 'TV series',
+            mediaTypeLabel: MEDIA_TYPE_LABEL[mediaType],
             title,
             year: date.slice(0, 4),
             posterPath: item.poster_path ?? null,

@@ -17,13 +17,13 @@ export class AuthService {
         @Inject(PLATFORM_ID) private readonly platformId: object,
     ) {}
 
-    login$(request: LoginRequest): Observable<void> {
+    login$(request: LoginRequest): Observable<unknown> {
         return this.authController
             .login({ loginRequest: request })
             .pipe(map((response) => this.applyAuthResponse(response)));
     }
 
-    register$(request: RegisterRequest): Observable<void> {
+    register$(request: RegisterRequest): Observable<unknown> {
         return this.authController
             .register({ registerRequest: request })
             .pipe(map((response) => this.applyAuthResponse(response)));
@@ -39,6 +39,7 @@ export class AuthService {
         }
 
         return this.refreshAccessToken$().pipe(
+            // Without a valid refresh cookie the visitor is simply signed out.
             catchError(() => of(undefined)),
         );
     }
@@ -50,10 +51,7 @@ export class AuthService {
     refreshAccessToken$(): Observable<string> {
         if (!this.refreshInFlight$) {
             this.refreshInFlight$ = this.authController.refresh().pipe(
-                map((response) => {
-                    this.applyAuthResponse(response);
-                    return response.accessToken as string;
-                }),
+                map((response) => this.applyAuthResponse(response)),
                 catchError((error: unknown) => {
                     this.userSessionStore.clearSession();
                     return throwError(() => error);
@@ -70,12 +68,14 @@ export class AuthService {
 
     signOut$() {
         return this.authController.logout().pipe(
+            // The local session is cleared even when the backend logout fails.
             catchError(() => of(undefined)),
             tap(() => this.userSessionStore.clearSession()),
         );
     }
 
-    private applyAuthResponse(response: AuthResponse): void {
+    /** Stores the session and returns its access token. */
+    private applyAuthResponse(response: AuthResponse): string {
         const accessToken = response.accessToken?.trim();
 
         if (!accessToken || !response.user) {
@@ -83,5 +83,6 @@ export class AuthService {
         }
 
         this.userSessionStore.setSession(accessToken, toSessionUser(response.user));
+        return accessToken;
     }
 }

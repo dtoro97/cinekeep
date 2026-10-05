@@ -1,28 +1,19 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 import { PAGE_SIZE } from '../../../constants';
-import {
-    CardDateFormat,
-    CardComponent,
-    CarouselComponent,
-    RemoteData,
-    SkeletonComponent,
-    BackdropCardComponent,
-} from '../..';
-import { CardItem } from '../../models';
-import { RepeatPipe } from '../../pipes/repeat.pipe';
+import type { CardItem } from '../../models';
+import { CarouselItemsPipe } from '../../pipes/carousel-items.pipe';
+import type { RemoteData } from '../../types';
+import { BackdropCardComponent } from '../backdrop-card/backdrop-card.component';
+import { CardComponent, CardDateFormat } from '../card/card.component';
+import { CarouselComponent } from '../carousel/carousel.component';
+import { SkeletonComponent } from '../skeleton/skeleton.component';
 
 export type MediaCarouselPanelVariant = 'card' | 'backdrop';
 
 @Component({
     selector: 'app-media-carousel-panel',
-    imports: [
-        CardComponent,
-        CarouselComponent,
-        SkeletonComponent,
-        RepeatPipe,
-        BackdropCardComponent,
-    ],
+    imports: [BackdropCardComponent, CardComponent, CarouselComponent, CarouselItemsPipe, SkeletonComponent],
     templateUrl: './media-carousel-panel.component.html',
     styleUrl: './media-carousel-panel.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

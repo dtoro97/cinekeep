@@ -2,7 +2,7 @@
     class="sort-button__select text-caption"
     aria-label="Sort by"
     [value]="selectedValue"
-    (selectionChange)="onSortChange($event.value)"
+    (selectionChange)="sortChange.emit($event.value)"
 >
     @for (option of options; track option.value) {
         <mat-option [value]="option.value">{{ option.label }}</mat-option>
@@ -13,14 +13,10 @@
 
 <button
     class="sort-button__direction"
-    [class.sort-button__direction--asc]="direction === 'asc'"
+    [class.sort-button__direction--asc]="isAscending"
     type="button"
-    [attr.aria-label]="
-        direction === 'asc'
-            ? 'Switch to descending sort'
-            : 'Switch to ascending sort'
-    "
-    (click)="onToggleDirection()"
+    [attr.aria-label]="directionLabel"
+    (click)="directionToggle.emit()"
 >
     <mat-icon aria-hidden="true">arrow_downward</mat-icon>
 </button>

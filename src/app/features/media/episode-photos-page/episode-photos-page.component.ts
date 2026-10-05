@@ -6,16 +6,17 @@ import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, distinctUntilChanged, filter, map, tap } from 'rxjs';
 
 import {
+    PHOTO_VIEWER_DIALOG_CONFIG,
     PhotoViewerComponent,
     PhotosBrowserComponent,
     PhotosBrowserSelection,
     PhotosBrowserSkeletonComponent,
-    buildTmdbImageUrl,
     formatEpisodeCode,
     formatTitleWithYear,
     isDefined,
     SeoService,
     SubPageHeaderComponent,
+    toSeoImage,
 } from '../../../shared';
 import { EpisodeDetailStoreService } from '../episode-detail-page/episode-detail-store.service';
 import { MediaStoreService } from '../media-store.service';
@@ -42,7 +43,7 @@ export class EpisodePhotosPageComponent {
         distinctUntilChanged(isSameEpisodeTarget),
     );
 
-    readonly vm$ = combineLatest({
+    readonly episodePhotos$ = combineLatest({
         target: this.mediaStore.currentTarget$,
         episodeTarget: this.episodeTarget$,
         mediaState: this.mediaStore.mediaDetailsState$,
@@ -84,28 +85,17 @@ export class EpisodePhotosPageComponent {
     ) {
         this.episodeStore.loadPhotos(this.episodeTarget$.pipe(takeUntilDestroyed()));
 
-        this.vm$
+        this.episodePhotos$
             .pipe(
-                tap((vm) => {
-                    if (vm.media) {
-                        const mediaTitle = formatTitleWithYear(vm.media.title, vm.media.year);
-                        const imagePath =
-                            vm.episode?.still_path ??
-                            vm.media.backdropPath ??
-                            vm.media.posterPath;
-                        const hasWideImage =
-                            !!vm.episode?.still_path || !!vm.media.backdropPath;
+                tap(({ media, episode, pageTitle }) => {
+                    if (media) {
+                        const mediaTitle = formatTitleWithYear(media.title, media.year);
 
                         this.seo.setPage({
-                            title: `${mediaTitle} | ${vm.pageTitle}`,
-                            description: `Photos from ${vm.pageTitle.replace(/ Photos$/, '')} of ${mediaTitle}.`,
-                            image: buildTmdbImageUrl(
-                                imagePath,
-                                hasWideImage ? 'w1280' : 'w780',
-                            ),
-                            imageAlt: `${vm.pageTitle} preview`,
-                            imageWidth: hasWideImage ? 1280 : null,
-                            imageHeight: hasWideImage ? 720 : null,
+                            title: `${mediaTitle} | ${pageTitle}`,
+                            description: `Photos from ${pageTitle.replace(/ Photos$/, '')} of ${mediaTitle}.`,
+                            ...toSeoImage(episode?.still_path ?? media.backdropPath, media.posterPath),
+                            imageAlt: `${pageTitle} preview`,
                             type: 'video.tv_show',
                         });
                     }
@@ -117,13 +107,8 @@ export class EpisodePhotosPageComponent {
 
     openPhotoViewer(selection: PhotosBrowserSelection): void {
         this.dialog.open(PhotoViewerComponent, {
+            ...PHOTO_VIEWER_DIALOG_CONFIG,
             data: { images: selection.images, activeIndex: selection.index },
-            panelClass: 'photo-viewer-panel',
-            maxWidth: '100vw',
-            maxHeight: '100vh',
-            width: '100vw',
-            height: '100vh',
-            autoFocus: false,
         });
     }
 }

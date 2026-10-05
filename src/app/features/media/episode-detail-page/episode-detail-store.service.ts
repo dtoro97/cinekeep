@@ -14,42 +14,35 @@ import {
     tap,
 } from 'rxjs';
 
-import {
-    TvEpisode,
-    TvEpisodeImages,
-    TvEpisodeRestControllerService,
-    Video,
-    VideoList,
-} from '../../../api';
+import { TvEpisode, TvEpisodeImages, TvEpisodeRestControllerService, Video, VideoList } from '../../../api';
+import { EpisodeRatingControllerService } from '../../../api-cinekeep';
 import {
     LocaleStoreService,
     MediaRatingService,
     EpisodeSnapshotRequest,
     RemoteData,
-    UserRatingState,
-    UserRatingVm,
     UserSessionStoreService,
     VideoCardItem,
     ViewerImage,
-    buildImageLanguageFallback,
+    IMAGE_LANGUAGE_FALLBACK,
     getISODate,
     mapRemoteData,
     normalizeRatingValue,
     remoteData,
+    remoteSuccess,
     toVideoCardItems,
     toYoutubeVideos,
     toEpisodeSnapshotRequest,
     toMediaSnapshotRequest,
-    toUserRatingVm,
-    writeUserRating$,
     toRating,
 } from '../../../shared';
+import { toUserRatingDisplay, UserRatingState, writeUserRating$ } from '../user-rating-state';
 import { EpisodeTarget, isSameEpisodeTarget } from '../media-target';
 import { MediaSeasonsStoreService } from '../media-seasons-store.service';
 import { MediaStoreService } from '../media-store.service';
 import { CreditsSummary } from '../media-credits-summary/media-credits-summary.model';
 import { MediaDetails } from '../models/media-details.model';
-import { EpisodeCrewRow, toEpisodeCrewRows, toGuestCast } from './episode-credits.mapper';
+import { toEpisodeCrewRows, toGuestCast } from './episode-credits.mapper';
 import { EpisodePager, toEpisodePager } from './episode-pager.mapper';
 
 interface EpisodeDetailState {
@@ -81,30 +74,6 @@ const INITIAL_STATE: EpisodeDetailState = {
     rating: EMPTY_RATING_RESOURCE,
 };
 
-export interface EpisodeDetailVm {
-    media: MediaDetails | null;
-    episode: TvEpisode | null;
-    isLoading: boolean;
-    canRateEpisode: boolean;
-    /** The episode's TMDb rating, `null` when unrated. */
-    rating: number | null;
-    /** Whether the ratings aside has anything to show. */
-    showRatings: boolean;
-    userRating: UserRatingVm;
-    /** The episode still, or the series backdrop when the episode has none. */
-    heroImage: string | null;
-    /** "Season 2 · Episode 8". */
-    episodeLabel: string;
-    crewRows: EpisodeCrewRow[];
-    guestCast: RemoteData<CreditsSummary | null>;
-    hasGuestCast: boolean;
-    pager: EpisodePager | null;
-    videosState: RemoteData<VideoCardItem[]>;
-    videoCount: number;
-    stillsState: RemoteData<ViewerImage[]>;
-    stillsTotalCount: number;
-}
-
 @Injectable()
 export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState> {
     private readonly target$ = this.select((state) => state.target);
@@ -115,15 +84,16 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
 
     readonly episodeState$ = this.select((state) => state.episode);
 
-    readonly userRatingVm$ = this.select(this.activeRating$, this.target$, (rating, target) =>
-        toUserRatingVm(rating, target !== null),
+    readonly userRating$ = this.select(this.activeRating$, this.target$, (rating, target) =>
+        toUserRatingDisplay(rating, target !== null),
     );
 
     readonly allStillsState$ = this.episodeImagesState$.pipe(
-        map((images): RemoteData<ViewerImage[]> =>
-            images.state === 'notAsked'
-                ? { state: 'loading' }
-                : mapRemoteData(images, (data) => this.toEpisodeStillImages(data?.stills ?? [])),
+        map(
+            (images): RemoteData<ViewerImage[]> =>
+                images.state === 'notAsked'
+                    ? { state: 'loading' }
+                    : mapRemoteData(images, (data) => this.toEpisodeStillImages(data?.stills ?? [])),
         ),
     );
 
@@ -143,10 +113,11 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
     readonly allStills$ = this.allStillsState$.pipe(map((state) => remoteData(state, [])));
 
     private readonly youtubeVideosState$ = this.episodeVideosState$.pipe(
-        map((videos): RemoteData<Video[]> =>
-            videos.state === 'notAsked'
-                ? { state: 'loading' }
-                : mapRemoteData(videos, (data) => toYoutubeVideos(data?.results ?? [])),
+        map(
+            (videos): RemoteData<Video[]> =>
+                videos.state === 'notAsked'
+                    ? { state: 'loading' }
+                    : mapRemoteData(videos, (data) => toYoutubeVideos(data?.results ?? [])),
         ),
     );
 
@@ -166,62 +137,53 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
                 : null,
     );
 
-    readonly vm$ = combineLatest([
+    readonly episodeDetail$ = combineLatest([
         this.mediaState$,
         this.episodeState$,
         this.stillsState$,
         this.youtubeVideosState$,
         this.allStills$,
-        this.userRatingVm$,
+        this.userRating$,
         this.pager$,
     ]).pipe(
-        map(
-            ([
-                mediaState,
-                episodeState,
-                stillsState,
-                videosState,
-                allStills,
-                userRating,
-                pager,
-            ]): EpisodeDetailVm => {
-                const media = mediaState.state === 'success' ? mediaState.data : null;
-                const episode = episodeState.state === 'success' ? episodeState.data : null;
-                const isLoading = episodeState.state === 'loading';
-                const guestStars = episode?.guest_stars ?? [];
-                const stillsTotalCount = allStills.length;
-                const videoItemsState = this.toVideoItemsState(videosState, media);
-                const youtubeVideoCount = videoItemsState.state === 'success' ? videoItemsState.data.length : 0;
-                const airDate = episode?.air_date;
-                const canRateEpisode = airDate ? airDate <= getISODate(0) : false;
-                const rating = toRating(episode?.vote_average);
+        map(([mediaState, episodeState, stillsState, videosState, allStills, userRating, pager]) => {
+            const media = mediaState.state === 'success' ? mediaState.data : null;
+            const episode = episodeState.state === 'success' ? episodeState.data : null;
+            const isLoading = episodeState.state === 'loading';
+            const guestStars = episode?.guest_stars ?? [];
+            const stillsTotalCount = allStills.length;
+            const videoItemsState = this.toVideoItemsState(videosState, media);
+            const youtubeVideoCount = videoItemsState.state === 'success' ? videoItemsState.data.length : 0;
+            const airDate = episode?.air_date;
+            const canRateEpisode = airDate ? airDate <= getISODate(0) : false;
+            const rating = toRating(episode?.vote_average);
 
-                return {
-                    media,
-                    episode,
-                    isLoading,
-                    canRateEpisode,
-                    rating,
-                    showRatings: rating !== null || canRateEpisode,
-                    userRating,
-                    heroImage: episode?.still_path ?? media?.backdropPath ?? null,
-                    episodeLabel: episode
-                        ? `Season ${episode.season_number ?? ''} · Episode ${episode.episode_number ?? ''}`
-                        : '',
-                    crewRows: toEpisodeCrewRows(episode?.crew ?? []),
-                    guestCast: isLoading ? { state: 'loading' } : { state: 'success', data: toGuestCast(guestStars) },
-                    hasGuestCast: isLoading || guestStars.length > 0,
-                    pager,
-                    videosState: videoItemsState,
-                    videoCount: youtubeVideoCount,
-                    stillsState,
-                    stillsTotalCount,
-                };
-            },
-        ),
+            return {
+                media,
+                episode,
+                isLoading,
+                canRateEpisode,
+                rating,
+                showRatings: rating !== null || canRateEpisode,
+                userRating,
+                heroImage: episode?.still_path ?? media?.backdropPath ?? null,
+                episodeLabel: episode
+                    ? `Season ${episode.season_number ?? ''} · Episode ${episode.episode_number ?? ''}`
+                    : '',
+                crewRows: toEpisodeCrewRows(episode?.crew ?? []),
+                guestCast: isLoading ? { state: 'loading' } : remoteSuccess(toGuestCast(guestStars)),
+                hasGuestCast: isLoading || guestStars.length > 0,
+                pager,
+                videosState: videoItemsState,
+                videoCount: youtubeVideoCount,
+                stillsState,
+                stillsTotalCount,
+            };
+        }),
     );
 
     constructor(
+        private readonly episodeRatingControllerService: EpisodeRatingControllerService,
         private readonly localeStore: LocaleStoreService,
         private readonly mediaRatingService: MediaRatingService,
         private readonly mediaStore: MediaStoreService,
@@ -303,7 +265,11 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
 
     deleteUserRating$(target: EpisodeTarget): Observable<unknown> {
         return writeUserRating$(
-            this.mediaRatingService.deleteEpisodeRating$(target.seriesId, target.seasonNumber, target.episodeNumber),
+            this.episodeRatingControllerService.deleteEpisodeRating({
+                seriesTmdbId: target.seriesId,
+                seasonNumber: target.seasonNumber,
+                episodeNumber: target.episodeNumber,
+            }),
             null,
             (patch) => this.patchRating(target, patch),
         );
@@ -360,13 +326,13 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
     }
 
     private fetchEpisode$(target: EpisodeTarget): Observable<TvEpisode | null> {
-        return this.tvEpisodeService.tvEpisodeDetails({
-            seriesId: target.seriesId,
-            seasonNumber: target.seasonNumber,
-            episodeNumber: target.episodeNumber,
-        }).pipe(
-            catchError(() => of(null)),
-        );
+        return this.tvEpisodeService
+            .tvEpisodeDetails({
+                seriesId: target.seriesId,
+                seasonNumber: target.seasonNumber,
+                episodeNumber: target.episodeNumber,
+            })
+            .pipe(catchError(() => of(null)));
     }
 
     private fetchEpisodeImages$(target: EpisodeTarget): Observable<TvEpisodeImages | null> {
@@ -375,22 +341,20 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
                 seriesId: target.seriesId,
                 seasonNumber: target.seasonNumber,
                 episodeNumber: target.episodeNumber,
-                includeImageLanguage: buildImageLanguageFallback(),
+                includeImageLanguage: IMAGE_LANGUAGE_FALLBACK,
                 language: this.localeStore.language(),
             })
-            .pipe(
-                catchError(() => of(null)),
-            );
+            .pipe(catchError(() => of(null)));
     }
 
     private fetchEpisodeVideos$(target: EpisodeTarget): Observable<VideoList | null> {
-        return this.tvEpisodeService.tvEpisodeVideos({
-            seriesId: target.seriesId,
-            seasonNumber: target.seasonNumber,
-            episodeNumber: target.episodeNumber,
-        }).pipe(
-            catchError(() => of({ results: [] })),
-        );
+        return this.tvEpisodeService
+            .tvEpisodeVideos({
+                seriesId: target.seriesId,
+                seasonNumber: target.seasonNumber,
+                episodeNumber: target.episodeNumber,
+            })
+            .pipe(catchError(() => of({ results: [] })));
     }
 
     private fetchEpisodeRating$(target: EpisodeTarget, isAuthenticated: boolean): Observable<unknown> {
@@ -419,15 +383,16 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         const state = this.get();
         const series = this.mediaStore.currentMediaFor({ id: target.seriesId, type: 'tv' });
 
-        if (!isSameEpisodeTarget(state.target, target) || state.episode.state !== 'success' || !state.episode.data || !series) {
+        if (
+            !isSameEpisodeTarget(state.target, target) ||
+            state.episode.state !== 'success' ||
+            !state.episode.data ||
+            !series
+        ) {
             return undefined;
         }
 
-        return toEpisodeSnapshotRequest(
-            state.episode.data,
-            target.episodeNumber,
-            toMediaSnapshotRequest(series, 'tv'),
-        );
+        return toEpisodeSnapshotRequest(state.episode.data, target.episodeNumber, toMediaSnapshotRequest(series, 'tv'));
     }
 
     private patchRating(target: EpisodeTarget, patch: Partial<UserRatingState>): void {
@@ -450,7 +415,10 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         }));
     }
 
-    private toVideoItemsState(videosState: RemoteData<Video[]>, media: MediaDetails | null): RemoteData<VideoCardItem[]> {
+    private toVideoItemsState(
+        videosState: RemoteData<Video[]>,
+        media: MediaDetails | null,
+    ): RemoteData<VideoCardItem[]> {
         return mapRemoteData(videosState, (videos) => (media ? toVideoCardItems(videos, media) : []));
     }
 }

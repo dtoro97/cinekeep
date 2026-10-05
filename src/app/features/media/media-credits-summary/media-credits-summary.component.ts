@@ -1,14 +1,12 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { ImageComponent, RemoteData, SkeletonComponent } from '../../../shared';
-import { type CreditsSummary } from './media-credits-summary.model';
-
-const SKELETON_COUNT = 12;
+import { ImageComponent, RemoteData, RepeatPipe, SkeletonComponent } from '../../../shared';
+import { type CreditsSummary, TOP_CAST_GRID_COUNT } from './media-credits-summary.model';
 
 @Component({
     selector: 'app-media-credits-summary',
-    imports: [ImageComponent, RouterLink, SkeletonComponent],
+    imports: [ImageComponent, RepeatPipe, RouterLink, SkeletonComponent],
     templateUrl: './media-credits-summary.component.html',
     styleUrl: './media-credits-summary.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -16,5 +14,5 @@ const SKELETON_COUNT = 12;
 export class MediaCreditsSummaryComponent {
     @Input({ required: true }) data!: RemoteData<CreditsSummary | null>;
 
-    readonly skeletonItems = Array.from({ length: SKELETON_COUNT }, (_, index) => index);
+    readonly skeletonCount = TOP_CAST_GRID_COUNT;
 }

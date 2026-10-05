@@ -10,16 +10,12 @@ import { EMPTY, catchError, finalize, of, switchMap, tap } from 'rxjs';
 
 import {
     IconButtonComponent,
-    MediaUserListSummary,
     MediaType,
-    SnackbarComponent,
     SnackbarService,
-    SnackbarType,
-    UserLibraryService,
     SigninDialogService,
     UserSessionStoreService,
 } from '../../../shared';
-import { MediaDetailActionsStore } from '../media-detail-actions-store.service';
+import { MediaDetailActionsStore, MediaUserListSummary } from '../media-detail-actions-store.service';
 import {
     MediaListDialogComponent,
     MediaListDialogData,
@@ -40,15 +36,14 @@ export class MediaListActionsComponent {
     /** Carried to the new-list page so its preview can use the title as the list cover. */
     @Input() backdropPath: string | null = null;
 
-    readonly vm$ = this.mediaDetailActionsStore.listActionsVm$;
+    readonly listActions$ = this.mediaDetailActionsStore.listActions$;
     readonly listDialogPending = signal(false);
 
     constructor(
         private readonly dialog: MatDialog,
         private readonly mediaDetailActionsStore: MediaDetailActionsStore,
         private readonly router: Router,
-        private readonly snackbar: SnackbarService,
-        private readonly userLibraryService: UserLibraryService,
+        private readonly snackbarService: SnackbarService,
         private readonly signinDialog: SigninDialogService,
         private readonly userSessionStore: UserSessionStoreService,
     ) {}
@@ -60,7 +55,7 @@ export class MediaListActionsComponent {
 
         action$
             .pipe(
-                catchError(() => this.showError('Could not update your watchlist.')),
+                catchError(() => this.snackbarService.showError$('Could not update your watchlist.')),
             )
             .subscribe();
     }
@@ -72,7 +67,7 @@ export class MediaListActionsComponent {
 
         action$
             .pipe(
-                catchError(() => this.showError('Could not update your favorites.')),
+                catchError(() => this.snackbarService.showError$('Could not update your favorites.')),
             )
             .subscribe();
     }
@@ -87,19 +82,19 @@ export class MediaListActionsComponent {
         if (!this.userSessionStore.isAuthenticated()) {
             this.openSigninDialog()
                 .pipe(
-                    catchError(() => this.showError('Could not update your list.')),
+                    catchError(() => this.snackbarService.showError$('Could not update your list.')),
                     finalize(() => this.listDialogPending.set(false)),
                 )
                 .subscribe();
             return;
         }
 
-        this.userLibraryService
-            .getUserLists$(this.mediaId, this.mediaType)
+        this.mediaDetailActionsStore
+            .getUserLists$()
             .pipe(
                 catchError(() => of([] as MediaUserListSummary[])),
                 switchMap((lists) => this.openListsDialog(lists)),
-                catchError(() => this.showError('Could not update your list.')),
+                catchError(() => this.snackbarService.showError$('Could not update your list.')),
                 finalize(() => this.listDialogPending.set(false)),
             )
             .subscribe();
@@ -144,30 +139,11 @@ export class MediaListActionsComponent {
 
         return this.mediaDetailActionsStore.addToList$(result.listId).pipe(
             tap(() => {
-                this.showSuccess(`${this.title} has been added to your list.`, result.listId);
+                this.snackbarService.showSuccess(`${this.title} has been added to your list.`, {
+                    label: 'Open list',
+                    routerLink: ['/me/lists', result.listId],
+                });
             }),
         );
-    }
-
-    private showError(message: string) {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Error,
-        });
-        return EMPTY;
-    }
-
-    private showSuccess(message: string, listId?: number) {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Success,
-            duration: listId ? 7000 : undefined,
-            link: listId
-                ? {
-                      label: 'Open list',
-                      routerLink: ['/me/lists', listId],
-                  }
-                : undefined,
-        });
     }
 }

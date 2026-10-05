@@ -1,8 +1,5 @@
 @if (loading) {
     <div class="media-list-item" aria-hidden="true">
-        @if (index) {
-            <app-skeleton class="media-list-item__index media-list-item__index--skeleton" />
-        }
         <app-skeleton class="media-list-item__poster" />
 
         <div class="media-list-item__content">
@@ -14,13 +11,15 @@
     </div>
 } @else if (item; as currentItem) {
     <div class="media-list-item">
-        @if (index) {
-            <span class="media-list-item__index text-numeral">{{ index }}</span>
-        }
-
         @if (link; as route) {
             <a class="media-list-item__poster-link" [routerLink]="route" tabindex="-1" aria-hidden="true">
-                <app-image class="media-list-item__poster" [src]="currentItem.thumb" alt="" type="media" params="w185" />
+                <app-image
+                    class="media-list-item__poster"
+                    [src]="currentItem.thumb"
+                    alt=""
+                    type="media"
+                    params="w185"
+                />
             </a>
         } @else {
             <app-image class="media-list-item__poster" [src]="currentItem.thumb" alt="" type="media" params="w185" />
@@ -43,7 +42,7 @@
                 }
             </div>
 
-            @if (currentItem.date || genreNames.length) {
+            @if (showMetadata) {
                 <p class="media-list-item__meta text-card-meta">
                     @if (currentItem.date) {
                         <span>{{ currentItem.date | date: 'yyyy' }}</span>
@@ -59,7 +58,7 @@
             }
 
             @if (currentItem.castLinks; as castLinks) {
-                @if (castLinks.length) {
+                @if (showCast) {
                     <p class="media-list-item__cast text-card-meta">
                         <!-- prettier-ignore -->
                         @for (actor of castLinks; track actor.id; let last = $last) {

@@ -1,4 +1,4 @@
-@if (vm$ | async; as vm) {
+@if (userLists$ | async; as userLists) {
     <app-sub-page-header
         parentTitle="Profile"
         backLink="/me"
@@ -8,7 +8,7 @@
     <div class="page-main">
         <div class="lists">
             @if (
-                vm.state.state === "loading"
+                userLists.state.state === "loading"
             ) {
                 <app-skeleton class="lists__summary-skeleton" />
 
@@ -17,14 +17,14 @@
                         <app-user-list-card-skeleton />
                     }
                 </div>
-            } @else if (vm.state.state === "success") {
-                @if (vm.state.data.length) {
+            } @else if (userLists.state.state === "success") {
+                @if (userLists.state.data.length) {
                     <p class="lists__summary text-caption">
-                        {{ vm.total | pluralize: "list" }}
+                        {{ userLists.total | pluralize: "list" }}
                     </p>
 
                     <div class="lists__grid">
-                        @for (item of vm.state.data; track item.id) {
+                        @for (item of userLists.state.data; track item.id) {
                             <app-user-list-card
                                 [item]="item"
                                 [actionsEnabled]="true"
@@ -34,12 +34,12 @@
                         }
                     </div>
 
-                    @if (vm.total > vm.pageSize) {
+                    @if (userLists.total > userLists.pageSize) {
                         <mat-paginator
                             class="lists__paginator"
-                            [length]="vm.total"
-                            [pageIndex]="vm.page"
-                            [pageSize]="vm.pageSize"
+                            [length]="userLists.total"
+                            [pageIndex]="userLists.page"
+                            [pageSize]="userLists.pageSize"
                             [hidePageSize]="true"
                             (page)="onPageChange($event)"
                         />

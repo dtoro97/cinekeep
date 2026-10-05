@@ -4,24 +4,25 @@ import { forkJoin, map, of, startWith, switchMap } from 'rxjs';
 import {
     CardItem,
     getCurrentMonthName,
-    getStreamingThisMonthTitle,
+    hasRemoteData,
+    remoteData,
     sortWatchProviders,
-    STREAMING_EDITORIAL_SECTIONS,
-    STREAMING_THIS_MONTH_SECTION,
     StreamingBaseQuery,
-    StreamingQueryService,
+    TmdbDiscoverService,
+    TOP_PROVIDER_COUNT,
+    toStreamingPreviewQueries,
     toStreamingThisMonthQuery,
     WatchProviderStoreService,
 } from '../../../shared';
-
-const PROVIDER_CARD_COUNT = 3;
+import { getStreamingThisMonthTitle, STREAMING_EDITORIAL_SECTIONS, STREAMING_THIS_MONTH_SECTION } from '../streaming-browse';
 
 @Injectable()
 export class StreamingHubStoreService {
-    readonly streamingHub$ = this.watchProviderStoreService.catalog$.pipe(
-        map(({ loaded, movieProviders, tvProviders }) => {
+    readonly streamingHub$ = this.watchProviderStoreService.regionProviders$.pipe(
+        map((regionProviders) => {
+            const { movieProviders, tvProviders } = remoteData(regionProviders, { movieProviders: [], tvProviders: [] });
             const sortedProviders = sortWatchProviders([...movieProviders, ...tvProviders]);
-            const featuredSection = loaded
+            const featuredSection = hasRemoteData(regionProviders)
                 ? {
                       ...STREAMING_THIS_MONTH_SECTION,
                       routerLink: ['/watch', 'streaming', 'list', STREAMING_THIS_MONTH_SECTION.slug],
@@ -36,11 +37,11 @@ export class StreamingHubStoreService {
             return {
                 providerCards: sortedProviders
                     .filter((provider, index) => sortedProviders.findIndex(({ id }) => id === provider.id) === index)
-                    .slice(0, PROVIDER_CARD_COUNT)
+                    .slice(0, TOP_PROVIDER_COUNT)
                     .map((provider) => {
                         const baseQuery: StreamingBaseQuery = {
                             mediaTypes: ['tv'],
-                            providerId: provider.id,
+                            providerIds: [provider.id],
                             monetization: 'flatrate',
                             datePreset: 'current-two-months',
                             sortBy: 'popularity',
@@ -73,7 +74,7 @@ export class StreamingHubStoreService {
                 providerCards: hub.providerCards.length
                     ? forkJoin(
                           hub.providerCards.map((card) =>
-                              this.streamingQueryService.preview$(card.baseQuery).pipe(
+                              this.tmdbDiscoverService.preview$(toStreamingPreviewQueries(card.baseQuery)).pipe(
                                   map((previews) => ({
                                       ...card,
                                       preview:
@@ -86,8 +87,8 @@ export class StreamingHubStoreService {
                 routeSections: hub.routeSections.length
                     ? forkJoin(
                           hub.routeSections.map((section) =>
-                              this.streamingQueryService
-                                  .preview$(section.baseQuery)
+                              this.tmdbDiscoverService
+                                  .preview$(toStreamingPreviewQueries(section.baseQuery))
                                   .pipe(map((previews) => ({ ...section, previews }))),
                           ),
                       )
@@ -104,6 +105,6 @@ export class StreamingHubStoreService {
 
     constructor(
         private watchProviderStoreService: WatchProviderStoreService,
-        private streamingQueryService: StreamingQueryService,
+        private tmdbDiscoverService: TmdbDiscoverService,
     ) {}
 }

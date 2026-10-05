@@ -6,8 +6,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 
 import {
-    EMPTY,
-    Observable,
     catchError,
     combineLatest,
     distinctUntilChanged,
@@ -21,30 +19,29 @@ import {
 import { TvEpisode } from '../../../api';
 import {
     MediaRatingDialogService,
-    SnackbarComponent,
+    MinutesToHoursPipe,
     SnackbarService,
-    SnackbarType,
-    buildTmdbImageUrl,
     formatEpisodeCode,
     formatTitleWithYear,
     isDefined,
     SeoService,
+    toSeoImage,
     ViewerImage,
 } from '../../../shared';
 import {
     HeroSurfaceComponent,
     PageSectionComponent,
+    PHOTO_VIEWER_DIALOG_CONFIG,
     PhotoViewerComponent,
     PhotosPreviewComponent,
     SkeletonComponent,
     TmdbRatingComponent,
-    UserRatingComponent,
     VideosGridComponent,
 } from '../../../shared';
-import { MinutesToHours } from '../../../shared/pipes/time.pipe';
 import { MediaCreditsSummaryComponent } from '../media-credits-summary/media-credits-summary.component';
 import { EpisodeTarget, isSameEpisodeTarget, toEpisodeTarget } from '../media-target';
 import { MediaStoreService } from '../media-store.service';
+import { UserRatingComponent } from '../user-rating/user-rating.component';
 import { EpisodeDetailStoreService } from './episode-detail-store.service';
 
 @Component({
@@ -52,16 +49,16 @@ import { EpisodeDetailStoreService } from './episode-detail-store.service';
     imports: [
         AsyncPipe,
         DatePipe,
-        RouterLink,
-        MatDialogModule,
         HeroSurfaceComponent,
+        MatDialogModule,
         MediaCreditsSummaryComponent,
-        UserRatingComponent,
+        MinutesToHoursPipe,
         PageSectionComponent,
         PhotosPreviewComponent,
+        RouterLink,
         SkeletonComponent,
-        MinutesToHours,
         TmdbRatingComponent,
+        UserRatingComponent,
         VideosGridComponent,
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -79,8 +76,8 @@ export class EpisodeDetailComponent {
         toObservable(this.episodeNumber),
     ]).pipe(map(([target, seasonNumber, episodeNumber]) => toEpisodeTarget(target.id, seasonNumber, episodeNumber)));
 
-    readonly vm$ = combineLatest({
-        detail: this.episodeStore.vm$,
+    readonly episodeDetail$ = combineLatest({
+        detail: this.episodeStore.episodeDetail$,
         target: this.mediaStore.currentTarget$,
         episodeTarget: this.episodeTarget$.pipe(filter(isDefined)),
     }).pipe(
@@ -99,7 +96,7 @@ export class EpisodeDetailComponent {
         private readonly mediaStore: MediaStoreService,
         private route: ActivatedRoute,
         private router: Router,
-        private snackbar: SnackbarService,
+        private readonly snackbarService: SnackbarService,
         private seo: SeoService,
         private dialog: MatDialog,
         private readonly ratingDialog: MediaRatingDialogService,
@@ -127,36 +124,22 @@ export class EpisodeDetailComponent {
             )
             .subscribe();
 
-        this.vm$
+        this.episodeDetail$
             .pipe(
                 takeUntilDestroyed(),
-                tap((vm) => {
-                    if (vm.media && vm.episode) {
-                        const episodeCode = formatEpisodeCode(
-                            vm.episode.season_number ?? 0,
-                            vm.episode.episode_number ?? 0,
-                        );
-                        const episodeLabel = vm.episode.name ? `${vm.episode.name} (${episodeCode})` : episodeCode;
-                        const mediaTitle = formatTitleWithYear(vm.media.title, vm.media.year);
-                        const imagePath =
-                            vm.episode.still_path ??
-                            vm.media.backdropPath ??
-                            vm.media.posterPath;
-                        const hasWideImage =
-                            !!vm.episode.still_path || !!vm.media.backdropPath;
+                tap(({ media, episode }) => {
+                    if (media && episode) {
+                        const episodeCode = formatEpisodeCode(episode.season_number ?? 0, episode.episode_number ?? 0);
+                        const episodeLabel = episode.name ? `${episode.name} (${episodeCode})` : episodeCode;
+                        const mediaTitle = formatTitleWithYear(media.title, media.year);
 
                         this.seo.setPage({
                             title: `${mediaTitle} | ${episodeLabel}`,
                             description:
-                                vm.episode.overview ||
+                                episode.overview ||
                                 `Episode details, cast, videos, and photos for ${episodeLabel} from ${mediaTitle}.`,
-                            image: buildTmdbImageUrl(
-                                imagePath,
-                                hasWideImage ? 'w1280' : 'w780',
-                            ),
-                            imageAlt: `${vm.episode.name || episodeCode} episode still`,
-                            imageWidth: hasWideImage ? 1280 : null,
-                            imageHeight: hasWideImage ? 720 : null,
+                            ...toSeoImage(episode.still_path ?? media.backdropPath, media.posterPath),
+                            imageAlt: `${episode.name || episodeCode} episode still`,
                             type: 'video.tv_show',
                         });
                     }
@@ -170,13 +153,8 @@ export class EpisodeDetailComponent {
             .pipe(take(1))
             .subscribe((images: ViewerImage[]) => {
                 this.dialog.open(PhotoViewerComponent, {
+                    ...PHOTO_VIEWER_DIALOG_CONFIG,
                     data: { images, activeIndex: index },
-                    panelClass: 'photo-viewer-panel',
-                    maxWidth: '100vw',
-                    maxHeight: '100vh',
-                    width: '100vw',
-                    height: '100vh',
-                    autoFocus: false,
                 });
         });
     }
@@ -202,7 +180,7 @@ export class EpisodeDetailComponent {
         };
         const title = episode.name ?? 'this episode';
 
-        this.episodeStore.userRatingVm$
+        this.episodeStore.userRating$
             .pipe(
                 take(1),
                 filter((rating) => !rating.disabled),
@@ -213,24 +191,15 @@ export class EpisodeDetailComponent {
                         save: (value) =>
                             this.episodeStore
                                 .submitUserRating$(target, value)
-                                .pipe(catchError(() => this.showError('Could not save your rating.'))),
+                                .pipe(catchError(() => this.snackbarService.showError$('Could not save your rating.'))),
                         remove: () =>
                             this.episodeStore
                                 .deleteUserRating$(target)
-                                .pipe(catchError(() => this.showError('Could not remove your rating.'))),
+                                .pipe(catchError(() => this.snackbarService.showError$('Could not remove your rating.'))),
                     }),
                 ),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
-    }
-
-    private showError(message: string): Observable<never> {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Error,
-        });
-
-        return EMPTY;
     }
 }

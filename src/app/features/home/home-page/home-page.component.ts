@@ -6,23 +6,23 @@ import { RouterLink } from '@angular/router';
 import { distinctUntilChanged, map } from 'rxjs';
 
 import {
-    buildTmdbImageUrl,
     EmptyStateComponent,
     ImageComponent,
     MediaCarouselPanelComponent,
     MediaType,
     PageSectionComponent,
-    PersonCarouselPanelComponent,
     RatingComponent,
     RepeatPipe,
     SeoService,
     SkeletonComponent,
     ToggleGroupComponent,
+    toSeoImage,
 } from '../../../shared';
 import { HeroSpotlightComponent } from '../hero-spotlight/hero-spotlight.component';
 import { HOME_SEO_DESCRIPTION } from '../home-seo';
 import { HomeStoreService } from './home-store.service';
 import { HomeTopPicksComponent } from './home-top-picks/home-top-picks.component';
+import { PersonCarouselPanelComponent } from './person-carousel-panel/person-carousel-panel.component';
 
 @Component({
     selector: 'app-home-page',
@@ -49,8 +49,6 @@ import { HomeTopPicksComponent } from './home-top-picks/home-top-picks.component
 })
 export class HomePageComponent {
     readonly home$ = this.store.home$;
-    readonly airingSkeletonCount = 6;
-    readonly streamingSkeletonCount = 3;
 
     constructor(
         private store: HomeStoreService,
@@ -68,18 +66,15 @@ export class HomePageComponent {
                 seoService.setPage({
                     title: 'CineKeep',
                     description: HOME_SEO_DESCRIPTION,
-                    image: buildTmdbImageUrl(spotlight?.backdropPath, 'w1280'),
+                    ...toSeoImage(spotlight?.backdropPath),
                     imageAlt: spotlight
                         ? `${spotlight.title} spotlight artwork`
                         : 'Gold film reel logo on a dark background',
-                    imageWidth: spotlight?.backdropPath ? 1280 : null,
-                    imageHeight: spotlight?.backdropPath ? 720 : null,
                 }),
             );
     }
 
-    /** The toggle emits `unknown`, but only ever offers the media type options passed to it. */
-    setPopularMediaType(value: unknown): void {
-        this.store.setPopularMediaType(value as MediaType);
+    setPopularMediaType(value: MediaType): void {
+        this.store.setPopularMediaType(value);
     }
 }

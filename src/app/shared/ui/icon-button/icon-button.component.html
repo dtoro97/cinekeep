@@ -4,9 +4,9 @@
     type="button"
     [attr.aria-label]="ariaLabel"
     [matTooltip]="title"
-    [matTooltipDisabled]="!title || disableTooltip"
+    [matTooltipDisabled]="!title"
     [disabled]="disabled"
-    (click)="click()"
+    (click)="buttonClick.emit()"
 >
     <ng-content></ng-content>
 </button>

@@ -42,42 +42,41 @@ import { DiscoverActiveFilter, DiscoverFilterChange, DiscoverStoreService } from
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DiscoverPageComponent {
-    readonly discover$ = this.store.discover$;
+    readonly discover$ = this.discoverStoreService.discover$;
 
     showMobileFilters = false;
 
     constructor(
-        private store: DiscoverStoreService,
-        private destroyRef: DestroyRef,
+        private readonly discoverStoreService: DiscoverStoreService,
+        private readonly destroyRef: DestroyRef,
     ) {}
 
-    /** The toolbar controls emit `unknown`, but only ever offer the options passed to them. */
-    setMediaType(value: unknown): void {
-        this.store.setMediaType(value as MediaType);
+    setMediaType(value: MediaType): void {
+        this.discoverStoreService.setMediaType(value);
     }
 
-    setSortKey(value: unknown): void {
-        this.store.setSortKey(value as TmdbDiscoverSortKey);
+    setSortKey(value: TmdbDiscoverSortKey): void {
+        this.discoverStoreService.setSortKey(value);
     }
 
     toggleSortDirection(): void {
-        this.store.toggleSortDirection();
+        this.discoverStoreService.toggleSortDirection();
     }
 
     updateFilter(change: DiscoverFilterChange): void {
-        this.store.updateFilter(change);
+        this.discoverStoreService.updateFilter(change);
     }
 
     clearFilter(filter: DiscoverActiveFilter): void {
-        this.store.clearFilter(filter);
+        this.discoverStoreService.clearFilter(filter);
     }
 
     resetFilters(): void {
-        this.store.resetFilters();
+        this.discoverStoreService.resetFilters();
     }
 
     loadMore(): void {
-        this.store.loadMore$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+        this.discoverStoreService.loadMore$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     }
 
     openFilters(): void {

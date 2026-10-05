@@ -1,25 +1,27 @@
-import { afterNextRender, Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, afterNextRender } from '@angular/core';
+import { ComponentStore } from '@ngrx/component-store';
 
 import { RecentlyViewedItem } from '../models';
 import { BrowserStorageService } from './browser-storage.service';
 
+interface RecentlyViewedState {
+    readonly items: readonly RecentlyViewedItem[];
+}
+
 const STORAGE_KEY_RECENTLY_VIEWED = 'tmdb_recently_viewed';
 const MAX_RECENTLY_VIEWED_ITEMS = 12;
 
+/** The visitor's last viewed titles and people, kept in local storage, which stays the source of truth. */
 @Injectable({ providedIn: 'root' })
-export class RecentlyViewedStoreService {
-    private readonly itemsSubject = new BehaviorSubject<RecentlyViewedItem[]>(
-        [],
-    );
-    private hydrated = false;
-
-    readonly items$ = this.itemsSubject.asObservable();
+export class RecentlyViewedStoreService extends ComponentStore<RecentlyViewedState> {
+    readonly recentlyViewed$ = this.select(({ items }) => ({ items, hasItems: items.length > 0 }));
+    readonly items$ = this.select((state) => state.items);
 
     constructor(private readonly browserStorage: BrowserStorageService) {
-        afterNextRender(() => {
-            this.hydrateFromStorage();
-        });
+        super({ items: [] });
+
+        // Read after the first render, so the server render and hydration both start from the empty list.
+        afterNextRender(() => this.patchState({ items: readStoredItems(browserStorage) }));
     }
 
     addItem(item: RecentlyViewedItem): void {
@@ -27,97 +29,40 @@ export class RecentlyViewedStoreService {
             return;
         }
 
-        this.hydrateFromStorage();
+        const items = toUniqueRecentItems([item, ...readStoredItems(this.browserStorage)]);
 
-        const nextItems = this.normalizeItems([
-            item,
-            ...this.itemsSubject.getValue(),
-        ]);
-        this.itemsSubject.next(nextItems);
-        this.browserStorage.setItem(
-            STORAGE_KEY_RECENTLY_VIEWED,
-            JSON.stringify(nextItems),
-        );
+        this.browserStorage.setItem(STORAGE_KEY_RECENTLY_VIEWED, JSON.stringify(items));
+        this.patchState({ items });
     }
 
     clearAll(): void {
-        if (!this.browserStorage.isBrowserEnvironment()) {
-            return;
-        }
-
-        this.hydrated = true;
-        this.itemsSubject.next([]);
         this.browserStorage.removeItem(STORAGE_KEY_RECENTLY_VIEWED);
+        this.patchState({ items: [] });
     }
+}
 
-    private hydrateFromStorage(): void {
-        if (this.hydrated || !this.browserStorage.isBrowserEnvironment()) {
-            return;
-        }
+function readStoredItems(browserStorage: BrowserStorageService): RecentlyViewedItem[] {
+    try {
+        const parsed: unknown = JSON.parse(browserStorage.getItem(STORAGE_KEY_RECENTLY_VIEWED) ?? '[]');
 
-        this.hydrated = true;
-        this.itemsSubject.next(this.readInitialItems());
+        return Array.isArray(parsed)
+            ? toUniqueRecentItems(
+                  parsed.filter(
+                      (item): item is RecentlyViewedItem =>
+                          !!item?.id &&
+                          ((item.kind === 'media' && (item.mediaType === 'movie' || item.mediaType === 'tv')) ||
+                              (item.kind === 'person' && typeof item.name === 'string')),
+                  ),
+              )
+            : [];
+    } catch {
+        // Unreadable storage from an older or tampered version starts the list over.
+        return [];
     }
+}
 
-    private readInitialItems(): RecentlyViewedItem[] {
-        const rawValue = this.browserStorage.getItem(
-            STORAGE_KEY_RECENTLY_VIEWED,
-        );
-
-        if (!rawValue) {
-            return [];
-        }
-
-        try {
-            const parsed = JSON.parse(rawValue);
-            if (!Array.isArray(parsed)) {
-                return [];
-            }
-
-            return this.normalizeItems(
-                parsed.filter((item) => this.isValidItem(item)),
-            );
-        } catch {
-            return [];
-        }
-    }
-
-    private normalizeItems(
-        items: readonly RecentlyViewedItem[],
-    ): RecentlyViewedItem[] {
-        const seen = new Set<string>();
-        const uniqueItems = items.filter((item) => {
-            const key = `${item.kind}:${item.id}`;
-            if (seen.has(key)) {
-                return false;
-            }
-
-            seen.add(key);
-            return true;
-        });
-
-        return uniqueItems.slice(0, MAX_RECENTLY_VIEWED_ITEMS);
-    }
-
-    private isValidItem(value: unknown) {
-        if (value === null || typeof value !== 'object') {
-            return false;
-        }
-
-        const item = value as Record<string, unknown>;
-
-        if (!item['id']) {
-            return false;
-        }
-
-        if (item['kind'] === 'media') {
-            return item['mediaType'] === 'movie' || item['mediaType'] === 'tv';
-        }
-
-        if (item['kind'] === 'person') {
-            return typeof item['name'] === 'string';
-        }
-
-        return false;
-    }
+function toUniqueRecentItems(items: readonly RecentlyViewedItem[]): RecentlyViewedItem[] {
+    return items
+        .filter((item, index) => items.findIndex((other) => other.kind === item.kind && other.id === item.id) === index)
+        .slice(0, MAX_RECENTLY_VIEWED_ITEMS);
 }

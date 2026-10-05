@@ -7,6 +7,7 @@ import {
     PhotosBrowserComponent,
     PhotosBrowserSelection,
     PhotosBrowserSkeletonComponent,
+    PHOTO_VIEWER_DIALOG_CONFIG,
     PhotoViewerComponent,
     SeoService,
     SubPageHeaderComponent,
@@ -37,13 +38,8 @@ export class PersonPhotosPageComponent {
 
     openPhotoViewer(selection: PhotosBrowserSelection): void {
         this.matDialog.open(PhotoViewerComponent, {
+            ...PHOTO_VIEWER_DIALOG_CONFIG,
             data: { images: selection.images, activeIndex: selection.index },
-            panelClass: 'photo-viewer-panel',
-            maxWidth: '100vw',
-            maxHeight: '100vh',
-            width: '100vw',
-            height: '100vh',
-            autoFocus: false,
         });
     }
 }

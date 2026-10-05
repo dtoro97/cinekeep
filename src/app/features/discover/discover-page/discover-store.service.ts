@@ -22,13 +22,10 @@ import {
 import {
     CertificationRestControllerService,
     CompanyRestControllerService,
-    DiscoverRestControllerService,
     KeywordRestControllerService,
-    MoviePage,
     SearchRestControllerService,
-    TvSeriesPage,
 } from '../../../api';
-import { OPENING_SOON_MOVIE_DAYS_AHEAD } from '../../../constants';
+import { OPENING_SOON_MOVIE_DAYS_AHEAD, PAGE_SIZE } from '../../../constants';
 import {
     ConfigStoreService,
     DEFAULT_TMDB_DISCOVER_SORT_DIRECTION,
@@ -60,16 +57,14 @@ import {
     remoteSuccess,
     SelectOption,
     serializeNumberListParam,
-    serializePositiveNumberParam,
-    TMDB_DISCOVER_SORT_DIRECTIONS,
+    SORT_DIRECTIONS,
     TMDB_DISCOVER_SORT_KEYS,
+    TmdbDiscoverService,
     TmdbDiscoverSortKey,
     toLanguageOptions,
     toLibraryState,
     toMediaListItem,
     toRegionOptions,
-    toTmdbMovieDiscoverSort,
-    toTmdbTvDiscoverSort,
     UserLibraryService,
     WatchProviderStoreService,
 } from '../../../shared';
@@ -156,7 +151,6 @@ interface DiscoverLookup {
 
 /** Whose certifications to offer when the watch region has none of its own. */
 const CERTIFICATION_FALLBACK_REGION = 'US';
-const LOADING_SKELETON_COUNT = 20;
 const LOADING_MORE_SKELETON_COUNT = 5;
 const MIN_LOOKUP_QUERY_LENGTH = 2;
 const MAX_LOOKUP_SUGGESTIONS = 8;
@@ -445,7 +439,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                 })),
                 skeletonCount:
                     results.state === 'loading'
-                        ? LOADING_SKELETON_COUNT
+                        ? PAGE_SIZE
                         : results.state === 'loading-more'
                           ? LOADING_MORE_SKELETON_COUNT
                           : 0,
@@ -550,15 +544,15 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
     constructor(
         private activatedRoute: ActivatedRoute,
         private router: Router,
-        private discoverRestControllerService: DiscoverRestControllerService,
+        private tmdbDiscoverService: TmdbDiscoverService,
         private certificationRestControllerService: CertificationRestControllerService,
         private companyRestControllerService: CompanyRestControllerService,
         private keywordRestControllerService: KeywordRestControllerService,
         private searchRestControllerService: SearchRestControllerService,
         private watchProviderStoreService: WatchProviderStoreService,
-        private localeStoreService: LocaleStoreService,
         private configStoreService: ConfigStoreService,
         private genreService: GenreService,
+        localeStoreService: LocaleStoreService,
         userLibraryService: UserLibraryService,
     ) {
         super(INITIAL_STATE);
@@ -613,7 +607,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                         sortDirection: definition.showSort
                             ? parseEnumParam(
                                   queryParams.get('direction'),
-                                  TMDB_DISCOVER_SORT_DIRECTIONS,
+                                  SORT_DIRECTIONS,
                                   definition.defaultSortDirection,
                               )
                             : definition.defaultSortDirection,
@@ -737,7 +731,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
             case 'yearFrom':
             case 'yearTo': {
                 // Years can be typed freely, so anything that isn't a positive number clears the bound.
-                const year = serializePositiveNumberParam(change.value);
+                const year = change.value !== null && Number.isFinite(change.value) && change.value > 0 ? change.value : null;
                 const yearFrom = change.key === 'yearFrom' ? year : query.yearFrom;
                 const yearTo = change.key === 'yearTo' ? year : query.yearTo;
                 const isReversed = yearFrom !== null && yearTo !== null && yearFrom > yearTo;
@@ -784,52 +778,39 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
     /** A page is replaced on a new request and appended on "show more". */
     private fetchPage$(definition: DiscoverPageDefinition, query: DiscoverQueryState, page: number) {
         const windowDays = definition.dateWindow ? DATE_WINDOW_DAYS[definition.dateWindow] : null;
-        const windowFrom = windowDays ? getISODate(windowDays[0]) : undefined;
-        const windowTo = windowDays ? getISODate(windowDays[1]) : undefined;
-        const yearFrom = !windowDays && query.yearFrom ? `${query.yearFrom}-01-01` : undefined;
-        const yearTo = !windowDays && query.yearTo ? `${query.yearTo}-12-31` : undefined;
         const runtime = RUNTIME_RANGES[query.runtimePreset];
-        const providerFilter = serializeNumberListParam(query.providerIds) ?? undefined;
-        const commonParams = {
-            includeAdult: false,
-            language: this.localeStoreService.language(),
-            page,
-            voteAverageGte: query.voteAverageGte ?? undefined,
-            voteCountGte: query.voteCountGte ?? undefined,
-            watchRegion: providerFilter ? query.watchRegion : undefined,
-            withCompanies: serializeNumberListParam(query.companyIds, '|') ?? undefined,
-            withGenres: serializeNumberListParam(query.genreIds) ?? undefined,
-            withKeywords: serializeNumberListParam(query.keywordIds) ?? undefined,
-            withOriginalLanguage: query.originalLanguage ?? undefined,
-            withRuntimeGte: runtime.min,
-            withRuntimeLte: runtime.max,
-            withWatchProviders: providerFilter,
-            withoutGenres: serializeNumberListParam(query.excludedGenreIds) ?? undefined,
-        };
-        const response$: Observable<MoviePage | TvSeriesPage> =
-            query.mediaType === 'movie'
-                ? this.discoverRestControllerService.discoverMovie({
-                      ...commonParams,
-                      certification: query.certification ?? undefined,
-                      certificationCountry: query.certification ? query.watchRegion : undefined,
-                      primaryReleaseDateGte: yearFrom,
-                      primaryReleaseDateLte: yearTo,
-                      region: windowDays || query.releaseType ? query.watchRegion : undefined,
-                      releaseDateGte: windowFrom,
-                      releaseDateLte: windowTo,
-                      sortBy: toTmdbMovieDiscoverSort(query.sortKey, query.sortDirection),
-                      withReleaseType: query.releaseType ?? undefined,
-                  })
-                : this.discoverRestControllerService.discoverTv({
-                      ...commonParams,
-                      airDateGte: windowFrom,
-                      airDateLte: windowTo,
-                      firstAirDateGte: yearFrom,
-                      firstAirDateLte: yearTo,
-                      sortBy: toTmdbTvDiscoverSort(query.sortKey, query.sortDirection),
-                  });
 
-        return response$.pipe(
+        return this.tmdbDiscoverService
+            .discover$({
+                mediaType: query.mediaType,
+                sortKey: query.sortKey,
+                sortDirection: query.sortDirection,
+                page,
+                watchRegion: query.watchRegion,
+                genreIds: query.genreIds,
+                excludedGenreIds: query.excludedGenreIds,
+                keywordIds: query.keywordIds,
+                companyIds: query.companyIds,
+                providerIds: query.providerIds,
+                originalLanguage: query.originalLanguage,
+                certification: query.certification,
+                releaseType: query.releaseType,
+                // Date-window pages filter by release dates; every other page by the year range of first releases.
+                releaseDates: windowDays
+                    ? { from: getISODate(windowDays[0]), to: getISODate(windowDays[1]) }
+                    : undefined,
+                firstReleaseDates: windowDays
+                    ? undefined
+                    : {
+                          from: query.yearFrom ? `${query.yearFrom}-01-01` : undefined,
+                          to: query.yearTo ? `${query.yearTo}-12-31` : undefined,
+                      },
+                runtimeMin: runtime.min,
+                runtimeMax: runtime.max,
+                voteAverageMin: query.voteAverageGte,
+                voteCountMin: query.voteCountGte,
+            })
+            .pipe(
             tap((response) => {
                 // A "show more" page that lands after the filters changed belongs to the previous list.
                 if (this.get().query !== query) {

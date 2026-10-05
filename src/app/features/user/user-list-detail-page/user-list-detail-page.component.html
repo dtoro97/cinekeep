@@ -1,14 +1,14 @@
-@if (vm$ | async; as vm) {
+@if (userListDetail$ | async; as userListDetail) {
     <div class="detail page-container">
-        @if (vm.header.state === 'success') {
-            @let header = vm.header.data;
+        @if (userListDetail.header.state === 'success') {
+            @let header = userListDetail.header.data;
 
             <app-sub-page-header
                 parentTitle="your lists"
                 [backLink]="backLink"
                 [backdropPath]="header.backdropPath"
                 [pageTitle]="header.name"
-                [subtitle]="vm.headerSubtitle"
+                [subtitle]="userListDetail.headerSubtitle"
             />
 
             <main class="page-main detail__main page-list-column">
@@ -26,7 +26,7 @@
                             matButton="outlined"
                             class="button--subtle"
                             type="button"
-                            (click)="onEditDetails(header, vm.defaultSortBy)"
+                            (click)="onEditDetails(header, userListDetail.defaultSortBy)"
                         >
                             <i class="fa-solid fa-pencil" aria-hidden="true"></i>
                             Edit list
@@ -57,30 +57,30 @@
                     <app-sort-button
                         end
                         [options]="sortFieldOptions"
-                        [selectedValue]="vm.sort.field"
-                        [direction]="vm.sort.direction"
-                        (sortChange)="onSortFieldChange($event, vm.sort)"
-                        (directionToggle)="onSortDirectionToggle(vm.sort)"
+                        [selectedValue]="userListDetail.sort.field"
+                        [direction]="userListDetail.sort.direction"
+                        (sortChange)="onSortFieldChange($event, userListDetail.sort)"
+                        (directionToggle)="onSortDirectionToggle(userListDetail.sort)"
                     />
                 </app-browse-toolbar>
 
-                @if (vm.items.state === 'loading') {
+                @if (userListDetail.items.state === 'loading') {
                     <div class="detail__items" aria-hidden="true">
                         @for (placeholder of initialSkeletonCount | repeat; track placeholder) {
                             <app-media-list-item [loading]="true" />
                         }
                     </div>
-                } @else if (vm.items.state === 'success') {
-                    @if (vm.items.data.length) {
+                } @else if (userListDetail.items.state === 'success') {
+                    @if (userListDetail.items.data.length) {
                         <div class="detail__items">
-                            @for (item of vm.items.data; track item.key) {
+                            @for (item of userListDetail.items.data; track item.key) {
                                 <app-media-list-item [item]="item.mediaItem" [link]="item.link">
                                     <div media-list-item-action class="detail__item-actions">
                                         <app-icon-button
                                             [title]="item.commentActionLabel"
                                             [ariaLabel]="item.commentActionLabel"
                                             [selected]="editingCommentKey() === item.key"
-                                            (onClick)="onStartComment(item)"
+                                            (buttonClick)="onStartComment(item)"
                                         >
                                             <i class="fa-regular fa-comment" aria-hidden="true"></i>
                                         </app-icon-button>
@@ -88,7 +88,7 @@
                                             tone="danger"
                                             title="Remove from list"
                                             ariaLabel="Remove {{ item.title }} from this list"
-                                            (onClick)="onRemoveItem(item)"
+                                            (buttonClick)="onRemoveItem(item)"
                                         >
                                             <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
                                         </app-icon-button>
@@ -153,12 +153,12 @@
                             }
                         </div>
 
-                        @if (vm.total > vm.pageSize) {
+                        @if (userListDetail.total > userListDetail.pageSize) {
                             <mat-paginator
                                 class="detail__paginator"
-                                [length]="vm.total"
-                                [pageIndex]="vm.page"
-                                [pageSize]="vm.pageSize"
+                                [length]="userListDetail.total"
+                                [pageIndex]="userListDetail.page"
+                                [pageSize]="userListDetail.pageSize"
                                 [hidePageSize]="true"
                                 (page)="onPageChange($event)"
                             />

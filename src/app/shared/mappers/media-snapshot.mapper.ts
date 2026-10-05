@@ -5,11 +5,8 @@ import type { MediaType } from '../types';
 /** The snapshot fields every CineKeep item response shares (watchlist, favorites, ratings, list items). */
 export type MediaSnapshot = Pick<
     WatchlistItemResponse,
-    'tmdbId' | 'mediaType' | 'title' | 'posterPath' | 'backdropPath' | 'overview' | 'releaseDate' | 'voteAverage' | 'voteCount'
+    'tmdbId' | 'mediaType' | 'title' | 'posterPath' | 'backdropPath' | 'overview' | 'releaseDate' | 'voteAverage'
 >;
-
-/** The snapshot sent when saving any title; the generated client names it after its series use. */
-export type MediaSnapshotRequest = SeriesSnapshotRequest;
 
 export type EpisodeSnapshotRequest = Omit<EpisodeRatingRequest, 'value'>;
 
@@ -55,7 +52,6 @@ export function toSnapshotMediaListItem(item: MediaSnapshot, rating: number | nu
         overview: item.overview ?? '',
         rating,
         date: item.releaseDate ?? '',
-        voteCount: item.voteCount ?? 0,
     };
 }
 
@@ -80,7 +76,7 @@ interface TmdbEpisodeLike {
     readonly air_date?: string | null;
 }
 
-export function toMediaSnapshotRequest(media: TmdbMediaLike, mediaType: MediaType): MediaSnapshotRequest {
+export function toMediaSnapshotRequest(media: TmdbMediaLike, mediaType: MediaType): SeriesSnapshotRequest {
     const title =
         mediaType === 'tv'
             ? media.name?.trim() || media.original_name?.trim()
@@ -101,7 +97,7 @@ export function toMediaSnapshotRequest(media: TmdbMediaLike, mediaType: MediaTyp
 export function toEpisodeSnapshotRequest(
     episode: TmdbEpisodeLike,
     episodeNumber: number,
-    series: MediaSnapshotRequest,
+    series: SeriesSnapshotRequest,
 ): EpisodeSnapshotRequest {
     return {
         episodeName: episode.name?.trim() || `Episode ${episodeNumber}`,
