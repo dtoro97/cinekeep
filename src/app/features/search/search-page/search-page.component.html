@@ -1,20 +1,20 @@
 <div class="search-page page-container">
-    @if (vm$ | async; as vm) {
-        <div class="search-header inner-container u-flex-column u-gap-4">
+    @if (searchResults$ | async; as searchResults) {
+        <div class="search-header inner-container">
             <div class="header-row">
-                <h1 class="text-headline">{{ vm.pageTitle }}</h1>
+                <h1 class="text-headline">{{ searchResults.pageTitle }}</h1>
             </div>
-            @if (vm.hasQuery) {
+            @if (searchResults.hasQuery) {
                 <app-toggle-group
                     [options]="typeOptions"
-                    [selectedValue]="vm.type"
+                    [selectedValue]="searchResults.type"
                     (selected)="setType($event)"
                 />
             }
         </div>
 
         <div class="results inner-container page-list-column">
-            @if (!vm.hasQuery) {
+            @if (!searchResults.hasQuery) {
                 <div class="empty-panel">
                     <app-empty-state
                         iconClass="fa-solid fa-magnifying-glass"
@@ -25,79 +25,34 @@
                 </div>
             }
 
-            @if (
-                vm.hasQuery &&
-                (
-                    vm.movieListState.state === 'loading' ||
-                    vm.movieListState.state === 'loading-more' ||
-                    (vm.movieListState.state === 'success' && vm.movieListState.data.length)
-                )
-            ) {
-                <app-page-section subtitle="Movies">
+            @for (section of searchResults.sections; track section.key) {
+                <app-page-section [subtitle]="section.title">
                     <div>
-                        <app-media-list
-                            [state]="vm.movieListState"
-                            [skeletonCount]="vm.listSkeletonCount"
-                            density="compact"
-                        />
+                        @if (section.key === 'person') {
+                            <app-person-list
+                                [state]="section.state"
+                                [skeletonCount]="searchResults.skeletonCount"
+                                [showIndex]="false"
+                            />
+                        } @else {
+                            <app-media-list
+                                [state]="section.state"
+                                [skeletonCount]="searchResults.skeletonCount"
+                                density="compact"
+                            />
+                        }
                     </div>
-                    @if (vm.movieHasMore) {
+                    @if (section.hasMore) {
                         <div class="search-section-footer">
-                            <button mat-stroked-button (click)="loadMoreMovies()">Show more movies</button>
+                            <button mat-stroked-button type="button" (click)="loadMore(section.key)">
+                                {{ section.moreLabel }}
+                            </button>
                         </div>
                     }
                 </app-page-section>
             }
 
-            @if (
-                vm.hasQuery &&
-                (
-                    vm.tvListState.state === 'loading' ||
-                    vm.tvListState.state === 'loading-more' ||
-                    (vm.tvListState.state === 'success' && vm.tvListState.data.length)
-                )
-            ) {
-                <app-page-section subtitle="TV series">
-                    <div>
-                        <app-media-list
-                            [state]="vm.tvListState"
-                            [skeletonCount]="vm.listSkeletonCount"
-                            density="compact"
-                        />
-                    </div>
-                    @if (vm.tvHasMore) {
-                        <div class="search-section-footer">
-                            <button mat-stroked-button (click)="loadMoreTv()">Show more TV series</button>
-                        </div>
-                    }
-                </app-page-section>
-            }
-
-            @if (
-                vm.hasQuery &&
-                (
-                    vm.personState.state === 'loading' ||
-                    vm.personState.state === 'loading-more' ||
-                    (vm.personState.state === 'success' && vm.personState.data.length)
-                )
-            ) {
-                <app-page-section subtitle="People">
-                    <div>
-                        <app-person-list
-                            [state]="vm.personState"
-                            [skeletonCount]="vm.listSkeletonCount"
-                            [showIndex]="false"
-                        />
-                    </div>
-                    @if (vm.personHasMore) {
-                        <div class="search-section-footer">
-                            <button mat-stroked-button (click)="loadMorePeople()">Show more people</button>
-                        </div>
-                    }
-                </app-page-section>
-            }
-
-            @if (vm.noSearchResults) {
+            @if (searchResults.hasNoResults) {
                 <div class="empty-panel">
                     <app-empty-state
                         iconClass="fa-solid fa-magnifying-glass"
