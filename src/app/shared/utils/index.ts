@@ -15,4 +15,5 @@ export * from './media-display';
 export * from './image-language';
 export * from './youtube';
 export * from './pluralize';
+export * from './episode-label';
 export * from './tmdb-image';

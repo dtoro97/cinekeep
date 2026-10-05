@@ -1,4 +1,4 @@
-import { pluralize } from '../../../shared';
+import { toEpisodeLabel } from '../../../shared';
 import { CastGridMember, CreditDepartment, CreditPerson, CrewGridMember } from '../models/cast-crew.model';
 
 /** Departments in the order a film's credits are usually read; anything else follows alphabetically. */
@@ -37,9 +37,6 @@ const KEY_JOBS = [
 
 const jobRank = (jobs: readonly string[]): number =>
     Math.min(...jobs.map((job) => KEY_JOBS.indexOf(job)).filter((index) => index !== -1), KEY_JOBS.length);
-
-const toEpisodeLabel = (episodeCount: number | undefined): string | null =>
-    episodeCount ? pluralize(episodeCount, 'episode') : null;
 
 const toSearchText = (...parts: (string | null | undefined)[]): string =>
     parts.filter(Boolean).join(' ').toLocaleLowerCase();

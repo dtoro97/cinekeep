@@ -1,6 +1,7 @@
-@if (personDetailStore.personDetailVm$ | async; as vm) {
+@if (personDetail$ | async; as personDetail) {
     <div class="page-container">
-        @if (vm.person.state === 'success' && vm.person.data; as person) {
+        @if (personDetail.person.state === 'success') {
+            @let person = personDetail.person.data;
             <section class="profile-hero">
                 <div class="profile-hero__inner inner-container">
                     <app-image
@@ -21,21 +22,25 @@
                         </div>
 
                         <div class="biography u-flex-column u-items-start u-gap-3">
-                            @if (person.biography) {
+                            @if (personDetail.biography; as biography) {
                                 <p
                                     class="biography__copy text-hero-summary"
-                                    [class.biography__copy--collapsed]="!bioExpanded"
+                                    [class.biography__copy--collapsed]="!biography.isExpanded"
                                 >
-                                    {{ person.biography }}
+                                    {{ biography.text }}
                                 </p>
+
+                                @if (biography.isCollapsible) {
+                                    <button
+                                        class="biography__toggle text-body-sm"
+                                        type="button"
+                                        (click)="toggleBiography()"
+                                    >
+                                        {{ biography.toggleLabel }}
+                                    </button>
+                                }
                             } @else {
                                 <p class="text-meta">No biography available for this person.</p>
-                            }
-
-                            @if (person.biography && person.biography.length > bioPreviewThreshold) {
-                                <button class="biography__toggle text-body-sm" type="button" (click)="toggleBio()">
-                                    {{ bioToggleLabel }}
-                                </button>
                             }
                         </div>
                     </div>
@@ -72,16 +77,16 @@
                             }
                         </dl>
 
-                        @if (vm.externalLinks) {
+                        @if (personDetail.externalLinks; as externalLinks) {
                             <div class="profile-facts__profiles">
                                 <span class="text-card-meta">Profiles</span>
-                                <app-external-links [externalLinks]="vm.externalLinks" />
+                                <app-external-links [externalLinks]="externalLinks" />
                             </div>
                         }
                     </aside>
                 </div>
             </section>
-        } @else if (vm.person.state === 'loading') {
+        } @else if (personDetail.person.state === 'loading') {
             <section class="profile-hero">
                 <div class="profile-hero__inner inner-container" aria-hidden="true">
                     <app-skeleton class="portrait portrait--skeleton aspect-poster" />
@@ -127,30 +132,25 @@
         }
 
         <div class="page-sections">
-            @if (vm.knownFor.state === 'loading' || (vm.knownFor.state === 'success' && vm.knownFor.data.length)) {
+            @if (personDetail.showKnownFor) {
                 <app-page-section subtitle="Known For">
-                    <app-media-carousel-panel [state]="vm.knownFor"></app-media-carousel-panel>
+                    <app-media-carousel-panel [state]="personDetail.knownFor"></app-media-carousel-panel>
                 </app-page-section>
             }
 
-            @if (vm.photos.state === 'loading' || (vm.photos.state === 'success' && vm.photos.data.length > 0)) {
+            @if (personDetail.showPhotos) {
                 <app-page-section subtitle="Photos">
                     <ng-container section-controls>
-                        @if (
-                            vm.person.state === 'success' &&
-                            vm.person.data &&
-                            vm.photos.state === 'success' &&
-                            vm.photos.data.length
-                        ) {
-                            <a class="browse-link text-body-sm" [routerLink]="['/name', vm.person.data.id, 'photos']">
-                                Browse all photos ({{ vm.photos.data.length }})
+                        @if (personDetail.showPhotosLink) {
+                            <a class="browse-link text-body-sm" [routerLink]="personDetail.photosLink">
+                                Browse all photos ({{ personDetail.photoCount }})
                                 <i class="fa-solid fa-chevron-right"></i>
                             </a>
                         }
                     </ng-container>
                     <app-photos-preview
-                        [state]="vm.photos"
-                        [totalCount]="vm.photos.state === 'success' ? vm.photos.data.length : 0"
+                        [state]="personDetail.photos"
+                        [totalCount]="personDetail.photoCount"
                         mode="person"
                         (photoClick)="openPhotoViewer($event)"
                         (moreClick)="openPhotosPage()"
@@ -158,54 +158,36 @@
                 </app-page-section>
             }
 
-            @if (vm.creditsDisplay.state === 'loading' || vm.creditsDisplay.state === 'success') {
-                <app-page-section panel subtitle="Filmography">
-                    <app-person-credits
-                        [state]="vm.creditsDisplay"
-                        [mediaType]="vm.creditsUi.mediaType"
-                        [sortBy]="vm.creditsUi.sortBy"
-                        [sortDirection]="vm.creditsUi.sortDirection"
-                        (mediaTypeChange)="onCreditsMediaTypeChange($event)"
-                        (sortByChange)="onCreditsSortByChange($event)"
-                        (resetFilters)="resetCreditsFilters()"
-                        (sortDirectionToggle)="toggleCreditsSortDirection()"
-                        (actingCreditsToggle)="toggleActingCredits()"
-                        (productionCreditsToggle)="toggleProductionCredits()"
-                    />
-                </app-page-section>
-            }
+            <app-page-section panel subtitle="Filmography">
+                <app-person-credits
+                    [filmography]="personDetail.filmography"
+                    [filters]="personDetail.creditFilters"
+                    (mediaTypeChange)="setCreditMediaType($event)"
+                    (sortByChange)="setCreditSortBy($event)"
+                    (sortDirectionToggle)="toggleCreditSortDirection()"
+                    (sectionToggle)="toggleCreditSection($event)"
+                    (resetFilters)="resetCreditFilters()"
+                />
+            </app-page-section>
 
-            @if (vm.person.state === 'success' && vm.person.data; as person) {
-                @if (person.also_known_as?.length) {
-                    <app-page-section subtitle="Personal Details">
-                        <dl class="info-grid" aria-label="Personal details">
-                            @if (person.also_known_as; as aliases) {
-                                @if (aliases.length) {
-                                    <div class="info-grid__item">
-                                        <dt class="info-grid__label text-card-meta">
-                                            {{ vm.aliasesLabel }}
-                                        </dt>
-                                        <dd class="info-grid__value">
-                                            <ul class="info-grid__value-list u-list-none">
-                                                @for (alias of aliases | slice: 0 : aliasPreviewCount; track alias) {
-                                                    <li class="text-body-strong">
-                                                        {{ alias }}
-                                                    </li>
-                                                }
-                                                @if (aliases.length > aliasPreviewCount) {
-                                                    <li class="text-caption">
-                                                        +{{ aliases.length - aliasPreviewCount }}
-                                                        more
-                                                    </li>
-                                                }
-                                            </ul>
-                                        </dd>
-                                    </div>
-                                }
-                            }
-                        </dl>
-                    </app-page-section>
-                }
+            @if (personDetail.aliases; as aliases) {
+                <app-page-section subtitle="Personal Details">
+                    <dl class="info-grid" aria-label="Personal details">
+                        <div class="info-grid__item">
+                            <dt class="info-grid__label text-card-meta">{{ aliases.label }}</dt>
+                            <dd class="info-grid__value">
+                                <ul class="info-grid__value-list u-list-none">
+                                    @for (alias of aliases.visible; track alias) {
+                                        <li class="text-body-strong">{{ alias }}</li>
+                                    }
+                                    @if (aliases.hiddenCount) {
+                                        <li class="text-caption">+{{ aliases.hiddenCount }} more</li>
+                                    }
+                                </ul>
+                            </dd>
+                        </div>
+                    </dl>
+                </app-page-section>
             }
         </div>
     </div>

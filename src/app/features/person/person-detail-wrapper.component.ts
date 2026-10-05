@@ -1,34 +1,34 @@
-import { ChangeDetectionStrategy, Component, input, numberAttribute } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-
-import { EMPTY, switchMap } from 'rxjs';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
+import { distinctUntilChanged, EMPTY, map, switchMap } from 'rxjs';
 
 import { PersonDetailStoreService } from './person-detail-store.service';
 
 @Component({
     selector: 'app-person-detail-wrapper',
-    template: '<router-outlet />',
     imports: [RouterOutlet],
     providers: [PersonDetailStoreService],
+    template: '<router-outlet />',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PersonDetailWrapperComponent {
-    readonly personId = input.required({ transform: numberAttribute });
-
     constructor(
+        private store: PersonDetailStoreService,
         private router: Router,
-        private personDetailStore: PersonDetailStoreService,
+        activatedRoute: ActivatedRoute,
     ) {
-        toObservable(this.personId)
+        activatedRoute.paramMap
             .pipe(
+                map((paramMap) => Number(paramMap.get('personId'))),
+                distinctUntilChanged(),
                 switchMap((personId) => {
-                    if (!Number.isFinite(personId) || personId <= 0) {
+                    if (!Number.isInteger(personId) || personId <= 0) {
                         this.router.navigate(['not-found']);
                         return EMPTY;
                     }
 
-                    return this.personDetailStore.getPersonDetails$(personId);
+                    return this.store.getPerson$(personId);
                 }),
                 takeUntilDestroyed(),
             )

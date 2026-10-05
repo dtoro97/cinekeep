@@ -1,70 +1,65 @@
-import {
-    ChangeDetectionStrategy,
-    Component,
-    EventEmitter,
-    Input,
-    Output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+
 import {
     BadgeComponent,
     BrowseToolbarComponent,
     EmptyStateComponent,
-    ToggleGroupComponent,
     RatingComponent,
+    RemoteData,
     RepeatPipe,
+    SelectOption,
     SkeletonComponent,
-    type SelectOption,
     SortButtonComponent,
-    type SortDirection,
+    ToggleGroupComponent,
 } from '../../../shared';
-import type { PersonCreditsMediaType, PersonCreditsSortBy, PersonDetailVm } from '../person-detail-store.service';
+import type {
+    PersonCreditFilters,
+    PersonCreditMediaFilter,
+    PersonCreditSectionKey,
+    PersonCreditSortBy,
+    PersonFilmography,
+} from '../person-detail-store.service';
 
 @Component({
     selector: 'app-person-credits',
     imports: [
         RouterLink,
         BadgeComponent,
-        ToggleGroupComponent,
-        SortButtonComponent,
-        SkeletonComponent,
+        BrowseToolbarComponent,
         EmptyStateComponent,
         RatingComponent,
         RepeatPipe,
-        BrowseToolbarComponent,
+        SkeletonComponent,
+        SortButtonComponent,
+        ToggleGroupComponent,
     ],
     templateUrl: './person-credits.component.html',
     styleUrl: './person-credits.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PersonCreditsComponent {
-    @Input({ required: true }) state!: PersonDetailVm['creditsDisplay'];
-    @Input() mediaType: PersonCreditsMediaType = 'all';
-    @Input() sortBy: PersonCreditsSortBy = 'year';
-    @Input() sortDirection: SortDirection = 'desc';
+    @Input({ required: true }) filmography!: RemoteData<PersonFilmography>;
+    @Input({ required: true }) filters!: PersonCreditFilters;
 
-    @Output() mediaTypeChange = new EventEmitter<PersonCreditsMediaType>();
-    @Output() sortByChange = new EventEmitter<PersonCreditsSortBy>();
+    @Output() mediaTypeChange = new EventEmitter<PersonCreditMediaFilter>();
+    @Output() sortByChange = new EventEmitter<PersonCreditSortBy>();
     @Output() sortDirectionToggle = new EventEmitter<void>();
+    @Output() sectionToggle = new EventEmitter<PersonCreditSectionKey>();
     @Output() resetFilters = new EventEmitter<void>();
-    @Output() actingCreditsToggle = new EventEmitter<void>();
-    @Output() productionCreditsToggle = new EventEmitter<void>();
 
-    readonly sortOptions: SelectOption<PersonCreditsSortBy>[] = [
+    readonly sortOptions: Array<SelectOption<PersonCreditSortBy>> = [
         { label: 'Year', value: 'year' },
         { label: 'Rating', value: 'rating' },
         { label: 'Title', value: 'title' },
     ];
 
-    onMediaTypeChange(value: unknown): void {
-        this.mediaTypeChange.emit(value as PersonCreditsMediaType);
+    /** The toolbar controls emit `unknown`, but only ever offer the options passed to them. */
+    changeMediaType(value: unknown): void {
+        this.mediaTypeChange.emit(value as PersonCreditMediaFilter);
     }
 
-    onSortByChange(value: unknown): void {
-        this.sortByChange.emit(value as PersonCreditsSortBy);
-    }
-
-    onResetFilters(): void {
-        this.resetFilters.emit();
+    changeSortBy(value: unknown): void {
+        this.sortByChange.emit(value as PersonCreditSortBy);
     }
 }
