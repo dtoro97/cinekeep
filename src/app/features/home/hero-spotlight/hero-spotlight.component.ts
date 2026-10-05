@@ -4,11 +4,22 @@ import { RouterLink } from '@angular/router';
 import {
     BadgeComponent,
     HeroSurfaceComponent,
+    LibraryToggleComponent,
+    MediaType,
     RatingComponent,
     SkeletonComponent,
-    LibraryToggleComponent,
 } from '../../../shared';
-import type { SpotlightItem } from '../spotlight-item';
+
+export interface SpotlightItem {
+    readonly id: number;
+    readonly mediaType: MediaType;
+    readonly title: string;
+    readonly overview: string;
+    readonly backdropPath: string | null;
+    readonly rating: number | null;
+    readonly year: string;
+    readonly mediaTypeLabel: string;
+}
 
 @Component({
     selector: 'app-hero-spotlight',
@@ -16,9 +27,9 @@ import type { SpotlightItem } from '../spotlight-item';
         RouterLink,
         BadgeComponent,
         HeroSurfaceComponent,
+        LibraryToggleComponent,
         RatingComponent,
         SkeletonComponent,
-        LibraryToggleComponent,
     ],
     templateUrl: './hero-spotlight.component.html',
     styleUrl: './hero-spotlight.component.scss',

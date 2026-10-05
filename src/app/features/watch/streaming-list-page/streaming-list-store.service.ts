@@ -4,8 +4,10 @@ import { ComponentStore } from '@ngrx/component-store';
 import { catchError, combineLatest, distinctUntilChanged, EMPTY, map, Observable, switchMap, tap } from 'rxjs';
 
 import {
+    AIRING_TODAY_SLUG,
     DEFAULT_TMDB_DISCOVER_SORT_DIRECTION,
     DEFAULT_TMDB_DISCOVER_SORT_KEY,
+    getStreamingThisMonthTitle,
     getTmdbDiscoverSortOptions,
     MEDIA_TYPE_OPTION,
     MediaListItem,
@@ -15,22 +17,18 @@ import {
     RemoteData,
     remoteData,
     SortDirection,
+    STREAMING_EDITORIAL_SECTIONS,
+    STREAMING_THIS_MONTH_SLUG,
+    StreamingBaseQuery,
+    StreamingQueryService,
     TMDB_DISCOVER_SORT_DIRECTIONS,
     TMDB_DISCOVER_SORT_KEYS,
     TmdbDiscoverSortKey,
     toLibraryState,
+    toStreamingThisMonthQuery,
     UserLibraryService,
     WatchProviderStoreService,
 } from '../../../shared';
-import {
-    AIRING_TODAY_SLUG,
-    getStreamingThisMonthTitle,
-    STREAMING_EDITORIAL_SECTIONS,
-    STREAMING_THIS_MONTH_SLUG,
-    StreamingBaseQuery,
-    toStreamingThisMonthQuery,
-} from '../streaming-browse';
-import { StreamingQueryService } from '../streaming-query.service';
 
 interface StreamingListContext {
     readonly key: string;
@@ -194,7 +192,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
                             title: isThisMonthList ? getStreamingThisMonthTitle() : section.title,
                             description: section.description,
                             baseQuery: isThisMonthList
-                                ? toStreamingThisMonthQuery(section, catalog.tvProviders)
+                                ? toStreamingThisMonthQuery(catalog.tvProviders)
                                 : section.baseQuery,
                         };
                     }

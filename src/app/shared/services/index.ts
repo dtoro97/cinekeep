@@ -10,6 +10,7 @@ export * from './recently-viewed-store.service';
 export * from './seo.service';
 export * from './seo-title-strategy.service';
 export * from './snackbar.service';
+export * from './streaming-query.service';
 export * from './user-library.service';
 export * from './user-session-store.service';
 export * from './watch-provider-store.service';

@@ -4,6 +4,9 @@
 // A ranked chart: two columns that read top-to-bottom, numbered like a box-office list.
 .chart {
     display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: repeat(5, auto);
     grid-auto-flow: column;

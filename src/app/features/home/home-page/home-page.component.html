@@ -1,0 +1,164 @@
+@if (home$ | async; as home) {
+    <main class="page-container">
+        @if (home.spotlight; as spotlight) {
+            <app-hero-spotlight badge="Trending now" [spotlight]="spotlight">
+                @if (home.spotlightTrailerUrl; as trailerUrl) {
+                    <a matButton="filled" [href]="trailerUrl" target="_blank" rel="noopener noreferrer">
+                        <i class="fa-solid fa-play" aria-hidden="true"></i>
+                        Play trailer
+                    </a>
+                } @else {
+                    <a matButton="filled" [routerLink]="['/title', spotlight.id, spotlight.mediaType]">
+                        Cast, photos & reviews
+                    </a>
+                }
+            </app-hero-spotlight>
+        } @else if (home.showSpotlightSkeleton) {
+            <app-hero-spotlight badge="Trending now" [loading]="true" />
+        }
+
+        <div class="page-sections sections">
+            <app-page-section title="Trending today">
+                <app-media-carousel-panel
+                    variant="backdrop"
+                    [state]="home.trendingToday"
+                    [showRating]="true"
+                    [showDate]="true"
+                />
+            </app-page-section>
+
+            <app-page-section title="Popular right now">
+                <app-toggle-group
+                    section-controls
+                    [options]="home.popularMediaTypeOptions"
+                    [selectedValue]="home.popularMediaType"
+                    (selected)="setPopularMediaType($event)"
+                />
+                <app-home-top-picks [loading]="home.isPopularLoading" [items]="home.topPicks" />
+            </app-page-section>
+
+            <app-page-section title="Airing today">
+                <a section-controls class="section-link text-body-sm" routerLink="/tv/airing-today">
+                    <span>Browse today's episodes</span>
+                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </a>
+
+                @if (home.showAiringSkeleton) {
+                    <div class="tonight-grid" aria-hidden="true">
+                        @for (slot of airingSkeletonCount | repeat; track slot) {
+                            <div class="tonight-row tonight-row--loading">
+                                <app-skeleton class="tonight-poster" />
+                                <div class="tonight-content tonight-content--loading">
+                                    <app-skeleton class="tonight-skeleton-title" />
+                                    <app-skeleton class="tonight-skeleton-meta" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+                } @else if (home.showAiringEmpty) {
+                    <div class="tonight-empty">
+                        <app-empty-state
+                            iconClass="fa-solid fa-tv"
+                            iconStyle="plain"
+                            text="No TV series are listed as airing today."
+                        />
+                    </div>
+                } @else {
+                    <div class="tonight-grid">
+                        @for (item of home.airingPreview; track item.id) {
+                            <a
+                                class="tonight-row"
+                                [routerLink]="['/title', item.id, item.mediaType]"
+                                [attr.aria-label]="item.title"
+                            >
+                                <app-image class="tonight-poster" type="media" [src]="item.thumb" [alt]="item.title" />
+
+                                <div class="tonight-content">
+                                    <span class="tonight-title text-card-title">{{ item.title }}</span>
+
+                                    <span class="tonight-meta text-caption">
+                                        @if (item.date) {
+                                            <span>{{ item.date }}</span>
+                                        }
+                                        @if (item.rating) {
+                                            <app-rating [value]="item.rating" />
+                                        }
+                                    </span>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+            </app-page-section>
+
+            <app-page-section title="Popular people">
+                <a section-controls class="section-link text-body-sm" routerLink="/people/popular">
+                    <span>Browse popular people</span>
+                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </a>
+                <app-person-carousel-panel [state]="home.popularPeople" />
+            </app-page-section>
+
+            <app-page-section title="New on streaming">
+                @if (home.showStreamingSkeleton) {
+                    <div class="streaming-card streaming-card--loading" aria-hidden="true">
+                        <span class="streaming-card__preview">
+                            @for (slot of streamingSkeletonCount | repeat; track slot) {
+                                <app-skeleton class="streaming-card__poster-skeleton" />
+                            }
+                        </span>
+
+                        <span class="streaming-card__copy">
+                            <app-skeleton class="streaming-card__line streaming-card__line--title" />
+                            <app-skeleton class="streaming-card__line streaming-card__line--body" />
+                            <app-skeleton class="streaming-card__line streaming-card__line--cta" />
+                        </span>
+                    </div>
+                } @else if (home.showStreamingEmpty) {
+                    <div class="streaming-empty">
+                        <app-empty-state
+                            iconClass="fa-solid fa-film"
+                            iconStyle="plain"
+                            text="No streaming arrivals matched this month."
+                        />
+                    </div>
+                } @else {
+                    <a class="streaming-card" [routerLink]="home.streamingLink">
+                        <span class="streaming-card__preview" aria-hidden="true">
+                            @for (item of home.streamingArrivals; track item.id) {
+                                <app-image
+                                    class="streaming-card__image"
+                                    type="media"
+                                    [src]="item.imagePath"
+                                    [alt]="item.title"
+                                />
+                            }
+                        </span>
+
+                        <span class="streaming-card__copy">
+                            <span class="streaming-card__title text-title">{{ home.streamingTitle }}</span>
+                            <span class="streaming-card__description text-body-sm">
+                                Popular TV series premieres and returning seasons from major streaming services.
+                            </span>
+                            <span class="streaming-card__cta text-card-meta">{{ home.streamingCtaLabel }}</span>
+                        </span>
+                    </a>
+                }
+            </app-page-section>
+
+            <app-page-section title="Opening soon" subtitle="In theatres over the next two weeks.">
+                <a section-controls class="section-link text-body-sm" routerLink="/movies/upcoming">
+                    <span>Browse upcoming movies</span>
+                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </a>
+                <app-media-carousel-panel
+                    variant="backdrop"
+                    dateFormat="dayMonth"
+                    [state]="home.openingSoon"
+                    [showRating]="false"
+                    [showDate]="true"
+                />
+            </app-page-section>
+        </div>
+    </main>
+}

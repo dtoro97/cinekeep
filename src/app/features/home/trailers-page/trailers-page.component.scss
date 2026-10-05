@@ -11,13 +11,23 @@
     align-items: center;
 }
 
-.grid {
+.trailers__grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.trailers__more {
+    display: flex;
+    justify-content: center;
 }
 
 .thumb {
+    display: flex;
+    flex-direction: column;
     gap: var(--space-2);
 
     &__frame {
@@ -52,13 +62,13 @@
 }
 
 @include content-md() {
-    .grid {
+    .trailers__grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @include mobile() {
-    .grid {
+    .trailers__grid {
         grid-template-columns: 1fr;
         gap: var(--space-4);
     }

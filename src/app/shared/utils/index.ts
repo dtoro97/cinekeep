@@ -12,6 +12,7 @@ export * from './tmdb-discover-sort';
 export * from './locale-detection';
 export * from './company-display';
 export * from './media-display';
+export * from './media-result';
 export * from './image-language';
 export * from './youtube';
 export * from './pluralize';

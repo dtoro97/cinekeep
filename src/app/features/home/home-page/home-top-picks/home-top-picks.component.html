@@ -1,5 +1,5 @@
 @if (loading) {
-    <ol class="chart u-list-none" aria-hidden="true">
+    <ol class="chart" aria-hidden="true">
         @for (i of skeletonCount | repeat; track i) {
             <li class="chart-row chart-row--skeleton">
                 <app-skeleton class="chart-rank-skeleton" />
@@ -12,20 +12,20 @@
             </li>
         }
     </ol>
-} @else if (items.length) {
-    <ol class="chart u-list-none">
+} @else {
+    <ol class="chart">
         @for (entry of items; track entry.item.id) {
             <li>
                 <a class="chart-row" [routerLink]="['/title', entry.item.id, entry.item.mediaType]">
                     <span class="chart-rank text-numeral" aria-hidden="true">{{ entry.rank }}</span>
-                    <app-image class="chart-poster" [src]="entry.item.imagePath" [alt]="entry.item.title" />
+                    <app-image class="chart-poster" [src]="entry.item.thumb" [alt]="entry.item.title" />
 
                     <span class="chart-body">
                         <span class="chart-title text-subtitle">{{ entry.item.title }}</span>
 
                         <span class="chart-meta text-card-meta">
-                            @if (entry.year) {
-                                <span>{{ entry.year }}</span>
+                            @if (entry.item.date) {
+                                <span>{{ entry.item.date }}</span>
                             }
                             @if (entry.item.rating) {
                                 <app-rating [value]="entry.item.rating" />
