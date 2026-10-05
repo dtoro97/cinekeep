@@ -1,4 +1,5 @@
 export * from './card/card.component';
+export * from './card-skeleton/card-skeleton.component';
 export * from './not-found/not-found.component';
 export * from './person-card/person-card.component';
 export * from './external-links/external-links.component';

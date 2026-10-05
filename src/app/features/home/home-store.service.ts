@@ -296,7 +296,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
         this.patchState({ streamingArrivals: { state: 'loading' } });
 
         const dateWindow = getCurrentMonthDateWindow();
-        const region = this.localeStore.region() || 'US';
+        const region = this.localeStore.region();
 
         return this.watchProviderStore.loaded$.pipe(
             filter(Boolean),

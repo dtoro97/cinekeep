@@ -69,7 +69,7 @@ export class WatchProviderStoreService extends ComponentStore<WatchProviderStore
     }
 
     load(): void {
-        const region = this.localeStore.region() || 'US';
+        const region = this.localeStore.region();
 
         if (this.loadingRegion === region || this.loadedRegion === region) {
             return;

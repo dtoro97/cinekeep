@@ -15,12 +15,12 @@ import { PopularPeopleStoreService } from './popular-people-store.service';
 @Component({
     selector: 'app-popular-people-page',
     imports: [
-        PluralizePipe,
         AsyncPipe,
         BrowseToolbarComponent,
         EmptyStateComponent,
         MatPaginatorModule,
         PersonCardComponent,
+        PluralizePipe,
         RepeatPipe,
     ],
     providers: [PopularPeopleStoreService],
@@ -29,16 +29,15 @@ import { PopularPeopleStoreService } from './popular-people-store.service';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PopularPeoplePageComponent {
-    readonly vm$ = this.store.vm$;
-    readonly skeletonCount = 20;
+    readonly popularPeople$ = this.store.popularPeople$;
 
     constructor(
-        private readonly pageScroll: PageScrollService,
-        private readonly store: PopularPeopleStoreService,
+        private store: PopularPeopleStoreService,
+        private pageScrollService: PageScrollService,
     ) {}
 
-    onPageChange(event: PageEvent): void {
-        this.pageScroll.scrollToTop();
-        this.store.updatePage(event.pageIndex);
+    changePage(event: PageEvent): void {
+        this.pageScrollService.scrollToTop();
+        this.store.setPage(event.pageIndex);
     }
 }

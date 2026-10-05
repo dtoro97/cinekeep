@@ -1,0 +1,31 @@
+:host {
+    display: block;
+    min-width: 0;
+}
+
+.card-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+
+    &__poster {
+        width: 100%;
+        aspect-ratio: var(--poster-ratio);
+        --skeleton-height: auto;
+        --skeleton-radius: var(--radius-lg);
+    }
+
+    &__line {
+        --skeleton-height: 0.875rem;
+
+        &--title {
+            width: 85%;
+            --skeleton-height: 1rem;
+        }
+
+        &--meta {
+            width: 45%;
+        }
+    }
+}

@@ -161,38 +161,6 @@
         padding-block-start: var(--space-4);
     }
 
-    &__skeleton-card {
-        min-width: 0;
-    }
-
-    &__poster-skeleton {
-        width: 100%;
-        aspect-ratio: var(--poster-ratio);
-        --skeleton-height: 100%;
-        --skeleton-radius: var(--radius-lg);
-    }
-
-    &__content-skeleton {
-        display: flex;
-        min-width: 0;
-        flex-direction: column;
-        gap: var(--space-2);
-        padding-top: var(--space-2);
-    }
-
-    &__line {
-        --skeleton-height: 0.875rem;
-
-        &--title {
-            width: 80%;
-            --skeleton-height: 1rem;
-        }
-
-        &--meta {
-            width: 45%;
-        }
-    }
-
     &__filter-overlay,
     &__filter-drawer {
         display: none;

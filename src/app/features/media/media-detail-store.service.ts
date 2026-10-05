@@ -31,6 +31,7 @@ import {
     VideoCardItem,
     ViewerImage,
     getISODate,
+    hasIdAndName,
     hasRemoteData,
     loadCachedResource$,
     whenSuccess$,
@@ -581,9 +582,7 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
 
         const { creators, directors } = creditsSummary.data;
         const [label, links] = mediaType === 'tv' ? ['Created by', creators] : ['Directed by', directors];
-        const people = links
-            .filter((link): link is { id: number; name: string } => !!link.id && !!link.name)
-            .slice(0, HERO_CREDIT_LIMIT);
+        const people = links.filter(hasIdAndName).slice(0, HERO_CREDIT_LIMIT);
 
         return people.length ? { label, people } : null;
     }

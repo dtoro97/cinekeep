@@ -32,11 +32,7 @@
         @if (vm.items.state === "loading") {
             <div class="page__grid" aria-hidden="true">
                 @for (placeholder of skeletonCount | repeat; track placeholder) {
-                    <div class="page__card-skeleton">
-                        <app-skeleton class="page__poster-skeleton" />
-                        <app-skeleton class="page__line page__line--title" />
-                        <app-skeleton class="page__line page__line--meta" />
-                    </div>
+                    <app-card-skeleton />
                 }
             </div>
         } @else if (vm.items.state === "success") {

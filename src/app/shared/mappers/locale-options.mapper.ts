@@ -31,6 +31,23 @@ export function toRegionOptions(countries: readonly Country[], selectedRegion?: 
     return options;
 }
 
+/** The options whose label or value contains the query, ignoring case; every option for a blank query. */
+export function filterOptionsByQuery<T extends string>(
+    options: readonly SelectOption<T>[],
+    query: string,
+): readonly SelectOption<T>[] {
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+
+    if (!normalizedQuery) {
+        return options;
+    }
+
+    return options.filter(
+        ({ label, value }) =>
+            label.toLocaleLowerCase().includes(normalizedQuery) || value.toLocaleLowerCase().includes(normalizedQuery),
+    );
+}
+
 function compareOptions(first: SelectOption<string>, second: SelectOption<string>): number {
     return first.label.localeCompare(second.label);
 }

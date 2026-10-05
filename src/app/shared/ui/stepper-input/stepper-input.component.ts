@@ -19,18 +19,18 @@ export class StepperInputComponent {
     @Input() max = 100;
     @Input() placeholder = '';
     @Input() wide = false;
+    /** The value an empty field steps to first; without it, stepping down starts at `max` and up at `min`. */
+    @Input() start: number | null = null;
 
     @Output() valueChanged = new EventEmitter<number | null>();
 
     onDecrement(): void {
-        const current = this.value ?? this.max + this.step;
-        const next = current - this.step;
+        const next = this.value === null ? (this.start ?? this.max) : this.value - this.step;
         this.valueChanged.emit(next < this.min ? null : next);
     }
 
     onIncrement(): void {
-        const current = this.value ?? this.min - this.step;
-        const next = current + this.step;
+        const next = this.value === null ? (this.start ?? this.min) : this.value + this.step;
         this.valueChanged.emit(next > this.max ? this.max : next);
     }
 

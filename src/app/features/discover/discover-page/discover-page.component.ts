@@ -1,24 +1,23 @@
 import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, HostListener } from '@angular/core';
 import { A11yModule } from '@angular/cdk/a11y';
+import { ChangeDetectionStrategy, Component, DestroyRef, HostListener } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import {
     CardComponent,
+    CardSkeletonComponent,
     EmptyStateComponent,
     LibraryToggleComponent,
-    ToggleGroupComponent,
+    MediaType,
     RepeatPipe,
-    SkeletonComponent,
     SortButtonComponent,
+    TmdbDiscoverSortKey,
+    ToggleGroupComponent,
 } from '../../../shared';
-import {
-    DiscoverActiveFilter,
-    DiscoverStoreService,
-} from '../discover-store.service';
-import { DiscoverFilterPanelComponent } from '../discover-filter-panel/discover-filter-panel.component';
-import { DiscoverFilterChange } from '../discover-page-definitions';
+import { DiscoverFilterPanelComponent } from './discover-filter-panel/discover-filter-panel.component';
+import { DiscoverActiveFilter, DiscoverFilterChange, DiscoverStoreService } from './discover-store.service';
 
 @Component({
     selector: 'app-discover-page',
@@ -26,16 +25,16 @@ import { DiscoverFilterChange } from '../discover-page-definitions';
         A11yModule,
         AsyncPipe,
         CardComponent,
+        CardSkeletonComponent,
         DiscoverFilterPanelComponent,
         EmptyStateComponent,
         LibraryToggleComponent,
         MatButtonModule,
         MatIconModule,
         NgTemplateOutlet,
-        ToggleGroupComponent,
         RepeatPipe,
-        SkeletonComponent,
         SortButtonComponent,
+        ToggleGroupComponent,
     ],
     providers: [DiscoverStoreService],
     templateUrl: './discover-page.component.html',
@@ -43,27 +42,29 @@ import { DiscoverFilterChange } from '../discover-page-definitions';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DiscoverPageComponent {
-    readonly vm$ = this.store.vm$;
-    mobileFiltersOpen = false;
+    readonly discover$ = this.store.discover$;
 
-    readonly skeletonCount = 20;
-    readonly loadMoreSkeletonCount = 5;
+    showMobileFilters = false;
 
-    constructor(private readonly store: DiscoverStoreService) {}
+    constructor(
+        private store: DiscoverStoreService,
+        private destroyRef: DestroyRef,
+    ) {}
 
-    onMediaTypeChange(value: unknown): void {
-        this.store.updateMediaType(value);
+    /** The toolbar controls emit `unknown`, but only ever offer the options passed to them. */
+    setMediaType(value: unknown): void {
+        this.store.setMediaType(value as MediaType);
     }
 
-    onSortChange(value: unknown): void {
-        this.store.updateSort(value);
+    setSortKey(value: unknown): void {
+        this.store.setSortKey(value as TmdbDiscoverSortKey);
     }
 
-    onSortDirectionToggle(): void {
+    toggleSortDirection(): void {
         this.store.toggleSortDirection();
     }
 
-    onFilterChange(change: DiscoverFilterChange): void {
+    updateFilter(change: DiscoverFilterChange): void {
         this.store.updateFilter(change);
     }
 
@@ -71,24 +72,20 @@ export class DiscoverPageComponent {
         this.store.clearFilter(filter);
     }
 
-    reset(): void {
-        this.store.reset();
-    }
-
-    openFilters(): void {
-        this.mobileFiltersOpen = true;
-    }
-
-    closeFilters(): void {
-        this.mobileFiltersOpen = false;
+    resetFilters(): void {
+        this.store.resetFilters();
     }
 
     loadMore(): void {
-        this.store.loadMore();
+        this.store.loadMore$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    }
+
+    openFilters(): void {
+        this.showMobileFilters = true;
     }
 
     @HostListener('document:keydown.escape')
-    onEscape(): void {
-        this.closeFilters();
+    closeFilters(): void {
+        this.showMobileFilters = false;
     }
 }

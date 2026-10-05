@@ -1,17 +1,15 @@
-import type { MediaType, SelectOption, SortDirection, TmdbDiscoverSortKey } from '../../shared';
+import type { MediaType, SortDirection, TmdbDiscoverSortKey } from '../../shared';
 import {
     CURATED_TV_EXCLUDED_GENRE_IDS,
     DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
     DEFAULT_DISCOVER_VOTE_COUNT_GTE,
+    THEATRICAL_MOVIE_RELEASE_TYPE,
 } from '../../constants';
 
 export type DiscoverPageMode = 'advanced' | 'browse';
 export type DiscoverRuntimePreset = 'any' | 'short' | 'standard' | 'long';
 export type DiscoverDateWindow = 'airing-today' | 'now-playing' | 'on-the-air' | 'upcoming';
-export type DiscoverMovieReleaseTypeFilter = 'theatrical';
 export type DiscoverMovieReleaseType = 1 | 2 | 3 | 4 | 5 | 6;
-
-export type DiscoverSortKey = TmdbDiscoverSortKey;
 
 export type DiscoverPageKey =
     | 'advanced'
@@ -54,22 +52,27 @@ export interface DiscoverPageDefinition {
     readonly title: string;
     /** Only when it adds something the title and visible filters don't already say. */
     readonly subtitle?: string;
+    readonly seoDescription: string;
     readonly mediaType: MediaType;
     readonly mode: DiscoverPageMode;
-    readonly defaultSortKey: DiscoverSortKey;
+    readonly defaultSortKey: TmdbDiscoverSortKey;
     readonly defaultSortDirection: SortDirection;
     readonly showSort: boolean;
     readonly filters: DiscoverFilterVisibility;
     readonly dateWindow?: DiscoverDateWindow;
-    readonly movieReleaseTypeFilter?: DiscoverMovieReleaseTypeFilter;
     readonly defaultVoteCountGte?: number;
     readonly lockedVoteCountGte?: number;
+    readonly lockedReleaseType?: DiscoverMovieReleaseType;
     /** Genres left out by default; users can remove the exclusion like any other active filter. */
     readonly defaultGenreExclusion?: DiscoverGenreExclusion;
     readonly lockedFilters?: readonly DiscoverLockedFilterDefinition[];
 }
 
-export interface DiscoverFilterState {
+export interface DiscoverQueryState {
+    readonly mediaType: MediaType;
+    readonly sortKey: TmdbDiscoverSortKey;
+    readonly sortDirection: SortDirection;
+    readonly watchRegion: string;
     readonly genreIds: readonly number[];
     readonly excludedGenreIds: readonly number[];
     readonly keywordIds: readonly number[];
@@ -84,82 +87,6 @@ export interface DiscoverFilterState {
     readonly voteCountGte: number | null;
     readonly runtimePreset: DiscoverRuntimePreset;
 }
-
-/** A change from the filter panel; the search keys carry the typed text. */
-export type DiscoverFilterChange =
-    | { readonly key: 'keywordSearch' | 'companySearch'; readonly value: string }
-    | {
-          readonly key:
-              | 'genres'
-              | 'keyword'
-              | 'company'
-              | 'yearFrom'
-              | 'yearTo'
-              | 'watchRegion'
-              | 'providers'
-              | 'certification'
-              | 'releaseType'
-              | 'language'
-              | 'rating'
-              | 'votes'
-              | 'runtime';
-          readonly value: unknown;
-      };
-
-/** Everything the filter panel renders: which filters show, their options, and the current values. */
-export interface DiscoverFilters {
-    readonly activeFilterCount: number;
-    /** Active filters inside the collapsed "More filters" group. */
-    readonly moreActiveCount: number;
-    /** Whether any filter in the "More filters" group applies to this page. */
-    readonly hasMoreFilters: boolean;
-    readonly visible: DiscoverFilterVisibility;
-    readonly genreOptions: readonly SelectOption<number>[];
-    readonly selectedGenreIds: readonly number[];
-    readonly keywordSuggestions: readonly SelectOption<number>[];
-    readonly companySuggestions: readonly SelectOption<number>[];
-    readonly yearFrom: number | null;
-    readonly yearTo: number | null;
-    readonly watchRegionOptions: readonly SelectOption<string>[];
-    readonly watchRegion: string;
-    readonly providerOptions: readonly SelectOption<number>[];
-    readonly selectedProviderIds: readonly number[];
-    readonly certificationOptions: readonly SelectOption<string | null>[];
-    readonly certification: string | null;
-    readonly releaseTypeOptions: readonly SelectOption<DiscoverMovieReleaseType | null>[];
-    readonly releaseType: DiscoverMovieReleaseType | null;
-    readonly languageOptions: readonly SelectOption<string>[];
-    readonly language: string | null;
-    readonly ratingOptions: readonly SelectOption<number | null>[];
-    readonly rating: number | null;
-    readonly voteCountOptions: readonly SelectOption<number | null>[];
-    readonly voteCount: number | null;
-    readonly runtimeOptions: readonly SelectOption<DiscoverRuntimePreset>[];
-    readonly runtime: DiscoverRuntimePreset;
-}
-
-export interface DiscoverQueryState extends DiscoverFilterState {
-    readonly mediaType: MediaType;
-    readonly sortKey: DiscoverSortKey;
-    readonly sortDirection: SortDirection;
-    readonly watchRegion: string;
-}
-
-export const DISCOVER_DEFAULT_FILTERS: DiscoverFilterState = {
-    genreIds: [],
-    excludedGenreIds: [],
-    keywordIds: [],
-    companyIds: [],
-    providerIds: [],
-    yearFrom: null,
-    yearTo: null,
-    certification: null,
-    releaseType: null,
-    originalLanguage: null,
-    voteAverageGte: null,
-    voteCountGte: null,
-    runtimePreset: 'any',
-};
 
 const ADVANCED_FILTERS: DiscoverFilterVisibility = {
     genres: true,
@@ -226,6 +153,8 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     advanced: {
         key: 'advanced',
         title: 'Discover Movies & TV',
+        seoDescription:
+            'Filter movies and TV series by genre, rating, release date, runtime, language, and where to watch.',
         mediaType: 'movie',
         mode: 'advanced',
         defaultSortKey: 'popularity',
@@ -237,6 +166,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'movie-popular': {
         key: 'movie-popular',
         title: 'Popular Movies',
+        seoDescription: 'See the movies getting the most attention right now.',
         mediaType: 'movie',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -248,6 +178,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'movie-top-rated': {
         key: 'movie-top-rated',
         title: 'Top Rated Movies',
+        seoDescription: 'Explore standout movies ranked by audience ratings.',
         subtitle: 'Ranked by audience rating.',
         mediaType: 'movie',
         mode: 'browse',
@@ -261,6 +192,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'movie-now-playing': {
         key: 'movie-now-playing',
         title: 'Now Playing Movies',
+        seoDescription: 'Browse movies now playing in theaters.',
         mediaType: 'movie',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -268,13 +200,14 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
         showSort: false,
         filters: MOVIE_NOW_PLAYING_FILTERS,
         dateWindow: 'now-playing',
-        movieReleaseTypeFilter: 'theatrical',
+        lockedReleaseType: THEATRICAL_MOVIE_RELEASE_TYPE,
         defaultVoteCountGte: DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
         lockedFilters: [{ id: 'in-theatres', label: 'In theatres' }],
     },
     'movie-upcoming': {
         key: 'movie-upcoming',
         title: 'Upcoming Movies',
+        seoDescription: 'Browse upcoming theatrical releases and plan what to watch next.',
         mediaType: 'movie',
         mode: 'browse',
         defaultSortKey: 'release_date',
@@ -282,7 +215,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
         showSort: false,
         filters: MOVIE_UPCOMING_FILTERS,
         dateWindow: 'upcoming',
-        movieReleaseTypeFilter: 'theatrical',
+        lockedReleaseType: THEATRICAL_MOVIE_RELEASE_TYPE,
         lockedFilters: [
             { id: 'opening-soon', label: 'Next 2 weeks' },
             { id: 'theatrical', label: 'Theatrical' },
@@ -291,6 +224,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'tv-popular': {
         key: 'tv-popular',
         title: 'Popular TV Series',
+        seoDescription: 'See the TV series getting the most attention right now.',
         mediaType: 'tv',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -302,6 +236,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'tv-top-rated': {
         key: 'tv-top-rated',
         title: 'Top Rated TV Series',
+        seoDescription: 'Explore standout TV series ranked by audience ratings.',
         subtitle: 'Ranked by audience rating.',
         mediaType: 'tv',
         mode: 'browse',
@@ -315,6 +250,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'tv-airing-today': {
         key: 'tv-airing-today',
         title: 'TV Series Airing Today',
+        seoDescription: 'Find TV episodes scheduled to air today.',
         mediaType: 'tv',
         mode: 'browse',
         defaultSortKey: 'popularity',
@@ -332,6 +268,7 @@ export const DISCOVER_PAGE_DEFINITIONS: Record<DiscoverPageKey, DiscoverPageDefi
     'tv-on-the-air': {
         key: 'tv-on-the-air',
         title: 'TV Series Airing This Week',
+        seoDescription: 'Track TV series with new episodes airing this week.',
         mediaType: 'tv',
         mode: 'browse',
         defaultSortKey: 'popularity',
