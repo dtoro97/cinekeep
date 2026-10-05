@@ -14,7 +14,7 @@
             <app-icon-button
                 ariaLabel="Edit list {{ item.name }}"
                 title="Edit list"
-                (onClick)="editList.emit(item)"
+                (buttonClick)="editList.emit(item)"
             >
                 <i class="fa-solid fa-pencil" aria-hidden="true"></i>
             </app-icon-button>
@@ -23,7 +23,7 @@
                 tone="danger"
                 ariaLabel="Delete list {{ item.name }}"
                 title="Delete list"
-                (onClick)="deleteList.emit(item)"
+                (buttonClick)="deleteList.emit(item)"
             >
                 <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
             </app-icon-button>

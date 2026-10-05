@@ -5,7 +5,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { distinctUntilChanged, EMPTY, map, switchMap } from 'rxjs';
 
 import {
-    buildTmdbImageUrl,
     HeroSurfaceComponent,
     ImageComponent,
     MediaListComponent,
@@ -14,6 +13,7 @@ import {
     SeoService,
     SkeletonComponent,
     TmdbRatingComponent,
+    toSeoImage,
 } from '../../../shared';
 import { CollectionDetailStoreService } from './collection-detail-store.service';
 
@@ -65,13 +65,8 @@ export class CollectionDetailPageComponent {
                 description:
                     collection.overview ||
                     `Explore every movie in ${collection.name}, with release order, ratings, cast highlights, posters, and backdrops.`,
-                image: buildTmdbImageUrl(
-                    collection.backdrop_path ?? collection.poster_path ?? null,
-                    collection.backdrop_path ? 'w1280' : 'w780',
-                ),
+                ...toSeoImage(collection.backdrop_path, collection.poster_path),
                 imageAlt: `${collection.name} collection artwork`,
-                imageWidth: collection.backdrop_path ? 1280 : null,
-                imageHeight: collection.backdrop_path ? 720 : null,
             }),
         );
     }

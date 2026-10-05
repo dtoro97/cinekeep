@@ -7,7 +7,8 @@ import {
     MatDialogRef,
 } from '@angular/material/dialog';
 
-import { ImageComponent, MediaUserListSummary, PluralizePipe } from '../../../shared';
+import { ImageComponent, PluralizePipe } from '../../../shared';
+import { MediaUserListSummary } from '../media-detail-actions-store.service';
 
 export interface MediaListDialogData {
     title: string;

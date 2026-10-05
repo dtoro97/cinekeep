@@ -1,4 +1,4 @@
-import type { MediaType } from '../types';
+import type { BadgeVariant, MediaType, RouteCommands } from '../types';
 
 export interface KnownForLink {
     id: number;
@@ -11,11 +11,9 @@ export interface PersonLink {
     name: string;
 }
 
-export type MediaListItemBadgeVariant = 'neutral' | 'accent' | 'outline';
-
 export interface MediaListItemBadge {
     readonly label: string;
-    readonly variant?: MediaListItemBadgeVariant;
+    readonly variant?: BadgeVariant;
 }
 
 export interface MediaListItem {
@@ -27,7 +25,6 @@ export interface MediaListItem {
     date: string;
     mediaType: MediaType;
     genreIds?: number[];
-    voteCount?: number;
     castLinks?: PersonLink[];
     badges?: readonly MediaListItemBadge[];
 }
@@ -35,15 +32,7 @@ export interface MediaListItem {
 export interface MediaListEntry {
     readonly item: MediaListItem;
     readonly genreNames: readonly string[];
-    readonly routerLink: readonly (string | number)[];
-}
-
-export interface PersonListItem {
-    id: number;
-    thumb: string | null;
-    title: string;
-    department: string;
-    knownForLinks: KnownForLink[];
+    readonly routerLink: RouteCommands;
 }
 
 export interface PersonCardItem {
@@ -53,20 +42,11 @@ export interface PersonCardItem {
     subtitle: string;
 }
 
-export interface SearchResultItem {
-    id: number;
-    thumb: string | null;
-    title: string;
-    year: string;
-    mediaType: string;
-    mediaTypeLabel: string;
-    overview: string;
-    rating: number | null;
-    department: string;
-    known_for?: string;
+export interface PersonListItem extends PersonCardItem {
+    knownForLinks: KnownForLink[];
 }
 
-export type CardItem<TExtra extends object = object> = {
+export interface CardItem {
     id: number;
     mediaType: MediaType;
     title: string;
@@ -75,17 +55,7 @@ export type CardItem<TExtra extends object = object> = {
     rating: number | null;
     date: string;
     overview: string;
-    routeCommands?: readonly (string | number)[];
+    routeCommands?: RouteCommands;
     role?: string;
-} & TExtra;
-
-export interface VideoTrailerSeedItem {
-    mediaId: number;
-    mediaType: MediaType;
-    mediaTitle: string;
-    mediaYear: string;
-    mediaOverview: string;
-    mediaPosterPath: string | null;
-    backdropPath: string | null;
 }
 

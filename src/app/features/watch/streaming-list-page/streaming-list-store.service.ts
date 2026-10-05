@@ -3,12 +3,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ComponentStore } from '@ngrx/component-store';
 import { catchError, combineLatest, distinctUntilChanged, EMPTY, map, Observable, switchMap, tap } from 'rxjs';
 
+import { PAGE_SIZE } from '../../../constants';
 import {
-    AIRING_TODAY_SLUG,
     DEFAULT_TMDB_DISCOVER_SORT_DIRECTION,
     DEFAULT_TMDB_DISCOVER_SORT_KEY,
-    getStreamingThisMonthTitle,
     getTmdbDiscoverSortOptions,
+    hasRemoteData,
     MEDIA_TYPE_OPTION,
     MediaListItem,
     MediaStateLookup,
@@ -16,19 +16,21 @@ import {
     parseEnumParam,
     RemoteData,
     remoteData,
+    SORT_DIRECTIONS,
     SortDirection,
-    STREAMING_EDITORIAL_SECTIONS,
     STREAMING_THIS_MONTH_SLUG,
     StreamingBaseQuery,
-    StreamingQueryService,
-    TMDB_DISCOVER_SORT_DIRECTIONS,
     TMDB_DISCOVER_SORT_KEYS,
+    TmdbDiscoverService,
     TmdbDiscoverSortKey,
     toLibraryState,
+    toMediaListItem,
+    toStreamingDiscoverQuery,
     toStreamingThisMonthQuery,
     UserLibraryService,
     WatchProviderStoreService,
 } from '../../../shared';
+import { AIRING_TODAY_SLUG, getStreamingThisMonthTitle, STREAMING_EDITORIAL_SECTIONS } from '../streaming-browse';
 
 interface StreamingListContext {
     readonly key: string;
@@ -57,8 +59,6 @@ interface StreamingListState {
     readonly results: RemoteData<MediaListItem[]>;
     readonly libraryStates: MediaStateLookup | null;
 }
-
-const INITIAL_LOADING_ROWS = 20;
 
 const RELEASE_DATE_FORMAT = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -96,12 +96,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
                 showResultCount: hasResults,
                 hasMore: hasResults && page < totalPages,
                 showEmptyState: results.state === 'success' && items.length === 0,
-                skeletonCount:
-                    results.state === 'loading'
-                        ? INITIAL_LOADING_ROWS
-                        : results.state === 'loading-more'
-                          ? results.data.length
-                          : 0,
+                skeletonCount: results.state === 'loading' || results.state === 'loading-more' ? PAGE_SIZE : 0,
                 displayItems: items.map((item) => ({
                     item,
                     routerLink: ['/title', item.id, item.mediaType],
@@ -150,7 +145,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
     constructor(
         private activatedRoute: ActivatedRoute,
         private router: Router,
-        private streamingQueryService: StreamingQueryService,
+        private tmdbDiscoverService: TmdbDiscoverService,
         watchProviderStoreService: WatchProviderStoreService,
         userLibraryService: UserLibraryService,
     ) {
@@ -161,18 +156,23 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
                 params: activatedRoute.paramMap,
                 data: activatedRoute.data,
                 queryParams: activatedRoute.queryParamMap,
-                catalog: watchProviderStoreService.catalog$,
+                regionProviders: watchProviderStoreService.regionProviders$,
             }).pipe(
-                map(({ params, data, queryParams, catalog }): StreamingListRequest => {
+                map(({ params, data, queryParams, regionProviders }): StreamingListRequest => {
                     const isProviderList = data['streamingListKind'] === 'provider';
+                    const hasProviders = hasRemoteData(regionProviders);
+                    const { movieProviders, tvProviders } = remoteData(regionProviders, {
+                        movieProviders: [],
+                        tvProviders: [],
+                    });
                     const section = STREAMING_EDITORIAL_SECTIONS.find(({ slug }) => slug === params.get('listSlug'));
                     const isThisMonthList = section?.slug === STREAMING_THIS_MONTH_SLUG;
-                    const provider = [...catalog.movieProviders, ...catalog.tvProviders].find(
+                    const provider = [...movieProviders, ...tvProviders].find(
                         ({ id }) => id === Number(params.get('providerId')),
                     );
                     let context: StreamingListContext | null = null;
 
-                    if (isProviderList && catalog.loaded && provider) {
+                    if (isProviderList && hasProviders && provider) {
                         context = {
                             key: `provider-${provider.id}`,
                             title: `Streaming on ${provider.name}`,
@@ -180,19 +180,19 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
                             providerName: provider.name,
                             baseQuery: {
                                 mediaTypes: ['movie', 'tv'],
-                                providerId: provider.id,
+                                providerIds: [provider.id],
                                 monetization: 'flatrate',
                                 datePreset: 'current-month',
                                 sortBy: 'popularity',
                             },
                         };
-                    } else if (!isProviderList && section && (!isThisMonthList || catalog.loaded)) {
+                    } else if (!isProviderList && section && (!isThisMonthList || hasProviders)) {
                         context = {
                             key: section.slug,
                             title: isThisMonthList ? getStreamingThisMonthTitle() : section.title,
                             description: section.description,
                             baseQuery: isThisMonthList
-                                ? toStreamingThisMonthQuery(catalog.tvProviders)
+                                ? toStreamingThisMonthQuery(tvProviders)
                                 : section.baseQuery,
                         };
                     }
@@ -203,7 +203,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
 
                     return {
                         context,
-                        isWaitingForProviders: (isProviderList || isThisMonthList) && !catalog.loaded,
+                        isWaitingForProviders: (isProviderList || isThisMonthList) && !hasProviders,
                         mediaType: mediaTypes.find((type) => type === requestedType) ?? defaultType,
                         sortKey: parseEnumParam(
                             queryParams.get('sort'),
@@ -212,7 +212,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
                         ),
                         sortDirection: parseEnumParam(
                             queryParams.get('direction'),
-                            TMDB_DISCOVER_SORT_DIRECTIONS,
+                            SORT_DIRECTIONS,
                             DEFAULT_TMDB_DISCOVER_SORT_DIRECTION,
                         ),
                     };
@@ -259,24 +259,31 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
             return EMPTY;
         }
 
-        return this.streamingQueryService.list$(context.baseQuery, mediaType, sortKey, sortDirection, page).pipe(
-            tap((response) =>
-                this.patchState((state) => ({
-                    page: response.page || page,
-                    totalPages: response.totalPages,
-                    totalResults: response.totalResults,
-                    results: {
-                        state: 'success',
-                        data: [...(page === 1 ? [] : remoteData(state.results, [])), ...response.items],
-                    },
-                })),
-            ),
-            // A failed first page shows the empty state; a failed "show more" keeps what is already listed.
-            catchError(() => {
-                this.patchState((state) => ({ results: { state: 'success', data: remoteData(state.results, []) } }));
-                return EMPTY;
-            }),
-        );
+        return this.tmdbDiscoverService
+            .discover$(toStreamingDiscoverQuery(context.baseQuery, mediaType, sortKey, sortDirection, page))
+            .pipe(
+                tap((response) =>
+                    this.patchState((state) => ({
+                        page: response.page || page,
+                        totalPages: response.total_pages ?? 0,
+                        totalResults: response.total_results ?? 0,
+                        results: {
+                            state: 'success',
+                            data: [
+                                ...(page === 1 ? [] : remoteData(state.results, [])),
+                                ...(response.results ?? []).map((item) => toMediaListItem(item, mediaType)),
+                            ],
+                        },
+                    })),
+                ),
+                // A failed first page shows the empty state; a failed "show more" keeps what is already listed.
+                catchError(() => {
+                    this.patchState((state) => ({
+                        results: { state: 'success', data: remoteData(state.results, []) },
+                    }));
+                    return EMPTY;
+                }),
+            );
     }
 
     private navigate(queryParams: Record<string, string>): void {

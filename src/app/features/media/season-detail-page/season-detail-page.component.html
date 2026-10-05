@@ -1,17 +1,17 @@
 <div class="page-container">
-    @if (vm$ | async; as vm) {
-        <app-hero-surface [backdropPath]="vm.media?.backdropPath ?? null" variant="integrated">
+    @if (seasonDetail$ | async; as seasonDetail) {
+        <app-hero-surface [backdropPath]="seasonDetail.media?.backdropPath ?? null" variant="integrated">
             <div class="season-hero">
-                <a class="season-hero__back text-caption" [routerLink]="vm.overviewLink">
+                <a class="season-hero__back text-caption" [routerLink]="seasonDetail.overviewLink">
                     <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                    @if (vm.media?.title; as title) {
+                    @if (seasonDetail.media?.title; as title) {
                         Back to {{ title }}
                     } @else {
                         Back
                     }
                 </a>
 
-                @if (vm.seasonSummary; as season) {
+                @if (seasonDetail.seasonSummary; as season) {
                     <div class="season-hero__body">
                         <app-image
                             class="season-hero__poster"
@@ -21,7 +21,7 @@
                         />
 
                         <div class="season-hero__text">
-                            @if (vm.media?.title; as title) {
+                            @if (seasonDetail.media?.title; as title) {
                                 <p class="season-hero__series text-hero-meta">{{ title }}</p>
                             }
                             <h1 class="text-hero-title">{{ season.name }}</h1>
@@ -59,49 +59,53 @@
 
         <main class="page-main season-detail">
             <nav class="season-nav" aria-label="Seasons">
-                @if (vm.seasonOptions.length) {
+                @if (seasonDetail.seasonOptions.length) {
                     <app-toggle-group
                         variant="chips"
-                        [options]="vm.seasonOptions"
-                        [selectedValue]="vm.selectedSeason"
-                        (selected)="changeSeason($event, vm.routeData)"
+                        [options]="seasonDetail.seasonOptions"
+                        [selectedValue]="seasonDetail.selectedSeason"
+                        (selected)="changeSeason($event, seasonDetail.routeData)"
                     />
                 } @else {
                     <app-skeleton class="season-nav__skeleton" aria-hidden="true" />
                 }
             </nav>
 
-            @if (vm.ratingBars.length) {
+            @if (seasonDetail.ratingBars.length) {
                 <app-page-section subtitle="Episode ratings">
-                    <app-season-ratings-strip [bars]="vm.ratingBars" />
+                    <app-season-ratings-strip [bars]="seasonDetail.ratingBars" />
                 </app-page-section>
             }
 
             <app-page-section subtitle="Episodes">
-                <app-episode-list [state]="vm.episodesState" [skeletonCount]="5" />
+                <app-episode-list [state]="seasonDetail.episodesState" />
             </app-page-section>
 
-            @if (vm.seasonImagesState.state !== "success" || vm.seasonImagesTotalCount) {
+            @if (seasonDetail.seasonImagesState.state !== "success" || seasonDetail.seasonImagesTotalCount) {
                 <app-page-section subtitle="Season Photos">
-                    @if (vm.seasonImagesTotalCount && vm.selectedSeason !== null) {
-                        <a section-controls class="section-link text-body-sm" [routerLink]="vm.seasonPhotosLink">
-                            Browse all photos ({{ vm.seasonImagesTotalCount }})
+                    @if (seasonDetail.seasonImagesTotalCount && seasonDetail.selectedSeason !== null) {
+                        <a
+                            section-controls
+                            class="section-link text-body-sm"
+                            [routerLink]="seasonDetail.seasonPhotosLink"
+                        >
+                            Browse all photos ({{ seasonDetail.seasonImagesTotalCount }})
                             <i class="fa-solid fa-chevron-right"></i>
                         </a>
                     }
                     <app-photos-preview
-                        [state]="vm.seasonImagesState"
-                        [totalCount]="vm.seasonImagesTotalCount"
+                        [state]="seasonDetail.seasonImagesState"
+                        [totalCount]="seasonDetail.seasonImagesTotalCount"
                         variant="compact"
-                        (photoClick)="openPhotoViewer($event, vm.seasonImages)"
-                        (moreClick)="openSeasonPhotosPage(vm.selectedSeason, vm.routeData)"
+                        (photoClick)="openPhotoViewer($event, seasonDetail.seasonImages)"
+                        (moreClick)="openSeasonPhotosPage(seasonDetail.selectedSeason, seasonDetail.routeData)"
                     />
                 </app-page-section>
             }
 
-            @if (vm.seasonVideosState.state !== "success" || vm.seasonVideoCount) {
+            @if (seasonDetail.seasonVideosState.state !== "success" || seasonDetail.seasonVideoCount) {
                 <app-page-section subtitle="Season Videos">
-                    <app-videos-grid [state]="vm.seasonVideosState" />
+                    <app-videos-grid [state]="seasonDetail.seasonVideosState" />
                 </app-page-section>
             }
         </main>

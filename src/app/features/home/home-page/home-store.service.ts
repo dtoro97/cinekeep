@@ -3,19 +3,16 @@ import { ComponentStore } from '@ngrx/component-store';
 import {
     catchError,
     EMPTY,
-    filter,
     forkJoin,
     map,
     merge,
     Observable,
     of,
     switchMap,
-    take,
     tap,
 } from 'rxjs';
 
 import {
-    DiscoverRestControllerService,
     MovieListRestControllerService,
     MovieRestControllerService,
     PersonListRestControllerService,
@@ -24,7 +21,7 @@ import {
     VideoList,
 } from '../../../api';
 import {
-    CURATED_TV_EXCLUDED_GENRES,
+    CURATED_TV_EXCLUDED_GENRE_IDS,
     DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
     DEFAULT_DISCOVER_VOTE_COUNT_GTE,
     MEDIUM_LIST_COUNT,
@@ -35,6 +32,7 @@ import {
 import {
     buildYoutubeWatchUrl,
     CardItem,
+    DISCOVER_PREVIEW_COUNT,
     getCurrentMonthName,
     getISODate,
     isMediaResult,
@@ -44,21 +42,20 @@ import {
     MediaType,
     PersonCardItem,
     pickBestYoutubeTrailer,
-    pickDailySeededItem,
     RemoteData,
     remoteData,
     remoteSuccess,
     STREAMING_THIS_MONTH_SLUG,
-    StreamingQueryService,
+    TmdbDiscoverService,
     toCardItem,
     toMediaListItem,
     toPersonCardItem,
+    toStreamingPreviewQueries,
     toStreamingThisMonthQuery,
-    toTmdbMovieDiscoverSort,
-    toTmdbTvDiscoverSort,
     WatchProviderStoreService,
+    whenSuccess$,
 } from '../../../shared';
-import type { SpotlightItem } from '../hero-spotlight/hero-spotlight.component';
+import { SpotlightItem, toSpotlightItem } from '../hero-spotlight/hero-spotlight.component';
 
 interface HomeState {
     readonly spotlight: RemoteData<SpotlightItem | null>;
@@ -76,8 +73,6 @@ const TOP_PICKS_COUNT = MEDIUM_LIST_COUNT;
 const AIRING_PREVIEW_MAX_ITEMS = 12;
 // The airing grid runs three columns on desktop and two on tablet; multiples of six fill both.
 const AIRING_PREVIEW_ROW_UNIT = 6;
-
-const MEDIA_TYPE_LABELS: Record<MediaType, string> = { movie: 'Movie', tv: 'TV series' };
 
 const INITIAL_STATE: HomeState = {
     spotlight: { state: 'notAsked' },
@@ -114,6 +109,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
             })),
             airingPreview,
             showAiringSkeleton: state.airingToday.state !== 'success',
+            airingSkeletonCount: AIRING_PREVIEW_ROW_UNIT,
             showAiringEmpty: state.airingToday.state === 'success' && airingPreview.length === 0,
             popularPeople: state.popularPeople,
             streamingArrivals,
@@ -121,20 +117,20 @@ export class HomeStoreService extends ComponentStore<HomeState> {
             streamingCtaLabel: `Browse ${month} TV series arrivals`,
             streamingLink: ['/watch', 'streaming', 'list', STREAMING_THIS_MONTH_SLUG],
             showStreamingSkeleton: state.streamingArrivals.state !== 'success',
+            streamingSkeletonCount: DISCOVER_PREVIEW_COUNT,
             showStreamingEmpty: state.streamingArrivals.state === 'success' && streamingArrivals.length === 0,
             openingSoon: state.openingSoon,
         };
     });
 
     constructor(
-        private discoverRestControllerService: DiscoverRestControllerService,
         private movieListRestControllerService: MovieListRestControllerService,
         private movieRestControllerService: MovieRestControllerService,
         private personListRestControllerService: PersonListRestControllerService,
         private trendingRestControllerService: TrendingRestControllerService,
         private tvSeriesRestControllerService: TvSeriesRestControllerService,
         private localeStoreService: LocaleStoreService,
-        private streamingQueryService: StreamingQueryService,
+        private tmdbDiscoverService: TmdbDiscoverService,
         private watchProviderStoreService: WatchProviderStoreService,
     ) {
         super(INITIAL_STATE);
@@ -161,26 +157,19 @@ export class HomeStoreService extends ComponentStore<HomeState> {
                 // Without trending titles the page shows no spotlight and an empty trending row.
                 catchError(() => of([])),
                 switchMap((items) => {
-                    const picked = pickDailySeededItem(
-                        items.filter(({ backdrop_path }) => !!backdrop_path),
-                        'home-trending-spotlight',
-                        (item) => `${item.media_type}:${item.id ?? ''}`,
+                    const candidates = items.filter(({ backdrop_path }) => !!backdrop_path);
+                    // An FNV-1a hash of the day and the titles picks the same spotlight all day, on the
+                    // server and in the browser, and a new one the next day.
+                    const seed = `${today}:${candidates.map(({ media_type, id }) => `${media_type}:${id}`).join('|')}`;
+                    const hash = [...seed].reduce(
+                        (value, character) => Math.imul(value ^ character.charCodeAt(0), 16777619),
+                        2166136261,
                     );
+                    const picked = candidates[(hash >>> 0) % candidates.length];
                     const spotlight = picked?.id ? toCardItem(picked, picked.media_type) : null;
 
                     this.patchState({
-                        spotlight: remoteSuccess(
-                            spotlight && {
-                                id: spotlight.id,
-                                mediaType: spotlight.mediaType,
-                                title: spotlight.title,
-                                overview: spotlight.overview,
-                                backdropPath: spotlight.backdropPath,
-                                rating: spotlight.rating,
-                                year: spotlight.date.slice(0, 4),
-                                mediaTypeLabel: MEDIA_TYPE_LABELS[spotlight.mediaType],
-                            },
-                        ),
+                        spotlight: remoteSuccess(spotlight && toSpotlightItem(spotlight)),
                         trendingToday: remoteSuccess(
                             items
                                 .filter((item) => item !== picked)
@@ -222,32 +211,33 @@ export class HomeStoreService extends ComponentStore<HomeState> {
                     catchError(() => of([])),
                 ),
                 // Discover instead of the raw popular list, which is dominated by daily talk and soap programming.
-                tv: this.discoverRestControllerService
-                    .discoverTv({
-                        includeAdult: false,
-                        page: 1,
-                        sortBy: toTmdbTvDiscoverSort('popularity', 'desc'),
-                        voteCountGte: DEFAULT_DISCOVER_VOTE_COUNT_GTE,
-                        withoutGenres: CURATED_TV_EXCLUDED_GENRES,
+                tv: this.tmdbDiscoverService
+                    .discover$({
+                        mediaType: 'tv',
+                        sortKey: 'popularity',
+                        sortDirection: 'desc',
+                        voteCountMin: DEFAULT_DISCOVER_VOTE_COUNT_GTE,
+                        excludedGenreIds: CURATED_TV_EXCLUDED_GENRE_IDS,
                     })
                     .pipe(
                         map(({ results }) =>
-                            (results ?? []).map((item) => toMediaListItem(item, 'tv', 'year')).slice(0, TOP_PICKS_COUNT),
+                            (results ?? [])
+                                .map((item) => toMediaListItem(item, 'tv', 'year'))
+                                .slice(0, TOP_PICKS_COUNT),
                         ),
                         // A failed list leaves that media type's chart empty.
                         catchError(() => of([])),
                     ),
             }).pipe(tap((popular) => this.patchState({ popular: remoteSuccess(popular) }))),
-            this.discoverRestControllerService
-                .discoverTv({
-                    airDateGte: today,
-                    airDateLte: today,
-                    includeAdult: false,
-                    page: 1,
-                    sortBy: toTmdbTvDiscoverSort('popularity', 'desc'),
+            this.tmdbDiscoverService
+                .discover$({
+                    mediaType: 'tv',
+                    sortKey: 'popularity',
+                    sortDirection: 'desc',
+                    releaseDates: { from: today, to: today },
                     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    voteCountGte: DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
-                    withoutGenres: CURATED_TV_EXCLUDED_GENRES,
+                    voteCountMin: DATE_WINDOW_DISCOVER_VOTE_COUNT_GTE,
+                    excludedGenreIds: CURATED_TV_EXCLUDED_GENRE_IDS,
                 })
                 .pipe(
                     map(({ results }) =>
@@ -268,23 +258,21 @@ export class HomeStoreService extends ComponentStore<HomeState> {
                 catchError(() => of([])),
                 tap((popularPeople) => this.patchState({ popularPeople: remoteSuccess(popularPeople) })),
             ),
-            this.watchProviderStoreService.catalog$.pipe(
-                filter(({ loaded }) => loaded),
-                take(1),
+            whenSuccess$(this.watchProviderStoreService.regionProviders$).pipe(
                 switchMap(({ tvProviders }) =>
-                    this.streamingQueryService.preview$(toStreamingThisMonthQuery(tvProviders)),
+                    this.tmdbDiscoverService.preview$(
+                        toStreamingPreviewQueries(toStreamingThisMonthQuery(tvProviders)),
+                    ),
                 ),
                 tap((streamingArrivals) => this.patchState({ streamingArrivals: remoteSuccess(streamingArrivals) })),
             ),
-            this.discoverRestControllerService
-                .discoverMovie({
-                    includeAdult: false,
-                    page: 1,
-                    region,
-                    releaseDateGte: today,
-                    releaseDateLte: getISODate(OPENING_SOON_MOVIE_DAYS_AHEAD),
-                    sortBy: toTmdbMovieDiscoverSort('popularity', 'desc'),
-                    withReleaseType: THEATRICAL_MOVIE_RELEASE_TYPE,
+            this.tmdbDiscoverService
+                .discover$({
+                    mediaType: 'movie',
+                    sortKey: 'popularity',
+                    sortDirection: 'desc',
+                    releaseDates: { from: today, to: getISODate(OPENING_SOON_MOVIE_DAYS_AHEAD) },
+                    releaseType: THEATRICAL_MOVIE_RELEASE_TYPE,
                 })
                 .pipe(
                     map(({ results }) =>

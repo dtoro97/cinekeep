@@ -13,11 +13,13 @@ import {
     MediaCarouselPanelComponent,
     PageSectionComponent,
     PhotosPreviewComponent,
+    PHOTO_VIEWER_DIALOG_CONFIG,
     PhotoViewerComponent,
     RecentlyViewedItem,
     RecentlyViewedStoreService,
     SeoService,
     SkeletonComponent,
+    toPersonCardItem,
 } from '../../../shared';
 import { PersonCreditsComponent } from '../person-credits/person-credits.component';
 import {
@@ -77,13 +79,8 @@ export class PersonDetailPageComponent {
             }
 
             this.matDialog.open(PhotoViewerComponent, {
+                ...PHOTO_VIEWER_DIALOG_CONFIG,
                 data: { images: photos.data, activeIndex: index, photosLink },
-                panelClass: 'photo-viewer-panel',
-                maxWidth: '100vw',
-                maxHeight: '100vh',
-                width: '100vw',
-                height: '100vh',
-                autoFocus: false,
             });
         });
     }
@@ -126,11 +123,5 @@ function toRecentlyViewedItem(person: PersonDetail): RecentlyViewedItem | undefi
         return undefined;
     }
 
-    return {
-        kind: 'person',
-        id: person.id,
-        name: person.name ?? '',
-        imagePath: person.profile_path ?? null,
-        subtitle: person.known_for_department ?? '',
-    };
+    return { kind: 'person', ...toPersonCardItem(person) };
 }

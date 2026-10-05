@@ -2,6 +2,8 @@ import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 
+import { buildTmdbImageUrl } from '../utils/tmdb-image';
+
 export type SeoPreviewType = 'website' | 'profile' | 'video.movie' | 'video.tv_show';
 
 export interface SeoMetadata {
@@ -17,16 +19,28 @@ export interface SeoMetadata {
     readonly type?: SeoPreviewType;
 }
 
-export const CINEKEEP_SITE_NAME = 'CineKeep';
-export const CINEKEEP_SITE_ORIGIN = 'https://cinekeep.vercel.app/';
-export const CINEKEEP_DEFAULT_DESCRIPTION =
+const SITE_NAME = 'CineKeep';
+const SITE_ORIGIN = 'https://cinekeep.vercel.app/';
+const DEFAULT_DESCRIPTION =
     'Find what to watch next: trending movies and TV series, trailers, cast, photos, reviews, and people in a clean cinematic guide.';
-
 const DEFAULT_PREVIEW_IMAGE = '/og-image.png';
 const DEFAULT_PREVIEW_IMAGE_WIDTH = 1200;
 const DEFAULT_PREVIEW_IMAGE_HEIGHT = 630;
 const DEFAULT_ROBOTS = 'index, follow';
 const DESCRIPTION_MAX_LENGTH = 180;
+
+/** A wide image goes out as a 1280×720 preview; without one, the fallback (a poster) goes out unsized. */
+export const toSeoImage = (
+    widePath: string | null | undefined,
+    fallbackPath?: string | null,
+): Pick<SeoMetadata, 'image' | 'imageWidth' | 'imageHeight'> =>
+    widePath
+        ? { image: buildTmdbImageUrl(widePath, 'w1280'), imageWidth: 1280, imageHeight: 720 }
+        : {
+              image: buildTmdbImageUrl(fallbackPath, 'w780'),
+              imageWidth: null,
+              imageHeight: null,
+          };
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {
@@ -37,22 +51,41 @@ export class SeoService {
     ) {}
 
     setPage(metadata: SeoMetadata = {}): void {
-        const pageTitle = this.cleanText(metadata.title) ?? CINEKEEP_SITE_NAME;
-        const previewTitle = this.toPreviewTitle(pageTitle);
-        const description = this.normalizeDescription(metadata.description) ?? CINEKEEP_DEFAULT_DESCRIPTION;
-        const canonicalUrl = this.resolveCanonicalUrl(metadata);
-        const image = this.resolveImageUrl(metadata.image);
-        const imageAlt = this.cleanText(metadata.imageAlt) ?? `${previewTitle} on ${CINEKEEP_SITE_NAME}`;
-        const robots = this.cleanText(metadata.robots) ?? DEFAULT_ROBOTS;
-        const type = metadata.type ?? 'website';
+        const previewTitle =
+            (cleanText(metadata.title) ?? SITE_NAME)
+                .split('|')
+                .map((part) => part.trim())
+                .filter(Boolean)
+                .join(' - ') || SITE_NAME;
+        const cleanedDescription = cleanText(metadata.description);
+        const description = !cleanedDescription
+            ? DEFAULT_DESCRIPTION
+            : cleanedDescription.length <= DESCRIPTION_MAX_LENGTH
+              ? cleanedDescription
+              : `${cleanedDescription.slice(0, DESCRIPTION_MAX_LENGTH - 3).trimEnd()}...`;
+        const location = this.document.location;
+        const currentPath = location ? `${location.pathname}${location.search}` : '/';
+        const canonicalUrl = toAbsoluteSiteUrl(metadata.canonicalUrl || (metadata.path ?? currentPath));
+        const image = toAbsoluteSiteUrl(cleanText(metadata.image) ?? DEFAULT_PREVIEW_IMAGE);
+        const isDefaultImage = image === toAbsoluteSiteUrl(DEFAULT_PREVIEW_IMAGE);
+        const imageAlt = cleanText(metadata.imageAlt) ?? `${previewTitle} on ${SITE_NAME}`;
 
-        this.title.setTitle(this.toDocumentTitle(pageTitle));
-        this.updateCanonical(canonicalUrl);
+        this.title.setTitle(previewTitle === SITE_NAME ? SITE_NAME : `${previewTitle} - ${SITE_NAME}`);
+
+        let canonicalLink = this.document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+
+        if (!canonicalLink) {
+            canonicalLink = this.document.createElement('link');
+            canonicalLink.rel = 'canonical';
+            this.document.head.appendChild(canonicalLink);
+        }
+
+        canonicalLink.href = canonicalUrl;
 
         this.updateNameTag('description', description);
-        this.updateNameTag('robots', robots);
-        this.updatePropertyTag('og:type', type);
-        this.updatePropertyTag('og:site_name', CINEKEEP_SITE_NAME);
+        this.updateNameTag('robots', cleanText(metadata.robots) ?? DEFAULT_ROBOTS);
+        this.updatePropertyTag('og:type', metadata.type ?? 'website');
+        this.updatePropertyTag('og:site_name', SITE_NAME);
         this.updatePropertyTag('og:title', previewTitle);
         this.updatePropertyTag('og:description', description);
         this.updatePropertyTag('og:url', canonicalUrl);
@@ -61,102 +94,17 @@ export class SeoService {
         this.updatePropertyTag('og:image:alt', imageAlt);
         this.updateOptionalPropertyTag(
             'og:image:width',
-            this.toDimensionContent(metadata.imageWidth, image, DEFAULT_PREVIEW_IMAGE_WIDTH),
+            metadata.imageWidth || (isDefaultImage ? DEFAULT_PREVIEW_IMAGE_WIDTH : null),
         );
         this.updateOptionalPropertyTag(
             'og:image:height',
-            this.toDimensionContent(metadata.imageHeight, image, DEFAULT_PREVIEW_IMAGE_HEIGHT),
+            metadata.imageHeight || (isDefaultImage ? DEFAULT_PREVIEW_IMAGE_HEIGHT : null),
         );
         this.updateNameTag('twitter:card', 'summary_large_image');
         this.updateNameTag('twitter:title', previewTitle);
         this.updateNameTag('twitter:description', description);
         this.updateNameTag('twitter:image', image);
         this.updateNameTag('twitter:image:alt', imageAlt);
-    }
-
-    private toDocumentTitle(pageTitle: string): string {
-        const documentTitle = this.toPreviewTitle(pageTitle);
-
-        if (documentTitle === CINEKEEP_SITE_NAME) {
-            return CINEKEEP_SITE_NAME;
-        }
-
-        return `${documentTitle} - ${CINEKEEP_SITE_NAME}`;
-    }
-
-    private toPreviewTitle(pageTitle: string): string {
-        const previewTitle = pageTitle
-            .split('|')
-            .map((part) => part.trim())
-            .filter(Boolean)
-            .join(' - ');
-
-        return previewTitle || CINEKEEP_SITE_NAME;
-    }
-
-    private normalizeDescription(value: string | null | undefined): string | null {
-        const cleaned = this.cleanText(value);
-
-        if (!cleaned) {
-            return null;
-        }
-
-        if (cleaned.length <= DESCRIPTION_MAX_LENGTH) {
-            return cleaned;
-        }
-
-        return `${cleaned.slice(0, DESCRIPTION_MAX_LENGTH - 3).trimEnd()}...`;
-    }
-
-    private cleanText(value: string | null | undefined): string | null {
-        const cleaned = value?.replace(/\s+/g, ' ').trim();
-        return cleaned ? cleaned : null;
-    }
-
-    private resolveCanonicalUrl(metadata: SeoMetadata): string {
-        if (metadata.canonicalUrl) {
-            return toAbsoluteSiteUrl(metadata.canonicalUrl);
-        }
-
-        return toAbsoluteSiteUrl(metadata.path ?? this.currentDocumentPath());
-    }
-
-    private resolveImageUrl(image: string | null | undefined): string {
-        return toAbsoluteSiteUrl(this.cleanText(image) ?? DEFAULT_PREVIEW_IMAGE);
-    }
-
-    private toDimensionContent(
-        dimension: number | null | undefined,
-        image: string,
-        defaultDimension: number,
-    ): string | null {
-        if (dimension) {
-            return String(dimension);
-        }
-
-        return image === toAbsoluteSiteUrl(DEFAULT_PREVIEW_IMAGE) ? String(defaultDimension) : null;
-    }
-
-    private updateCanonical(url: string): void {
-        let link = this.document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-
-        if (!link) {
-            link = this.document.createElement('link');
-            link.rel = 'canonical';
-            this.document.head.appendChild(link);
-        }
-
-        link.href = url;
-    }
-
-    private currentDocumentPath(): string {
-        const location = this.document.location;
-
-        if (!location) {
-            return '/';
-        }
-
-        return `${location.pathname}${location.search}`;
     }
 
     private updateNameTag(name: string, content: string): void {
@@ -167,9 +115,9 @@ export class SeoService {
         this.meta.updateTag({ property, content }, `property='${property}'`);
     }
 
-    private updateOptionalPropertyTag(property: string, content: string | null): void {
+    private updateOptionalPropertyTag(property: string, content: number | null): void {
         if (content) {
-            this.updatePropertyTag(property, content);
+            this.updatePropertyTag(property, String(content));
             return;
         }
 
@@ -177,7 +125,10 @@ export class SeoService {
     }
 }
 
-export const toAbsoluteSiteUrl = (value: string): string => {
-    const cleaned = value.split('#')[0] || '/';
-    return new URL(cleaned, CINEKEEP_SITE_ORIGIN).toString();
-};
+function cleanText(value: string | null | undefined): string | null {
+    return value?.replace(/\s+/g, ' ').trim() || null;
+}
+
+function toAbsoluteSiteUrl(value: string): string {
+    return new URL(value.split('#')[0] || '/', SITE_ORIGIN).toString();
+}

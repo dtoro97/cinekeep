@@ -7,15 +7,15 @@ import { FavoriteControllerService, PageResponseFavoriteItemResponse } from '../
 import { PAGE_SIZE } from '../../constants';
 import {
     CardItem,
-    RemoteData,
-    MediaType,
-    SortDirection,
-    UserLibraryService,
     isDefined,
-    toSnapshotCardItem,
+    MediaType,
+    RemoteData,
+    remoteSuccess,
+    SortDirection,
     toRating,
+    toSnapshotCardItem,
+    UserLibraryService,
 } from '../../shared';
-import { remoteSuccess } from '../../shared/utils';
 import { toTotalAfterMediaRemoval, toUserMediaTotalLabel } from './user-account-media.helpers';
 import {
     DEFAULT_USER_ACCOUNT_SORT_DIRECTION,
@@ -46,7 +46,7 @@ const INITIAL_STATE: UserFavouritesState = {
 
 @Injectable()
 export class UserFavouritesStore extends ComponentStore<UserFavouritesState> {
-    readonly favouritesPageViewModel$ = this.select((state) => ({
+    readonly favourites$ = this.select((state) => ({
         mediaType: state.mediaType,
         items: state.pageItems,
         page: state.page - 1,

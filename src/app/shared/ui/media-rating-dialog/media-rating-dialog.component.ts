@@ -1,8 +1,8 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatSliderModule } from '@angular/material/slider';
 
 import { normalizeRatingValue } from '../../utils/rating';
@@ -14,9 +14,7 @@ export interface MediaRatingDialogData {
 }
 
 export type MediaRatingDialogResult =
-    | { readonly action: 'save'; readonly value: number }
-    | { readonly action: 'remove' }
-    | { readonly action: 'login' };
+    { readonly action: 'save'; readonly value: number } | { readonly action: 'remove' } | { readonly action: 'login' };
 
 @Component({
     selector: 'app-media-rating-dialog',
@@ -26,34 +24,40 @@ export type MediaRatingDialogResult =
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MediaRatingDialogComponent {
-    readonly value = signal(this.data.currentRating ?? 7);
+    value: number;
+    readonly title: string;
+    readonly isAuthenticated: boolean;
+    readonly hasCurrentRating: boolean;
+    readonly saveLabel: string;
 
     constructor(
         @Inject(MAT_DIALOG_DATA)
-        public readonly data: MediaRatingDialogData,
-        private readonly dialogRef: MatDialogRef<MediaRatingDialogComponent, MediaRatingDialogResult>,
-    ) {}
+        data: MediaRatingDialogData,
+        private readonly matDialogRef: MatDialogRef<MediaRatingDialogComponent, MediaRatingDialogResult>,
+    ) {
+        this.value = data.currentRating ?? 7;
+        this.title = data.title;
+        this.isAuthenticated = data.isAuthenticated;
+        this.hasCurrentRating = data.currentRating !== null;
+        this.saveLabel = this.hasCurrentRating ? 'Update rating' : 'Save rating';
+    }
 
     removeRating(): void {
-        this.dialogRef.close({ action: 'remove' });
+        this.matDialogRef.close({ action: 'remove' });
     }
 
     save(): void {
-        this.dialogRef.close({
+        this.matDialogRef.close({
             action: 'save',
-            value: normalizeRatingValue(this.value()),
+            value: normalizeRatingValue(this.value),
         });
     }
 
-    cancel(): void {
-        this.dialogRef.close(undefined);
-    }
-
     loginToSave(): void {
-        this.dialogRef.close({ action: 'login' });
+        this.matDialogRef.close({ action: 'login' });
     }
 
     updateValue(value: number): void {
-        this.value.set(normalizeRatingValue(value));
+        this.value = normalizeRatingValue(value);
     }
 }

@@ -1,13 +1,11 @@
-import { AsyncPipe, DatePipe, DecimalPipe, DOCUMENT } from '@angular/common';
+import { AsyncPipe, DOCUMENT, DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, Inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
-
-import { EMPTY, Observable, catchError, distinctUntilChanged, filter, map, switchMap, take, tap } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, distinctUntilChanged, filter, map, switchMap, take, tap } from 'rxjs';
 
 import {
     BadgeComponent,
@@ -18,58 +16,57 @@ import {
     MediaCarouselPanelComponent,
     MediaRatingDialogService,
     MediaType,
+    MinutesToHoursPipe,
+    PHOTO_VIEWER_DIALOG_CONFIG,
     PageSectionComponent,
     PhotoViewerComponent,
     PhotosPreviewComponent,
+    PluralizePipe,
+    RecentlyViewedStoreService,
     RepeatPipe,
-    SkeletonComponent,
-    SnackbarComponent,
-    SnackbarService,
-    SnackbarType,
     SeoService,
+    SkeletonComponent,
+    SnackbarService,
     TmdbRatingComponent,
-    UserRatingComponent,
     VideosGridComponent,
     buildYoutubeWatchUrl,
     isDefined,
-    PluralizePipe,
 } from '../../../shared';
-import { RecentlyViewedStoreService } from '../../../shared/services/recently-viewed-store.service';
-import { MinutesToHours } from '../../../shared/pipes/time.pipe';
 import { KeywordsListComponent } from '../keywords-list/keywords-list.component';
 import { MediaCreditsSummaryComponent } from '../media-credits-summary/media-credits-summary.component';
-import { MediaListActionsComponent } from '../media-list-actions/media-list-actions.component';
 import { MediaDetailActionsStore } from '../media-detail-actions-store.service';
 import { MediaDetailStoreService } from '../media-detail-store.service';
+import { MediaListActionsComponent } from '../media-list-actions/media-list-actions.component';
+import { toMediaSeoMetadata } from '../media-seo';
 import { MediaStoreService } from '../media-store.service';
 import { MediaTarget } from '../media-target';
 import { ReviewCardComponent } from '../review-card/review-card.component';
-import { toMediaSeoMetadata } from '../media-seo';
+import { UserRatingComponent } from '../user-rating/user-rating.component';
 
 @Component({
     selector: 'app-media-detail-page',
     imports: [
-        PluralizePipe,
         AsyncPipe,
+        BadgeComponent,
         DatePipe,
         DecimalPipe,
-        RouterLink,
-        MatButtonModule,
-        MatChipsModule,
-        BadgeComponent,
         EpisodeListItemComponent,
         ExternalLinksComponent,
         HeroSurfaceComponent,
         ImageComponent,
         KeywordsListComponent,
+        MatButtonModule,
+        MatChipsModule,
         MediaCarouselPanelComponent,
         MediaCreditsSummaryComponent,
         MediaListActionsComponent,
-        MinutesToHours,
+        MinutesToHoursPipe,
         PageSectionComponent,
         PhotosPreviewComponent,
+        PluralizePipe,
         RepeatPipe,
         ReviewCardComponent,
+        RouterLink,
         SkeletonComponent,
         TmdbRatingComponent,
         UserRatingComponent,
@@ -82,7 +79,7 @@ import { toMediaSeoMetadata } from '../media-seo';
 export class MediaDetailPageComponent {
     private readonly target$ = this.mediaStore.currentTarget$;
 
-    readonly vm$ = this.mediaDetailStore.vm$;
+    readonly mediaDetail$ = this.mediaDetailStore.mediaDetail$;
 
     constructor(
         private readonly destroyRef: DestroyRef,
@@ -94,7 +91,7 @@ export class MediaDetailPageComponent {
         private readonly recentlyViewedStore: RecentlyViewedStoreService,
         private readonly route: ActivatedRoute,
         private readonly router: Router,
-        private readonly snackbar: SnackbarService,
+        private readonly snackbarService: SnackbarService,
         private readonly seo: SeoService,
         @Inject(DOCUMENT) private readonly document: Document,
     ) {
@@ -143,25 +140,20 @@ export class MediaDetailPageComponent {
     }
 
     openPhotoViewer(index: number): void {
-        this.vm$.pipe(take(1)).subscribe((vm) => {
-            const media = vm.media;
+        this.mediaDetail$.pipe(take(1)).subscribe((mediaDetail) => {
+            const media = mediaDetail.media;
 
-            if (!media || vm.photos.state !== 'success' || !vm.photos.data) {
+            if (!media || mediaDetail.photos.state !== 'success' || !mediaDetail.photos.data) {
                 return;
             }
 
             this.dialog.open(PhotoViewerComponent, {
+                ...PHOTO_VIEWER_DIALOG_CONFIG,
                 data: {
-                    images: vm.photos.data.allPhotos,
+                    images: mediaDetail.photos.data.allPhotos,
                     activeIndex: index,
                     photosLink: ['/title', media.id, media.mediaType, 'photos'],
                 },
-                panelClass: 'photo-viewer-panel',
-                maxWidth: '100vw',
-                maxHeight: '100vh',
-                width: '100vw',
-                height: '100vh',
-                autoFocus: false,
             });
         });
     }
@@ -182,7 +174,7 @@ export class MediaDetailPageComponent {
             type: mediaType,
         };
 
-        this.mediaActionsStore.ratingVm$
+        this.mediaActionsStore.userRating$
             .pipe(
                 take(1),
                 filter((rating) => !rating.disabled),
@@ -193,24 +185,17 @@ export class MediaDetailPageComponent {
                         save: (value) =>
                             this.mediaActionsStore
                                 .submitUserRating$(target, value)
-                                .pipe(catchError(() => this.showError('Could not save your rating.'))),
+                                .pipe(catchError(() => this.snackbarService.showError$('Could not save your rating.'))),
                         remove: () =>
                             this.mediaActionsStore
                                 .deleteUserRating$(target)
-                                .pipe(catchError(() => this.showError('Could not remove your rating.'))),
+                                .pipe(
+                                    catchError(() => this.snackbarService.showError$('Could not remove your rating.')),
+                                ),
                     }),
                 ),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
-    }
-
-    private showError(message: string): Observable<never> {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Error,
-        });
-
-        return EMPTY;
     }
 }

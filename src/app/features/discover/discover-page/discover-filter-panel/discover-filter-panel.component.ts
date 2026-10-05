@@ -8,8 +8,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
-import { StepperInputComponent, ToggleGroupComponent } from '../../../../shared';
+import { ToggleGroupComponent } from '../../../../shared';
 import type { DiscoverFilterChange, DiscoverFilters } from '../discover-store.service';
+import { StepperInputComponent } from './stepper-input/stepper-input.component';
 
 @Component({
     selector: 'app-discover-filter-panel',
@@ -33,28 +34,23 @@ export class DiscoverFilterPanelComponent {
     @Input({ required: true }) filters!: DiscoverFilters;
     @Input() showHeader = false;
 
-    @Output() filterChange = new EventEmitter<DiscoverFilterChange>();
-    @Output() resetFilters = new EventEmitter<void>();
-    @Output() closePanel = new EventEmitter<void>();
+    @Output() readonly filterChange = new EventEmitter<DiscoverFilterChange>();
+    @Output() readonly resetFilters = new EventEmitter<void>();
+    @Output() readonly closePanel = new EventEmitter<void>();
 
     keywordSearchText = '';
     companySearchText = '';
     /** Starts closed even when a default (like 250+ votes) is active; the toggle's badge shows the count. */
     showMoreFilters = false;
 
-    /** The controls emit `unknown` or `any`, but only ever offer the options passed to them. */
-    change(key: Exclude<DiscoverFilterChange['key'], `${string}Search`>, value: unknown): void {
-        this.filterChange.emit({ key, value } as DiscoverFilterChange);
-    }
-
     searchKeywords(text: string): void {
         this.keywordSearchText = text;
         this.filterChange.emit({ key: 'keywordSearch', value: text });
     }
 
-    addKeyword(value: unknown): void {
+    addKeyword(value: number): void {
         this.keywordSearchText = '';
-        this.change('keyword', value);
+        this.filterChange.emit({ key: 'keyword', value });
     }
 
     searchCompanies(text: string): void {
@@ -62,9 +58,9 @@ export class DiscoverFilterPanelComponent {
         this.filterChange.emit({ key: 'companySearch', value: text });
     }
 
-    addCompany(value: unknown): void {
+    addCompany(value: number): void {
         this.companySearchText = '';
-        this.change('company', value);
+        this.filterChange.emit({ key: 'company', value });
     }
 
     searchLanguages(text: string | null): void {

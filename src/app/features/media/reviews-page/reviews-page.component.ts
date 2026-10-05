@@ -3,17 +3,16 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 
-import { EMPTY, catchError, combineLatest, filter, map, switchMap, tap } from 'rxjs';
+import { catchError, combineLatest, filter, map, switchMap, tap } from 'rxjs';
 
 import {
     EmptyStateComponent,
+    pluralize,
     RepeatPipe,
-    SkeletonComponent,
-    SnackbarComponent,
-    SnackbarService,
-    SnackbarType,
-    SubPageHeaderComponent,
     SeoService,
+    SkeletonComponent,
+    SnackbarService,
+    SubPageHeaderComponent,
 } from '../../../shared';
 import { MediaReviewsStoreService } from '../media-reviews-store.service';
 import { MediaStoreService } from '../media-store.service';
@@ -43,7 +42,7 @@ import { MediaDetails } from '../models/media-details.model';
 export class MediaReviewsPageComponent {
     readonly skeletonCount = 5;
 
-    readonly vm$ = combineLatest({
+    readonly mediaReviews$ = combineLatest({
         mediaState: this.mediaStore.mediaDetailsState$,
         reviewsState: this.mediaReviewsStoreService.reviewsState$,
         totalResults: this.mediaReviewsStoreService.totalResults$,
@@ -62,7 +61,7 @@ export class MediaReviewsPageComponent {
                 hasMore,
                 reviewCount: totalResults || loadedCount,
                 ratingSummary,
-                ratedCountLabel: ratingSummary.ratedCount === 1 ? 'from 1 rating' : `from ${ratingSummary.ratedCount} ratings`,
+                ratedCountLabel: `from ${pluralize(ratingSummary.ratedCount, 'rating')}`,
             };
         }),
     );
@@ -70,7 +69,7 @@ export class MediaReviewsPageComponent {
     constructor(
         private readonly mediaStore: MediaStoreService,
         private readonly mediaReviewsStoreService: MediaReviewsStoreService,
-        private readonly snackbar: SnackbarService,
+        private readonly snackbarService: SnackbarService,
         private readonly seo: SeoService,
     ) {
         this.mediaStore.currentTarget$
@@ -95,15 +94,7 @@ export class MediaReviewsPageComponent {
     loadMore(): void {
         this.mediaReviewsStoreService
             .loadMoreReviews$()
-            .pipe(
-                catchError(() => {
-                    this.snackbar.openSnackbar(SnackbarComponent, {
-                        message: 'Could not load more reviews.',
-                        type: SnackbarType.Error,
-                    });
-                    return EMPTY;
-                }),
-            )
+            .pipe(catchError(() => this.snackbarService.showError$('Could not load more reviews.')))
             .subscribe();
     }
 }

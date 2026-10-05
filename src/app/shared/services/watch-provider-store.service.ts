@@ -1,102 +1,54 @@
 import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
+
 import { Observable, catchError, forkJoin, map, of, shareReplay, tap } from 'rxjs';
 
-import { WatchProviderRestControllerService } from '../../api';
-import type { MediaType } from '../types';
+import { WatchProviderCatalogItem, WatchProviderRestControllerService } from '../../api';
+import type { WatchProviderOption } from '../models/watch-provider.model';
+import type { MediaType, RemoteData } from '../types';
+import { remoteSuccess } from '../utils/remote-data';
 import { LocaleStoreService } from './locale-store.service';
 
-export interface WatchProviderOption {
-    readonly id: number;
-    readonly name: string;
-    readonly logoPath: string | null;
-    readonly displayPriority: number;
+interface RegionWatchProviders {
+    readonly movieProviders: readonly WatchProviderOption[];
+    readonly tvProviders: readonly WatchProviderOption[];
+}
+
+interface WatchProviderStoreState {
+    readonly regionProviders: RemoteData<RegionWatchProviders>;
 }
 
 const FEATURED_PROVIDER_IDS = [8, 337, 1899, 119];
 
-export const sortWatchProviders = <T extends { readonly id: number; readonly displayPriority: number }>(
-    providers: readonly T[],
-): T[] =>
-    [...providers].sort(
-        (left, right) =>
-            getProviderPriority(left.id) - getProviderPriority(right.id) ||
-            left.displayPriority - right.displayPriority,
-    );
-
-const getProviderPriority = (providerId: number): number => {
-    const index = FEATURED_PROVIDER_IDS.indexOf(providerId);
-    return index === -1 ? FEATURED_PROVIDER_IDS.length : index;
-};
-
-interface WatchProviderStoreState {
-    movieProviders: WatchProviderOption[];
-    tvProviders: WatchProviderOption[];
-    loaded: boolean;
-}
-
 @Injectable({ providedIn: 'root' })
 export class WatchProviderStoreService extends ComponentStore<WatchProviderStoreState> {
-    readonly movieProviders$ = this.select((state) => state.movieProviders);
-    readonly tvProviders$ = this.select((state) => state.tvProviders);
-    readonly loaded$ = this.select((state) => state.loaded);
-    /**
-     * Load flag and both lists in one emission. Combining the separate selectors can briefly
-     * see `loaded` before the lists, which made provider pages look like unknown providers.
-     */
-    readonly catalog$ = this.select(({ loaded, movieProviders, tvProviders }) => ({
-        loaded,
-        movieProviders,
-        tvProviders,
-    }));
-    private loadingRegion: string | null = null;
-    private loadedRegion: string | null = null;
-    private readonly catalogRequests = new Map<string, Observable<WatchProviderOption[]>>();
+    /** The providers of the locale's region. Changing the region reloads the page, so they load once. */
+    readonly regionProviders$ = this.select((state) => state.regionProviders);
 
-    readonly topMovieProviders$ = this.select(this.movieProviders$, (providers) => providers.slice(0, 3));
-
-    readonly topTvProviders$ = this.select(this.tvProviders$, (providers) => providers.slice(0, 3));
+    private readonly providerRequests = new Map<string, Observable<WatchProviderOption[]>>();
 
     constructor(
-        private readonly watchProviderService: WatchProviderRestControllerService,
-        private readonly localeStore: LocaleStoreService,
+        private readonly watchProviderRestControllerService: WatchProviderRestControllerService,
+        private readonly localeStoreService: LocaleStoreService,
     ) {
-        super({
-            movieProviders: [],
-            tvProviders: [],
-            loaded: false,
-        });
+        super({ regionProviders: { state: 'notAsked' } });
     }
 
-    load(): void {
-        const region = this.localeStore.region();
+    load$(): Observable<unknown> {
+        const region = this.localeStoreService.region();
 
-        if (this.loadingRegion === region || this.loadedRegion === region) {
-            return;
-        }
+        this.patchState({ regionProviders: { state: 'loading' } });
 
-        this.loadingRegion = region;
-
-        forkJoin({
+        return forkJoin({
             movieProviders: this.providers$('movie', region),
             tvProviders: this.providers$('tv', region),
-        })
-            .pipe(
-                tap((result) => {
-                    this.loadedRegion = region;
-                    this.loadingRegion = null;
-                    this.patchState({
-                        ...result,
-                        loaded: true,
-                    });
-                }),
-            )
-            .subscribe();
+        }).pipe(tap((regionProviders) => this.patchState({ regionProviders: remoteSuccess(regionProviders) })));
     }
-    /** The providers for one media type and region, fetched once per session; failures yield none. */
+
+    /** The providers for one media type and region, fetched once per session. */
     providers$(mediaType: MediaType, region: string): Observable<WatchProviderOption[]> {
         const key = `${mediaType}:${region}`;
-        const cached$ = this.catalogRequests.get(key);
+        const cached$ = this.providerRequests.get(key);
 
         if (cached$) {
             return cached$;
@@ -104,42 +56,49 @@ export class WatchProviderStoreService extends ComponentStore<WatchProviderStore
 
         const catalog$ =
             mediaType === 'movie'
-                ? this.watchProviderService.watchProvidersMovieList({ watchRegion: region })
-                : this.watchProviderService.watchProviderTvList({ watchRegion: region });
+                ? this.watchProviderRestControllerService.watchProvidersMovieList({ watchRegion: region })
+                : this.watchProviderRestControllerService.watchProviderTvList({ watchRegion: region });
 
         const providers$ = catalog$.pipe(
-            map((catalog) => this.mapProviders(catalog.results ?? [])),
+            map((catalog) =>
+                sortWatchProviders(
+                    (catalog.results ?? [])
+                        .filter(
+                            (item): item is WatchProviderCatalogItem & { provider_id: number; provider_name: string } =>
+                                !!item.provider_id && !!item.provider_name,
+                        )
+                        .map((item) => ({
+                            id: item.provider_id,
+                            name: item.provider_name,
+                            logoPath: item.logo_path ?? null,
+                            displayPriority: item.display_priority ?? 999,
+                        })),
+                ),
+            ),
+            // Providers only fill filters and shortcuts, which stay empty without them; the failure is
+            // dropped from the cache so a later call retries.
             catchError(() => {
-                this.catalogRequests.delete(key);
+                this.providerRequests.delete(key);
                 return of([]);
             }),
             shareReplay(1),
         );
 
-        this.catalogRequests.set(key, providers$);
+        this.providerRequests.set(key, providers$);
         return providers$;
     }
-
-    private mapProviders(
-        items: readonly {
-            provider_id?: number;
-            provider_name?: string;
-            logo_path?: string;
-            display_priority?: number;
-        }[],
-    ): WatchProviderOption[] {
-        const providers = items
-            .filter(
-                (p): p is typeof p & { provider_id: number; provider_name: string } =>
-                    typeof p.provider_id === 'number' && typeof p.provider_name === 'string',
-            )
-            .map((p) => ({
-                id: p.provider_id,
-                name: p.provider_name,
-                logoPath: p.logo_path ?? null,
-                displayPriority: p.display_priority ?? 999,
-            }));
-
-        return sortWatchProviders(providers);
-    }
 }
+
+/** Featured providers first, in their listed order, then TMDb's display priority. */
+export const sortWatchProviders = <T extends { readonly id: number; readonly displayPriority: number }>(
+    providers: readonly T[],
+): T[] => {
+    const toRank = (id: number) => {
+        const index = FEATURED_PROVIDER_IDS.indexOf(id);
+        return index === -1 ? FEATURED_PROVIDER_IDS.length : index;
+    };
+
+    return [...providers].sort(
+        (left, right) => toRank(left.id) - toRank(right.id) || left.displayPriority - right.displayPriority,
+    );
+};

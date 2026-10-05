@@ -2,12 +2,7 @@ import { afterNextRender, Injectable, makeStateKey, TransferState } from '@angul
 import { ComponentStore } from '@ngrx/component-store';
 
 import { BrowserStorageService } from './browser-storage.service';
-import {
-    detectBrowserLocale,
-    detectServerLocale,
-    parseLanguageTag,
-    type DetectedLocale,
-} from '../utils/locale-detection';
+import { detectBrowserLocale, detectServerLocale, parseLanguageTag } from '../utils/locale-detection';
 import { parseRegionParam } from '../utils/route-utils';
 
 const STORAGE_KEY_LANGUAGE = 'tmdb_language';
@@ -24,7 +19,6 @@ interface LocaleState {
 
 @Injectable({ providedIn: 'root' })
 export class LocaleStoreService extends ComponentStore<LocaleState> {
-    readonly language$ = this.select((state) => state.language);
     readonly region$ = this.select((state) => state.region);
     readonly locale$ = this.select((state) => ({
         language: state.language,
@@ -33,19 +27,32 @@ export class LocaleStoreService extends ComponentStore<LocaleState> {
 
     constructor(
         private readonly browserStorage: BrowserStorageService,
-        readonly transferState: TransferState,
+        transferState: TransferState,
     ) {
-        const initialLocale = getInitialLocale(browserStorage, transferState);
+        const isBrowser = browserStorage.isBrowserEnvironment();
+        // The browser reuses what the server detected, so hydration renders the same locale.
+        const detectedLocale = isBrowser
+            ? (transferState.get(LOCALE_TRANSFER_KEY, null) ?? detectBrowserLocale())
+            : detectServerLocale(browserStorage.getRequestHeader(ACCEPT_LANGUAGE_HEADER));
+        const initialLocale: LocaleState = {
+            language:
+                parseLanguageTag(browserStorage.getCookie(STORAGE_KEY_LANGUAGE)) ??
+                detectedLocale.language ??
+                DEFAULT_LANGUAGE,
+            region:
+                parseRegionParam(browserStorage.getCookie(STORAGE_KEY_REGION), '') ||
+                detectedLocale.region ||
+                DEFAULT_REGION,
+        };
 
         super(initialLocale);
 
-        if (!browserStorage.isBrowserEnvironment()) {
+        if (!isBrowser) {
             transferState.set(LOCALE_TRANSFER_KEY, initialLocale);
         }
 
-        afterNextRender(() => {
-            this.hydrateBrowserLocale();
-        });
+        // Rewrites the cookies on every visit, so their one-year expiry keeps rolling forward.
+        afterNextRender(() => this.persistLocale(this.get().language, this.get().region));
     }
 
     language(): string {
@@ -72,12 +79,6 @@ export class LocaleStoreService extends ComponentStore<LocaleState> {
         this.reloadBrowserPage();
     }
 
-    /** Rewrites the cookies on every visit, so their one-year expiry keeps rolling forward. */
-    private hydrateBrowserLocale(): void {
-        const current = this.get();
-        this.persistLocale(current.language, current.region);
-    }
-
     /** Cookies alone: the server reads them to render in the visitor's locale. */
     private persistLocale(language: string, region: string): void {
         this.browserStorage.setCookie(STORAGE_KEY_LANGUAGE, language);
@@ -93,27 +94,3 @@ export class LocaleStoreService extends ComponentStore<LocaleState> {
     }
 }
 
-function getInitialLocale(browserStorage: BrowserStorageService, transferState: TransferState): LocaleState {
-    const persistedLocale = getPersistedLocale(browserStorage);
-    const detectedLocale = browserStorage.isBrowserEnvironment()
-        ? (transferState.get(LOCALE_TRANSFER_KEY, null) ?? detectBrowserLocale())
-        : detectServerLocale(browserStorage.getRequestHeader(ACCEPT_LANGUAGE_HEADER));
-
-    return {
-        language: persistedLocale.language ?? detectedLocale.language ?? DEFAULT_LANGUAGE,
-        region: persistedLocale.region ?? detectedLocale.region ?? DEFAULT_REGION,
-    };
-}
-
-function getPersistedLocale(browserStorage: BrowserStorageService): DetectedLocale {
-    return {
-        language: parseLanguageTag(browserStorage.getCookie(STORAGE_KEY_LANGUAGE)),
-        region: normalizeRegionOrNull(browserStorage.getCookie(STORAGE_KEY_REGION)),
-    };
-}
-
-function normalizeRegionOrNull(value: string | null): string | null {
-    const region = parseRegionParam(value, '');
-
-    return region || null;
-}

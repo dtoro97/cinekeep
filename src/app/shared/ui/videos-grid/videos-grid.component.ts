@@ -5,7 +5,6 @@ import {
 } from '@angular/core';
 import { NgTemplateOutlet, SlicePipe } from '@angular/common';
 
-import { GRID_COUNT } from '../../../constants';
 import { RepeatPipe } from '../../pipes';
 import type { VideoCardItem } from '../../models';
 import type { RemoteData } from '../../types';
@@ -27,5 +26,5 @@ import { VideoCardComponent } from '../video-card/video-card.component';
 })
 export class VideosGridComponent {
     @Input() state: RemoteData<VideoCardItem[]> = { state: 'notAsked' };
-    @Input() gridCount = GRID_COUNT;
+    readonly gridCount = 4;
 }

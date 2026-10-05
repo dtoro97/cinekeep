@@ -36,7 +36,7 @@ export interface UserListAddItemsDialogData {
 })
 export class UserListAddItemsDialogComponent {
     readonly queryControl: FormControl<string>;
-    readonly vm$ = this.store.vm$;
+    readonly addItems$ = this.store.addItems$;
 
     constructor(
         @Inject(MAT_DIALOG_DATA)

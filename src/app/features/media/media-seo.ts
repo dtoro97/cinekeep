@@ -1,8 +1,8 @@
 import {
-    buildTmdbImageUrl,
     formatTitleWithYear,
     SeoMetadata,
     SeoPreviewType,
+    toSeoImage,
 } from '../../shared';
 import { MediaDetails } from './models/media-details.model';
 
@@ -17,18 +17,14 @@ export const toMediaSeoMetadata = (
 ): SeoMetadata => {
     const mediaLabel = media.mediaType === 'tv' ? 'TV Series' : 'Movie';
     const titleSuffix = options.titleSuffix ?? mediaLabel;
-    const imagePath = media.backdropPath ?? media.posterPath;
-    const hasBackdrop = !!media.backdropPath && imagePath === media.backdropPath;
     const displayTitle = formatTitleWithYear(media.title, media.year);
     const fallbackDescription = `Explore cast, trailers, photos, reviews, ratings, and more for ${displayTitle}.`;
 
     return {
         title: `${displayTitle} | ${titleSuffix}`,
         description: options.description ?? (media.overview || fallbackDescription),
-        image: buildTmdbImageUrl(imagePath, hasBackdrop ? 'w1280' : 'w780'),
+        ...toSeoImage(media.backdropPath, media.posterPath),
         imageAlt: `${media.title} poster and backdrop`,
-        imageWidth: hasBackdrop ? 1280 : null,
-        imageHeight: hasBackdrop ? 720 : null,
         type: getMediaSeoType(media.mediaType),
     };
 };

@@ -82,10 +82,3 @@ export const loadCachedResource$ = <T>({
         }),
     );
 };
-
-/**
- * A page section that disappears when empty: `loading` while `source` loads, otherwise the
- * section `build` returns, or `null` when there is nothing to show.
- */
-export const toOptionalSection = <R>(source: RemoteData<unknown>, build: () => R | null): RemoteData<R | null> =>
-    source.state === 'loading' ? { state: 'loading' } : remoteSuccess(build());

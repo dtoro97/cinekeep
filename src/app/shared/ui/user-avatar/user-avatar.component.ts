@@ -1,33 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-
-import { ImageComponent } from '../image/image.component';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 export type UserAvatarSize = 'sm' | 'lg';
 
 @Component({
     selector: 'app-user-avatar',
-    imports: [ImageComponent],
     templateUrl: './user-avatar.component.html',
     styleUrl: './user-avatar.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserAvatarComponent {
-    readonly name = input('Member');
-    readonly avatarPath = input<string | null>(null);
-    readonly size = input<UserAvatarSize>('sm');
+    @Input({ required: true }) set name(name: string) {
+        const words = name.trim().split(/\s+/).filter(Boolean);
 
-    readonly initials = computed(() => getInitials(this.name()));
-}
-
-function getInitials(name: string): string {
-    const parts = name
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
-
-    if (parts.length > 1) {
-        return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
+        this.label = name;
+        this.initials = (words.length > 1 ? `${words[0][0]}${words[1][0]}` : (words[0] ?? 'ME').slice(0, 2)).toUpperCase();
     }
+    @Input() size: UserAvatarSize = 'sm';
 
-    return (parts[0] ?? 'ME').slice(0, 2).toUpperCase();
+    label = '';
+    initials = '';
 }

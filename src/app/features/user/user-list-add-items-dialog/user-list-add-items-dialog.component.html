@@ -1,4 +1,4 @@
-@if (vm$ | async; as vm) {
+@if (addItems$ | async; as addItems) {
     <div class="dialog">
         <header>
             <h2 class="text-display-sm">Add titles</h2>
@@ -17,13 +17,13 @@
         </div>
 
         <mat-dialog-content class="dialog__content">
-            @if (vm.errorMessage; as message) {
+            @if (addItems.errorMessage; as message) {
                 <p class="dialog__error text-body-sm">
                     {{ message }}
                 </p>
             }
 
-            @if (vm.state.state === 'loading') {
+            @if (addItems.state.state === 'loading') {
                 <div class="dialog__results">
                     @for (placeholder of [1, 2, 3, 4]; track placeholder) {
                         <article class="dialog__result">
@@ -35,9 +35,9 @@
                         </article>
                     }
                 </div>
-            } @else if (vm.state.state === 'success' && vm.state.data.length) {
+            } @else if (addItems.state.state === 'success' && addItems.state.data.length) {
                 <div class="dialog__results">
-                    @for (item of vm.state.data; track item.key) {
+                    @for (item of addItems.state.data; track item.key) {
                         <article class="dialog__result">
                             <app-image
                                 class="dialog__poster"
@@ -69,7 +69,7 @@
                         </article>
                     }
                 </div>
-            } @else if (vm.state.state === 'success') {
+            } @else if (addItems.state.state === 'success') {
                 <p class="text-meta">No matching titles found.</p>
             } @else {
                 <p class="text-meta">

@@ -1,4 +1,4 @@
-@if (vm$ | async; as vm) {
+@if (ratings$ | async; as ratings) {
     <app-sub-page-header
         parentTitle="Profile"
         backLink="/me"
@@ -8,29 +8,29 @@
     <main class="page-main page page-list-column">
         <app-browse-toolbar>
             <div start class="page__total">
-                @if (vm.itemsState === "success") {
-                    <span class="text-caption">{{ vm.totalLabel }}</span>
+                @if (ratings.itemsState === "success") {
+                    <span class="text-caption">{{ ratings.totalLabel }}</span>
                 }
             </div>
 
             <div end class="page__toolbar-actions">
                 <app-toggle-group
                     [options]="contentTypeOptions"
-                    [selectedValue]="vm.contentType"
+                    [selectedValue]="ratings.contentType"
                     (selected)="onContentTypeSelected($event)"
                 />
 
                 <app-sort-button
                     [options]="sortOptions"
                     [selectedValue]="sortField"
-                    [direction]="vm.sortDirection"
+                    [direction]="ratings.sortDirection"
                     (directionToggle)="onSortDirectionToggle()"
                 />
             </div>
         </app-browse-toolbar>
 
-        @if (vm.contentType === "episode") {
-            @if (vm.episodeItems.state === "loading") {
+        @if (ratings.contentType === "episode") {
+            @if (ratings.episodeItems.state === "loading") {
                 <ul class="page__episode-list" aria-hidden="true">
                     @for (placeholder of episodeSkeletonCount | repeat; track placeholder) {
                         <li>
@@ -38,17 +38,17 @@
                         </li>
                     }
                 </ul>
-            } @else if (vm.episodeItems.state === "success") {
-                @if (vm.episodeItems.data.length) {
+            } @else if (ratings.episodeItems.state === "success") {
+                @if (ratings.episodeItems.data.length) {
                     <ul class="page__episode-list" aria-label="Rated episodes">
-                        @for (episode of vm.episodeItems.data; track episode.key) {
+                        @for (episode of ratings.episodeItems.data; track episode.key) {
                             <li>
                                 <app-episode-list-item [item]="episode.item">
                                     <div class="page__actions">
                                         <app-icon-button
                                             title="Edit rating"
                                             ariaLabel="Edit rating for {{ episode.title }}"
-                                            (onClick)="onEditEpisodeRating(episode)"
+                                            (buttonClick)="onEditEpisodeRating(episode)"
                                         >
                                             <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
                                         </app-icon-button>
@@ -57,7 +57,7 @@
                                             tone="danger"
                                             title="Remove rating"
                                             ariaLabel="Remove rating from {{ episode.title }}"
-                                            (onClick)="onRemoveEpisodeRating(episode)"
+                                            (buttonClick)="onRemoveEpisodeRating(episode)"
                                         >
                                             <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
                                         </app-icon-button>
@@ -67,12 +67,12 @@
                         }
                     </ul>
 
-                    @if (vm.total > vm.pageSize) {
+                    @if (ratings.total > ratings.pageSize) {
                         <mat-paginator
                             class="page__paginator"
-                            [length]="vm.total"
-                            [pageIndex]="vm.page"
-                            [pageSize]="vm.pageSize"
+                            [length]="ratings.total"
+                            [pageIndex]="ratings.page"
+                            [pageSize]="ratings.pageSize"
                             [hidePageSize]="true"
                             (page)="onPageChange($event)"
                         />
@@ -80,24 +80,24 @@
                 } @else {
                     <section class="page__empty">
                         <app-empty-state
-                            [iconClass]="vm.emptyState.iconClass"
-                            [title]="vm.emptyState.title"
-                            [text]="vm.emptyState.text"
+                            [iconClass]="ratings.emptyState.iconClass"
+                            [title]="ratings.emptyState.title"
+                            [text]="ratings.emptyState.text"
                         />
                     </section>
                 }
             }
         } @else {
-            @if (vm.mediaItems.state === "loading") {
+            @if (ratings.mediaItems.state === "loading") {
                 <div class="page__list" aria-hidden="true">
                     @for (placeholder of skeletonCount | repeat; track placeholder) {
                         <app-media-list-item [loading]="true" />
                     }
                 </div>
-            } @else if (vm.mediaItems.state === "success") {
-                @if (vm.mediaItems.data.length) {
+            } @else if (ratings.mediaItems.state === "success") {
+                @if (ratings.mediaItems.data.length) {
                     <div class="page__list">
-                        @for (item of vm.mediaItems.data; track item.mediaType + "-" + item.id) {
+                        @for (item of ratings.mediaItems.data; track item.mediaType + "-" + item.id) {
                             <app-media-list-item
                                 [item]="item"
                                 [link]="['/title', item.id, item.mediaType]"
@@ -106,7 +106,7 @@
                                     <app-icon-button
                                         title="Edit rating"
                                         ariaLabel="Edit rating for {{ item.title }}"
-                                        (onClick)="onEditMediaRating(item)"
+                                        (buttonClick)="onEditMediaRating(item)"
                                     >
                                         <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
                                     </app-icon-button>
@@ -115,7 +115,7 @@
                                         tone="danger"
                                         title="Remove rating"
                                         ariaLabel="Remove rating from {{ item.title }}"
-                                        (onClick)="onRemoveMediaRating(item)"
+                                        (buttonClick)="onRemoveMediaRating(item)"
                                     >
                                         <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
                                     </app-icon-button>
@@ -124,12 +124,12 @@
                         }
                     </div>
 
-                    @if (vm.total > vm.pageSize) {
+                    @if (ratings.total > ratings.pageSize) {
                         <mat-paginator
                             class="page__paginator"
-                            [length]="vm.total"
-                            [pageIndex]="vm.page"
-                            [pageSize]="vm.pageSize"
+                            [length]="ratings.total"
+                            [pageIndex]="ratings.page"
+                            [pageSize]="ratings.pageSize"
                             [hidePageSize]="true"
                             (page)="onPageChange($event)"
                         />
@@ -137,9 +137,9 @@
                 } @else {
                     <section class="page__empty">
                         <app-empty-state
-                            [iconClass]="vm.emptyState.iconClass"
-                            [title]="vm.emptyState.title"
-                            [text]="vm.emptyState.text"
+                            [iconClass]="ratings.emptyState.iconClass"
+                            [title]="ratings.emptyState.title"
+                            [text]="ratings.emptyState.text"
                         />
                     </section>
                 }

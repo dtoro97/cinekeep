@@ -1,4 +1,4 @@
-@if (vm$ | async; as vm) {
+@if (favourites$ | async; as favourites) {
     <app-sub-page-header
         parentTitle="Profile"
         backLink="/me"
@@ -8,37 +8,37 @@
     <main class="page-main page">
         <app-browse-toolbar>
             <div start class="page__total">
-                @if (vm.items.state === "success") {
-                    <span class="text-caption">{{ vm.totalLabel }}</span>
+                @if (favourites.items.state === "success") {
+                    <span class="text-caption">{{ favourites.totalLabel }}</span>
                 }
             </div>
 
             <div end class="page__toolbar-actions">
                 <app-toggle-group
                     [options]="mediaTypeOptions"
-                    [selectedValue]="vm.mediaType"
+                    [selectedValue]="favourites.mediaType"
                     (selected)="onMediaTypeSelected($event)"
                 />
 
                 <app-sort-button
                     [options]="sortOptions"
                     [selectedValue]="sortField"
-                    [direction]="vm.sortDirection"
+                    [direction]="favourites.sortDirection"
                     (directionToggle)="onSortDirectionToggle()"
                 />
             </div>
         </app-browse-toolbar>
 
-        @if (vm.items.state === "loading") {
+        @if (favourites.items.state === "loading") {
             <div class="page__grid" aria-hidden="true">
                 @for (placeholder of skeletonCount | repeat; track placeholder) {
                     <app-card-skeleton />
                 }
             </div>
-        } @else if (vm.items.state === "success") {
-            @if (vm.items.data.length) {
+        } @else if (favourites.items.state === "success") {
+            @if (favourites.items.data.length) {
                 <div class="page__grid">
-                    @for (item of vm.items.data; track item.mediaType + "-" + item.id) {
+                    @for (item of favourites.items.data; track item.mediaType + "-" + item.id) {
                         <article class="page__item">
                             <app-card
                                 [item]="item"
@@ -50,7 +50,7 @@
                                 [selected]="true"
                                 title="Remove from favorites"
                                 ariaLabel="Remove {{ item.title }} from favorites"
-                                (onClick)="onRemoveFromFavourites(item)"
+                                (buttonClick)="onRemoveFromFavourites(item)"
                             >
                                 <i class="fa-solid fa-heart" aria-hidden="true"></i>
                             </app-icon-button>
@@ -58,12 +58,12 @@
                     }
                 </div>
 
-                @if (vm.total > vm.pageSize) {
+                @if (favourites.total > favourites.pageSize) {
                     <mat-paginator
                         class="page__paginator"
-                        [length]="vm.total"
-                        [pageIndex]="vm.page"
-                        [pageSize]="vm.pageSize"
+                        [length]="favourites.total"
+                        [pageIndex]="favourites.page"
+                        [pageSize]="favourites.pageSize"
                         [hidePageSize]="true"
                         (page)="onPageChange($event)"
                     />

@@ -1,4 +1,5 @@
 import type { EpisodeListEntry } from '../episode-list/episode-list.models';
+import type { RouteCommands } from '../../../shared';
 
 export interface SeasonRatingBar {
     readonly id: string;
@@ -10,7 +11,7 @@ export interface SeasonRatingBar {
     readonly isBest: boolean;
     readonly isRated: boolean;
     readonly label: string;
-    readonly routeCommands: readonly (string | number)[] | null;
+    readonly routeCommands: RouteCommands | null;
 }
 
 const MIN_BAR_PERCENT = 18;

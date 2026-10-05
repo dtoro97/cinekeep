@@ -13,7 +13,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 
-import { UserListSortBy } from '../../../shared';
+import { UserListResponse } from '../../../api-cinekeep';
 import { DEFAULT_USER_LIST_SORT_BY, USER_LIST_SORT_OPTIONS } from '../user-list-sort-options';
 
 export const USER_LIST_NAME_MAX_LENGTH = 100;
@@ -22,13 +22,13 @@ export const USER_LIST_DESCRIPTION_MAX_LENGTH = 280;
 export type UserListForm = FormGroup<{
     name: FormControl<string>;
     description: FormControl<string>;
-    sortBy: FormControl<UserListSortBy>;
+    sortBy: FormControl<UserListResponse.SortByEnum>;
 }>;
 
 export interface UserListFormValue {
     readonly name: string;
     readonly description: string;
-    readonly sortBy: UserListSortBy;
+    readonly sortBy: UserListResponse.SortByEnum;
 }
 
 const trimmedRequiredValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
@@ -45,7 +45,7 @@ export const createUserListForm = (
     formBuilder.group({
         name: [initial.name ?? '', [trimmedRequiredValidator, Validators.maxLength(USER_LIST_NAME_MAX_LENGTH)]],
         description: [initial.description ?? '', [Validators.maxLength(USER_LIST_DESCRIPTION_MAX_LENGTH)]],
-        sortBy: formBuilder.control<UserListSortBy>(initial.sortBy ?? DEFAULT_USER_LIST_SORT_BY),
+        sortBy: formBuilder.control<UserListResponse.SortByEnum>(initial.sortBy ?? DEFAULT_USER_LIST_SORT_BY),
     });
 
 /**

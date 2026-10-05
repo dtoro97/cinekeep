@@ -5,12 +5,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { distinctUntilChanged, map } from 'rxjs';
 
 import {
-    buildTmdbImageUrl,
     RepeatPipe,
     SeoService,
     SkeletonComponent,
     ToggleGroupComponent,
     VideoCardComponent,
+    toSeoImage,
 } from '../../../shared';
 import { HeroSpotlightComponent } from '../hero-spotlight/hero-spotlight.component';
 import { TRAILERS_SEO_DESCRIPTION } from '../home-seo';
@@ -50,17 +50,14 @@ export class TrailersPageComponent {
                 seoService.setPage({
                     title: 'Trailers',
                     description: TRAILERS_SEO_DESCRIPTION,
-                    image: buildTmdbImageUrl(spotlight?.backdropPath, 'w1280'),
+                    ...toSeoImage(spotlight?.backdropPath),
                     imageAlt: spotlight ? `${spotlight.title} trailer preview` : 'CineKeep trailers preview',
-                    imageWidth: spotlight?.backdropPath ? 1280 : null,
-                    imageHeight: spotlight?.backdropPath ? 720 : null,
                 }),
             );
     }
 
-    /** The toggle emits `unknown`, but only ever offers the feed options passed to it. */
-    setFeedType(value: unknown): void {
-        this.store.setFeedType(value as TrailerFeedType);
+    setFeedType(value: TrailerFeedType): void {
+        this.store.setFeedType(value);
     }
 
     loadMore(): void {

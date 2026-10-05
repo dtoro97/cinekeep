@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, booleanAttribute, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, booleanAttribute } from '@angular/core';
 
 import { VoteCountPipe } from '../../pipes';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
@@ -10,19 +10,22 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
     templateUrl: './tmdb-rating.component.html',
     styleUrl: './tmdb-rating.component.scss',
     host: {
-        '[class.tmdb-rating-host--prominent]': 'prominent()',
+        '[class.tmdb-rating-host--prominent]': 'prominent',
     },
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TmdbRatingComponent {
+export class TmdbRatingComponent implements OnChanges {
     /** A normalized rating (see `toRating`); `null` renders the empty text. */
-    readonly value = input<number | null>(null);
-    readonly voteCount = input<number | null | undefined>(null);
-    readonly label = input('Rating');
-    readonly emptyText = input('No ratings yet');
-    readonly loading = input(false);
+    @Input() value: number | null = null;
+    @Input() voteCount: number | null | undefined = null;
+    @Input() label = 'Rating';
+    @Input() loading = false;
     /** Renders the score as the page's headline number. */
-    readonly prominent = input(false, { transform: booleanAttribute });
+    @Input({ transform: booleanAttribute }) prominent = false;
 
-    protected readonly voteUnit = computed(() => (this.voteCount() === 1 ? 'vote' : 'votes'));
+    protected voteUnit = 'votes';
+
+    ngOnChanges(): void {
+        this.voteUnit = this.voteCount === 1 ? 'vote' : 'votes';
+    }
 }

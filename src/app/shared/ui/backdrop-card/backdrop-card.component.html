@@ -1,8 +1,4 @@
-<a
-    class="backdrop-card"
-    [routerLink]="['/title', item.id, item.mediaType]"
-    [attr.aria-label]="item.title"
->
+<a class="backdrop-card" [routerLink]="routeCommands" [attr.aria-label]="item.title">
     <div class="backdrop-card__media">
         <app-image
             class="backdrop-card__image"
@@ -17,11 +13,11 @@
         <span class="backdrop-card__title text-subtitle">{{ item.title }}</span>
 
         <div class="backdrop-card__meta text-caption">
-            @if (showRating && item.rating) {
-                <app-rating [value]="item.rating" />
+            @if (rating; as rating) {
+                <app-rating [value]="rating" />
             }
-            @if (showDate && item.date) {
-                <span>{{ item.date | date: datePatterns[dateFormat] }}</span>
+            @if (showDateValue) {
+                <span>{{ item.date | date: datePattern }}</span>
             }
         </div>
     </div>

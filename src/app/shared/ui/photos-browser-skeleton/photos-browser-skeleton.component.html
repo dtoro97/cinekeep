@@ -1,22 +1,16 @@
-<div class="skeleton-browser">
+<div class="photos-browser-skeleton">
     <app-browse-toolbar>
-        <div start class="toolbar-start">
-            <app-skeleton class="count" />
-            <div end class="sort u-flex-row u-gap-2">
-                <app-skeleton class="filter filter--short" />
-                <app-skeleton class="filter" />
-            </div>
+        <div start class="photos-browser-skeleton__toolbar-start">
+            <app-skeleton class="photos-browser-skeleton__count" />
+            <app-skeleton class="photos-browser-skeleton__filter photos-browser-skeleton__filter--short" />
+            <app-skeleton class="photos-browser-skeleton__filter" />
         </div>
-        <div end class="sort u-flex-row u-gap-2">
-            <app-skeleton class="language" />
-
-            <app-skeleton />
-        </div>
+        <app-skeleton end class="photos-browser-skeleton__sort" />
     </app-browse-toolbar>
 
-    <div class="grid">
+    <div class="photos-browser-skeleton__grid">
         @for (i of skeletonCount | repeat; track i) {
-            <app-skeleton class="tile" />
+            <app-skeleton class="photos-browser-skeleton__tile" />
         }
     </div>
 </div>

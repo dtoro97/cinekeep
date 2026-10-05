@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
-import { ConfigStoreService, FooterComponent, HeaderComponent } from './shared';
+import { FooterComponent, HeaderComponent } from './shared';
 import { MatIconRegistry } from '@angular/material/icon';
 
 @Component({
@@ -12,11 +12,7 @@ import { MatIconRegistry } from '@angular/material/icon';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
-    constructor(
-        private matIconRegistry: MatIconRegistry,
-        private config: ConfigStoreService,
-    ) {
+    constructor(private matIconRegistry: MatIconRegistry) {
         this.matIconRegistry.registerFontClassAlias('fa');
-        this.config.languages$.subscribe();
     }
 }

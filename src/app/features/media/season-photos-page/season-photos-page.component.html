@@ -1,20 +1,20 @@
 <div class="page-container">
-    @if (vm$ | async; as vm) {
+    @if (seasonPhotos$ | async; as seasonPhotos) {
         <app-sub-page-header
-            [backdropPath]="vm.media?.backdropPath"
+            [backdropPath]="seasonPhotos.media?.backdropPath"
             parentTitle="Episodes"
-            [backLink]="vm.backLink"
-            [pageTitle]="vm.pageTitle"
-            [subtitle]="vm.subtitle"
-            [loading]="!vm.media"
+            [backLink]="seasonPhotos.backLink"
+            [pageTitle]="seasonPhotos.pageTitle"
+            [subtitle]="seasonPhotos.subtitle"
+            [loading]="!seasonPhotos.media"
         />
 
         <main class="page-main">
-            @if (vm.showSkeleton) {
+            @if (seasonPhotos.showSkeleton) {
                 <app-photos-browser-skeleton />
-            } @else if (vm.photosState.state === "success") {
+            } @else if (seasonPhotos.photosState.state === "success") {
                 <app-photos-browser
-                    [images]="vm.photosState.data"
+                    [images]="seasonPhotos.photosState.data"
                     (photoSelect)="openPhotoViewer($event)"
                 />
             }

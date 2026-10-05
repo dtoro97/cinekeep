@@ -1,30 +1,37 @@
-@if (iconOnly()) {
-    <app-icon-button [ariaLabel]="ariaLabel()" [disabled]="pending()" [selected]="active()" (onClick)="toggle()">
-        <i
-            class="library-toggle__icon library-toggle__icon--only"
-            [class]="iconClass()"
-            [class.fa-solid]="active()"
-            [class.fa-regular]="!active()"
-            aria-hidden="true"
-        ></i>
-    </app-icon-button>
-} @else {
-    <button
-        mat-stroked-button
-        type="button"
-        class="library-toggle"
-        [class.library-toggle--active]="active()"
-        [disabled]="pending()"
-        [attr.aria-label]="ariaLabel()"
-        (click)="toggle($event)"
-    >
-        <i
-            class="library-toggle__icon"
-            [class]="iconClass()"
-            [class.fa-solid]="active()"
-            [class.fa-regular]="!active()"
-            aria-hidden="true"
-        ></i>
-        <span class="library-toggle__label">{{ label() }}</span>
-    </button>
+@if (libraryToggle$ | async; as libraryToggle) {
+    @if (iconOnly) {
+        <app-icon-button
+            [ariaLabel]="libraryToggle.ariaLabel"
+            [disabled]="libraryToggle.isDisabled"
+            [selected]="libraryToggle.isActive"
+            (buttonClick)="toggle()"
+        >
+            <i
+                class="library-toggle__icon library-toggle__icon--only"
+                [class]="libraryToggle.iconClass"
+                [class.fa-solid]="libraryToggle.isActive"
+                [class.fa-regular]="!libraryToggle.isActive"
+                aria-hidden="true"
+            ></i>
+        </app-icon-button>
+    } @else {
+        <button
+            mat-stroked-button
+            type="button"
+            class="library-toggle"
+            [class.library-toggle--active]="libraryToggle.isActive"
+            [disabled]="libraryToggle.isDisabled"
+            [attr.aria-label]="libraryToggle.ariaLabel"
+            (click)="toggle($event)"
+        >
+            <i
+                class="library-toggle__icon"
+                [class]="libraryToggle.iconClass"
+                [class.fa-solid]="libraryToggle.isActive"
+                [class.fa-regular]="!libraryToggle.isActive"
+                aria-hidden="true"
+            ></i>
+            <span class="library-toggle__label">{{ libraryToggle.label }}</span>
+        </button>
+    }
 }

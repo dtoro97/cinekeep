@@ -1,15 +1,15 @@
 <div class="page-container">
-    @if (vm$ | async; as vm) {
+    @if (mediaDetail$ | async; as mediaDetail) {
         <app-hero-surface
-            [backdropPath]="vm.media?.backdropPath ?? null"
-            [alt]="vm.media?.title ?? ''"
+            [backdropPath]="mediaDetail.media?.backdropPath ?? null"
+            [alt]="mediaDetail.media?.title ?? ''"
             variant="integrated"
         >
-            @if (vm.media; as media) {
+            @if (mediaDetail.media; as media) {
                 <div class="detail-hero">
                     <div class="detail-hero__poster-column">
                         <app-image class="hero-poster" [src]="media.posterPath" type="media" [alt]="media.title" />
-                        @if (vm.hero.externalLinks; as externalLinks) {
+                        @if (mediaDetail.hero.externalLinks; as externalLinks) {
                             <app-external-links [externalLinks]="externalLinks" />
                         }
                     </div>
@@ -24,7 +24,7 @@
                                     }
                                 } @else {
                                     TV series
-                                    @if (vm.hero.tvYearLabel; as tvYearLabel) {
+                                    @if (mediaDetail.hero.tvYearLabel; as tvYearLabel) {
                                         &#x2022; {{ tvYearLabel }}
                                     }
                                 }
@@ -32,7 +32,7 @@
 
                             <h1 class="hero-title text-hero-title">{{ media.title }}</h1>
 
-                            @if (vm.hero.credit; as credit) {
+                            @if (mediaDetail.hero.credit; as credit) {
                                 <p class="hero-credit text-body">
                                     {{ credit.label }}
                                     @for (person of credit.people; track person.id; let last = $last) {
@@ -47,13 +47,13 @@
                         </div>
 
                         <div class="detail-hero__facts">
-                            @if (vm.hero.certification.state === 'loading') {
+                            @if (mediaDetail.hero.certification.state === 'loading') {
                                 <app-skeleton class="hero-certification-skeleton" aria-hidden="true" />
-                            } @else if (vm.hero.certification.state === 'success' && vm.hero.certification.data) {
-                                <app-badge [label]="vm.hero.certification.data" />
+                            } @else if (mediaDetail.hero.certification.state === 'success' && mediaDetail.hero.certification.data) {
+                                <app-badge [label]="mediaDetail.hero.certification.data" />
                             }
 
-                            @if (vm.inCinemas) {
+                            @if (mediaDetail.inCinemas) {
                                 <app-badge label="In cinemas" iconClass="fa-solid fa-film" variant="accent" />
                             }
 
@@ -109,9 +109,9 @@
                             [mediaType]="media.mediaType"
                             [backdropPath]="media.backdropPath"
                         >
-                            @if (vm.videos.state === 'loading') {
+                            @if (mediaDetail.videos.state === 'loading') {
                                 <app-skeleton class="hero-trailer-skeleton" aria-hidden="true" />
-                            } @else if (vm.videos.state === 'success' && vm.videos.data?.trailerKey; as trailerKey) {
+                            } @else if (mediaDetail.videos.state === 'success' && mediaDetail.videos.data?.trailerKey; as trailerKey) {
                                 <button
                                     matButton="outlined"
                                     class="button--subtle"
@@ -124,7 +124,7 @@
                             }
                         </app-media-list-actions>
 
-                        @if (vm.hero.watchProviders; as providers) {
+                        @if (mediaDetail.hero.watchProviders; as providers) {
                             @if (providers.providers.length) {
                                 <div class="provider-preview">
                                     <span class="text-overline">Stream on</span>
@@ -177,17 +177,17 @@
                     </div>
 
                     <aside class="detail-hero__side" aria-label="Ratings">
-                        @if (media.voteAverage || vm.hero.canRateTitle) {
+                        @if (media.voteAverage || mediaDetail.hero.canRateTitle) {
                             <div class="hero-ratings">
                                 <app-tmdb-rating prominent [value]="media.voteAverage" [voteCount]="media.voteCount" />
 
-                                @if (vm.hero.canRateTitle) {
+                                @if (mediaDetail.hero.canRateTitle) {
                                     <app-user-rating
                                         class="hero-user-rating hero-user-rating--with-divider"
-                                        [currentRating]="vm.hero.userRating.currentRating"
-                                        [disabled]="vm.hero.userRating.disabled"
-                                        [loading]="vm.hero.userRating.loading"
-                                        [pending]="vm.hero.userRating.pending"
+                                        [currentRating]="mediaDetail.hero.userRating.currentRating"
+                                        [disabled]="mediaDetail.hero.userRating.disabled"
+                                        [loading]="mediaDetail.hero.userRating.loading"
+                                        [pending]="mediaDetail.hero.userRating.pending"
                                         (ratingClick)="openUserRatingDialog(media.id, media.mediaType, media.title)"
                                     />
                                 }
@@ -238,17 +238,17 @@
         </app-hero-surface>
 
         <div class="page-sections">
-            @if (vm.creditsSummary.state !== 'success' || vm.creditsSummary.data) {
+            @if (mediaDetail.creditsSummary.state !== 'success' || mediaDetail.creditsSummary.data) {
                 <app-page-section subtitle="Top Cast">
                     <a section-controls class="section-link text-body-sm" [routerLink]="['cast']">
                         All cast & crew
                         <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                     </a>
 
-                    <app-media-credits-summary [data]="vm.creditsSummary" />
+                    <app-media-credits-summary [data]="mediaDetail.creditsSummary" />
                 </app-page-section>
             }
-            @if (vm.collection.state === 'success' && vm.collection.data; as collection) {
+            @if (mediaDetail.collection.state === 'success' && mediaDetail.collection.data; as collection) {
                 <a class="collection" [routerLink]="['/collection', collection.id]">
                     <app-image class="collection-backdrop" [src]="collection.backdrop_path" params="w1280" />
                     <div class="collection-overlay"></div>
@@ -272,7 +272,7 @@
                 </a>
             }
 
-            @if (vm.latestEpisode; as episode) {
+            @if (mediaDetail.latestEpisode; as episode) {
                 <app-page-section subtitle="Latest Episode">
                     <a section-controls class="section-link text-body-sm" [routerLink]="['episodes']">
                         Browse all episodes
@@ -283,11 +283,11 @@
                 </app-page-section>
             }
 
-            @if (vm.videos.state === 'loading') {
+            @if (mediaDetail.videos.state === 'loading') {
                 <app-page-section subtitle="Videos">
                     <app-videos-grid [state]="{ state: 'loading' }" />
                 </app-page-section>
-            } @else if (vm.videos.state === 'success' && vm.videos.data; as videos) {
+            } @else if (mediaDetail.videos.state === 'success' && mediaDetail.videos.data; as videos) {
                 <app-page-section subtitle="Videos">
                     @if (videos.totalCount > 0) {
                         <a section-controls class="section-link text-body-sm" [routerLink]="['videos']">
@@ -300,11 +300,11 @@
                 </app-page-section>
             }
 
-            @if (vm.photos.state === 'loading') {
+            @if (mediaDetail.photos.state === 'loading') {
                 <app-page-section subtitle="Photos">
                     <app-photos-preview [state]="{ state: 'loading' }" />
                 </app-page-section>
-            } @else if (vm.photos.state === 'success' && vm.photos.data; as photos) {
+            } @else if (mediaDetail.photos.state === 'success' && mediaDetail.photos.data; as photos) {
                 <app-page-section subtitle="Photos">
                     @if (photos.totalCount > 0) {
                         <a section-controls class="section-link text-body-sm" [routerLink]="['photos']">
@@ -322,7 +322,7 @@
                 </app-page-section>
             }
 
-            @if (vm.reviews.state === 'loading') {
+            @if (mediaDetail.reviews.state === 'loading') {
                 <app-page-section subtitle="Reviews">
                     <app-skeleton class="reviews-summary-skeleton" />
                     <div class="reviews-preview-grid">
@@ -331,7 +331,7 @@
                         }
                     </div>
                 </app-page-section>
-            } @else if (vm.reviews.state === 'success' && vm.reviews.data; as reviews) {
+            } @else if (mediaDetail.reviews.state === 'success' && mediaDetail.reviews.data; as reviews) {
                 @if (reviews.totalResults || reviews.previewReviews.length) {
                     <app-page-section subtitle="Reviews">
                         <a section-controls class="section-link text-body-sm" routerLink="reviews">
@@ -352,20 +352,20 @@
                 }
             }
 
-            @if (vm.recommendations.state === 'loading') {
+            @if (mediaDetail.recommendations.state === 'loading') {
                 <app-page-section subtitle="More Like This">
                     <app-media-carousel-panel [state]="{ state: 'loading' }" [showRating]="true" [showDate]="true" />
                 </app-page-section>
-            } @else if (vm.recommendations.state === 'success' && vm.recommendations.data; as recommendations) {
+            } @else if (mediaDetail.recommendations.state === 'success' && mediaDetail.recommendations.data; as recommendations) {
                 <app-page-section subtitle="More Like This">
                     <app-media-carousel-panel [state]="recommendations.state" [showRating]="true" [showDate]="true" />
                 </app-page-section>
             }
 
-            @if (vm.media; as media) {
-                @if (vm.keywords.state === 'success' && vm.keywords.data.length) {
+            @if (mediaDetail.media; as media) {
+                @if (mediaDetail.keywords.state === 'success' && mediaDetail.keywords.data.length) {
                     <app-page-section subtitle="Keywords">
-                        <app-keywords-list [keywords]="vm.keywords.data" [mediaType]="media.mediaType" />
+                        <app-keywords-list [keywords]="mediaDetail.keywords.data" [mediaType]="media.mediaType" />
                     </app-page-section>
                 }
 

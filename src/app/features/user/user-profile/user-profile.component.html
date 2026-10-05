@@ -1,21 +1,21 @@
-@if (vm$ | async; as vm) {
+@if (userProfile$ | async; as userProfile) {
     <section class="profile page-main">
         <aside class="profile__rail" aria-label="Profile summary">
             <div class="profile__identity">
-                <app-user-avatar [name]="vm.displayName" size="lg" />
+                <app-user-avatar [name]="userProfile.displayName" size="lg" />
 
                 <div class="profile__identity-copy">
                     <h1 class="text-headline">
-                        {{ vm.displayName }}
+                        {{ userProfile.displayName }}
                     </h1>
 
-                    @if (vm.username; as username) {
+                    @if (userProfile.username; as username) {
                         <p class="text-meta">@{{ username }}</p>
                     }
 
-                    @if (vm.profileMeta.length) {
+                    @if (userProfile.profileMeta.length) {
                         <p class="profile__meta text-caption">
-                            @for (item of vm.profileMeta; track item) {
+                            @for (item of userProfile.profileMeta; track item) {
                                 <span>{{ item }}</span>
                             }
                         </p>
@@ -25,22 +25,22 @@
 
             <nav class="profile__nav" aria-label="Profile navigation">
                 <a class="profile__nav-link" routerLink="/me/watchlists">
-                    <strong class="profile__stat-value text-headline">{{ vm.watchlist.total }}</strong>
+                    <strong class="profile__stat-value text-headline">{{ userProfile.watchlist.total }}</strong>
                     <span class="text-overline">Watchlist</span>
                 </a>
 
                 <a class="profile__nav-link" routerLink="/me/ratings">
-                    <strong class="profile__stat-value text-headline">{{ vm.ratings.total }}</strong>
+                    <strong class="profile__stat-value text-headline">{{ userProfile.ratings.total }}</strong>
                     <span class="text-overline">Ratings</span>
                 </a>
 
                 <a class="profile__nav-link" routerLink="/me/favorites">
-                    <strong class="profile__stat-value text-headline">{{ vm.favourites.total }}</strong>
+                    <strong class="profile__stat-value text-headline">{{ userProfile.favourites.total }}</strong>
                     <span class="text-overline">Favorites</span>
                 </a>
 
                 <a class="profile__nav-link" routerLink="/me/lists">
-                    <strong class="profile__stat-value text-headline">{{ vm.lists.total }}</strong>
+                    <strong class="profile__stat-value text-headline">{{ userProfile.lists.total }}</strong>
                     <span class="text-overline">Lists</span>
                 </a>
             </nav>
@@ -52,7 +52,7 @@
                     <div class="profile__section-heading">
                         <h2 id="profile-favourites-title" class="text-section-label">Favorites</h2>
                         <p class="profile__section-count text-caption">
-                            {{ vm.favourites.total | pluralize: 'title' }}
+                            {{ userProfile.favourites.total | pluralize: 'title' }}
                         </p>
                     </div>
 
@@ -62,7 +62,7 @@
                     </a>
                 </header>
 
-                @if (vm.favourites.state.state === 'success' && !vm.favourites.state.data.length) {
+                @if (userProfile.favourites.state.state === 'success' && !userProfile.favourites.state.data.length) {
                     <div class="profile__empty">
                         <app-empty-state
                             iconClass="fa-regular fa-heart"
@@ -74,7 +74,7 @@
                 } @else {
                     <app-media-carousel-panel
                         ariaLabel="Favorites preview"
-                        [state]="vm.favourites.state"
+                        [state]="userProfile.favourites.state"
                         [columns]="favouritesCarouselColumns"
                         [imageParams]="favouritesPosterImageParams"
                         [skeletonCount]="favouritesCarouselColumns"
@@ -87,7 +87,7 @@
                     <div class="profile__section-heading">
                         <h2 id="profile-watchlist-title" class="text-section-label">Watchlist</h2>
                         <p class="profile__section-count text-caption">
-                            {{ vm.watchlist.total | pluralize: 'title' }}
+                            {{ userProfile.watchlist.total | pluralize: 'title' }}
                         </p>
                     </div>
 
@@ -97,7 +97,7 @@
                     </a>
                 </header>
 
-                @if (vm.watchlist.state.state === 'success' && !vm.watchlist.state.data.length) {
+                @if (userProfile.watchlist.state.state === 'success' && !userProfile.watchlist.state.data.length) {
                     <div class="profile__empty">
                         <app-empty-state
                             iconClass="fa-regular fa-bookmark"
@@ -109,7 +109,7 @@
                 } @else {
                     <app-media-carousel-panel
                         ariaLabel="Watchlist preview"
-                        [state]="vm.watchlist.state"
+                        [state]="userProfile.watchlist.state"
                         [columns]="previewCarouselColumns"
                         [imageParams]="previewPosterImageParams"
                         [skeletonCount]="previewCarouselColumns"
@@ -122,7 +122,7 @@
                     <div class="profile__section-heading">
                         <h2 id="profile-ratings-title" class="text-section-label">Ratings</h2>
                         <p class="profile__section-count text-caption">
-                            {{ vm.ratings.total | pluralize: 'title' }}
+                            {{ userProfile.ratings.total | pluralize: 'title' }}
                         </p>
                     </div>
 
@@ -132,7 +132,7 @@
                     </a>
                 </header>
 
-                @if (vm.ratings.state.state === 'success' && !vm.ratings.state.data.length) {
+                @if (userProfile.ratings.state.state === 'success' && !userProfile.ratings.state.data.length) {
                     <div class="profile__empty">
                         <app-empty-state
                             iconClass="fa-regular fa-star"
@@ -144,7 +144,7 @@
                 } @else {
                     <app-media-carousel-panel
                         ariaLabel="Ratings preview"
-                        [state]="vm.ratings.state"
+                        [state]="userProfile.ratings.state"
                         [columns]="previewCarouselColumns"
                         [imageParams]="previewPosterImageParams"
                         [skeletonCount]="previewCarouselColumns"
@@ -158,7 +158,7 @@
                     <div class="profile__section-heading">
                         <h2 id="profile-lists-title" class="text-section-label">Lists</h2>
                         <p class="profile__section-count text-caption">
-                            {{ vm.lists.total | pluralize: 'list' }}
+                            {{ userProfile.lists.total | pluralize: 'list' }}
                         </p>
                     </div>
 
@@ -168,15 +168,15 @@
                     </a>
                 </header>
 
-                @if (vm.lists.state.state === 'loading') {
+                @if (userProfile.lists.state.state === 'loading') {
                     <div class="profile__list-grid">
                         @for (placeholder of 3 | repeat; track placeholder) {
                             <app-user-list-card-skeleton />
                         }
                     </div>
-                } @else if (vm.lists.state.state === 'success' && vm.lists.state.data.length) {
+                } @else if (userProfile.lists.state.state === 'success' && userProfile.lists.state.data.length) {
                     <div class="profile__list-grid">
-                        @for (item of vm.lists.state.data | slice: 0 : 3; track item.id) {
+                        @for (item of userProfile.lists.state.data | slice: 0 : 3; track item.id) {
                             <app-user-list-card [item]="item" />
                         }
                     </div>

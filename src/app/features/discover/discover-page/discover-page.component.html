@@ -40,11 +40,15 @@
                     <div class="discover-page__toolbar">
                         <div class="discover-page__summary">
                             @if (discover.showResultCount) {
-                                <span class="discover-page__result-count text-label">{{ discover.resultCountLabel }}</span>
+                                <span class="discover-page__result-count text-label">{{
+                                    discover.resultCountLabel
+                                }}</span>
                             }
 
                             @for (filter of discover.lockedFilters; track filter.id) {
-                                <span class="discover-page__filter-chip discover-page__filter-chip--locked text-caption">
+                                <span
+                                    class="discover-page__filter-chip discover-page__filter-chip--locked text-caption"
+                                >
                                     <mat-icon aria-hidden="true">lock</mat-icon>
                                     <span>{{ filter.label }}</span>
                                 </span>
@@ -63,7 +67,11 @@
                             }
 
                             @if (discover.showReset) {
-                                <button class="discover-page__reset text-caption" type="button" (click)="resetFilters()">
+                                <button
+                                    class="discover-page__reset text-caption"
+                                    type="button"
+                                    (click)="resetFilters()"
+                                >
                                     Clear all
                                 </button>
                             }
@@ -81,7 +89,9 @@
                                     <i class="fa-solid fa-sliders" aria-hidden="true"></i>
                                     <span>Filters</span>
                                     @if (discover.filters.hasActiveFilters) {
-                                        <span class="discover-page__filter-count">{{ discover.filters.activeFilterCount }}</span>
+                                        <span class="discover-page__filter-count">{{
+                                            discover.filters.activeFilterCount
+                                        }}</span>
                                     }
                                 </button>
                             }
@@ -112,18 +122,14 @@
                                     <app-library-toggle
                                         card-actions
                                         flag="favorite"
-                                        [mediaId]="entry.item.id"
-                                        [mediaType]="entry.item.mediaType"
-                                        [title]="entry.item.title"
+                                        [media]="entry.item"
                                         [iconOnly]="true"
                                         [libraryState]="entry.libraryState"
                                     />
                                     <app-library-toggle
                                         card-actions
                                         flag="watchlist"
-                                        [mediaId]="entry.item.id"
-                                        [mediaType]="entry.item.mediaType"
-                                        [title]="entry.item.title"
+                                        [media]="entry.item"
                                         [iconOnly]="true"
                                         [libraryState]="entry.libraryState"
                                     />
@@ -168,4 +174,3 @@
         </main>
     </div>
 }
-

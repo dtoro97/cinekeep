@@ -2,25 +2,39 @@ import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
 
-import { Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, switchMap, tap, throwError } from 'rxjs';
 
-import { MediaStateResponse } from '../../api-cinekeep';
+import {
+    MediaStateResponse,
+    RatingControllerService,
+    SeriesSnapshotRequest,
+    UserListControllerService,
+} from '../../api-cinekeep';
+import { BACKEND_MAX_PAGE_SIZE } from '../../constants';
 import {
     LibraryFlag,
-    MediaSnapshotRequest,
     MediaRatingService,
     RemoteData,
+    isDefined,
     UserLibraryService,
-    UserRatingState,
     UserSessionStoreService,
     normalizeRatingValue,
     remoteSuccess,
+    toMediaKey,
     toMediaSnapshotRequest,
-    toUserRatingVm,
-    writeUserRating$,
 } from '../../shared';
+import { toUserRatingDisplay, UserRatingState, writeUserRating$ } from './user-rating-state';
 import { MediaStoreService } from './media-store.service';
-import { type MediaTarget, toMediaKey } from './media-target';
+import type { MediaTarget } from './media-target';
+
+export interface MediaUserListSummary {
+    readonly id: number;
+    readonly name: string;
+    readonly description: string | null;
+    readonly itemCount: number;
+    readonly itemPresent: boolean;
+    readonly posterPath: string | null;
+}
 
 interface MediaActionResource extends UserRatingState {
     readonly watchlistState: RemoteData<boolean>;
@@ -52,17 +66,17 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
         this.target$,
         this.select((state) => state.actionsByMediaKey),
         (target, actionsByMediaKey) =>
-            target ? (actionsByMediaKey[toMediaKey(target)] ?? EMPTY_ACTION_RESOURCE) : EMPTY_ACTION_RESOURCE,
+            target ? (actionsByMediaKey[toMediaKey(target.type, target.id)] ?? EMPTY_ACTION_RESOURCE) : EMPTY_ACTION_RESOURCE,
     );
 
     readonly watchlistState$ = this.activeActions$.pipe(map((actions) => actions.watchlistState));
     readonly favoriteState$ = this.activeActions$.pipe(map((actions) => actions.favoriteState));
 
-    readonly ratingVm$ = this.select(this.activeActions$, this.target$, (actions, target) =>
-        toUserRatingVm(actions, target !== null),
+    readonly userRating$ = this.select(this.activeActions$, this.target$, (actions, target) =>
+        toUserRatingDisplay(actions, target !== null),
     );
 
-    readonly listActionsVm$ = this.select(
+    readonly listActions$ = this.select(
         this.watchlistState$,
         this.favoriteState$,
         (watchlistState, favoriteState) => ({
@@ -79,14 +93,16 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
     constructor(
         private readonly mediaRatingService: MediaRatingService,
         private readonly mediaStore: MediaStoreService,
+        private readonly ratingControllerService: RatingControllerService,
         private readonly userLibraryService: UserLibraryService,
+        private readonly userListControllerService: UserListControllerService,
         private readonly userSessionStore: UserSessionStoreService,
     ) {
         super(INITIAL_STATE);
     }
 
     updateMedia(target: MediaTarget): void {
-        const key = toMediaKey(target);
+        const key = toMediaKey(target.type, target.id);
 
         this.patchState((state) => ({
             target,
@@ -112,8 +128,10 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
     }
 
     deleteUserRating$(target: MediaTarget): Observable<unknown> {
-        return writeUserRating$(this.mediaRatingService.deleteMediaRating$(target.id, target.type), null, (patch) =>
-            this.patchActionResource(target, patch),
+        return writeUserRating$(
+            this.ratingControllerService.deleteRating({ mediaType: target.type, tmdbId: target.id }),
+            null,
+            (patch) => this.patchActionResource(target, patch),
         );
     }
 
@@ -154,6 +172,41 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
         return this.userLibraryService.addToList$(listId, target.id, target.type, this.loadedSnapshot(target));
     }
 
+    /** The user's lists, each flagged with whether it already contains the title. */
+    getUserLists$(): Observable<MediaUserListSummary[]> {
+        const target = this.get().target;
+
+        if (!target) {
+            return throwError(() => new Error('No media action context is available.'));
+        }
+
+        return forkJoin({
+            lists: this.userListControllerService.getLists({ page: 0, size: BACKEND_MAX_PAGE_SIZE }),
+            memberListIds: this.userListControllerService
+                .getMembership({ mediaType: target.type, tmdbId: target.id })
+                .pipe(map((response) => new Set(response.listIds ?? []))),
+        }).pipe(
+            map(({ lists, memberListIds }) =>
+                (lists.content ?? [])
+                    .map((list): MediaUserListSummary | null => {
+                        const name = list.name?.trim();
+
+                        return list.id && name
+                            ? {
+                                  id: list.id,
+                                  name,
+                                  description: list.description?.trim() || null,
+                                  itemCount: list.itemCount ?? 0,
+                                  itemPresent: memberListIds.has(list.id),
+                                  posterPath: list.cover?.posterPath ?? null,
+                              }
+                            : null;
+                    })
+                    .filter(isDefined),
+            ),
+        );
+    }
+
     /** Re-fetches whenever the user signs in or out. */
     private readonly fetchMediaActionsEffect = this.effect<MediaTarget>((params$) =>
         params$.pipe(
@@ -192,19 +245,19 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
         );
     }
 
-    private loadedSnapshot(target: MediaTarget): MediaSnapshotRequest | undefined {
+    private loadedSnapshot(target: MediaTarget): SeriesSnapshotRequest | undefined {
         const media = this.mediaStore.currentMediaFor(target);
 
         return media ? toMediaSnapshotRequest(media, target.type) : undefined;
     }
 
     private getActionResource(state: MediaActionsState, target: MediaTarget): MediaActionResource {
-        return state.actionsByMediaKey[toMediaKey(target)] ?? EMPTY_ACTION_RESOURCE;
+        return state.actionsByMediaKey[toMediaKey(target.type, target.id)] ?? EMPTY_ACTION_RESOURCE;
     }
 
     private patchActionResource(target: MediaTarget, patch: Partial<MediaActionResource>): void {
         this.patchState((state) => {
-            const key = toMediaKey(target);
+            const key = toMediaKey(target.type, target.id);
 
             return {
                 actionsByMediaKey: {

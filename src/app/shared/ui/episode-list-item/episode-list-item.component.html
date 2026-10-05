@@ -27,14 +27,14 @@
 
         <div class="episode-list-item__content">
             <div class="episode-list-item__heading">
-                @if (!numbered && currentItem.seasonNumber !== null && currentItem.episodeNumber !== null) {
-                    <span class="episode-list-item__code text-card-meta">
-                        S{{ currentItem.seasonNumber }}E{{ currentItem.episodeNumber }}
-                    </span>
+                @if (currentItem.code; as code) {
+                    <span class="episode-list-item__code text-card-meta">{{ code }}</span>
                 }
 
                 @if (currentItem.routeCommands; as routeCommands) {
-                    <a class="episode-list-item__title text-subtitle" [routerLink]="routeCommands">{{ currentItem.name }}</a>
+                    <a class="episode-list-item__title text-subtitle" [routerLink]="routeCommands">{{
+                        currentItem.name
+                    }}</a>
                 } @else {
                     <span class="episode-list-item__title text-subtitle">{{ currentItem.name }}</span>
                 }
@@ -50,7 +50,7 @@
                 }
             </div>
 
-            @if (currentItem.subtitle || currentItem.airDate || currentItem.runtime) {
+            @if (showMetadata) {
                 <p class="episode-list-item__meta text-card-meta">
                     @if (currentItem.subtitle) {
                         <span>{{ currentItem.subtitle }}</span>
@@ -59,7 +59,7 @@
                         <span>{{ currentItem.airDate | date: 'mediumDate' }}</span>
                     }
                     @if (currentItem.runtime) {
-                        <span>{{ currentItem.runtime }}m</span>
+                        <span>{{ currentItem.runtime | m2h }}</span>
                     }
                 </p>
             }

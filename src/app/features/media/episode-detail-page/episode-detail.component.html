@@ -1,19 +1,19 @@
 <div class="page-container">
-    @if (vm$ | async; as vm) {
-        <app-hero-surface [backdropPath]="vm.heroImage" variant="integrated">
+    @if (episodeDetail$ | async; as episodeDetail) {
+        <app-hero-surface [backdropPath]="episodeDetail.heroImage" variant="integrated">
             <div class="episode-hero">
-                <a class="episode-hero__back text-caption" [routerLink]="vm.episodesLink">
+                <a class="episode-hero__back text-caption" [routerLink]="episodeDetail.episodesLink">
                     <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                    Back to {{ vm.seasonLabel }}
+                    Back to {{ episodeDetail.seasonLabel }}
                 </a>
 
-                @if (vm.episode; as episode) {
+                @if (episodeDetail.episode; as episode) {
                     <div class="episode-hero__text">
                         <p class="episode-hero__eyebrow text-hero-meta">
-                            @if (vm.media?.title; as title) {
-                                <a class="episode-hero__series" [routerLink]="vm.seriesLink">{{ title }}</a>
+                            @if (episodeDetail.media?.title; as title) {
+                                <a class="episode-hero__series" [routerLink]="episodeDetail.seriesLink">{{ title }}</a>
                             }
-                            <span>{{ vm.episodeLabel }}</span>
+                            <span>{{ episodeDetail.episodeLabel }}</span>
                         </p>
 
                         <h1 class="text-hero-title">{{ episode.name }}</h1>
@@ -40,16 +40,16 @@
         </app-hero-surface>
 
         <main class="page-main episode-page">
-            @if (vm.episode; as episode) {
+            @if (episodeDetail.episode; as episode) {
                 <section class="episode-intro">
                     <div class="episode-intro__text">
                         <p class="episode-intro__overview text-hero-summary" [class.episode-intro__overview--empty]="!episode.overview">
                             {{ episode.overview || "No overview available." }}
                         </p>
 
-                        @if (vm.crewRows.length) {
+                        @if (episodeDetail.crewRows.length) {
                             <dl class="episode-crew">
-                                @for (row of vm.crewRows; track row.label) {
+                                @for (row of episodeDetail.crewRows; track row.label) {
                                     <div class="episode-crew__row">
                                         <dt class="episode-crew__label text-caption">{{ row.label }}</dt>
                                         <dd class="episode-crew__names text-body-sm">
@@ -63,26 +63,30 @@
                         }
                     </div>
 
-                    @if (vm.showRatings) {
+                    @if (episodeDetail.showRatings) {
                         <aside class="episode-intro__ratings" aria-label="Ratings">
-                            @if (vm.rating) {
-                                <app-tmdb-rating prominent [value]="vm.rating" [voteCount]="episode.vote_count" />
+                            @if (episodeDetail.rating) {
+                                <app-tmdb-rating
+                                    prominent
+                                    [value]="episodeDetail.rating"
+                                    [voteCount]="episode.vote_count"
+                                />
                             }
 
-                            @if (vm.canRateEpisode) {
+                            @if (episodeDetail.canRateEpisode) {
                                 <app-user-rating
                                     class="episode-intro__user-rating"
-                                    [currentRating]="vm.userRating.currentRating"
-                                    [disabled]="vm.userRating.disabled"
-                                    [loading]="vm.userRating.loading"
-                                    [pending]="vm.userRating.pending"
-                                    (ratingClick)="openUserRatingDialog(vm.seriesId, episode)"
+                                    [currentRating]="episodeDetail.userRating.currentRating"
+                                    [disabled]="episodeDetail.userRating.disabled"
+                                    [loading]="episodeDetail.userRating.loading"
+                                    [pending]="episodeDetail.userRating.pending"
+                                    (ratingClick)="openUserRatingDialog(episodeDetail.seriesId, episode)"
                                 />
                             }
                         </aside>
                     }
                 </section>
-            } @else if (vm.isLoading) {
+            } @else if (episodeDetail.isLoading) {
                 <section class="episode-intro" aria-hidden="true">
                     <div class="episode-intro__text">
                         <app-skeleton class="episode-intro__line" />
@@ -92,7 +96,7 @@
                 </section>
             }
 
-            @if (vm.pager; as pager) {
+            @if (episodeDetail.pager; as pager) {
                 @if (pager.previous || pager.next) {
                     <nav class="episode-pager" aria-label="Other episodes">
                         @if (pager.previous; as previous) {
@@ -124,23 +128,23 @@
                 }
             }
 
-            @if (vm.hasGuestCast) {
+            @if (episodeDetail.hasGuestCast) {
                 <app-page-section subtitle="Guest stars">
-                    <app-media-credits-summary [data]="vm.guestCast" />
+                    <app-media-credits-summary [data]="episodeDetail.guestCast" />
                 </app-page-section>
             }
 
-            @if (vm.stillsState.state !== "success" || vm.stillsTotalCount) {
+            @if (episodeDetail.stillsState.state !== "success" || episodeDetail.stillsTotalCount) {
                 <app-page-section subtitle="Stills">
-                    @if (vm.stillsTotalCount) {
+                    @if (episodeDetail.stillsTotalCount) {
                         <a section-controls class="section-link text-body-sm" [routerLink]="['photos']">
-                            Browse all photos ({{ vm.stillsTotalCount }})
+                            Browse all photos ({{ episodeDetail.stillsTotalCount }})
                             <i class="fa-solid fa-chevron-right"></i>
                         </a>
                     }
                     <app-photos-preview
-                        [state]="vm.stillsState"
-                        [totalCount]="vm.stillsTotalCount"
+                        [state]="episodeDetail.stillsState"
+                        [totalCount]="episodeDetail.stillsTotalCount"
                         variant="compact"
                         (photoClick)="openPhotoViewer($event)"
                         (moreClick)="openPhotosPage()"
@@ -148,9 +152,9 @@
                 </app-page-section>
             }
 
-            @if (vm.videosState.state !== "success" || vm.videoCount) {
+            @if (episodeDetail.videosState.state !== "success" || episodeDetail.videoCount) {
                 <app-page-section subtitle="Videos">
-                    <app-videos-grid [state]="vm.videosState" />
+                    <app-videos-grid [state]="episodeDetail.videosState" />
                 </app-page-section>
             }
         </main>

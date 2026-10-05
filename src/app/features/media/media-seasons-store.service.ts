@@ -12,20 +12,21 @@ import {
     VideoList,
 } from '../../api';
 import {
-    LocaleStoreService,
-    RemoteData,
-    VideoCardItem,
-    ViewerImage,
-    buildImageLanguageFallback,
     hasRemoteData,
+    IMAGE_LANGUAGE_FALLBACK,
     isDefined,
+    LocaleStoreService,
     mapRemoteData,
+    type MediaListItemBadge,
+    RemoteData,
     remoteData,
     remoteSuccess,
+    RouteCommands,
+    toRating,
     toVideoCardItems,
     toYoutubeVideos,
-    toRating,
-    type MediaListItemBadge,
+    VideoCardItem,
+    ViewerImage,
 } from '../../shared';
 import { MediaStoreService } from './media-store.service';
 import type { EpisodeListEntry } from './episode-list/episode-list.models';
@@ -37,16 +38,6 @@ export interface SeasonTarget {
 }
 
 const HIGHEST_RATED_BADGES: readonly MediaListItemBadge[] = [{ label: 'Highest rated', variant: 'outline' }];
-
-interface SeasonSummary {
-    readonly seasonNumber: number;
-    readonly name: string;
-    readonly episodeCount: number;
-    readonly airDate: string | null;
-    readonly overview: string;
-    readonly posterPath: string | null;
-    readonly voteAverage: number | null;
-}
 
 type SeasonRecord = Omit<TvSeason | TvSeasonCompact, 'episodes'> & {
     episodes: RemoteData<TvEpisode[]>;
@@ -115,7 +106,7 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
     );
 
     readonly selectedSeasonSummary$ = combineLatest([this.selectedSeasonNumber$, this.selectedSeasonRecord$]).pipe(
-        map(([seasonNumber, season]): SeasonSummary | null =>
+        map(([seasonNumber, season]) =>
             isDefined(seasonNumber) ? this.toSeasonSummary(seasonNumber, season) : null,
         ),
     );
@@ -306,7 +297,7 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
             .tvSeasonImages({
                 seriesId: target.seriesId,
                 seasonNumber: target.seasonNumber,
-                includeImageLanguage: buildImageLanguageFallback(),
+                includeImageLanguage: IMAGE_LANGUAGE_FALLBACK,
                 language: this.localeStore.language(),
             })
             .pipe(
@@ -382,7 +373,7 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
                 subtitle: null,
                 overview: episode.overview ?? '',
                 stillPath: episode.still_path ?? null,
-                seasonNumber: episode.season_number ?? null,
+                code: null,
                 episodeNumber: episode.episode_number ?? null,
                 airDate: episode.air_date ?? null,
                 runtime: episode.runtime ?? null,
@@ -397,7 +388,7 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
         episode: TvEpisode,
         seriesId: number | null,
         selectedSeasonNumber: number | null,
-    ): readonly (string | number)[] | null {
+    ): RouteCommands | null {
         const seasonNumber = episode.season_number ?? selectedSeasonNumber;
         const episodeNumber = episode.episode_number;
 
@@ -443,7 +434,7 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
         );
     }
 
-    private toSeasonSummary(seasonNumber: number, season: SeasonRecord | null): SeasonSummary {
+    private toSeasonSummary(seasonNumber: number, season: SeasonRecord | null) {
         if (!season) {
             return {
                 seasonNumber,

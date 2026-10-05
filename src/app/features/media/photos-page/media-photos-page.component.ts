@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { combineLatest, filter, map, switchMap, tap } from 'rxjs';
 
 import {
+    PHOTO_VIEWER_DIALOG_CONFIG,
     PhotoViewerComponent,
     PhotosBrowserComponent,
     PhotosBrowserSelection,
@@ -32,7 +33,7 @@ import { MediaDetails } from '../models/media-details.model';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MediaPhotosPageComponent {
-    readonly vm$ = combineLatest({
+    readonly mediaPhotos$ = combineLatest({
         mediaState: this.mediaStore.mediaDetailsState$,
         photosState: this.mediaImagesStoreService.imagesState$,
     }).pipe(
@@ -70,13 +71,8 @@ export class MediaPhotosPageComponent {
 
     openPhotoViewer(selection: PhotosBrowserSelection): void {
         this.dialog.open(PhotoViewerComponent, {
+            ...PHOTO_VIEWER_DIALOG_CONFIG,
             data: { images: selection.images, activeIndex: selection.index },
-            panelClass: 'photo-viewer-panel',
-            maxWidth: '100vw',
-            maxHeight: '100vh',
-            width: '100vw',
-            height: '100vh',
-            autoFocus: false,
         });
     }
 }

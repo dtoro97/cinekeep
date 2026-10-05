@@ -107,7 +107,14 @@
 }
 
 .review-card__rating {
+    --rating-icon-size: 1em;
+
     flex-shrink: 0;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--border-overlay-soft);
+    border-radius: var(--radius-pill);
+    background: var(--surface-scrim);
+    line-height: 1;
 }
 
 .review-card__content {

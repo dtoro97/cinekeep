@@ -1,10 +1,10 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, ViewportScroller } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
-import { EMPTY, Observable, catchError } from 'rxjs';
+import { catchError } from 'rxjs';
 
 import {
     BrowseToolbarComponent,
@@ -13,12 +13,9 @@ import {
     MEDIA_TYPE_OPTIONS,
     MediaListItem,
     MediaType,
-    PageScrollService,
     ToggleGroupComponent,
     RepeatPipe,
-    SnackbarComponent,
     SnackbarService,
-    SnackbarType,
     SortButtonComponent,
     SubPageHeaderComponent,
     MediaListItemComponent,
@@ -51,18 +48,18 @@ export class UserWatchlistPageComponent {
     readonly sortOptions = USER_ACCOUNT_SORT_OPTIONS;
     readonly sortField = USER_ACCOUNT_SORT_FIELD;
     readonly skeletonCount = 8;
-    readonly vm$ = this.store.watchlistPageViewModel$;
+    readonly watchlist$ = this.store.watchlist$;
 
     constructor(
         private readonly destroyRef: DestroyRef,
-        private readonly pageScroll: PageScrollService,
-        private readonly snackbar: SnackbarService,
+        private readonly viewportScroller: ViewportScroller,
+        private readonly snackbarService: SnackbarService,
         private readonly store: UserWatchlistStore,
     ) {
         this.store
             .loadPage$(0)
             .pipe(
-                catchError(() => this.showError('Could not load your watchlist.')),
+                catchError(() => this.snackbarService.showError$('Could not load your watchlist.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -72,7 +69,7 @@ export class UserWatchlistPageComponent {
         this.store
             .toggleSortDirection$()
             .pipe(
-                catchError(() => this.showError('Could not load your watchlist.')),
+                catchError(() => this.snackbarService.showError$('Could not load your watchlist.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -82,7 +79,7 @@ export class UserWatchlistPageComponent {
         this.store
             .removeFromWatchlist$(item)
             .pipe(
-                catchError(() => this.showError('Could not update your watchlist.')),
+                catchError(() => this.snackbarService.showError$('Could not update your watchlist.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -92,30 +89,21 @@ export class UserWatchlistPageComponent {
         this.store
             .setMediaType$(value)
             .pipe(
-                catchError(() => this.showError('Could not load your watchlist.')),
+                catchError(() => this.snackbarService.showError$('Could not load your watchlist.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
     }
 
     onPageChange(event: PageEvent): void {
-        this.pageScroll.scrollToTop();
+        this.viewportScroller.scrollToPosition([0, 0]);
 
         this.store
             .loadPage$(event.pageIndex)
             .pipe(
-                catchError(() => this.showError('Could not load your watchlist.')),
+                catchError(() => this.snackbarService.showError$('Could not load your watchlist.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
-    }
-
-    private showError(message: string): Observable<never> {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Error,
-        });
-
-        return EMPTY;
     }
 }

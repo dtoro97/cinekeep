@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, ViewportScroller } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -14,13 +14,10 @@ import {
     MEDIA_TYPE_OPTIONS,
     MediaListItem,
     MediaRatingDialogService,
-    PageScrollService,
     ToggleGroupComponent,
     RepeatPipe,
     SelectOption,
-    SnackbarComponent,
     SnackbarService,
-    SnackbarType,
     SortButtonComponent,
     SubPageHeaderComponent,
     MediaListItemComponent,
@@ -59,20 +56,20 @@ export class UserRatingsPageComponent {
     readonly skeletonCount = 8;
     readonly sortOptions = USER_ACCOUNT_SORT_OPTIONS;
     readonly sortField = USER_ACCOUNT_SORT_FIELD;
-    readonly vm$ = this.store.ratingsPageViewModel$;
+    readonly ratings$ = this.store.ratings$;
 
     constructor(
         private readonly confirmationDialog: ConfirmationDialogService,
         private readonly destroyRef: DestroyRef,
-        private readonly pageScroll: PageScrollService,
+        private readonly viewportScroller: ViewportScroller,
         private readonly ratingDialog: MediaRatingDialogService,
-        private readonly snackbar: SnackbarService,
+        private readonly snackbarService: SnackbarService,
         private readonly store: UserRatingsStore,
     ) {
         this.store
             .loadPage$(0)
             .pipe(
-                catchError(() => this.showError('Could not load your ratings.')),
+                catchError(() => this.snackbarService.showError$('Could not load your ratings.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -82,7 +79,7 @@ export class UserRatingsPageComponent {
         this.store
             .toggleSortDirection$()
             .pipe(
-                catchError(() => this.showError('Could not load your ratings.')),
+                catchError(() => this.snackbarService.showError$('Could not load your ratings.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -96,7 +93,7 @@ export class UserRatingsPageComponent {
             () => this.store.removeMediaRating$(item),
         )
             .pipe(
-                catchError(() => this.showError('Could not update your rating.')),
+                catchError(() => this.snackbarService.showError$('Could not update your rating.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -106,7 +103,7 @@ export class UserRatingsPageComponent {
         this.confirmRemoveRating$(item.title)
             .pipe(
                 switchMap((confirmed) => (confirmed ? this.store.removeMediaRating$(item) : EMPTY)),
-                catchError(() => this.showError('Could not remove your rating.')),
+                catchError(() => this.snackbarService.showError$('Could not remove your rating.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -120,7 +117,7 @@ export class UserRatingsPageComponent {
             () => this.store.removeEpisodeRating$(item),
         )
             .pipe(
-                catchError(() => this.showError('Could not update your rating.')),
+                catchError(() => this.snackbarService.showError$('Could not update your rating.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -130,7 +127,7 @@ export class UserRatingsPageComponent {
         this.confirmRemoveRating$(item.title)
             .pipe(
                 switchMap((confirmed) => (confirmed ? this.store.removeEpisodeRating$(item) : EMPTY)),
-                catchError(() => this.showError('Could not remove your rating.')),
+                catchError(() => this.snackbarService.showError$('Could not remove your rating.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -164,30 +161,21 @@ export class UserRatingsPageComponent {
         this.store
             .setContentType$(value)
             .pipe(
-                catchError(() => this.showError('Could not load your ratings.')),
+                catchError(() => this.snackbarService.showError$('Could not load your ratings.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
     }
 
     onPageChange(event: PageEvent): void {
-        this.pageScroll.scrollToTop();
+        this.viewportScroller.scrollToPosition([0, 0]);
 
         this.store
             .loadPage$(event.pageIndex)
             .pipe(
-                catchError(() => this.showError('Could not load your ratings.')),
+                catchError(() => this.snackbarService.showError$('Could not load your ratings.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
-    }
-
-    private showError(message: string): Observable<never> {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Error,
-        });
-
-        return EMPTY;
     }
 }

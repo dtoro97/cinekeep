@@ -1,10 +1,10 @@
-@if (vm$ | async; as vm) {
+@if (searchBar$ | async; as searchBar) {
     <div
         class="header-search"
         role="search"
-        [class.header-search--open]="vm.searchOpen"
-        [cdkTrapFocus]="vm.searchOpen"
-        [cdkTrapFocusAutoCapture]="vm.searchOpen"
+        [class.header-search--open]="searchBar.searchOpen"
+        [cdkTrapFocus]="searchBar.searchOpen"
+        [cdkTrapFocusAutoCapture]="searchBar.searchOpen"
         (focusout)="onFocusOut($event)"
     >
         <div class="header-search__top">
@@ -17,7 +17,7 @@
                     <mat-select
                         class="header-search__filter-select"
                         aria-label="Search in"
-                        [value]="vm.searchFilter"
+                        [value]="searchBar.searchFilter"
                         (selectionChange)="setFilter($event.value)"
                     >
                         @for (opt of filterOptions; track opt.value) {
@@ -39,18 +39,23 @@
                     aria-label="Search titles and people"
                     aria-autocomplete="list"
                     cdkFocusInitial
-                    [attr.aria-expanded]="vm.listboxVisible"
-                    [attr.aria-controls]="vm.listboxVisible ? listboxId : null"
-                    [attr.aria-activedescendant]="vm.activeOptionId"
-                    [placeholder]="vm.placeholder"
+                    [attr.aria-expanded]="searchBar.showListbox"
+                    [attr.aria-controls]="searchBar.ariaControls"
+                    [attr.aria-activedescendant]="searchBar.activeOptionId"
+                    [placeholder]="searchBar.placeholder"
                     [formControl]="searchControl"
                     (focus)="openPanel()"
                     (click)="openPanel()"
                     (keydown)="onInputKeydown($event)"
                 />
 
-                @if (vm.hasQuery) {
-                    <button class="header-search__clear" type="button" aria-label="Clear search" (click)="clearSearch()">
+                @if (searchBar.hasQuery) {
+                    <button
+                        class="header-search__clear"
+                        type="button"
+                        aria-label="Clear search"
+                        (click)="clearSearch()"
+                    >
                         <mat-icon aria-hidden="true">close</mat-icon>
                     </button>
                 } @else {
@@ -61,12 +66,12 @@
             <button class="header-search__cancel" type="button" (click)="closeSearch()">Cancel</button>
         </div>
 
-        @if (vm.panel.kind !== "hidden") {
+        @if (searchBar.panel.kind !== 'hidden') {
             <div class="header-search__dropdown" (mousedown)="$event.preventDefault()">
                 <app-header-search-results
-                    [panel]="vm.panel"
-                    [listboxId]="listboxId"
-                    [activeOptionId]="vm.activeOptionId"
+                    [panel]="searchBar.panel"
+                    [listboxId]="searchBar.listboxId"
+                    [activeOptionId]="searchBar.activeOptionId"
                     (optionSelected)="closePanel()"
                     (retry)="retry()"
                     (widen)="widenSearch()"
@@ -74,7 +79,7 @@
             </div>
         }
 
-        <span class="header-search__status" role="status" aria-live="polite">{{ vm.statusMessage }}</span>
+        <span class="header-search__status" role="status" aria-live="polite">{{ searchBar.statusMessage }}</span>
     </div>
 
     <button

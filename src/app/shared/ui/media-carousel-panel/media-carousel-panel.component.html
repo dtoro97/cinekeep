@@ -2,16 +2,10 @@
     [class.media-carousel-panel--backdrop]="variant === 'backdrop'"
     [ariaLabel]="ariaLabel"
     [columns]="columns"
-    [items]="
-        state.state === 'loading'
-            ? (skeletonCount | repeat)
-            : state.state === 'success' || state.state === 'loading-more'
-              ? state.data
-              : []
-    "
+    [items]="state | carouselItems: skeletonCount"
 >
     <ng-template let-item>
-        @if (state.state === 'loading') {
+        @if (!item) {
             <div class="media-carousel-panel__skeleton-media">
                 <app-skeleton class="media-carousel-panel__skeleton-fill" />
             </div>
@@ -29,7 +23,7 @@
                     [showRating]="showRating"
                     [showDate]="showDate"
                     [dateFormat]="dateFormat"
-                ></app-backdrop-card>
+                />
             }
         }
     </ng-template>

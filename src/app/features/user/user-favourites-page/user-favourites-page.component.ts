@@ -1,11 +1,12 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, ViewportScroller } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
-import { EMPTY, Observable, catchError, switchMap } from 'rxjs';
+import { EMPTY, catchError, switchMap } from 'rxjs';
 
+import { PAGE_SIZE } from '../../../constants';
 import {
     BrowseToolbarComponent,
     CardComponent,
@@ -15,13 +16,10 @@ import {
     IconButtonComponent,
     MEDIA_TYPE_OPTIONS,
     MediaType,
-    PageScrollService,
     ToggleGroupComponent,
     RepeatPipe,
     CardSkeletonComponent,
-    SnackbarComponent,
     SnackbarService,
-    SnackbarType,
     SortButtonComponent,
     SubPageHeaderComponent,
 } from '../../../shared';
@@ -52,22 +50,22 @@ export class UserFavouritesPageComponent {
     readonly mediaTypeOptions = MEDIA_TYPE_OPTIONS;
 
     readonly posterImageParams = 'w342';
-    readonly skeletonCount = 20;
+    readonly skeletonCount = PAGE_SIZE;
     readonly sortOptions = USER_ACCOUNT_SORT_OPTIONS;
     readonly sortField = USER_ACCOUNT_SORT_FIELD;
-    readonly vm$ = this.store.favouritesPageViewModel$;
+    readonly favourites$ = this.store.favourites$;
 
     constructor(
         private readonly destroyRef: DestroyRef,
         private readonly confirmationDialog: ConfirmationDialogService,
-        private readonly pageScroll: PageScrollService,
-        private readonly snackbar: SnackbarService,
+        private readonly viewportScroller: ViewportScroller,
+        private readonly snackbarService: SnackbarService,
         private readonly store: UserFavouritesStore,
     ) {
         this.store
             .loadPage$(0)
             .pipe(
-                catchError(() => this.showError('Could not load your favorites.')),
+                catchError(() => this.snackbarService.showError$('Could not load your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -77,7 +75,7 @@ export class UserFavouritesPageComponent {
         this.store
             .toggleSortDirection$()
             .pipe(
-                catchError(() => this.showError('Could not load your favorites.')),
+                catchError(() => this.snackbarService.showError$('Could not load your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -93,7 +91,7 @@ export class UserFavouritesPageComponent {
             })
             .pipe(
                 switchMap((confirmed) => (confirmed ? this.store.removeFromFavourites$(item) : EMPTY)),
-                catchError(() => this.showError('Could not update your favorites.')),
+                catchError(() => this.snackbarService.showError$('Could not update your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
@@ -103,30 +101,21 @@ export class UserFavouritesPageComponent {
         this.store
             .setMediaType$(value)
             .pipe(
-                catchError(() => this.showError('Could not load your favorites.')),
+                catchError(() => this.snackbarService.showError$('Could not load your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
     }
 
     onPageChange(event: PageEvent): void {
-        this.pageScroll.scrollToTop();
+        this.viewportScroller.scrollToPosition([0, 0]);
 
         this.store
             .loadPage$(event.pageIndex)
             .pipe(
-                catchError(() => this.showError('Could not load your favorites.')),
+                catchError(() => this.snackbarService.showError$('Could not load your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
-    }
-
-    private showError(message: string): Observable<never> {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Error,
-        });
-
-        return EMPTY;
     }
 }

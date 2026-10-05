@@ -1,25 +1,25 @@
 @if (loading) {
-    <div class="card" aria-hidden="true">
-        <div class="photo">
-            <app-skeleton class="photo-fill" />
+    <div class="person-card" aria-hidden="true">
+        <div class="person-card__photo">
+            <app-skeleton class="person-card__photo-fill" />
         </div>
 
-        <app-skeleton class="name name-skeleton text-card-title" />
-        <app-skeleton class="subtitle-skeleton text-card-meta" />
+        <app-skeleton class="person-card__name person-card__name--skeleton text-card-title" />
+        <app-skeleton class="person-card__subtitle--skeleton text-card-meta" />
     </div>
 } @else if (person; as person) {
-    <a class="card" [routerLink]="['/name', person.id]">
+    <a class="person-card" [routerLink]="['/name', person.id]">
         <app-image
-            class="photo"
+            class="person-card__photo"
             [src]="person.imagePath"
             type="person"
             [alt]="person.name"
             params="w185"
         />
 
-        <span class="name text-card-title">{{ person.name }}</span>
+        <span class="person-card__name text-card-title">{{ person.name }}</span>
 
-        <span class="subtitle text-card-meta">
+        <span class="person-card__subtitle text-card-meta">
             @if (person.subtitle) {
                 {{ person.subtitle }}
             } @else {

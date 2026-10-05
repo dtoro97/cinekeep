@@ -3,41 +3,39 @@
         class="carousel-viewport"
         #viewport
         tabindex="0"
-        (keydown)="onViewportKeydown($event)"
+        (keydown.arrowleft)="$event.preventDefault(); scrollByPage(-1)"
+        (keydown.arrowright)="$event.preventDefault(); scrollByPage(1)"
     >
         <div class="carousel-track" #track>
-            @for (item of items; track $index) {
+            @for (slide of slides; track slide.key) {
                 <div class="carousel-item">
                     <ng-container
                         [ngTemplateOutlet]="itemTemplate"
-                        [ngTemplateOutletContext]="{
-                            $implicit: item,
-                            index: $index,
-                        }"
-                    ></ng-container>
+                        [ngTemplateOutletContext]="{ $implicit: slide.item, index: slide.index }"
+                    />
                 </div>
             }
         </div>
     </div>
 
     @if (hasOverflow) {
-        <app-overlay-icon-button
+        <app-icon-button
             class="carousel__nav carousel__nav--prev"
+            appearance="overlay"
             ariaLabel="Scroll carousel backward"
-            [disabled]="!canPrev"
-            (onClick)="prev()"
+            [disabled]="!canPrevious"
+            (buttonClick)="scrollByPage(-1)"
         >
-            <i class="fa-solid fa-chevron-left"></i>
-        </app-overlay-icon-button>
-    }
-    @if (hasOverflow) {
-        <app-overlay-icon-button
+            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </app-icon-button>
+        <app-icon-button
             class="carousel__nav carousel__nav--next"
+            appearance="overlay"
             ariaLabel="Scroll carousel forward"
             [disabled]="!canNext"
-            (onClick)="next()"
+            (buttonClick)="scrollByPage(1)"
         >
-            <i class="fa-solid fa-chevron-right"></i>
-        </app-overlay-icon-button>
+            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </app-icon-button>
     }
 </div>

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+
 import { RepeatPipe } from '../../pipes';
 import { BrowseToolbarComponent } from '../browse-toolbar/browse-toolbar.component';
 import { SkeletonComponent } from '../skeleton/skeleton.component';

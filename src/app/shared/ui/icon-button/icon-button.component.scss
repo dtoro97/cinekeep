@@ -1,42 +1,53 @@
 @use "mixins" as *;
 
 :host {
-    --app-icon-button-size: var(--control-height-sm);
-    --app-icon-button-icon-size: 0.875rem;
-    --app-icon-button-radius: var(--radius-md);
-    --app-icon-button-border: transparent;
-    --app-icon-button-border-hover: var(--color-border-subtle);
-    --app-icon-button-surface: transparent;
-    --app-icon-button-surface-hover: var(--control-subtle-surface);
-    --app-icon-button-surface-active: var(--control-subtle-surface-active);
-    --app-icon-button-text: var(--text-secondary);
-    --app-icon-button-text-hover: var(--text-primary);
+    --icon-button-size: var(--control-height-sm);
+    --icon-button-icon-size: 0.875rem;
+    --icon-button-radius: var(--radius-md);
+    --icon-button-border: transparent;
+    --icon-button-border-hover: var(--color-border-subtle);
+    --icon-button-surface: transparent;
+    --icon-button-surface-hover: var(--control-subtle-surface);
+    --icon-button-surface-active: var(--control-subtle-surface-active);
+    --icon-button-text: var(--text-secondary);
+    --icon-button-text-hover: var(--text-primary);
 
     display: inline-flex;
 }
 
 :host(.icon-button-host--accent) {
-    --app-icon-button-text: var(--text-accent);
-    --app-icon-button-text-hover: var(--color-brand-light);
+    --icon-button-text: var(--text-accent);
+    --icon-button-text-hover: var(--color-brand-light);
 }
 
 :host(.icon-button-host--danger) {
-    --app-icon-button-text: var(--color-danger-light);
-    --app-icon-button-text-hover: var(--color-danger-light);
-    --app-icon-button-surface-hover: var(--surface-danger-soft);
-    --app-icon-button-border-hover: var(--border-danger-soft);
+    --icon-button-text: var(--color-danger-light);
+    --icon-button-text-hover: var(--color-danger-light);
+    --icon-button-surface-hover: var(--surface-danger-soft);
+    --icon-button-border-hover: var(--border-danger-soft);
+}
+
+:host(.icon-button-host--overlay) {
+    --icon-button-size: var(--control-height-lg);
+    --icon-button-icon-size: 1rem;
+    --icon-button-radius: var(--radius-lg);
+    --icon-button-border: var(--border-overlay-soft);
+    --icon-button-border-hover: var(--border-overlay-soft);
+    --icon-button-surface: var(--surface-scrim);
+    --icon-button-surface-hover: var(--surface-raised);
+    --icon-button-surface-active: var(--surface-overlay);
 }
 
 :host(.icon-button-host--selected) {
-    --app-icon-button-border: var(--border-brand-soft);
-    --app-icon-button-surface: var(--surface-brand-soft);
-    --app-icon-button-text: var(--color-brand-light);
+    --icon-button-border: var(--border-brand-soft);
+    --icon-button-surface: var(--surface-brand-soft);
+    --icon-button-text: var(--color-brand-light);
 }
 
 .icon-button {
-    --mat-icon-button-state-layer-size: var(--app-icon-button-size);
-    --mdc-icon-button-state-layer-size: var(--app-icon-button-size);
-    --mat-icon-button-icon-size: var(--app-icon-button-icon-size);
+    --mat-icon-button-state-layer-size: var(--icon-button-size);
+    --mdc-icon-button-state-layer-size: var(--icon-button-size);
+    --mat-icon-button-icon-size: var(--icon-button-icon-size);
     --mat-icon-button-icon-color: currentColor;
     --mat-icon-button-state-layer-color: currentColor;
     --mat-icon-button-ripple-color: transparent;
@@ -48,21 +59,22 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--app-icon-button-size);
-    height: var(--app-icon-button-size);
-    min-width: var(--app-icon-button-size);
+    width: var(--icon-button-size);
+    height: var(--icon-button-size);
+    min-width: var(--icon-button-size);
     padding: 0;
-    border: 1px solid var(--app-icon-button-border);
-    border-radius: var(--app-icon-button-radius);
-    background: var(--app-icon-button-surface);
-    color: var(--app-icon-button-text);
-    font-size: var(--app-icon-button-icon-size);
+    border: 1px solid var(--icon-button-border);
+    border-radius: var(--icon-button-radius);
+    background: var(--icon-button-surface);
+    color: var(--icon-button-text);
+    font-size: var(--icon-button-icon-size);
     line-height: 1;
 
     transition:
         background-color var(--motion-base),
         border-color var(--motion-base),
-        color var(--motion-base);
+        color var(--motion-base),
+        opacity var(--motion-base);
 
     &:disabled {
         opacity: var(--control-disabled-opacity);
@@ -71,19 +83,19 @@
 
 @include hover-capable {
     .icon-button:not(:disabled):hover {
-        background: var(--app-icon-button-surface-hover);
-        border-color: var(--app-icon-button-border-hover);
-        color: var(--app-icon-button-text-hover);
+        background: var(--icon-button-surface-hover);
+        border-color: var(--icon-button-border-hover);
+        color: var(--icon-button-text-hover);
         cursor: pointer;
     }
 }
 
 .icon-button:not(:disabled):active {
-    background: var(--app-icon-button-surface-active);
-    color: var(--app-icon-button-text-hover);
+    background: var(--icon-button-surface-active);
+    color: var(--icon-button-text-hover);
 }
 
 .icon-button :is(mat-icon, i) {
-    @include icon-size(var(--app-icon-button-icon-size));
+    @include icon-size(var(--icon-button-icon-size));
     line-height: 1;
 }

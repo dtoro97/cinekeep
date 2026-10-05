@@ -1,6 +1,5 @@
 import { Language, Movie, ProductionCompany, TvSeries } from '../../../api';
-import type { MediaType } from '../../../shared';
-import { formatCompanyName, toRating } from '../../../shared/utils';
+import { formatCompanyName, MediaType, toRating } from '../../../shared';
 import { MediaDetails, MediaProductionCompany } from '../models/media-details.model';
 
 export const toMediaDetails = (

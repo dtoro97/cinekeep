@@ -5,14 +5,11 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
 
-import { EMPTY, catchError, finalize, map, of, startWith, switchMap, tap } from 'rxjs';
+import { catchError, finalize, map, of, startWith, switchMap, tap } from 'rxjs';
 
 import {
     MediaType,
-    SnackbarComponent,
-    SnackbarLink,
     SnackbarService,
-    SnackbarType,
     SubPageHeaderComponent,
     UserLibraryService,
 } from '../../../shared';
@@ -71,7 +68,7 @@ export class UserListCreatePageComponent {
         private readonly formBuilder: NonNullableFormBuilder,
         private readonly route: ActivatedRoute,
         private readonly router: Router,
-        private readonly snackbar: SnackbarService,
+        private readonly snackbarService: SnackbarService,
         private readonly userLibraryService: UserLibraryService,
     ) {
         this.mediaProperties = this.readMediaProperties();
@@ -133,27 +130,23 @@ export class UserListCreatePageComponent {
                 switchMap((listId) => this.addMediaToCreatedList$(listId)),
                 tap(({ addToListState, listId }) => {
                     if (addToListState === 'failed') {
-                        this.showError('List created, but the title could not be added.');
+                        this.snackbarService.showError$('List created, but the title could not be added.');
                         this.router.navigate(['/me/lists', listId]);
                         return;
                     }
 
                     if (addToListState === 'added') {
-                        this.showSuccess(
-                            this.getAddedToListMessage(),
-                            {
-                                label: 'Open list',
-                                routerLink: ['/me/lists', listId],
-                            },
-                            7000,
-                        );
+                        this.snackbarService.showSuccess(this.getAddedToListMessage(), {
+                            label: 'Open list',
+                            routerLink: ['/me/lists', listId],
+                        });
                     } else {
-                        this.showSuccess('List created.');
+                        this.snackbarService.showSuccess('List created.');
                     }
 
                     this.navigateAfterCreate(listId);
                 }),
-                catchError(() => this.showError('Could not create your list.')),
+                catchError(() => this.snackbarService.showError$('Could not create your list.')),
                 finalize(() => {
                     this.form.enable({ emitEvent: false });
                     this.pending.set(false);
@@ -232,24 +225,6 @@ export class UserListCreatePageComponent {
         }
 
         return 'The title has been added to your new list.';
-    }
-
-    private showSuccess(message: string, link?: SnackbarLink, duration?: number): void {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Success,
-            duration,
-            link,
-        });
-    }
-
-    private showError(message: string) {
-        this.snackbar.openSnackbar(SnackbarComponent, {
-            message,
-            type: SnackbarType.Error,
-        });
-
-        return EMPTY;
     }
 }
 

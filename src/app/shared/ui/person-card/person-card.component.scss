@@ -6,7 +6,7 @@
     display: block;
 }
 
-.card {
+.person-card {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -16,11 +16,16 @@
     text-align: center;
 }
 
-a.card {
-    @include card-hover('.photo', '.name', $frame-selector: '.photo', $scale: false);
+a.person-card {
+    @include card-hover(
+        '.person-card__photo',
+        '.person-card__name',
+        $frame-selector: '.person-card__photo',
+        $scale: false
+    );
 }
 
-.photo {
+.person-card__photo {
     width: 100%;
     max-width: var(--person-card-photo-size);
     aspect-ratio: 1 / 1;
@@ -30,27 +35,27 @@ a.card {
     --image-radius: var(--radius-full);
 }
 
-.photo-fill {
+.person-card__photo-fill {
     height: 100%;
     --skeleton-height: 100%;
     --skeleton-radius: var(--radius-full);
 }
 
-.name {
+.person-card__name {
     margin-top: var(--space-1);
     @include line-clamp(2);
 }
 
-.subtitle {
+.person-card__subtitle {
     @include line-clamp(1);
 }
 
-.name-skeleton {
+.person-card__name--skeleton {
     width: 70%;
     --skeleton-height: 1lh;
 }
 
-.subtitle-skeleton {
+.person-card__subtitle--skeleton {
     width: 50%;
     --skeleton-height: 1lh;
 }
@@ -60,7 +65,7 @@ a.card {
         --person-card-photo-size: 120px;
     }
 
-    .card {
+    .person-card {
         gap: 0;
     }
 }

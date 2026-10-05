@@ -1,197 +1,154 @@
+import { NgTemplateOutlet, isPlatformBrowser } from '@angular/common';
 import {
     AfterViewInit,
     ChangeDetectionStrategy,
     ChangeDetectorRef,
     Component,
     ContentChild,
+    DestroyRef,
     ElementRef,
     HostBinding,
     Inject,
     Input,
     OnChanges,
-    OnDestroy,
     PLATFORM_ID,
     TemplateRef,
     ViewChild,
 } from '@angular/core';
-import { isPlatformBrowser, NgTemplateOutlet } from '@angular/common';
-import { OverlayIconButtonComponent } from '../overlay-icon-button/overlay-icon-button.component';
 
-type CarouselItemContext = {
-    $implicit: unknown;
-    index: number;
-};
+import { IconButtonComponent } from '../icon-button/icon-button.component';
+
+interface CarouselItem {
+    readonly id: number;
+    readonly mediaType?: string;
+    readonly kind?: string;
+}
+
+interface CarouselItemContext<T> {
+    readonly $implicit: T;
+    readonly index: number;
+}
+
+/** A page scroll stops this much short, so the item at the edge stays partly in view. */
+const PAGE_OVERLAP_PX = 48;
 
 @Component({
     selector: 'app-carousel',
-    imports: [NgTemplateOutlet, OverlayIconButtonComponent],
+    imports: [IconButtonComponent, NgTemplateOutlet],
     templateUrl: './carousel.component.html',
     styleUrl: './carousel.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CarouselComponent
-    implements AfterViewInit, OnChanges, OnDestroy
-{
-    @Input() items: unknown[] = [];
+export class CarouselComponent<T extends CarouselItem> implements AfterViewInit, OnChanges {
+    @Input() items: ReadonlyArray<T | null> = [];
     @Input() ariaLabel = 'Carousel';
     @Input()
     @HostBinding('attr.data-columns')
     columns: number | null = null;
 
-    @ContentChild(TemplateRef) itemTemplate!: TemplateRef<CarouselItemContext>;
-    @ViewChild('viewport') viewportEl!: ElementRef<HTMLElement>;
-    @ViewChild('track') trackEl!: ElementRef<HTMLElement>;
+    @ContentChild(TemplateRef) itemTemplate: TemplateRef<CarouselItemContext<T | null>> | null = null;
+    @ViewChild('viewport') private viewport?: ElementRef<HTMLElement>;
+    @ViewChild('track') private track?: ElementRef<HTMLElement>;
 
-    private viewportElRef: HTMLElement | null = null;
-    private trackElRef: HTMLElement | null = null;
-    private pendingSyncFrame: number | null = null;
-
-    private resizeObserver: ResizeObserver | null = null;
-    private removeScrollListener: (() => void) | null = null;
-    private removeResizeListener: (() => void) | null = null;
-
+    slides: Array<{ readonly item: T | null; readonly index: number; readonly key: string }> = [];
     hasOverflow = false;
-    canPrev = false;
+    canPrevious = false;
     canNext = false;
 
     private readonly isBrowser: boolean;
+    private pendingFrame: number | null = null;
 
     constructor(
-        private cdr: ChangeDetectorRef,
-        @Inject(PLATFORM_ID) platformId: object
+        private readonly changeDetectorRef: ChangeDetectorRef,
+        private readonly destroyRef: DestroyRef,
+        @Inject(PLATFORM_ID) platformId: object,
     ) {
         this.isBrowser = isPlatformBrowser(platformId);
     }
 
     ngOnChanges(): void {
-        this.scheduleSyncState();
+        this.slides = this.items.map((item, index) => ({
+            item,
+            index,
+            key: item ? `${item.kind ?? ''}:${item.mediaType ?? ''}:${item.id}` : `skeleton:${index}`,
+        }));
+        this.scheduleSync();
     }
 
     ngAfterViewInit(): void {
-        if (!this.isBrowser) {
+        const viewport = this.viewport?.nativeElement;
+
+        if (!this.isBrowser || !viewport) {
             return;
         }
 
-        const viewport = this.viewportEl.nativeElement;
-        this.viewportElRef = viewport;
-        this.trackElRef = this.trackEl.nativeElement;
+        const sync = () => this.scheduleSync();
+        let resizeObserver: ResizeObserver | undefined;
 
-        const onScroll = (): void => {
-            this.scheduleSyncState();
-        };
-
-        viewport.addEventListener('scroll', onScroll, { passive: true });
-        this.removeScrollListener = () =>
-            viewport.removeEventListener('scroll', onScroll);
-
-        this.scheduleSyncState();
-
+        viewport.addEventListener('scroll', sync, { passive: true });
         if (typeof ResizeObserver === 'function') {
-            this.resizeObserver = new ResizeObserver(() => {
-                this.scheduleSyncState();
-            });
-            this.resizeObserver.observe(viewport);
+            resizeObserver = new ResizeObserver(sync);
+            resizeObserver.observe(viewport);
 
-            if (this.trackElRef) {
-                this.resizeObserver.observe(this.trackElRef);
+            if (this.track) {
+                resizeObserver.observe(this.track.nativeElement);
             }
         } else {
-            const onResize = (): void => {
-                this.scheduleSyncState();
-            };
-
-            window.addEventListener('resize', onResize, { passive: true });
-            this.removeResizeListener = () =>
-                window.removeEventListener('resize', onResize);
+            window.addEventListener('resize', sync, { passive: true });
         }
+
+        this.destroyRef.onDestroy(() => {
+            viewport.removeEventListener('scroll', sync);
+            resizeObserver?.disconnect();
+            window.removeEventListener('resize', sync);
+
+            if (this.pendingFrame !== null) {
+                cancelAnimationFrame(this.pendingFrame);
+            }
+        });
+
+        this.scheduleSync();
     }
 
-    ngOnDestroy(): void {
-        this.resizeObserver?.disconnect();
-        this.removeScrollListener?.();
-        this.removeResizeListener?.();
+    scrollByPage(direction: 1 | -1): void {
+        const viewport = this.viewport?.nativeElement;
 
-        if (this.isBrowser && this.pendingSyncFrame !== null) {
-            cancelAnimationFrame(this.pendingSyncFrame);
-        }
-    }
-
-    prev(): void {
-        this.scrollByPage(-1);
-    }
-
-    next(): void {
-        this.scrollByPage(1);
-    }
-
-    onViewportKeydown(event: KeyboardEvent): void {
-        const el = this.viewportElRef;
-        if (!el) {
-            return;
-        }
-
-        if (event.key === 'ArrowLeft') {
-            event.preventDefault();
-            this.prev();
-        }
-
-        if (event.key === 'ArrowRight') {
-            event.preventDefault();
-            this.next();
-        }
-    }
-
-    private scrollByPage(direction: 1 | -1): void {
-        const el = this.viewportElRef;
-        if (!this.isBrowser || !el) {
-            return;
-        }
-
-        const delta = Math.max(el.clientWidth - 48, 1) * direction;
-
-        el.scrollTo({
-            left: el.scrollLeft + delta,
+        viewport?.scrollTo({
+            left: viewport.scrollLeft + Math.max(viewport.clientWidth - PAGE_OVERLAP_PX, 1) * direction,
             behavior: 'smooth',
         });
     }
 
-    private scheduleSyncState(): void {
-        if (!this.isBrowser || !this.viewportElRef) {
+    /** Scroll and resize events can fire many times a frame; the buttons are synced once per frame. */
+    private scheduleSync(): void {
+        if (!this.isBrowser || !this.viewport) {
             return;
         }
 
-        if (this.pendingSyncFrame !== null) {
-            cancelAnimationFrame(this.pendingSyncFrame);
+        if (this.pendingFrame !== null) {
+            cancelAnimationFrame(this.pendingFrame);
         }
 
-        this.pendingSyncFrame = requestAnimationFrame(() => {
-            this.pendingSyncFrame = null;
-            this.syncState();
+        this.pendingFrame = requestAnimationFrame(() => {
+            this.pendingFrame = null;
+
+            const viewport = this.viewport?.nativeElement;
+
+            if (!viewport) {
+                return;
+            }
+
+            const maxScrollLeft = Math.max(viewport.scrollWidth - viewport.clientWidth, 0);
+            const hasOverflow = maxScrollLeft > 1;
+            const canPrevious = viewport.scrollLeft > 1;
+            const canNext = viewport.scrollLeft < maxScrollLeft - 1;
+
+            if (this.hasOverflow !== hasOverflow || this.canPrevious !== canPrevious || this.canNext !== canNext) {
+                this.hasOverflow = hasOverflow;
+                this.canPrevious = canPrevious;
+                this.canNext = canNext;
+                this.changeDetectorRef.markForCheck();
+            }
         });
-    }
-
-    private syncState(): void {
-        const el = this.viewportElRef;
-        if (!this.isBrowser || !el) {
-            return;
-        }
-
-        const maxScrollLeft = Math.max(el.scrollWidth - el.clientWidth, 0);
-        const hasOverflow = maxScrollLeft > 1;
-        const canPrev = el.scrollLeft > 1;
-        const canNext = el.scrollLeft < maxScrollLeft - 1;
-
-        if (
-            this.hasOverflow === hasOverflow &&
-            this.canPrev === canPrev &&
-            this.canNext === canNext
-        ) {
-            return;
-        }
-
-        this.hasOverflow = hasOverflow;
-        this.canPrev = canPrev;
-        this.canNext = canNext;
-        this.cdr.markForCheck();
     }
 }

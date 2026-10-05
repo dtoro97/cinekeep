@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { MEDIUM_LIST_COUNT } from '../../../../constants';
 import { ImageComponent, MediaListItem, RatingComponent, RepeatPipe, SkeletonComponent } from '../../../../shared';
 
 interface TopPickItem {
@@ -19,5 +20,6 @@ export class HomeTopPicksComponent {
     @Input({ required: true }) loading!: boolean;
     @Input({ required: true }) items!: readonly TopPickItem[];
 
-    readonly skeletonCount = 10;
+    /** The chart always lists ten titles, five per column. */
+    readonly skeletonCount = MEDIUM_LIST_COUNT;
 }

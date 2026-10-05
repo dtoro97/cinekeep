@@ -8,7 +8,7 @@
                         class="portrait aspect-poster"
                         [src]="person.profile_path"
                         type="person"
-                        [alt]="person.name"
+                        [alt]="person.name ?? ''"
                     />
 
                     <div class="profile-hero__main">
@@ -53,7 +53,7 @@
                                     <dd class="profile-facts__value text-body-sm">
                                         {{ person.birthday | date }}
                                         @if (!person.deathday) {
-                                            <span class="text-caption">age {{ person | age }}</span>
+                                            <span class="text-caption">age {{ person.birthday | age }}</span>
                                         }
                                     </dd>
                                 </div>
@@ -64,7 +64,11 @@
                                     <dt class="profile-facts__label text-card-meta">Died</dt>
                                     <dd class="profile-facts__value text-body-sm">
                                         {{ person.deathday | date }}
-                                        <span class="text-caption">age {{ person | age }}</span>
+                                        @if (person.birthday) {
+                                            <span class="text-caption">
+                                                age {{ person.birthday | age: person.deathday }}
+                                            </span>
+                                        }
                                     </dd>
                                 </div>
                             }

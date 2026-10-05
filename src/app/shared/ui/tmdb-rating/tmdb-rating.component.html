@@ -1,26 +1,26 @@
 <div class="tmdb-rating">
-    @if (loading()) {
+    @if (loading) {
         <app-skeleton class="tmdb-rating__label-skeleton" aria-hidden="true" />
         <app-skeleton class="tmdb-rating__value-skeleton" aria-hidden="true" />
     } @else {
-        <span class="tmdb-rating__label text-overline">{{ label() }}</span>
+        <span class="tmdb-rating__label text-overline">{{ label }}</span>
 
         <div class="tmdb-rating__summary">
             <span class="tmdb-rating__primary">
                 <i class="tmdb-rating__icon fa-solid fa-star" aria-hidden="true"></i>
 
-                @if (value(); as rating) {
-                    <span class="tmdb-rating__value" [class.text-rating]="prominent()" [class.text-title]="!prominent()">
+                @if (value; as rating) {
+                    <span class="tmdb-rating__value" [class.text-rating]="prominent" [class.text-title]="!prominent">
                         {{ rating | number: '1.1-1' }}
                     </span>
                     <span class="tmdb-rating__scale text-meta">/10</span>
                 } @else {
-                    <span class="tmdb-rating__empty text-meta">{{ emptyText() }}</span>
+                    <span class="tmdb-rating__empty text-meta">No ratings yet</span>
                 }
             </span>
 
-            @if (voteCount(); as count) {
-                <span class="tmdb-rating__count text-meta">{{ count | voteCount }} {{ voteUnit() }}</span>
+            @if (voteCount; as count) {
+                <span class="tmdb-rating__count text-meta">{{ count | voteCount }} {{ voteUnit }}</span>
             }
         </div>
     }

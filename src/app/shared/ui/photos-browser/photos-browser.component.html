@@ -1,44 +1,45 @@
-<div class="photos-browser">
-    @if (vm(); as vm) {
-        @if (vm.hasImages) {
+@if (photosBrowser$ | async; as photosBrowser) {
+    <div class="photos-browser">
+        @if (photosBrowser.hasImages) {
             <app-browse-toolbar>
                 <div start class="photos-browser__toolbar-start">
-                    <span class="text-meta u-nowrap">{{ vm.visibleCountLabel }}</span>
-                    @if (vm.typePillOptions.length) {
+                    <span class="photos-browser__count text-meta">{{ photosBrowser.countLabel }}</span>
+                    @if (photosBrowser.showTypeFilter) {
                         <app-toggle-group
                             class="photos-browser__filters"
-                            [options]="vm.typePillOptions"
+                            [options]="photosBrowser.typeOptions"
                             [multiple]="true"
                             variant="chips"
-                            [selectedValues]="vm.selectedTypes"
-                            (selected)="setSelectedTypes($event)"
+                            [selectedValues]="photosBrowser.selectedTypes"
+                            (selectedValuesChange)="setSelectedTypes($event)"
                         />
                     }
                 </div>
                 <app-sort-button
                     end
                     [options]="sortOptions"
-                    [selectedValue]="vm.sortField"
-                    [direction]="vm.sortDirection"
+                    [selectedValue]="photosBrowser.sortField"
+                    [direction]="photosBrowser.sortDirection"
                     (sortChange)="setSortField($event)"
                     (directionToggle)="toggleSortDirection()"
                 />
             </app-browse-toolbar>
         }
 
-        @if (vm.cards.length) {
+        @if (photosBrowser.hasVisibleImages) {
             <div class="photos-browser__grid">
-                @for (card of vm.cards; track card.image.file_path; let i = $index) {
+                @for (tile of photosBrowser.tiles; track tile.image.file_path) {
                     <button
                         type="button"
                         class="photos-browser__card"
-                        [style.--photo-aspect-ratio]="card.layoutAspectRatio"
-                        (click)="onImageClick(i, vm.images)"
+                        [style.--photo-aspect-ratio]="tile.layoutAspectRatio"
+                        [attr.aria-label]="tile.ariaLabel"
+                        (click)="photoSelect.emit({ images: photosBrowser.visibleImages, index: tile.index })"
                     >
                         <app-image
                             class="photos-browser__image"
-                            [src]="card.image.file_path"
-                            [params]="card.thumbnailSize"
+                            [src]="tile.image.file_path"
+                            [params]="tile.thumbnailSize"
                             type="media"
                             alt=""
                         />
@@ -49,8 +50,8 @@
                 <span class="photos-browser__spacer" aria-hidden="true"></span>
             </div>
 
-            @if (vm.hasMore) {
-                <div class="u-flex u-justify-center">
+            @if (photosBrowser.hasMore) {
+                <div class="photos-browser__more">
                     <button mat-stroked-button type="button" (click)="showMore()">Show more photos</button>
                 </div>
             }
@@ -59,5 +60,5 @@
                 <app-empty-state iconClass="fa-regular fa-images" text="No photos are available yet." />
             </div>
         }
-    }
-</div>
+    </div>
+}

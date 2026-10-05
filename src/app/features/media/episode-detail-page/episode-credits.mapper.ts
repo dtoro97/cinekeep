@@ -1,4 +1,5 @@
 import type { CastMember, CrewMember } from '../../../api';
+import { toCastPersonCardItem } from '../../../shared';
 import type { CreditsSummary } from '../media-credits-summary/media-credits-summary.model';
 
 export interface EpisodeCrewPerson {
@@ -69,14 +70,7 @@ export const toEpisodeCrewRows = (crew: readonly CrewMember[]): EpisodeCrewRow[]
 
 /** Guest stars in the same compact grid the title page uses for its cast. */
 export const toGuestCast = (guestStars: readonly CastMember[]): CreditsSummary => ({
-    topCast: guestStars
-        .filter((member): member is CastMember & { id: number } => !!member.id)
-        .map((member) => ({
-            id: member.id,
-            name: member.name ?? '',
-            imagePath: member.profile_path ?? null,
-            subtitle: member.character ?? '',
-        })),
+    topCast: guestStars.filter(({ id }) => !!id).map(toCastPersonCardItem),
     directors: [],
     creators: [],
     isSeries: false,

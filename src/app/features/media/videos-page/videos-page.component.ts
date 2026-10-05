@@ -13,8 +13,7 @@ import {
     SubPageHeaderComponent,
     VideoCardComponent,
     SortDirection,
-    VideoCardItem,
-    compareValues,
+    sortBy,
     PluralizePipe,
 } from '../../../shared';
 import { MediaVideoStoreService } from '../media-video-store.service';
@@ -61,20 +60,12 @@ export class VideosPageComponent {
         this.sortField$,
         this.sortDirection$,
     ]).pipe(
-        map(([videoItems, field, direction]) => {
-            const sorted = [...videoItems].sort((a, b) => {
-                const valueComparison = compareValues(
-                    this.getVideoSortValue(a, field),
-                    this.getVideoSortValue(b, field),
-                );
-
-                return direction === 'desc' ? valueComparison * -1 : valueComparison;
-            });
-            return sorted;
-        }),
+        map(([videoItems, field, direction]) =>
+            sortBy(videoItems, (video) => (field === 'name' ? video.title : video.publishedAt), direction),
+        ),
     );
 
-    readonly vm$ = combineLatest({
+    readonly mediaVideos$ = combineLatest({
         mediaState: this.mediaStore.mediaDetailsState$,
         videosState: this.mediaVideoStoreService.videosState$,
         videoItems: this.videos$,
@@ -128,17 +119,4 @@ export class VideosPageComponent {
             this.sortDirectionSubject.value === 'asc' ? 'desc' : 'asc',
         );
     }
-
-    private getVideoSortValue(
-        video: VideoCardItem,
-        field: SortField,
-    ): string | undefined {
-        switch (field) {
-            case 'published_at':
-                return video.publishedAt;
-            case 'name':
-                return video.title;
-        }
-    }
-
 }

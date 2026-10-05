@@ -29,14 +29,18 @@ import {
     withEventReplay,
     withHttpTransferCacheOptions,
 } from '@angular/platform-browser';
+import { merge } from 'rxjs';
+
 import {
     AuthService,
+    authInterceptor,
+    ConfigStoreService,
+    delayInterceptor,
+    isBackendApiRequest,
+    localeInterceptor,
     SeoTitleStrategy,
     WatchProviderStoreService,
 } from './shared';
-import { authInterceptor, isBackendApiRequest } from './shared/utils/auth-interceptor';
-import { delayInterceptor } from './shared/utils/delay-interceptor';
-import { localeInterceptor } from './shared/utils/locale-interceptor';
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -83,6 +87,7 @@ export const appConfig: ApplicationConfig = {
         provideAppInitializer(() => {
             inject(AuthService).restoreSession$().subscribe();
         }),
+        // Not awaited either. Skipped when prerendering without a request, where nothing would use the data.
         provideAppInitializer(() => {
             const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
             const request = inject(REQUEST, { optional: true });
@@ -91,7 +96,7 @@ export const appConfig: ApplicationConfig = {
                 return;
             }
 
-            inject(WatchProviderStoreService).load();
+            merge(inject(ConfigStoreService).load$(), inject(WatchProviderStoreService).load$()).subscribe();
         }),
         provideClientHydration(
             withEventReplay(),

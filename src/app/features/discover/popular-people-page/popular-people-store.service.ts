@@ -7,8 +7,7 @@ import { PersonListRestControllerService } from '../../../api';
 import { PAGE_SIZE } from '../../../constants';
 import {
     hasRemoteData,
-    LocaleStoreService,
-    parsePageParam,
+    parsePositiveIntegerParam,
     PersonCardItem,
     RemoteData,
     remoteData,
@@ -22,8 +21,6 @@ interface PopularPeopleState {
     readonly totalResults: number;
     readonly results: RemoteData<PersonCardItem[]>;
 }
-
-const LOADING_SKELETON_COUNT = 20;
 
 const INITIAL_STATE: PopularPeopleState = {
     page: 0,
@@ -42,7 +39,7 @@ export class PopularPeopleStoreService extends ComponentStore<PopularPeopleState
         return {
             people,
             totalResults,
-            skeletonCount: results.state === 'loading' ? LOADING_SKELETON_COUNT : 0,
+            skeletonCount: results.state === 'loading' ? PAGE_SIZE : 0,
             pageIndex: Math.max(page - 1, 0),
             pageSize: PAGE_SIZE,
             paginatorLength,
@@ -58,7 +55,7 @@ export class PopularPeopleStoreService extends ComponentStore<PopularPeopleState
                 this.setState({ ...INITIAL_STATE, results: { state: 'loading' } });
 
                 return this.personListRestControllerService
-                    .personPopularList({ language: this.localeStoreService.language(), page })
+                    .personPopularList({ page })
                     .pipe(
                         tap((response) =>
                             this.patchState({
@@ -82,13 +79,12 @@ export class PopularPeopleStoreService extends ComponentStore<PopularPeopleState
         private activatedRoute: ActivatedRoute,
         private router: Router,
         private personListRestControllerService: PersonListRestControllerService,
-        private localeStoreService: LocaleStoreService,
     ) {
         super(INITIAL_STATE);
 
         this.loadPage(
             activatedRoute.queryParamMap.pipe(
-                map((params) => parsePageParam(params.get('page'))),
+                map((params) => parsePositiveIntegerParam(params.get('page')) ?? 1),
                 distinctUntilChanged(),
             ),
         );

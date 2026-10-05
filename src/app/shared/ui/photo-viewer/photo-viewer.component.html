@@ -1,56 +1,64 @@
-@if (activeImage(); as image) {
-    <div class="viewer">
-        <div class="toolbar">
-            <span class="toolbar__counter text-meta">{{ counter() }}</span>
-            <div class="toolbar__actions">
-                @if (data.photosLink) {
-                    <app-overlay-icon-button (onClick)="openPhotosPage()" ariaLabel="Open photos page">
-                        <mat-icon>grid_on</mat-icon>
-                    </app-overlay-icon-button>
+@if (photoViewer$ | async; as photoViewer) {
+    @if (photoViewer.image; as image) {
+        <div class="photo-viewer">
+            <div class="photo-viewer__toolbar">
+                <span class="photo-viewer__counter text-meta">{{ photoViewer.counter }}</span>
+                <div class="photo-viewer__actions">
+                    @if (photoViewer.showPhotosLink) {
+                        <app-icon-button
+                            appearance="overlay"
+                            (buttonClick)="openPhotosPage()"
+                            ariaLabel="Open photos page"
+                        >
+                            <mat-icon>grid_on</mat-icon>
+                        </app-icon-button>
+                    }
+                    <app-icon-button appearance="overlay" (buttonClick)="close()" ariaLabel="Close photo viewer">
+                        <mat-icon>close</mat-icon>
+                    </app-icon-button>
+                </div>
+            </div>
+
+            <div class="photo-viewer__stage">
+                <app-icon-button
+                    appearance="overlay"
+                    class="photo-viewer__nav photo-viewer__nav--prev"
+                    (buttonClick)="previous()"
+                    [disabled]="!photoViewer.canPrevious"
+                    ariaLabel="Previous photo"
+                >
+                    <mat-icon>chevron_left</mat-icon>
+                </app-icon-button>
+
+                <img class="photo-viewer__photo" [src]="photoViewer.imageSource | imgSrc: 'w1280'" alt="" />
+
+                <app-icon-button
+                    appearance="overlay"
+                    class="photo-viewer__nav photo-viewer__nav--next"
+                    (buttonClick)="next()"
+                    [disabled]="!photoViewer.canNext"
+                    ariaLabel="Next photo"
+                >
+                    <mat-icon>chevron_right</mat-icon>
+                </app-icon-button>
+            </div>
+
+            <div class="photo-viewer__meta text-caption">
+                @if (image.caption) {
+                    <span>{{ image.caption }}</span>
                 }
-                <app-overlay-icon-button (onClick)="close()" ariaLabel="Close photo viewer">
-                    <mat-icon>close</mat-icon>
-                </app-overlay-icon-button>
+                @if (photoViewer.showDimensions) {
+                    <span>{{ image.width }} &times; {{ image.height }}</span>
+                }
+                @if (image.vote_average) {
+                    <span class="photo-viewer__score">
+                        <app-rating [value]="image.vote_average" />
+                        @if (image.vote_count) {
+                            <span class="photo-viewer__votes">({{ image.vote_count | voteCount }})</span>
+                        }
+                    </span>
+                }
             </div>
         </div>
-
-        <div class="stage">
-            <app-overlay-icon-button
-                class="nav nav--prev"
-                (onClick)="prev()"
-                [disabled]="!hasPrev()"
-                ariaLabel="Previous photo"
-            >
-                <mat-icon>chevron_left</mat-icon>
-            </app-overlay-icon-button>
-
-            <img class="photo" [src]="image.file_path ?? '' | imgSrc: 'w1280'" alt="" />
-
-            <app-overlay-icon-button
-                class="nav nav--next"
-                (onClick)="next()"
-                [disabled]="!hasNext()"
-                ariaLabel="Next photo"
-            >
-                <mat-icon>chevron_right</mat-icon>
-            </app-overlay-icon-button>
-        </div>
-
-        <div class="meta text-caption">
-            @if (image.caption) {
-                <span>{{ image.caption }}</span>
-            }
-            @if (image.width && image.height) {
-                <span>{{ image.width }} &times; {{ image.height }}</span>
-            }
-            @if (image.vote_average) {
-                <span class="meta__score">
-                    <app-rating [value]="image.vote_average" />
-                    @if (image.vote_count) {
-                        <span class="meta__votes">({{ image.vote_count }})</span>
-                    }
-                </span>
-            }
-        </div>
-    </div>
+    }
 }

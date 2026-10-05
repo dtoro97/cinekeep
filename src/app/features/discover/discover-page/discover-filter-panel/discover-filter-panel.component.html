@@ -34,7 +34,7 @@
                 [selectedValues]="filters.selectedGenreIds"
                 [multiple]="true"
                 variant="chips"
-                (selected)="change('genres', $event)"
+                (selectedValuesChange)="filterChange.emit({ key: 'genres', value: $event })"
             />
         </section>
     }
@@ -50,7 +50,7 @@
                     [max]="filters.yearMax"
                     [start]="filters.yearStart"
                     placeholder="From"
-                    (valueChanged)="change('yearFrom', $event)"
+                    (valueChanged)="filterChange.emit({ key: 'yearFrom', value: $event })"
                 />
                 <span class="discover-filter-panel__range-separator text-caption">to</span>
                 <app-stepper-input
@@ -60,7 +60,7 @@
                     [max]="filters.yearMax"
                     [start]="filters.yearStart"
                     placeholder="To"
-                    (valueChanged)="change('yearTo', $event)"
+                    (valueChanged)="filterChange.emit({ key: 'yearTo', value: $event })"
                 />
             </div>
         </section>
@@ -73,7 +73,7 @@
                 [options]="filters.ratingOptions"
                 [selectedValue]="filters.rating"
                 variant="chips"
-                (selected)="change('rating', $event)"
+                (selected)="filterChange.emit({ key: 'rating', value: $event })"
             />
         </section>
     }
@@ -82,13 +82,17 @@
         <section class="discover-filter-panel__group">
             <h2 class="discover-filter-panel__title text-label">Where to watch</h2>
             @if (filters.visible.providers) {
-                <mat-form-field class="discover-filter-panel__select-field" appearance="outline" subscriptSizing="dynamic">
+                <mat-form-field
+                    class="discover-filter-panel__select-field"
+                    appearance="outline"
+                    subscriptSizing="dynamic"
+                >
                     <mat-select
                         multiple
                         aria-label="Where to watch"
                         placeholder="Any provider"
                         [value]="filters.selectedProviderIds"
-                        (selectionChange)="change('providers', $event.value)"
+                        (selectionChange)="filterChange.emit({ key: 'providers', value: $event.value })"
                     >
                         @if (!filters.hasProviderOptions) {
                             <mat-option disabled>No providers available</mat-option>
@@ -102,11 +106,15 @@
                 </mat-form-field>
             }
             @if (filters.visible.watchRegion) {
-                <mat-form-field class="discover-filter-panel__select-field" appearance="outline" subscriptSizing="dynamic">
+                <mat-form-field
+                    class="discover-filter-panel__select-field"
+                    appearance="outline"
+                    subscriptSizing="dynamic"
+                >
                     <mat-select
                         aria-label="Streaming region"
                         [value]="filters.watchRegion"
-                        (selectionChange)="change('watchRegion', $event.value)"
+                        (selectionChange)="filterChange.emit({ key: 'watchRegion', value: $event.value })"
                     >
                         @for (option of filters.watchRegionOptions; track option.value) {
                             <mat-option [value]="option.value">
@@ -140,7 +148,11 @@
                 @if (filters.visible.keywords) {
                     <section class="discover-filter-panel__group">
                         <h2 class="discover-filter-panel__title text-label">Keywords</h2>
-                        <mat-form-field class="discover-filter-panel__select-field" appearance="outline" subscriptSizing="dynamic">
+                        <mat-form-field
+                            class="discover-filter-panel__select-field"
+                            appearance="outline"
+                            subscriptSizing="dynamic"
+                        >
                             <input
                                 #keywordInput
                                 matInput
@@ -149,7 +161,10 @@
                                 [matAutocomplete]="keywordAuto"
                                 (input)="searchKeywords(keywordInput.value)"
                             />
-                            <mat-autocomplete #keywordAuto="matAutocomplete" (optionSelected)="addKeyword($event.option.value)">
+                            <mat-autocomplete
+                                #keywordAuto="matAutocomplete"
+                                (optionSelected)="addKeyword($event.option.value)"
+                            >
                                 @for (option of filters.keywordSuggestions; track option.value) {
                                     <mat-option [value]="option.value">
                                         {{ option.label }}
@@ -163,7 +178,11 @@
                 @if (filters.visible.companies) {
                     <section class="discover-filter-panel__group">
                         <h2 class="discover-filter-panel__title text-label">Production companies</h2>
-                        <mat-form-field class="discover-filter-panel__select-field" appearance="outline" subscriptSizing="dynamic">
+                        <mat-form-field
+                            class="discover-filter-panel__select-field"
+                            appearance="outline"
+                            subscriptSizing="dynamic"
+                        >
                             <input
                                 #companyInput
                                 matInput
@@ -172,7 +191,10 @@
                                 [matAutocomplete]="companyAuto"
                                 (input)="searchCompanies(companyInput.value)"
                             />
-                            <mat-autocomplete #companyAuto="matAutocomplete" (optionSelected)="addCompany($event.option.value)">
+                            <mat-autocomplete
+                                #companyAuto="matAutocomplete"
+                                (optionSelected)="addCompany($event.option.value)"
+                            >
                                 @for (option of filters.companySuggestions; track option.value) {
                                     <mat-option [value]="option.value">
                                         {{ option.label }}
@@ -190,7 +212,7 @@
                             [options]="filters.certificationOptions"
                             [selectedValue]="filters.certification"
                             variant="chips"
-                            (selected)="change('certification', $event)"
+                            (selected)="filterChange.emit({ key: 'certification', value: $event })"
                         />
                     </section>
                 }
@@ -202,7 +224,7 @@
                             [options]="filters.releaseTypeOptions"
                             [selectedValue]="filters.releaseType"
                             variant="chips"
-                            (selected)="change('releaseType', $event)"
+                            (selected)="filterChange.emit({ key: 'releaseType', value: $event })"
                         />
                     </section>
                 }
@@ -210,12 +232,16 @@
                 @if (filters.visible.language) {
                     <section class="discover-filter-panel__group">
                         <h2 class="discover-filter-panel__title text-label">Original language</h2>
-                        <mat-form-field class="discover-filter-panel__select-field" appearance="outline" subscriptSizing="dynamic">
+                        <mat-form-field
+                            class="discover-filter-panel__select-field"
+                            appearance="outline"
+                            subscriptSizing="dynamic"
+                        >
                             <mat-select
                                 aria-label="Original language"
                                 placeholder="Any language"
                                 [value]="filters.language"
-                                (selectionChange)="change('language', $event.value)"
+                                (selectionChange)="filterChange.emit({ key: 'language', value: $event.value })"
                             >
                                 <mat-option>
                                     <ngx-mat-select-search
@@ -243,7 +269,7 @@
                             [options]="filters.voteCountOptions"
                             [selectedValue]="filters.voteCount"
                             variant="chips"
-                            (selected)="change('votes', $event)"
+                            (selected)="filterChange.emit({ key: 'votes', value: $event })"
                         />
                     </section>
                 }
@@ -255,7 +281,7 @@
                             [options]="filters.runtimeOptions"
                             [selectedValue]="filters.runtime"
                             variant="chips"
-                            (selected)="change('runtime', $event)"
+                            (selected)="filterChange.emit({ key: 'runtime', value: $event })"
                         />
                     </section>
                 }

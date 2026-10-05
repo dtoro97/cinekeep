@@ -9,12 +9,10 @@ import {
     KeywordList,
     KeywordListItem,
     Movie,
-    MovieListItem,
     ReleaseDateList,
     Review,
     TvKeywordList,
     TvSeries,
-    TvSeriesListItem,
     Video,
     WatchProviderItem,
     WatchProviderList,
@@ -22,12 +20,13 @@ import {
 import { THEATRICAL_MOVIE_RELEASE_TYPE } from '../../constants';
 import {
     CardItem,
-    ExternalLinks,
+    formatEpisodeCode,
+    formatYearRange,
+    ExternalLink,
     LocaleStoreService,
     MediaType,
     PersonCardItem,
     RemoteData,
-    UserRatingVm,
     VideoCardItem,
     ViewerImage,
     getISODate,
@@ -38,12 +37,12 @@ import {
     mapRemoteData,
     remoteData,
     remoteSuccess,
-    toOptionalSection,
     toCardItem,
     toVideoCardItems,
     EpisodeListItemData,
     toRating,
 } from '../../shared';
+import type { toUserRatingDisplay } from './user-rating-state';
 import { MediaCreditsStoreService } from './media-credits-store.service';
 import { MediaDetailActionsStore } from './media-detail-actions-store.service';
 import { MediaCreditsResource } from './media-credits-store.service';
@@ -53,7 +52,7 @@ import { MediaReviewsStoreService } from './media-reviews-store.service';
 import { MediaTarget, isSameMediaTarget } from './media-target';
 import { MediaStoreService } from './media-store.service';
 import { MediaVideoStoreService } from './media-video-store.service';
-import { CreditsSummary } from './media-credits-summary/media-credits-summary.model';
+import { CreditsSummary, TOP_CAST_GRID_COUNT } from './media-credits-summary/media-credits-summary.model';
 import { MediaDetails } from './models/media-details.model';
 import { dedupeWatchProviders } from './mappers/watch-provider.mapper';
 
@@ -69,7 +68,7 @@ interface MediaDetailPageData {
     readonly certificationState: RemoteData<string | null>;
     readonly watchProviderState: RemoteData<MediaDetailProviderPreview | null>;
     readonly collectionState: RemoteData<CollectionDetails | null>;
-    readonly externalLinks: ExternalLinks | null;
+    readonly externalLinks: readonly ExternalLink[] | null;
     readonly inCinemas: boolean;
     readonly videosState: RemoteData<VideoCardItem[]>;
     readonly trailer: Video | null;
@@ -127,10 +126,10 @@ interface MediaDetailState {
     readonly collectionState: RemoteData<CollectionDetails | null>;
 }
 
-type RelatedMediaResult = MovieListItem | TvSeriesListItem;
 
 const HERO_CREDIT_LIMIT = 3;
-const TOP_CAST_GRID_COUNT = 12;
+/** The title page shows this many streaming logos, then "+N". */
+const PROVIDER_PREVIEW_COUNT = 3;
 
 const INITIAL_STATE: MediaDetailState = {
     target: null,
@@ -212,7 +211,10 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
 
             return {
                 media,
-                tvYearLabel: media ? this.toTvYearLabel(media) : null,
+                tvYearLabel:
+                    media?.mediaType === 'tv'
+                        ? formatYearRange(media.firstAirDate?.slice(0, 4) || media.year, media.lastAirDate?.slice(0, 4))
+                        : null,
                 canRateTitle: media ? this.canRateTitle(media) : false,
                 detailsState,
                 photosState,
@@ -235,14 +237,14 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         },
     );
 
-    readonly vm$ = combineLatest({
+    readonly mediaDetail$ = combineLatest({
         page: this.pageData$,
         creditsSummary: this.creditsSummary$,
-        userRating: this.actionsStore.ratingVm$,
+        userRating: this.actionsStore.userRating$,
         target: this.mediaStore.currentTarget$,
     }).pipe(
         map(({ page, creditsSummary, userRating, target }) =>
-            this.toPageVm(page, creditsSummary, userRating, target),
+            this.toMediaDetail(page, creditsSummary, userRating, target),
         ),
     );
 
@@ -292,10 +294,10 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         ]);
     }
 
-    private toPageVm(
+    private toMediaDetail(
         page: MediaDetailPageData,
         creditsSummary: RemoteData<CreditsSummary | null>,
-        userRating: UserRatingVm,
+        userRating: ReturnType<typeof toUserRatingDisplay>,
         target: MediaTarget,
     ) {
         const photos = remoteData(page.photosState, []);
@@ -356,7 +358,7 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
             fetch: () =>
                 this.mediaApiService
                     .getRecommendations$(target)
-                    .pipe(map((page) => this.toCardItems(page.results ?? [], target.type))),
+                    .pipe(map((page) => (page.results ?? []).map((item) => toCardItem(item, target.type)))),
             patch: (recommendationsState) => this.patchState({ recommendationsState }),
             fallback: [],
         });
@@ -369,7 +371,7 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
             fetch: () =>
                 this.mediaApiService
                     .getSimilar$(target)
-                    .pipe(map((page) => this.toCardItems(page.results ?? [], target.type))),
+                    .pipe(map((page) => (page.results ?? []).map((item) => toCardItem(item, target.type)))),
             patch: (similarState) => this.patchState({ similarState }),
             fallback: [],
         });
@@ -462,28 +464,9 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         return remoteSuccess(hasRemoteData(state) && state.data.length ? { state } : null);
     }
 
-    private toTvYearLabel(media: MediaDetails): string | null {
-        if (media.mediaType !== 'tv') {
-            return null;
-        }
-
-        const first = media.firstAirDate?.slice(0, 4) || media.year;
-        const last = media.lastAirDate?.slice(0, 4);
-
-        if (!first) {
-            return null;
-        }
-
-        return !last || first === last ? first : `${first} - ${last}`;
-    }
-
     private canRateTitle(media: MediaDetails): boolean {
         const primaryReleaseDate = media.releaseDate ?? media.firstAirDate ?? null;
         return !primaryReleaseDate || primaryReleaseDate <= getISODate(0);
-    }
-
-    private toCardItems(items: RelatedMediaResult[], mediaType: MediaType): CardItem[] {
-        return items.map((item) => toCardItem(item, mediaType));
     }
 
     private extractCollectionId(media: Movie | TvSeries | null, target: MediaTarget): number | null {
@@ -565,8 +548,8 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         }
 
         return {
-            providers: providers.slice(0, 3),
-            hiddenCount: Math.max(0, providers.length - 3),
+            providers: providers.slice(0, PROVIDER_PREVIEW_COUNT),
+            hiddenCount: Math.max(0, providers.length - PROVIDER_PREVIEW_COUNT),
             link: item?.link ?? null,
         };
     }
@@ -639,7 +622,7 @@ function toLatestEpisodeItem(media: MediaDetails | null): EpisodeListItemData | 
         subtitle: null,
         overview: episode.overview ?? '',
         stillPath: episode.still_path ?? null,
-        seasonNumber,
+        code: seasonNumber !== null && episodeNumber !== null ? formatEpisodeCode(seasonNumber, episodeNumber) : null,
         episodeNumber,
         airDate: episode.air_date ?? null,
         runtime: episode.runtime ?? null,
@@ -650,3 +633,10 @@ function toLatestEpisodeItem(media: MediaDetails | null): EpisodeListItemData | 
                 : null,
     };
 }
+
+/**
+ * A page section that disappears when empty: `loading` while `source` loads, otherwise the
+ * section `build` returns, or `null` when there is nothing to show.
+ */
+const toOptionalSection = <R>(source: RemoteData<unknown>, build: () => R | null): RemoteData<R | null> =>
+    source.state === 'loading' ? { state: 'loading' } : remoteSuccess(build());

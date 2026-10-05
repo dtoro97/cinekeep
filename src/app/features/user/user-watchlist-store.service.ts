@@ -6,16 +6,16 @@ import { EMPTY, catchError, map, switchMap, tap, throwError } from 'rxjs';
 import { PageResponseWatchlistItemResponse, WatchlistControllerService } from '../../api-cinekeep';
 import { PAGE_SIZE } from '../../constants';
 import {
-    RemoteData,
+    isDefined,
     MediaListItem,
     MediaType,
+    RemoteData,
+    remoteSuccess,
     SortDirection,
-    UserLibraryService,
-    isDefined,
-    toSnapshotMediaListItem,
     toRating,
+    toSnapshotMediaListItem,
+    UserLibraryService,
 } from '../../shared';
-import { remoteSuccess } from '../../shared/utils';
 import { toTotalAfterMediaRemoval, toUserMediaTotalLabel } from './user-account-media.helpers';
 import {
     DEFAULT_USER_ACCOUNT_SORT_DIRECTION,
@@ -46,7 +46,7 @@ const INITIAL_STATE: UserWatchlistState = {
 
 @Injectable()
 export class UserWatchlistStore extends ComponentStore<UserWatchlistState> {
-    readonly watchlistPageViewModel$ = this.select((state) => ({
+    readonly watchlist$ = this.select((state) => ({
         mediaType: state.mediaType,
         items: state.pageItems,
         page: state.page - 1,

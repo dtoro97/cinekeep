@@ -1,10 +1,10 @@
 <footer class="footer">
-    <div class="footer__inner inner-container u-flex u-flex-column">
-        <app-recently-viewed class="footer__recently-viewed w-100" />
+    <div class="footer__inner inner-container">
+        <app-recently-viewed class="footer__recently-viewed" />
 
         <div class="footer__content">
-            <section class="footer__about u-flex u-flex-column u-items-start u-gap-3" aria-label="About CineKeep">
-                <a class="footer__home u-flex u-items-center u-gap-2" routerLink="/" aria-label="CineKeep home">
+            <section class="footer__about" aria-label="About CineKeep">
+                <a class="footer__home" routerLink="/" aria-label="CineKeep home">
                     <img class="footer__brand-icon" src="assets/brand-mark.svg" alt="" aria-hidden="true" />
                     <span class="footer__brand-text" aria-hidden="true">
                         <span>Cine</span>
@@ -27,8 +27,8 @@
                 </p>
             </section>
 
-            <div class="footer__meta u-flex u-flex-column u-gap-4">
-                <nav class="footer__nav u-flex" aria-label="Footer">
+            <div class="footer__meta">
+                <nav class="footer__nav" aria-label="Footer">
                     <a class="footer__link text-caption" routerLink="/discover">Discover</a>
                     <a class="footer__link text-caption" routerLink="/search">Search</a>
                     <a class="footer__link text-caption" routerLink="/watch/streaming">Streaming</a>
@@ -50,10 +50,10 @@
                     </a>
                 </nav>
 
-                <div class="footer__provider u-flex u-items-center u-gap-2">
+                <div class="footer__provider">
                     <span class="footer__provider-label text-caption">Data by</span>
                     <a
-                        class="footer__provider-link u-flex u-items-center"
+                        class="footer__provider-link"
                         href="https://www.themoviedb.org/"
                         target="_blank"
                         rel="noopener noreferrer"

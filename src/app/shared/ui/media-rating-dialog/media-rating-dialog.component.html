@@ -1,7 +1,7 @@
 <div class="media-rating-dialog">
     <header class="media-rating-dialog__header">
-        <h2 class="text-display-sm">Rate {{ data.title }}</h2>
-        @if (!data.isAuthenticated) {
+        <h2 class="text-display-sm">Rate {{ title }}</h2>
+        @if (!isAuthenticated) {
             <p class="text-body-sm">Sign in to save ratings to your CineKeep account.</p>
         }
     </header>
@@ -9,39 +9,35 @@
     <div class="media-rating-dialog__content" mat-dialog-content>
         <div class="media-rating-dialog__score">
             <span class="text-rating">
-                {{ value() | number: '1.1-1' }}
+                {{ value | number: '1.1-1' }}
             </span>
             <span class="text-caption">/ 10</span>
         </div>
 
         <mat-slider class="media-rating-dialog__slider" [min]="0.5" [max]="10" [step]="0.5" discrete>
-            <input matSliderThumb [ngModel]="value()" (ngModelChange)="updateValue($event)" />
+            <input matSliderThumb [ngModel]="value" (ngModelChange)="updateValue($event)" />
         </mat-slider>
     </div>
 
-    @if (!data.isAuthenticated) {
+    @if (!isAuthenticated) {
         <div class="media-rating-dialog__actions" mat-dialog-actions>
             <div class="media-rating-dialog__primary-actions">
-                <button matButton class="text-button" type="button" mat-dialog-close (click)="cancel()">Cancel</button>
+                <button matButton class="text-button" type="button" mat-dialog-close>Cancel</button>
                 <button matButton="filled" type="button" (click)="loginToSave()">Sign in to rate</button>
             </div>
         </div>
     } @else {
         <div class="media-rating-dialog__actions" mat-dialog-actions>
-            @if (data.currentRating !== null) {
+            @if (hasCurrentRating) {
                 <button class="media-rating-dialog__remove" type="button" (click)="removeRating()">
                     Remove rating
                 </button>
             }
 
             <div class="media-rating-dialog__primary-actions">
-                <button matButton class="text-button" type="button" mat-dialog-close (click)="cancel()">Cancel</button>
+                <button matButton class="text-button" type="button" mat-dialog-close>Cancel</button>
                 <button matButton="filled" type="button" (click)="save()">
-                    @if (data.currentRating !== null) {
-                        Update rating
-                    } @else {
-                        Save rating
-                    }
+                    {{ saveLabel }}
                 </button>
             </div>
         </div>

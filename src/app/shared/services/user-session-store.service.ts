@@ -4,7 +4,19 @@ import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 import { Observable, filter, map, of } from 'rxjs';
 
-import { SessionUser, UserSessionState } from '../models';
+import { SessionUser } from '../models';
+
+/**
+ * `unknown` until the browser has tried to restore the session from the refresh cookie.
+ * The server render always stays `unknown`, so it never shows a signed-in or signed-out view.
+ */
+type AuthStatus = 'unknown' | 'anonymous' | 'authenticated';
+
+interface UserSessionState {
+    readonly status: AuthStatus;
+    readonly accessToken: string | null;
+    readonly user: SessionUser | null;
+}
 
 const INITIAL_SESSION_STATE: UserSessionState = {
     status: 'unknown',
@@ -19,7 +31,7 @@ const INITIAL_SESSION_STATE: UserSessionState = {
 @Injectable({ providedIn: 'root' })
 export class UserSessionStoreService extends ComponentStore<UserSessionState> {
     readonly user$ = this.select((state) => state.user);
-    readonly authViewModel$ = this.select((state) => {
+    readonly authSession$ = this.select((state) => {
         const username = state.user?.username ?? null;
 
         return {

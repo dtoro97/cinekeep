@@ -11,8 +11,6 @@ export interface EpisodeTarget {
     readonly episodeNumber: number;
 }
 
-export const toMediaKey = (target: MediaTarget): string => `${target.type}:${target.id}`;
-
 export const isSameMediaTarget = (left: MediaTarget | null, right: MediaTarget): boolean =>
     left?.id === right.id && left.type === right.type;
 

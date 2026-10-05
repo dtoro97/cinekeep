@@ -1,19 +1,19 @@
 <div class="page-container">
-    @if (vm$ | async; as vm) {
+    @if (mediaPhotos$ | async; as mediaPhotos) {
         <app-sub-page-header
-            [backdropPath]="vm.media?.backdropPath"
-            [parentTitle]="vm.media?.title"
+            [backdropPath]="mediaPhotos.media?.backdropPath"
+            [parentTitle]="mediaPhotos.media?.title"
             [backLink]="['../']"
             pageTitle="Photos"
         />
 
         <main class="page-main">
-            @if (vm.photosState.state === "success") {
+            @if (mediaPhotos.photosState.state === "success") {
                 <app-photos-browser
-                    [images]="vm.images"
+                    [images]="mediaPhotos.images"
                     (photoSelect)="openPhotoViewer($event)"
                 />
-            } @else if (vm.photosState.state === "loading") {
+            } @else if (mediaPhotos.photosState.state === "loading") {
                 <app-photos-browser-skeleton />
             }
         </main>

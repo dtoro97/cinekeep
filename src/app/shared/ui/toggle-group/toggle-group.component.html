@@ -1,12 +1,12 @@
-@if (viewOptions().length) {
-    <div class="toggle-group" [class.toggle-group--chips]="variant() === 'chips'">
-        @for (option of viewOptions(); track option.value) {
+@if (hasOptions) {
+    <div class="toggle-group" [class.toggle-group--chips]="showChips">
+        @for (option of viewOptions; track option.value) {
             <button
                 type="button"
                 class="toggle-group__button text-meta"
-                [attr.aria-pressed]="option.selected"
-                [class.toggle-group__button--active]="option.selected"
-                (click)="onClick(option.value)"
+                [attr.aria-pressed]="option.isSelected"
+                [class.toggle-group__button--active]="option.isSelected"
+                (click)="toggle(option.value)"
             >
                 {{ option.label }}
             </button>
