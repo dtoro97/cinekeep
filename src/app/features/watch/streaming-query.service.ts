@@ -20,7 +20,6 @@ import {
 import { StreamingBaseQuery, StreamingDatePreset } from './streaming-browse';
 
 const PREVIEW_COUNT = 3;
-const DEFAULT_REGION = 'US';
 
 @Injectable({ providedIn: 'root' })
 export class StreamingQueryService {
@@ -92,7 +91,7 @@ export class StreamingQueryService {
             sortBy: toTmdbMovieDiscoverSort(sortKey, direction),
             primaryReleaseDateGte: dateWindow.from,
             primaryReleaseDateLte: dateWindow.to,
-            region: filtersByRelease ? this.region() : undefined,
+            region: filtersByRelease ? this.localeStoreService.region() : undefined,
             withReleaseType: query.releaseType ? Number(query.releaseType) : undefined,
         });
     }
@@ -122,7 +121,7 @@ export class StreamingQueryService {
             voteAverageGte: query.voteAverageMin,
             voteCountGte: query.voteCountMin,
             voteCountLte: query.voteCountMax,
-            watchRegion: filtersByProvider ? this.region() : undefined,
+            watchRegion: filtersByProvider ? this.localeStoreService.region() : undefined,
             withGenres: serializeNumberListParam(query.genreIds) ?? undefined,
             withKeywords: serializeNumberListParam(query.keywordIds) ?? undefined,
             withOriginCountry: query.originCountry,
@@ -133,10 +132,6 @@ export class StreamingQueryService {
                 ? `${query.providerId}`
                 : (serializeNumberListParam(query.providerIds, '|') ?? undefined),
         };
-    }
-
-    private region(): string {
-        return this.localeStoreService.region() || DEFAULT_REGION;
     }
 }
 

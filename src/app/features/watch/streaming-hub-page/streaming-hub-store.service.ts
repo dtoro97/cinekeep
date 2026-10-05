@@ -13,7 +13,6 @@ import { StreamingQueryService } from '../streaming-query.service';
 
 const PROVIDER_CARD_COUNT = 3;
 
-/** Holds no state of its own: the hub is derived from the provider catalog and preview requests. */
 @Injectable()
 export class StreamingHubStoreService {
     readonly streamingHub$ = this.watchProviderStoreService.catalog$.pipe(
@@ -72,7 +71,6 @@ export class StreamingHubStoreService {
         }),
         switchMap((hub) =>
             forkJoin({
-                // `forkJoin` completes without emitting for an empty list, which would drop the whole hub.
                 providerCards: hub.providerCards.length
                     ? forkJoin(
                           hub.providerCards.map((card) =>

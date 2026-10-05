@@ -1,36 +1,24 @@
 <div class="page-container">
-    @if (store.collection$ | async; as collectionState) {
+    @if (collectionDetail$ | async; as collectionDetail) {
         <app-hero-surface
-            [backdropPath]="
-                collectionState.state === 'success' && collectionState.data ? (store.backdropPath$ | async) : null
-            "
-            [alt]="
-                collectionState.state === 'success' && collectionState.data ? collectionState.data.name : 'Collection'
-            "
+            [backdropPath]="collectionDetail.heroBackdropPath"
+            [alt]="collectionDetail.heroAlt"
             variant="integrated"
         >
-            @if (collectionState.state === 'success' ? collectionState.data : null; as collection) {
+            @if (collectionDetail.details; as collection) {
                 <div class="collection-hero">
-                    @if (store.posterPath$ | async; as posterPath) {
-                        <app-image
-                            class="poster aspect-poster"
-                            [src]="posterPath"
-                            type="media"
-                            [alt]="
-                                collectionState.state === 'success' && collectionState.data
-                                    ? collectionState.data.name
-                                    : 'Collection poster'
-                            "
-                        />
-                    } @else {
-                        <app-skeleton class="poster poster--skeleton aspect-poster" />
-                    }
+                    <app-image
+                        class="poster aspect-poster"
+                        [src]="collection.poster_path"
+                        type="media"
+                        [alt]="collectionDetail.posterAlt"
+                    />
 
                     <div class="collection-hero__main">
                         <div class="collection-hero__heading">
                             <p class="text-hero-meta">
                                 Collection
-                                @if (store.timelineLabel$ | async; as timelineLabel) {
+                                @if (collectionDetail.timelineLabel; as timelineLabel) {
                                     &#x2022; {{ timelineLabel }}
                                 }
                             </p>
@@ -39,9 +27,9 @@
                             </h1>
                         </div>
 
-                        @if (collection.overview) {
+                        @if (collection.overview; as overview) {
                             <p class="overview text-hero-summary">
-                                {{ collection.overview }}
+                                {{ overview }}
                             </p>
                         } @else {
                             <p class="text-meta">We don't have an overview for this collection yet.</p>
@@ -50,11 +38,11 @@
 
                     <aside class="collection-hero__side" aria-label="Collection facts">
                         <div class="collection-facts">
-                            @if (store.averageRating$ | async; as rating) {
+                            @if (collectionDetail.averageRating; as rating) {
                                 <app-tmdb-rating prominent label="Average rating" [value]="rating" />
                             }
 
-                            @if (store.partsCount$ | async; as count) {
+                            @if (collectionDetail.partsCount; as count) {
                                 <div class="collection-facts__item">
                                     <span class="text-card-meta">Movies</span>
                                     <span class="text-body-sm">
@@ -63,7 +51,7 @@
                                 </div>
                             }
 
-                            @if (store.timelineLabel$ | async; as timelineLabel) {
+                            @if (collectionDetail.timelineLabel; as timelineLabel) {
                                 <div class="collection-facts__item">
                                     <span class="text-card-meta">Timeline</span>
                                     <span class="text-body-sm">
@@ -100,22 +88,22 @@
         </app-hero-surface>
 
         <div class="page-sections">
-            @if (store.mappedPartsState$ | async; as partsState) {
-                @if (partsState.state === 'loading' || (partsState.state === 'success' && partsState.data.length)) {
-                    <app-page-section subtitle="Movies">
-                        @if (partsState.state === 'success') {
-                            <span section-controls class="text-meta"> {{ partsState.data.length }} total </span>
-                        } @else {
-                            <span section-controls>
-                                <app-skeleton class="section-count-skeleton" />
-                            </span>
-                        }
+            @if (collectionDetail.showParts) {
+                <app-page-section subtitle="Movies">
+                    @if (collectionDetail.showPartsCount) {
+                        <span section-controls class="text-meta"> {{ collectionDetail.partsCount }} total </span>
+                    } @else {
+                        <span section-controls>
+                            <app-skeleton class="section-count-skeleton" />
+                        </span>
+                    }
 
-                        <app-media-list [state]="partsState" />
-                    </app-page-section>
-                } @else if (partsState.state === 'success' && !partsState.data.length) {
-                    <p class="empty-text">No movies in this collection.</p>
-                }
+                    <app-media-list [state]="collectionDetail.parts" />
+                </app-page-section>
+            }
+
+            @if (collectionDetail.showNoParts) {
+                <p class="empty-text">No movies in this collection.</p>
             }
         </div>
     }

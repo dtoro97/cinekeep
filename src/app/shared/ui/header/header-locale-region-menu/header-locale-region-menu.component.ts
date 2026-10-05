@@ -11,7 +11,7 @@ import { BehaviorSubject, combineLatest, map, startWith } from 'rxjs';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 import { Country, Language } from '../../../../api';
-import { toLanguageOptions, toRegionOptions } from '../../../mappers';
+import { filterOptionsByQuery, toLanguageOptions, toRegionOptions } from '../../../mappers';
 import { ConfigStoreService } from '../../../services/config-store.service';
 import { LocaleStoreService } from '../../../services/locale-store.service';
 import type { SelectOption } from '../../../types';
@@ -98,17 +98,13 @@ export class HeaderLocaleRegionMenuComponent {
                         allRegionOptions,
                         FEATURED_REGION_VALUES,
                     ),
-                    languageOptions: toFilteredOptions(
-                        allLanguageOptions,
-                        languages.length > 0,
+                    languageOptions: filterOptionsByQuery(
+                        allLanguageOptions.filter(({ value }) => !FEATURED_LANGUAGE_VALUES.includes(value)),
                         languageFilter,
-                        FEATURED_LANGUAGE_VALUES,
                     ),
-                    regionOptions: toFilteredOptions(
-                        allRegionOptions,
-                        countries.length > 0,
+                    regionOptions: filterOptionsByQuery(
+                        allRegionOptions.filter(({ value }) => !FEATURED_REGION_VALUES.includes(value)),
                         regionFilter,
-                        FEATURED_REGION_VALUES,
                     ),
                     languageEmptyLabel: languages.length
                         ? 'No matching languages'
@@ -158,26 +154,4 @@ function toFeaturedOptions(
     const featuredValueSet = new Set(featuredValues);
 
     return options.filter((option) => featuredValueSet.has(option.value));
-}
-
-function toFilteredOptions(
-    options: readonly LocaleOption[],
-    hasSource: boolean,
-    filter: string,
-    excludedValues: readonly string[],
-): readonly LocaleOption[] {
-    if (!hasSource) {
-        return [];
-    }
-
-    const excludedValueSet = new Set(excludedValues);
-    const query = filter.trim().toLocaleLowerCase();
-
-    return options.filter(
-        (option) =>
-            !excludedValueSet.has(option.value) &&
-            (!query ||
-                option.value.toLocaleLowerCase().includes(query) ||
-                option.label.toLocaleLowerCase().includes(query)),
-    );
 }

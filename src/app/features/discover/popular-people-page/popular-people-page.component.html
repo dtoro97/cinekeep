@@ -1,22 +1,24 @@
-@if (vm$ | async; as vm) {
+@if (popularPeople$ | async; as popularPeople) {
     <div class="popular-people page-container">
         <header class="popular-people__header inner-container">
-            <h1 class="text-display">{{ vm.title }}</h1>
-            <p class="popular-people__subtitle text-body">{{ vm.subtitle }}</p>
+            <h1 class="text-display">Popular People</h1>
+            <p class="popular-people__subtitle text-body">
+                Actors, filmmakers, and creators trending across movies and TV.
+            </p>
         </header>
 
         <main class="popular-people__content inner-container">
             <app-browse-toolbar>
                 <div start class="popular-people__toolbar-start">
-                    @if (vm.showResultCount) {
+                    @if (popularPeople.showResultCount) {
                         <span class="popular-people__result-count text-caption">
-                            {{ vm.totalResults | pluralize: "person" : "people" }}
+                            {{ popularPeople.totalResults | pluralize: "person" : "people" }}
                         </span>
                     }
                 </div>
             </app-browse-toolbar>
 
-            @if (vm.showEmptyState) {
+            @if (popularPeople.showEmptyState) {
                 <div class="empty-panel popular-people__empty">
                     <app-empty-state
                         iconClass="fa-solid fa-user-group"
@@ -24,27 +26,24 @@
                     />
                 </div>
             } @else {
-                <ul class="popular-people__grid u-list-none">
-                    @if (vm.isLoading) {
-                        @for (slot of skeletonCount | repeat; track slot) {
-                            <li><app-person-card [loading]="true" /></li>
-                        }
-                    } @else {
-                        @for (person of vm.people; track person.id) {
-                            <li><app-person-card [person]="person" /></li>
-                        }
+                <ul class="popular-people__grid">
+                    @for (slot of popularPeople.skeletonCount | repeat; track slot) {
+                        <li><app-person-card [loading]="true" /></li>
+                    }
+                    @for (person of popularPeople.people; track person.id) {
+                        <li><app-person-card [person]="person" /></li>
                     }
                 </ul>
             }
 
-            @if (vm.showPaginator) {
+            @if (popularPeople.showPaginator) {
                 <mat-paginator
                     class="popular-people__paginator"
-                    [length]="vm.paginatorLength"
-                    [pageIndex]="vm.pageIndex"
-                    [pageSize]="vm.pageSize"
+                    [length]="popularPeople.paginatorLength"
+                    [pageIndex]="popularPeople.pageIndex"
+                    [pageSize]="popularPeople.pageSize"
                     [hidePageSize]="true"
-                    (page)="onPageChange($event)"
+                    (page)="changePage($event)"
                 />
             }
         </main>

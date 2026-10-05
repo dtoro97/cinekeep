@@ -1,4 +1,5 @@
 export * from './is-defined';
+export * from './has-id-and-name';
 export * from './get-iso-date';
 export * from './daily-pick';
 export * from './remote-data';
@@ -8,7 +9,6 @@ export * from './relative-time';
 export * from './route-utils';
 export * from './sort';
 export * from './tmdb-discover-sort';
-export * from './browser-country';
 export * from './locale-detection';
 export * from './company-display';
 export * from './media-display';
