@@ -1,9 +1,4 @@
-import {
-    afterNextRender,
-    Injectable,
-    makeStateKey,
-    TransferState,
-} from '@angular/core';
+import { afterNextRender, Injectable, makeStateKey, TransferState } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 
 import { BrowserStorageService } from './browser-storage.service';
@@ -38,7 +33,7 @@ export class LocaleStoreService extends ComponentStore<LocaleState> {
 
     constructor(
         private readonly browserStorage: BrowserStorageService,
-        private readonly transferState: TransferState,
+        readonly transferState: TransferState,
     ) {
         const initialLocale = getInitialLocale(browserStorage, transferState);
 
@@ -98,30 +93,19 @@ export class LocaleStoreService extends ComponentStore<LocaleState> {
     }
 }
 
-function getInitialLocale(
-    browserStorage: BrowserStorageService,
-    transferState: TransferState,
-): LocaleState {
+function getInitialLocale(browserStorage: BrowserStorageService, transferState: TransferState): LocaleState {
     const persistedLocale = getPersistedLocale(browserStorage);
     const detectedLocale = browserStorage.isBrowserEnvironment()
-        ? transferState.get(LOCALE_TRANSFER_KEY, null) ?? detectBrowserLocale()
-        : detectServerLocale(
-              browserStorage.getRequestHeader(ACCEPT_LANGUAGE_HEADER),
-          );
+        ? (transferState.get(LOCALE_TRANSFER_KEY, null) ?? detectBrowserLocale())
+        : detectServerLocale(browserStorage.getRequestHeader(ACCEPT_LANGUAGE_HEADER));
 
     return {
-        language:
-            persistedLocale.language ??
-            detectedLocale.language ??
-            DEFAULT_LANGUAGE,
-        region:
-            persistedLocale.region ?? detectedLocale.region ?? DEFAULT_REGION,
+        language: persistedLocale.language ?? detectedLocale.language ?? DEFAULT_LANGUAGE,
+        region: persistedLocale.region ?? detectedLocale.region ?? DEFAULT_REGION,
     };
 }
 
-function getPersistedLocale(
-    browserStorage: BrowserStorageService,
-): DetectedLocale {
+function getPersistedLocale(browserStorage: BrowserStorageService): DetectedLocale {
     return {
         language: parseLanguageTag(browserStorage.getCookie(STORAGE_KEY_LANGUAGE)),
         region: normalizeRegionOrNull(browserStorage.getCookie(STORAGE_KEY_REGION)),

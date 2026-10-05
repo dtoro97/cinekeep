@@ -1,24 +1,21 @@
 <div class="streaming-hub page-container">
-    @if (vm$ | async; as vm) {
+    @if (streamingHub$ | async; as streamingHub) {
         <header class="streaming-hub__hero">
             <div class="inner-container streaming-hub__hero-inner">
-                <h1 class="text-display">{{ vm.title }}</h1>
-                <p class="streaming-hub__subtitle text-body-sm">{{ vm.subtitle }}</p>
+                <h1 class="text-display">Streaming Guide</h1>
+                <p class="streaming-hub__subtitle text-body-sm">{{ subtitle }}</p>
             </div>
         </header>
 
         <main class="inner-container streaming-hub__content">
-            @if (vm.providerCards.length) {
+            @if (streamingHub.providerCards.length) {
                 <section class="provider-section" aria-label="Popular streaming services">
                     <div class="provider-rail">
-                        @for (card of vm.providerCards; track card.slug) {
+                        @for (card of streamingHub.providerCards; track card.slug) {
                             <a class="provider-card" [routerLink]="card.routerLink">
                                 @if (card.providerLogoPath) {
                                     <span class="provider-card__logo">
-                                        <img
-                                            [src]="card.providerLogoPath | imgSrc: 'w92'"
-                                            [alt]="card.providerName"
-                                        />
+                                        <img [src]="card.providerLogoPath | imgSrc: 'w92'" [alt]="card.providerName" />
                                     </span>
                                 }
 
@@ -51,34 +48,14 @@
                 </div>
 
                 <div class="route-grid">
-                    @if (vm.featuredSection; as section) {
-                        <a class="route-card route-card--featured" [routerLink]="section.routerLink">
+                    @for (section of streamingHub.routeSections; track section.slug) {
+                        <a
+                            class="route-card"
+                            [class.route-card--featured]="section.isFeatured"
+                            [routerLink]="section.routerLink"
+                        >
                             <span class="route-card__preview" aria-hidden="true">
-                                @for (preview of section.previews; track preview.key) {
-                                    <img
-                                        class="route-card__image"
-                                        [src]="preview.imagePath | imgSrc: 'w342'"
-                                        [alt]="preview.title"
-                                    />
-                                } @empty {
-                                    @for (slot of previewSlots | repeat; track slot) {
-                                        <app-skeleton class="route-card__poster" />
-                                    }
-                                }
-                            </span>
-
-                            <span class="route-card__copy">
-                                <span class="route-card__title text-title">{{ section.title }}</span>
-                                <span class="route-card__description text-body-sm">{{ section.description }}</span>
-                                <span class="route-card__cta text-card-meta">{{ section.ctaLabel }}</span>
-                            </span>
-                        </a>
-                    }
-
-                    @for (section of vm.sections; track section.slug) {
-                        <a class="route-card" [routerLink]="section.routerLink">
-                            <span class="route-card__preview" aria-hidden="true">
-                                @for (preview of section.previews; track preview.key) {
+                                @for (preview of section.previews; track preview.mediaType + '-' + preview.id) {
                                     <img
                                         class="route-card__image"
                                         [src]="preview.imagePath | imgSrc: 'w342'"

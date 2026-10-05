@@ -1,0 +1,94 @@
+@if (streamingList$ | async; as streamingList) {
+    <div class="streaming-list page-container">
+        <header class="streaming-list__header inner-container">
+            <a class="streaming-list__back-link text-caption" [routerLink]="['/watch', 'streaming']">
+                <i class="streaming-list__back-icon fa-solid fa-chevron-left" aria-hidden="true"></i>
+                Back to what's streaming
+            </a>
+
+            <h1 class="text-display">{{ streamingList.title }}</h1>
+            <p class="streaming-list__description text-body">
+                {{ streamingList.description }}
+            </p>
+        </header>
+
+        <main class="streaming-list__content inner-container page-list-column">
+            <app-browse-toolbar>
+                <div start class="streaming-list__result-count">
+                    @if (streamingList.showResultCount) {
+                        <span class="text-caption">
+                            {{ streamingList.totalResults | pluralize: "title" }}
+                        </span>
+                    }
+                </div>
+
+                <div end class="streaming-list__toolbar-actions">
+                    @if (streamingList.showMediaTypeToggle) {
+                        <app-toggle-group
+                            [options]="streamingList.mediaTypeOptions"
+                            [selectedValue]="streamingList.mediaType"
+                            (selected)="setMediaType($event)"
+                        />
+                    }
+
+                    <app-sort-button
+                        [options]="streamingList.sortOptions"
+                        [selectedValue]="streamingList.sortKey"
+                        [direction]="streamingList.sortDirection"
+                        (sortChange)="setSortKey($event)"
+                        (directionToggle)="toggleSortDirection()"
+                    />
+                </div>
+            </app-browse-toolbar>
+
+            @if (streamingList.showEmptyState) {
+                <div class="empty-panel streaming-list__empty">
+                    <app-empty-state
+                        iconClass="fa-solid fa-filter-circle-xmark"
+                        text="No titles matched this streaming list."
+                    />
+                </div>
+            } @else {
+                <div class="streaming-list__items">
+                    @for (entry of streamingList.displayItems; track entry.item.id) {
+                        <app-media-list-item [item]="entry.item" [link]="entry.routerLink">
+                            <span media-list-item-note class="streaming-list__availability text-caption">
+                                {{ entry.availabilityText }}
+                            </span>
+
+                            <app-library-toggle
+                                flag="watchlist"
+                                media-list-item-action
+                                class="streaming-list__watchlist"
+                                [mediaId]="entry.item.id"
+                                [mediaType]="entry.item.mediaType"
+                                [title]="entry.item.title"
+                                [iconOnly]="true"
+                                [libraryState]="entry.libraryState"
+                            />
+                        </app-media-list-item>
+                    }
+
+                    @for (slot of streamingList.skeletonCount | repeat; track slot) {
+                        <div class="streaming-list__skeleton-row">
+                            <app-skeleton class="streaming-list__poster-skeleton" />
+                            <div class="streaming-list__content-skeleton">
+                                <app-skeleton class="streaming-list__line streaming-list__line--title" />
+                                <app-skeleton class="streaming-list__line streaming-list__line--meta" />
+                                <app-skeleton class="streaming-list__line streaming-list__line--body" />
+                                <app-skeleton class="streaming-list__line streaming-list__line--body-short" />
+                                <app-skeleton class="streaming-list__line streaming-list__line--availability" />
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (streamingList.hasMore) {
+                <div class="streaming-list__footer">
+                    <button mat-stroked-button type="button" (click)="loadMore()">Show more titles</button>
+                </div>
+            }
+        </main>
+    </div>
+}

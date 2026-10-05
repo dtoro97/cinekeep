@@ -1,12 +1,49 @@
-import { getCurrentMonthName } from '../../../shared';
-import { StreamingEditorialSection } from '../models/streaming-browse.models';
+import { getCurrentMonthName, MediaType, TmdbDiscoverSortKey, WatchProviderOption } from '../../shared';
+
+export type StreamingDatePreset = 'today' | 'current-month' | 'current-season' | 'current-two-months';
+export type StreamingMonetizationType = 'ads' | 'buy' | 'flatrate' | 'free' | 'rent';
+
+export interface StreamingBaseQuery {
+    readonly mediaTypes: readonly MediaType[];
+    readonly providerId?: number;
+    readonly providerIds?: readonly number[];
+    readonly monetization?: StreamingMonetizationType;
+    readonly genreIds?: readonly number[];
+    readonly keywordIds?: readonly number[];
+    readonly originalLanguage?: string;
+    readonly originCountry?: string;
+    readonly datePreset?: StreamingDatePreset;
+    readonly releaseType?: string;
+    readonly runtimeMax?: number;
+    readonly voteAverageMin?: number;
+    readonly voteCountMin?: number;
+    readonly voteCountMax?: number;
+    readonly sortBy: TmdbDiscoverSortKey;
+}
+
+export interface StreamingEditorialSection {
+    readonly slug: string;
+    readonly title: string;
+    readonly description: string;
+    readonly ctaLabel: string;
+    readonly baseQuery: StreamingBaseQuery;
+}
 
 export const STREAMING_THIS_MONTH_SLUG = 'streaming-this-month';
 export const AIRING_TODAY_SLUG = 'airing-today';
 
 export const getStreamingThisMonthTitle = (): string => `Streaming in ${getCurrentMonthName()}`;
 
-export const getStreamingThisMonthCtaLabel = (): string => `Browse ${getCurrentMonthName()} arrivals`;
+/** The "this month" list is narrowed to TV series on the region's top three providers once they are known. */
+export const toStreamingThisMonthQuery = (
+    section: StreamingEditorialSection,
+    tvProviders: readonly WatchProviderOption[],
+): StreamingBaseQuery => ({
+    ...section.baseQuery,
+    mediaTypes: ['tv'],
+    providerIds: tvProviders.slice(0, 3).map((provider) => provider.id),
+    sortBy: 'popularity',
+});
 
 export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] = [
     {
@@ -24,8 +61,7 @@ export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] 
     {
         slug: AIRING_TODAY_SLUG,
         title: 'Airing today',
-        description:
-            'Popular TV series with episodes scheduled today.',
+        description: 'Popular TV series with episodes scheduled today.',
         ctaLabel: "See today's TV series",
         baseQuery: {
             mediaTypes: ['tv'],
@@ -36,8 +72,7 @@ export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] 
     {
         slug: 'anime-premieres',
         title: 'Japanese animation premieres',
-        description:
-            'New and popular animated series from Japan, grouped by current season.',
+        description: 'New and popular animated series from Japan, grouped by current season.',
         ctaLabel: 'Find anime premieres',
         baseQuery: {
             mediaTypes: ['tv'],
@@ -62,8 +97,7 @@ export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] 
     {
         slug: 'hidden-streaming-gems',
         title: 'Under-the-radar streaming',
-        description:
-            'Movies and TV series with strong scores outside the obvious crowd favorites.',
+        description: 'Movies and TV series with strong scores outside the obvious crowd favorites.',
         ctaLabel: 'Browse under-the-radar titles',
         baseQuery: {
             mediaTypes: ['movie', 'tv'],

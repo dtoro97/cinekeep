@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
-import { StreamingHubPageComponent } from './streaming-hub/streaming-hub-page.component';
-import { StreamingListPageComponent } from './streaming-list/streaming-list-page.component';
+import { StreamingHubPageComponent } from './streaming-hub-page/streaming-hub-page.component';
+import { StreamingListPageComponent } from './streaming-list-page/streaming-list-page.component';
 
 export const watchRoutes: Routes = [
     {
