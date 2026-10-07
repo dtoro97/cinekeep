@@ -1,0 +1,74 @@
+<div class="page-container">
+    @if (mediaReviews$ | async; as mediaReviews) {
+        <app-sub-page-header
+            [backdropPath]="mediaReviews.media?.backdropPath"
+            [parentTitle]="mediaReviews.media?.title"
+            [backLink]="['../']"
+            pageTitle="Reviews"
+        />
+
+        <main class="page-main reviews-layout">
+            <aside class="reviews-summary" aria-label="Review summary">
+                <app-review-media-summary [media]="mediaReviews.media">
+                    @if (mediaReviews.showStats) {
+                        <dl class="reviews-summary__stats">
+                            <div class="reviews-summary__stat">
+                                <dt class="text-overline">Reviews</dt>
+                                <dd class="text-display-sm">{{ mediaReviews.reviewCount }}</dd>
+                            </div>
+
+                            @if (mediaReviews.averageRating) {
+                                <div class="reviews-summary__stat">
+                                    <dt class="text-overline">Reviewer average</dt>
+                                    <dd class="reviews-summary__average">
+                                        <span class="text-rating-sm">{{ mediaReviews.averageRating | number: '1.1-1' }}</span>
+                                        <span class="text-caption">/10 {{ mediaReviews.ratedCountLabel }}</span>
+                                    </dd>
+                                </div>
+                            }
+                        </dl>
+                    }
+                </app-review-media-summary>
+            </aside>
+
+            <section class="reviews-list" aria-label="Reviews">
+                @if (mediaReviews.showSkeleton) {
+                    <ng-container *ngTemplateOutlet="reviewSkeletonList; context: { count: skeletonCount }" />
+                } @else if (mediaReviews.hasReviews) {
+                    @for (item of mediaReviews.reviews; track item.review.id) {
+                        <app-review-card [review]="item.review" [reviewLink]="item.link" />
+                    }
+
+                    @if (mediaReviews.showLoadingMore) {
+                        <ng-container *ngTemplateOutlet="reviewSkeletonList; context: { count: skeletonCount }" />
+                    }
+
+                    @if (mediaReviews.hasMore) {
+                        <div class="reviews-list__more">
+                            <button mat-stroked-button type="button" (click)="loadMore()">Show more reviews</button>
+                        </div>
+                    }
+                } @else if (mediaReviews.showEmpty) {
+                    <app-empty-state
+                        iconClass="fa-regular fa-comment-dots"
+                        text="No reviews have been posted for this title yet."
+                    />
+                }
+            </section>
+        </main>
+    }
+</div>
+
+<ng-template #reviewSkeletonList let-count="count">
+    @for (i of count | repeat; track i) {
+        <div class="review-skeleton" aria-hidden="true">
+            <app-skeleton class="review-skeleton__score" />
+            <div class="review-skeleton__body">
+                <app-skeleton class="review-skeleton__line review-skeleton__line--byline" />
+                <app-skeleton class="review-skeleton__line" />
+                <app-skeleton class="review-skeleton__line" />
+                <app-skeleton class="review-skeleton__line review-skeleton__line--short" />
+            </div>
+        </div>
+    }
+</ng-template>

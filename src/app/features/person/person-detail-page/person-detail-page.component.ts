@@ -1,7 +1,6 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Router, RouterLink } from '@angular/router';
 import { filter, map, take } from 'rxjs';
 
@@ -13,8 +12,7 @@ import {
     MediaCarouselPanelComponent,
     PageSectionComponent,
     PhotosPreviewComponent,
-    PHOTO_VIEWER_DIALOG_CONFIG,
-    PhotoViewerComponent,
+    PhotoViewerDialogService,
     RecentlyViewedItem,
     RecentlyViewedStoreService,
     SeoService,
@@ -37,7 +35,6 @@ import { toPersonSeoMetadata } from '../person-seo';
         AsyncPipe,
         DatePipe,
         RouterLink,
-        MatDialogModule,
         AgePipe,
         ExternalLinksComponent,
         ImageComponent,
@@ -56,7 +53,7 @@ export class PersonDetailPageComponent {
 
     constructor(
         private store: PersonDetailStoreService,
-        private matDialog: MatDialog,
+        private readonly photoViewerDialogService: PhotoViewerDialogService,
         private router: Router,
         seoService: SeoService,
         recentlyViewedStoreService: RecentlyViewedStoreService,
@@ -78,10 +75,7 @@ export class PersonDetailPageComponent {
                 return;
             }
 
-            this.matDialog.open(PhotoViewerComponent, {
-                ...PHOTO_VIEWER_DIALOG_CONFIG,
-                data: { images: photos.data, activeIndex: index, photosLink },
-            });
+            this.photoViewerDialogService.open({ images: photos.data, activeIndex: index, photosLink });
         });
     }
 

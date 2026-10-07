@@ -1,0 +1,11 @@
+<nav class="keywords-list" aria-label="Keywords">
+    @for (keyword of keywords; track keyword.id) {
+        <mat-chip
+            class="chip--link"
+            [routerLink]="['/discover']"
+            [queryParams]="{ type: mediaType, keywords: keyword.id }"
+        >
+            {{ keyword.name }}
+        </mat-chip>
+    }
+</nav>

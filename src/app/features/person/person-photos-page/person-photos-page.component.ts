@@ -1,14 +1,12 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatDialog } from '@angular/material/dialog';
 
 import {
     PhotosBrowserComponent,
     PhotosBrowserSelection,
     PhotosBrowserSkeletonComponent,
-    PHOTO_VIEWER_DIALOG_CONFIG,
-    PhotoViewerComponent,
+    PhotoViewerDialogService,
     SeoService,
     SubPageHeaderComponent,
 } from '../../../shared';
@@ -26,7 +24,7 @@ export class PersonPhotosPageComponent {
 
     constructor(
         private store: PersonDetailStoreService,
-        private matDialog: MatDialog,
+        private readonly photoViewerDialogService: PhotoViewerDialogService,
         seoService: SeoService,
     ) {
         this.store.seoSource$
@@ -37,9 +35,6 @@ export class PersonPhotosPageComponent {
     }
 
     openPhotoViewer(selection: PhotosBrowserSelection): void {
-        this.matDialog.open(PhotoViewerComponent, {
-            ...PHOTO_VIEWER_DIALOG_CONFIG,
-            data: { images: selection.images, activeIndex: selection.index },
-        });
+        this.photoViewerDialogService.open({ images: selection.images, activeIndex: selection.index });
     }
 }

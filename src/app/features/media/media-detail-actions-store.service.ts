@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
-
 import { Observable, catchError, forkJoin, map, of, switchMap, tap, throwError } from 'rxjs';
 
 import {
@@ -44,6 +43,8 @@ interface MediaActionResource extends UserRatingState {
 interface MediaActionsState {
     readonly target: MediaTarget | null;
     readonly actionsByMediaKey: Readonly<Record<string, MediaActionResource>>;
+    /** Set while the user's lists load for the "add to list" dialog. */
+    readonly isListDialogPending: boolean;
 }
 
 const EMPTY_ACTION_RESOURCE: MediaActionResource = {
@@ -56,39 +57,29 @@ const EMPTY_ACTION_RESOURCE: MediaActionResource = {
 const INITIAL_STATE: MediaActionsState = {
     target: null,
     actionsByMediaKey: {},
+    isListDialogPending: false,
 };
 
+/** The signed-in user's watchlist, favourite, rating and list actions for a title, kept per title. */
 @Injectable()
-export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
-    private readonly target$ = this.select((state) => state.target);
+export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsState> {
+    readonly userRating$ = this.select((state) => toUserRatingDisplay(toActiveActions(state), state.target !== null));
 
-    private readonly activeActions$ = this.select(
-        this.target$,
-        this.select((state) => state.actionsByMediaKey),
-        (target, actionsByMediaKey) =>
-            target ? (actionsByMediaKey[toMediaKey(target.type, target.id)] ?? EMPTY_ACTION_RESOURCE) : EMPTY_ACTION_RESOURCE,
-    );
+    readonly listActions$ = this.select((state) => {
+        const { watchlistState, favoriteState } = toActiveActions(state);
+        const isInWatchlist = watchlistState.state === 'success' && watchlistState.data;
+        const isFavorite = favoriteState.state === 'success' && favoriteState.data;
+        const pending = watchlistState.state === 'loading' || favoriteState.state === 'loading';
 
-    readonly watchlistState$ = this.activeActions$.pipe(map((actions) => actions.watchlistState));
-    readonly favoriteState$ = this.activeActions$.pipe(map((actions) => actions.favoriteState));
-
-    readonly userRating$ = this.select(this.activeActions$, this.target$, (actions, target) =>
-        toUserRatingDisplay(actions, target !== null),
-    );
-
-    readonly listActions$ = this.select(
-        this.watchlistState$,
-        this.favoriteState$,
-        (watchlistState, favoriteState) => ({
-            isInWatchlist: watchlistState.state === 'success' ? watchlistState.data : false,
-            isFavorite: favoriteState.state === 'success' ? favoriteState.data : false,
-            pending: watchlistState.state === 'loading' || favoriteState.state === 'loading',
-            watchlistLabel:
-                watchlistState.state === 'success' && watchlistState.data ? 'On watchlist' : 'Add to watchlist',
-            favoriteActionLabel:
-                favoriteState.state === 'success' && favoriteState.data ? 'Remove from favorites' : 'Add to favorites',
-        }),
-    );
+        return {
+            isInWatchlist,
+            isFavorite,
+            pending,
+            isListButtonDisabled: pending || state.isListDialogPending,
+            watchlistLabel: isInWatchlist ? 'On watchlist' : 'Add to watchlist',
+            favoriteActionLabel: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+        };
+    });
 
     constructor(
         private readonly mediaRatingService: MediaRatingService,
@@ -101,7 +92,8 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
         super(INITIAL_STATE);
     }
 
-    updateMedia(target: MediaTarget): void {
+    /** Loads the title's actions, and loads them again whenever the user signs in or out. */
+    load$(target: MediaTarget): Observable<unknown> {
         const key = toMediaKey(target.type, target.id);
 
         this.patchState((state) => ({
@@ -116,7 +108,34 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
                 },
             },
         }));
-        this.fetchMediaActionsEffect(target);
+
+        return this.userSessionStore.settledIsAuthenticated$.pipe(
+            switchMap((isAuthenticated) =>
+                (isAuthenticated
+                    ? this.userLibraryService.getMediaState$(target.id, target.type)
+                    : of<MediaStateResponse | null>(null)
+                ).pipe(
+                    tap((mediaState) =>
+                        this.patchActionResource(target, {
+                            userRating: remoteSuccess(
+                                typeof mediaState?.rating === 'number' ? normalizeRatingValue(mediaState.rating) : null,
+                            ),
+                            watchlistState: remoteSuccess(!!mediaState?.inWatchlist),
+                            favoriteState: remoteSuccess(!!mediaState?.favorite),
+                        }),
+                    ),
+                    // Unknown actions show as not set, so the buttons stay usable.
+                    catchError(() => {
+                        this.patchActionResource(target, {
+                            userRating: remoteSuccess(null),
+                            watchlistState: remoteSuccess(false),
+                            favoriteState: remoteSuccess(false),
+                        });
+                        return of(null);
+                    }),
+                ),
+            ),
+        );
     }
 
     submitUserRating$(target: MediaTarget, value: number): Observable<unknown> {
@@ -143,20 +162,20 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
             return throwError(() => new Error('No media action context is available.'));
         }
 
-        const resource = this.getActionResource(state, target);
+        const resource = toActiveActions(state);
         const currentState = flag === 'watchlist' ? resource.watchlistState : resource.favoriteState;
         const previousValue = currentState.state === 'success' ? currentState.data : false;
+        const toPatch = (flagState: RemoteData<boolean>): Partial<MediaActionResource> =>
+            flag === 'watchlist' ? { watchlistState: flagState } : { favoriteState: flagState };
 
-        this.patchActionResource(target, toLibraryFlagPatch(flag, { state: 'loading' }));
+        this.patchActionResource(target, toPatch({ state: 'loading' }));
 
         return this.userLibraryService
             .updateLibraryFlag$(flag, target.id, target.type, !previousValue, this.loadedSnapshot(target))
             .pipe(
-                tap((result) => {
-                    this.patchActionResource(target, toLibraryFlagPatch(flag, remoteSuccess(result)));
-                }),
+                tap((result) => this.patchActionResource(target, toPatch(remoteSuccess(result)))),
                 catchError((error) => {
-                    this.patchActionResource(target, toLibraryFlagPatch(flag, remoteSuccess(previousValue)));
+                    this.patchActionResource(target, toPatch(remoteSuccess(previousValue)));
                     return throwError(() => error);
                 }),
             );
@@ -207,42 +226,8 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
         );
     }
 
-    /** Re-fetches whenever the user signs in or out. */
-    private readonly fetchMediaActionsEffect = this.effect<MediaTarget>((params$) =>
-        params$.pipe(
-            switchMap((target) =>
-                this.userSessionStore.settledIsAuthenticated$.pipe(
-                    switchMap((isAuthenticated) => this.fetchMediaState$(target, isAuthenticated)),
-                ),
-            ),
-        ),
-    );
-
-    private fetchMediaState$(target: MediaTarget, isAuthenticated: boolean) {
-        const mediaState$: Observable<MediaStateResponse | null> = isAuthenticated
-            ? this.userLibraryService.getMediaState$(target.id, target.type)
-            : of(null);
-
-        return mediaState$.pipe(
-            tap((mediaState) => {
-                this.patchActionResource(target, {
-                    userRating: {
-                        state: 'success',
-                        data: typeof mediaState?.rating === 'number' ? normalizeRatingValue(mediaState.rating) : null,
-                    },
-                    watchlistState: { state: 'success', data: !!mediaState?.inWatchlist },
-                    favoriteState: { state: 'success', data: !!mediaState?.favorite },
-                });
-            }),
-            catchError(() => {
-                this.patchActionResource(target, {
-                    userRating: { state: 'success', data: null },
-                    watchlistState: { state: 'success', data: false },
-                    favoriteState: { state: 'success', data: false },
-                });
-                return of(undefined);
-            }),
-        );
+    setListDialogPending(isListDialogPending: boolean): void {
+        this.patchState({ isListDialogPending });
     }
 
     private loadedSnapshot(target: MediaTarget): SeriesSnapshotRequest | undefined {
@@ -251,26 +236,17 @@ export class MediaDetailActionsStore extends ComponentStore<MediaActionsState> {
         return media ? toMediaSnapshotRequest(media, target.type) : undefined;
     }
 
-    private getActionResource(state: MediaActionsState, target: MediaTarget): MediaActionResource {
-        return state.actionsByMediaKey[toMediaKey(target.type, target.id)] ?? EMPTY_ACTION_RESOURCE;
-    }
-
     private patchActionResource(target: MediaTarget, patch: Partial<MediaActionResource>): void {
-        this.patchState((state) => {
-            const key = toMediaKey(target.type, target.id);
+        const key = toMediaKey(target.type, target.id);
 
-            return {
-                actionsByMediaKey: {
-                    ...state.actionsByMediaKey,
-                    [key]: {
-                        ...this.getActionResource(state, target),
-                        ...patch,
-                    },
-                },
-            };
-        });
+        this.patchState((state) => ({
+            actionsByMediaKey: {
+                ...state.actionsByMediaKey,
+                [key]: { ...(state.actionsByMediaKey[key] ?? EMPTY_ACTION_RESOURCE), ...patch },
+            },
+        }));
     }
 }
 
-const toLibraryFlagPatch = (flag: LibraryFlag, state: RemoteData<boolean>): Partial<MediaActionResource> =>
-    flag === 'watchlist' ? { watchlistState: state } : { favoriteState: state };
+const toActiveActions = ({ target, actionsByMediaKey }: MediaActionsState): MediaActionResource =>
+    (target && actionsByMediaKey[toMediaKey(target.type, target.id)]) || EMPTY_ACTION_RESOURCE;

@@ -18,6 +18,7 @@ export * from './image/image.component';
 export * from './carousel/carousel.component';
 export * from './icon-button/icon-button.component';
 export * from './photo-viewer/photo-viewer.component';
+export * from './photo-viewer/photo-viewer-dialog.service';
 export * from './photos-preview/photos-preview.component';
 export * from './photos-browser/photos-browser.component';
 export * from './media-rating-dialog/media-rating-dialog.component';

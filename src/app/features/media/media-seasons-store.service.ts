@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import { EMPTY, Observable, catchError, combineLatest, forkJoin, map, of, switchMap, tap } from 'rxjs';
+import { EMPTY, Observable, catchError, filter, forkJoin, map, of, switchMap, take, tap } from 'rxjs';
 
 import {
+    Movie,
     TvEpisode,
     TvSeason,
     TvSeasonCompact,
@@ -12,7 +13,7 @@ import {
     VideoList,
 } from '../../api';
 import {
-    hasRemoteData,
+    EpisodeListItemData,
     IMAGE_LANGUAGE_FALLBACK,
     isDefined,
     LocaleStoreService,
@@ -21,29 +22,25 @@ import {
     RemoteData,
     remoteData,
     remoteSuccess,
-    RouteCommands,
     toRating,
-    toVideoCardItems,
-    toYoutubeVideos,
-    VideoCardItem,
     ViewerImage,
 } from '../../shared';
+import { toEpisodeListItem } from './episode-list-item.mapper';
 import { MediaStoreService } from './media-store.service';
-import type { EpisodeListEntry } from './episode-list/episode-list.models';
-import { MediaDetails } from './models/media-details.model';
+
+export interface EpisodeListEntry {
+    readonly id: string;
+    /** The season's highest-rated episode. */
+    readonly isBest: boolean;
+    /** Accessible name, e.g. "Episode 8: Better Call Saul"; used by the season ratings strip. */
+    readonly label: string;
+    readonly item: EpisodeListItemData;
+}
 
 export interface SeasonTarget {
     readonly seriesId: number;
     readonly seasonNumber: number;
 }
-
-const HIGHEST_RATED_BADGES: readonly MediaListItemBadge[] = [{ label: 'Highest rated', variant: 'outline' }];
-
-type SeasonRecord = Omit<TvSeason | TvSeasonCompact, 'episodes'> & {
-    episodes: RemoteData<TvEpisode[]>;
-    images: RemoteData<ViewerImage[]>;
-    videos: RemoteData<VideoList | null>;
-};
 
 /** A season's details, posters and videos, which always load together. */
 interface SeasonResources {
@@ -58,6 +55,10 @@ interface MediaSeasonsState {
     readonly resourcesByKey: Readonly<Record<string, RemoteData<SeasonResources>>>;
 }
 
+const HIGHEST_RATED_BADGES: readonly MediaListItemBadge[] = [{ label: 'Highest rated', variant: 'outline' }];
+
+const LOADING_STATE: RemoteData<never> = { state: 'loading' };
+
 const INITIAL_STATE: MediaSeasonsState = {
     seriesId: null,
     selectedTarget: null,
@@ -66,68 +67,16 @@ const INITIAL_STATE: MediaSeasonsState = {
 
 @Injectable()
 export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> {
-    private readonly seriesId$ = this.select((state) => state.seriesId);
-    private readonly selectedTarget$ = this.select((state) => state.selectedTarget);
-    readonly selectedSeasonNumber$ = this.selectedTarget$.pipe(map((target) => target?.seasonNumber ?? null));
-
-    private readonly seriesState$ = this.select(
-        this.seriesId$,
+    /**
+     * The selected season, from its loaded details or, until they arrive, the series' season list.
+     * Resources not requested yet show as loading, because opening the season requests them.
+     */
+    readonly season$ = this.select(
+        this.state$,
         this.mediaStore.mediaState$,
-        (seriesId, media): RemoteData<TvSeries | null> => {
-            if (!seriesId) {
-                return { state: 'notAsked' };
-            }
-
-            const seriesState: RemoteData<TvSeries | null> = mapRemoteData(media, (data): TvSeries | null =>
-                data && 'seasons' in data && data.id === seriesId ? data : null,
-            );
-
-            return hasRemoteData(seriesState) && !seriesState.data ? { state: 'notAsked' } : seriesState;
-        },
-    );
-
-    private readonly seriesDetails$ = this.mediaStore.mediaDetailsState$.pipe(
-        map((state): MediaDetails | null => (state.state === 'success' ? state.data : null)),
-    );
-
-    private readonly selectedResources$ = this.select(
-        this.selectedTarget$,
-        this.select((state) => state.resourcesByKey),
-        (target, resourcesByKey): RemoteData<SeasonResources> =>
-            (target && resourcesByKey[toSeasonKey(target)]) || { state: 'notAsked' },
-    );
-
-    private readonly selectedSeasonRecord$ = this.select(
-        this.selectedTarget$,
-        this.seriesState$,
-        this.selectedResources$,
-        (target, seriesState, resources): SeasonRecord | null =>
-            this.toSelectedSeasonRecord(target, seriesState, resources),
-    );
-
-    readonly selectedSeasonSummary$ = combineLatest([this.selectedSeasonNumber$, this.selectedSeasonRecord$]).pipe(
-        map(([seasonNumber, season]) =>
-            isDefined(seasonNumber) ? this.toSeasonSummary(seasonNumber, season) : null,
-        ),
-    );
-
-    readonly seasonEpisodesState$ = combineLatest([
-        this.seriesId$,
-        this.selectedSeasonNumber$,
-        this.selectedSeasonRecord$,
-    ]).pipe(
-        map(([seriesId, selectedSeasonNumber, season]): RemoteData<EpisodeListEntry[]> =>
-            this.toEpisodeListState(
-                this.toVisibleResourceState(season?.episodes),
-                seriesId,
-                selectedSeasonNumber,
-            ),
-        ),
-    );
-
-    readonly seasonOptions$ = this.seriesState$.pipe(
-        map((seriesState) =>
-            (remoteData(seriesState, null)?.seasons ?? [])
+        ({ seriesId, selectedTarget: target, resourcesByKey }, media) => {
+            const series = seriesId ? toSeries(seriesId, media) : null;
+            const seasonOptions = (series?.seasons ?? [])
                 .filter((season): season is TvSeasonCompact & { season_number: number } =>
                     isDefined(season.season_number),
                 )
@@ -135,49 +84,78 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
                 .map((season) => ({
                     label: toSeasonLabel(season.season_number, season.name),
                     value: season.season_number,
-                })),
-        ),
-    );
+                }));
+            const resources: RemoteData<SeasonResources> =
+                (target && resourcesByKey[toSeasonKey(target)]) || LOADING_STATE;
 
-    readonly seasonImagesState$ = this.selectedSeasonRecord$.pipe(
-        map((season): RemoteData<ViewerImage[]> => this.toVisibleResourceState(season?.images)),
-    );
+            if (!target) {
+                return {
+                    seasonNumber: null,
+                    summary: null,
+                    seasonOptions,
+                    episodes: LOADING_STATE,
+                    images: LOADING_STATE,
+                    videos: LOADING_STATE,
+                };
+            }
 
-    readonly seasonVideosState$ = combineLatest([this.selectedSeasonRecord$, this.seriesDetails$]).pipe(
-        map(([season, series]): RemoteData<VideoCardItem[]> => {
-            const videos = this.toVisibleResourceState(season?.videos);
-            return this.toSeasonVideoItemsState(videos, series);
-        }),
-    );
+            const compact = series?.seasons?.find((season) => season.season_number === target.seasonNumber);
+            const season: Omit<TvSeason | TvSeasonCompact, 'episodes'> =
+                resources.state === 'success' && resources.data.season
+                    ? resources.data.season
+                    : (compact ?? { season_number: target.seasonNumber, name: toSeasonLabel(target.seasonNumber) });
+            const episodes = mapRemoteData(resources, (data) => data.season?.episodes ?? []);
+            const compactCount =
+                'episode_count' in season && typeof season.episode_count === 'number' ? season.episode_count : 0;
+            const loadedCount = remoteData(episodes, []).length;
 
-    private readonly defaultSeasonEffect = this.effect<TvSeries | null>((series$) =>
-        series$.pipe(
-            switchMap((series) => {
-                const seriesId = series?.id;
+            return {
+                seasonNumber: target.seasonNumber,
+                summary: {
+                    seasonNumber: target.seasonNumber,
+                    name: toSeasonLabel(target.seasonNumber, season.name),
+                    episodeCount: episodes.state === 'success' ? loadedCount || compactCount || 5 : compactCount || 5,
+                    airDate: season.air_date ?? null,
+                    overview: season.overview ?? '',
+                    posterPath: season.poster_path ?? null,
+                    voteAverage: toRating(season.vote_average),
+                },
+                seasonOptions,
+                episodes: mapRemoteData(episodes, (items): EpisodeListEntry[] => {
+                    const ratedEpisodes = items.filter((episode) => (episode.vote_average ?? 0) > 0);
+                    const topRatedEpisode = ratedEpisodes.length
+                        ? ratedEpisodes.reduce((best, episode) => {
+                              const currentRating = episode.vote_average ?? 0;
+                              const bestRating = best.vote_average ?? 0;
 
-                if (!series || typeof seriesId !== 'number' || !Number.isInteger(seriesId)) {
-                    return of(undefined);
-                }
+                              if (currentRating !== bestRating) {
+                                  return currentRating > bestRating ? episode : best;
+                              }
 
-                const selectedTarget = this.get().selectedTarget;
+                              return (episode.vote_count ?? 0) > (best.vote_count ?? 0) ? episode : best;
+                          })
+                        : null;
 
-                if (selectedTarget?.seriesId === seriesId) {
-                    return this.loadSeasonResources$(selectedTarget);
-                }
-
-                const nextSeasonNumber = this.getSelectedSeasonNumber(series, null);
-
-                if (nextSeasonNumber === null) {
-                    return of(undefined);
-                }
-
-                return this.loadSeasonResources$({ seriesId, seasonNumber: nextSeasonNumber });
-            }),
-        ),
-    );
-
-    readonly openSeason = this.effect<SeasonTarget>((target$) =>
-        target$.pipe(switchMap((target) => this.loadSeasonResources$(target))),
+                    return items.map((episode) => ({
+                        isBest: episode === topRatedEpisode,
+                        label: `Episode ${episode.episode_number ?? ''}: ${episode.name ?? 'Untitled episode'}`,
+                        id: [
+                            episode.season_number ?? 'season',
+                            episode.episode_number ?? 'episode',
+                            episode.id ?? episode.name ?? 'unknown',
+                        ].join('-'),
+                        item: toEpisodeListItem(episode, target.seriesId, {
+                            fallbackSeasonNumber: target.seasonNumber,
+                            badges: episode === topRatedEpisode ? HIGHEST_RATED_BADGES : undefined,
+                        }),
+                    }));
+                }),
+                images: mapRemoteData(resources, (data) =>
+                    (data.images?.posters ?? []).map((image): ViewerImage => ({ ...image, photoType: 'poster' })),
+                ),
+                videos: mapRemoteData(resources, (data) => data.videos),
+            };
+        },
     );
 
     constructor(
@@ -186,10 +164,6 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
         private readonly tvSeasonService: TvSeasonRestControllerService,
     ) {
         super(INITIAL_STATE);
-
-        this.defaultSeasonEffect(
-            this.seriesState$.pipe(map((state) => (state.state === 'success' ? state.data : null))),
-        );
     }
 
     /**
@@ -206,48 +180,43 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
         return this.fetchSeasonDetails$(target).pipe(map((season) => season?.episodes ?? []));
     }
 
-    openSeries(seriesId: number): void {
-        const state = this.get();
-
-        if (state.seriesId !== seriesId) {
-            this.setState({
-                ...INITIAL_STATE,
-                seriesId,
-            });
-            return;
-        }
-
-        if (state.selectedTarget) {
+    /** Opens the series' default season once the series has loaded. */
+    openSeries$(seriesId: number): Observable<unknown> {
+        if (this.get().seriesId !== seriesId) {
+            this.setState({ ...INITIAL_STATE, seriesId });
+        } else {
             this.patchState({ selectedTarget: null });
         }
 
-        this.openDefaultSeasonFromCurrentMedia(seriesId);
+        return this.mediaStore.mediaState$.pipe(
+            map((media) => toSeries(seriesId, media)),
+            filter(isDefined),
+            take(1),
+            switchMap((series) => {
+                const seasonNumbers = (series.seasons ?? []).map((season) => season.season_number).filter(isDefined);
+                // Season 1 when the series has one, otherwise its lowest season (often 0, the specials).
+                const seasonNumber = seasonNumbers.includes(1)
+                    ? 1
+                    : seasonNumbers.length
+                      ? Math.min(...seasonNumbers)
+                      : null;
+
+                return seasonNumber === null ? EMPTY : this.openSeason$({ seriesId, seasonNumber });
+            }),
+        );
     }
 
-    private selectTarget(target: SeasonTarget): void {
-        const state = this.get();
+    openSeason$(target: SeasonTarget): Observable<unknown> {
+        const { seriesId, selectedTarget, resourcesByKey } = this.get();
 
-        if (state.seriesId !== target.seriesId) {
-            this.setState({
-                ...INITIAL_STATE,
-                seriesId: target.seriesId,
-                selectedTarget: target,
-            });
-            return;
+        if (seriesId !== target.seriesId) {
+            this.setState({ ...INITIAL_STATE, seriesId: target.seriesId, selectedTarget: target });
+        } else if (selectedTarget?.seasonNumber !== target.seasonNumber) {
+            this.patchState({ selectedTarget: target });
         }
-
-        if (isSameSeasonTarget(state.selectedTarget, target)) {
-            return;
-        }
-
-        this.patchState({ selectedTarget: target });
-    }
-
-    private loadSeasonResources$(target: SeasonTarget) {
-        this.selectTarget(target);
 
         const key = toSeasonKey(target);
-        const current = this.get().resourcesByKey[key];
+        const current = seriesId === target.seriesId ? resourcesByKey[key] : undefined;
 
         if (current?.state === 'success' || current?.state === 'loading') {
             return EMPTY;
@@ -257,8 +226,18 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
 
         return forkJoin({
             season: this.fetchSeasonDetails$(target),
-            images: this.fetchSeasonImages$(target),
-            videos: this.fetchSeasonVideos$(target),
+            images: this.tvSeasonService
+                .tvSeasonImages({
+                    ...target,
+                    includeImageLanguage: IMAGE_LANGUAGE_FALLBACK,
+                    language: this.localeStore.language(),
+                })
+                // Posters are optional, so a failure shows the season without them.
+                .pipe(catchError(() => of(null))),
+            videos: this.tvSeasonService
+                .tvSeasonVideos(target)
+                // Videos are optional, so a failure shows the season without them.
+                .pipe(catchError(() => of({ results: [] }))),
         }).pipe(tap((resources) => this.patchResources(key, remoteSuccess(resources))));
     }
 
@@ -268,229 +247,23 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
         }));
     }
 
-    private openDefaultSeasonFromCurrentMedia(seriesId: number): void {
-        const media = this.mediaStore.currentMedia();
-
-        if (!media || !('seasons' in media) || media.id !== seriesId) {
-            return;
-        }
-
-        const seasonNumber = this.getSelectedSeasonNumber(media, null);
-
-        if (seasonNumber !== null) {
-            this.openSeason({ seriesId, seasonNumber });
-        }
-    }
-
-    private fetchSeasonDetails$(target: SeasonTarget) {
-        return this.tvSeasonService
-            .tvSeasonDetails({ seriesId: target.seriesId, seasonNumber: target.seasonNumber })
-            .pipe(
-                catchError(() => {
-                    return of(null);
-                }),
-            );
-    }
-
-    private fetchSeasonImages$(target: SeasonTarget) {
-        return this.tvSeasonService
-            .tvSeasonImages({
-                seriesId: target.seriesId,
-                seasonNumber: target.seasonNumber,
-                includeImageLanguage: IMAGE_LANGUAGE_FALLBACK,
-                language: this.localeStore.language(),
-            })
-            .pipe(
-                catchError(() => {
-                    return of(null);
-                }),
-            );
-    }
-
-    private fetchSeasonVideos$(target: SeasonTarget) {
-        return this.tvSeasonService
-            .tvSeasonVideos({ seriesId: target.seriesId, seasonNumber: target.seasonNumber })
-            .pipe(
-                catchError(() => {
-                    return of({ results: [] });
-                }),
-            );
-    }
-
-    private toSelectedSeasonRecord(
-        target: SeasonTarget | null,
-        seriesState: RemoteData<TvSeries | null>,
-        resources: RemoteData<SeasonResources>,
-    ): SeasonRecord | null {
-        if (!target) {
-            return null;
-        }
-
-        const series =
-            seriesState.state === 'success' && seriesState.data?.id === target.seriesId ? seriesState.data : null;
-        const compact = series?.seasons?.find((season) => season.season_number === target.seasonNumber);
-        const season =
-            resources.state === 'success' && resources.data.season
-                ? resources.data.season
-                : (compact ?? {
-                      season_number: target.seasonNumber,
-                      name: toSeasonLabel(target.seasonNumber),
-                  });
-
-        return {
-            ...season,
-            episodes: mapRemoteData(resources, (data) => data.season?.episodes ?? []),
-            images: mapRemoteData(resources, (data) => this.toSeasonImages(data.images?.posters ?? [])),
-            videos: mapRemoteData(resources, (data) => data.videos),
-        };
-    }
-
-    private toEpisodeListState(
-        episodes: RemoteData<TvEpisode[]>,
-        seriesId: number | null,
-        selectedSeasonNumber: number | null,
-    ): RemoteData<EpisodeListEntry[]> {
-        return mapRemoteData(episodes, (items) => this.toEpisodeListEntries(items, seriesId, selectedSeasonNumber));
-    }
-
-    private toEpisodeListEntries(
-        episodes: readonly TvEpisode[],
-        seriesId: number | null,
-        selectedSeasonNumber: number | null,
-    ): EpisodeListEntry[] {
-        const topRatedEpisode = this.getTopRatedEpisode(episodes);
-
-        return episodes.map((episode) => ({
-            isBest: episode === topRatedEpisode,
-            label: `Episode ${episode.episode_number ?? ''}: ${episode.name ?? 'Untitled episode'}`,
-            id: [
-                episode.season_number ?? 'season',
-                episode.episode_number ?? 'episode',
-                episode.id ?? episode.name ?? 'unknown',
-            ].join('-'),
-            item: {
-                name: episode.name ?? 'Untitled episode',
-                subtitle: null,
-                overview: episode.overview ?? '',
-                stillPath: episode.still_path ?? null,
-                code: null,
-                episodeNumber: episode.episode_number ?? null,
-                airDate: episode.air_date ?? null,
-                runtime: episode.runtime ?? null,
-                voteAverage: toRating(episode.vote_average),
-                badges: episode === topRatedEpisode ? HIGHEST_RATED_BADGES : undefined,
-                routeCommands: this.toEpisodeRouteCommands(episode, seriesId, selectedSeasonNumber),
-            },
-        }));
-    }
-
-    private toEpisodeRouteCommands(
-        episode: TvEpisode,
-        seriesId: number | null,
-        selectedSeasonNumber: number | null,
-    ): RouteCommands | null {
-        const seasonNumber = episode.season_number ?? selectedSeasonNumber;
-        const episodeNumber = episode.episode_number;
-
-        if (!isDefined(seriesId) || !isDefined(seasonNumber) || !isDefined(episodeNumber)) {
-            return null;
-        }
-
-        return ['/title', seriesId, 'tv', 'episodes', seasonNumber, episodeNumber];
-    }
-
-    private getTopRatedEpisode(episodes: readonly TvEpisode[]): TvEpisode | null {
-        const ratedEpisodes = episodes.filter((episode) => (episode.vote_average ?? 0) > 0);
-
-        if (!ratedEpisodes.length) {
-            return null;
-        }
-
-        return ratedEpisodes.reduce((best, episode) => {
-            const currentRating = episode.vote_average ?? 0;
-            const bestRating = best.vote_average ?? 0;
-
-            if (currentRating !== bestRating) {
-                return currentRating > bestRating ? episode : best;
-            }
-
-            return (episode.vote_count ?? 0) > (best.vote_count ?? 0) ? episode : best;
-        });
-    }
-
-    private toSeasonImages(posters: NonNullable<TvSeasonImages['posters']>): ViewerImage[] {
-        return posters.map((image) => ({
-            ...image,
-            photoType: 'poster',
-        }));
-    }
-
-    private toSeasonVideoItemsState(
-        videos: RemoteData<VideoList | null>,
-        series: MediaDetails | null,
-    ): RemoteData<VideoCardItem[]> {
-        return mapRemoteData(videos, (videoList) =>
-            series ? toVideoCardItems(toYoutubeVideos(videoList?.results ?? []), series) : [],
+    private fetchSeasonDetails$(target: SeasonTarget): Observable<TvSeason | null> {
+        return (
+            this.tvSeasonService
+                .tvSeasonDetails(target)
+                // Without the details the season still renders from the series' season list.
+                .pipe(catchError(() => of(null)))
         );
-    }
-
-    private toSeasonSummary(seasonNumber: number, season: SeasonRecord | null) {
-        if (!season) {
-            return {
-                seasonNumber,
-                name: toSeasonLabel(seasonNumber),
-                episodeCount: 0,
-                airDate: null,
-                overview: '',
-                posterPath: null,
-                voteAverage: null,
-            };
-        }
-
-        const compactCount =
-            'episode_count' in season && typeof season.episode_count === 'number' ? season.episode_count : 0;
-        const loadedCount = remoteData(season.episodes, []).length;
-        const episodeCount =
-            season.episodes.state === 'success' ? loadedCount || compactCount || 5 : compactCount || 5;
-
-        return {
-            seasonNumber,
-            name: toSeasonLabel(seasonNumber, season.name),
-            episodeCount,
-            airDate: season.air_date ?? null,
-            overview: season.overview ?? '',
-            posterPath: season.poster_path ?? null,
-            voteAverage: toRating(season.vote_average),
-        };
-    }
-
-    private getSelectedSeasonNumber(tvSeries: TvSeries, selectedSeason: number | null): number | null {
-        const seasonNumbers = [...(tvSeries.seasons ?? [])]
-            .map((season) => season.season_number)
-            .filter(isDefined)
-            .sort((left, right) => left - right);
-
-        if (isDefined(selectedSeason) && seasonNumbers.includes(selectedSeason)) {
-            return selectedSeason;
-        }
-
-        if (seasonNumbers.includes(1)) {
-            return 1;
-        }
-
-        return seasonNumbers[0] ?? null;
-    }
-
-    private toVisibleResourceState<T>(state: RemoteData<T> | undefined): RemoteData<T> {
-        return !state || state.state === 'notAsked' ? { state: 'loading' } : state;
     }
 }
 
 /** The season's own name, or `Specials` for season 0 and `Season N` otherwise. */
-const toSeasonLabel = (seasonNumber: number, name?: string | null): string =>
+export const toSeasonLabel = (seasonNumber: number, name?: string | null): string =>
     name ?? (seasonNumber === 0 ? 'Specials' : `Season ${seasonNumber}`);
 
 const toSeasonKey = (target: SeasonTarget): string => `${target.seriesId}:${target.seasonNumber}`;
 
-const isSameSeasonTarget = (left: SeasonTarget | null, right: SeasonTarget): boolean =>
-    left?.seriesId === right.seriesId && left.seasonNumber === right.seasonNumber;
+const toSeries = (seriesId: number, media: RemoteData<Movie | TvSeries | null>): TvSeries | null =>
+    media.state === 'success' && media.data && 'seasons' in media.data && media.data.id === seriesId
+        ? media.data
+        : null;

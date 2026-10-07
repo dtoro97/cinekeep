@@ -1,15 +1,15 @@
 <div class="page-container">
     @if (mediaDetail$ | async; as mediaDetail) {
         <app-hero-surface
-            [backdropPath]="mediaDetail.media?.backdropPath ?? null"
-            [alt]="mediaDetail.media?.title ?? ''"
+            [backdropPath]="mediaDetail.backdropPath"
+            [alt]="mediaDetail.backdropAlt"
             variant="integrated"
         >
             @if (mediaDetail.media; as media) {
                 <div class="detail-hero">
                     <div class="detail-hero__poster-column">
                         <app-image class="hero-poster" [src]="media.posterPath" type="media" [alt]="media.title" />
-                        @if (mediaDetail.hero.externalLinks; as externalLinks) {
+                        @if (mediaDetail.externalLinks; as externalLinks) {
                             <app-external-links [externalLinks]="externalLinks" />
                         }
                     </div>
@@ -17,14 +17,14 @@
                     <div class="detail-hero__main">
                         <div class="detail-hero__heading">
                             <p class="text-hero-meta">
-                                @if (media.mediaType === 'movie') {
+                                @if (mediaDetail.isMovie) {
                                     Movie
                                     @if (media.year) {
                                         &#x2022; {{ media.year }}
                                     }
                                 } @else {
                                     TV series
-                                    @if (mediaDetail.hero.tvYearLabel; as tvYearLabel) {
+                                    @if (mediaDetail.tvYearLabel; as tvYearLabel) {
                                         &#x2022; {{ tvYearLabel }}
                                     }
                                 }
@@ -32,7 +32,7 @@
 
                             <h1 class="hero-title text-hero-title">{{ media.title }}</h1>
 
-                            @if (mediaDetail.hero.credit; as credit) {
+                            @if (mediaDetail.heroCredit; as credit) {
                                 <p class="hero-credit text-body">
                                     {{ credit.label }}
                                     @for (person of credit.people; track person.id; let last = $last) {
@@ -47,19 +47,19 @@
                         </div>
 
                         <div class="detail-hero__facts">
-                            @if (mediaDetail.hero.certification.state === 'loading') {
+                            @if (mediaDetail.showCertificationSkeleton) {
                                 <app-skeleton class="hero-certification-skeleton" aria-hidden="true" />
-                            } @else if (mediaDetail.hero.certification.state === 'success' && mediaDetail.hero.certification.data) {
-                                <app-badge [label]="mediaDetail.hero.certification.data" />
+                            } @else if (mediaDetail.certification; as certification) {
+                                <app-badge [label]="certification" />
                             }
 
                             @if (mediaDetail.inCinemas) {
                                 <app-badge label="In cinemas" iconClass="fa-solid fa-film" variant="accent" />
                             }
 
-                            @if (media.mediaType === 'tv' && media.numberOfSeasons) {
+                            @if (mediaDetail.seasonCount; as seasonCount) {
                                 <span class="text-body-sm">
-                                    {{ media.numberOfSeasons | pluralize: 'season' : 'seasons' }}
+                                    {{ seasonCount | pluralize: 'season' : 'seasons' }}
                                 </span>
                             }
 
@@ -81,8 +81,8 @@
                             }
                         </div>
 
-                        <p class="hero-overview text-hero-summary" [class.hero-overview--empty]="!media.overview">
-                            {{ media.overview || "We don't have an overview for this title yet." }}
+                        <p class="hero-overview text-hero-summary" [class.hero-overview--empty]="mediaDetail.isOverviewEmpty">
+                            {{ mediaDetail.overviewText }}
                         </p>
 
                         @if (media.nextEpisode) {
@@ -103,15 +103,10 @@
                             </a>
                         }
 
-                        <app-media-list-actions
-                            [mediaId]="media.id"
-                            [title]="media.title"
-                            [mediaType]="media.mediaType"
-                            [backdropPath]="media.backdropPath"
-                        >
-                            @if (mediaDetail.videos.state === 'loading') {
+                        <app-media-list-actions [media]="media">
+                            @if (mediaDetail.showTrailerSkeleton) {
                                 <app-skeleton class="hero-trailer-skeleton" aria-hidden="true" />
-                            } @else if (mediaDetail.videos.state === 'success' && mediaDetail.videos.data?.trailerKey; as trailerKey) {
+                            } @else if (mediaDetail.trailerKey; as trailerKey) {
                                 <button
                                     matButton="outlined"
                                     class="button--subtle"
@@ -124,8 +119,7 @@
                             }
                         </app-media-list-actions>
 
-                        @if (mediaDetail.hero.watchProviders; as providers) {
-                            @if (providers.providers.length) {
+                        @if (mediaDetail.providers; as providers) {
                                 <div class="provider-preview">
                                     <span class="text-overline">Stream on</span>
 
@@ -149,10 +143,10 @@
                                             </a>
                                         }
 
-                                        @if (providers.hiddenCount && providers.link) {
+                                        @if (mediaDetail.providersMoreLink; as moreLink) {
                                             <a
                                                 class="provider-preview-more text-caption"
-                                                [href]="providers.link"
+                                                [href]="moreLink"
                                                 target="_blank"
                                                 rel="noopener"
                                             >
@@ -172,23 +166,22 @@
                                         </a>
                                     }
                                 </div>
-                            }
                         }
                     </div>
 
                     <aside class="detail-hero__side" aria-label="Ratings">
-                        @if (media.voteAverage || mediaDetail.hero.canRateTitle) {
+                        @if (mediaDetail.showRatings) {
                             <div class="hero-ratings">
                                 <app-tmdb-rating prominent [value]="media.voteAverage" [voteCount]="media.voteCount" />
 
-                                @if (mediaDetail.hero.canRateTitle) {
+                                @if (mediaDetail.canRateTitle) {
                                     <app-user-rating
                                         class="hero-user-rating hero-user-rating--with-divider"
-                                        [currentRating]="mediaDetail.hero.userRating.currentRating"
-                                        [disabled]="mediaDetail.hero.userRating.disabled"
-                                        [loading]="mediaDetail.hero.userRating.loading"
-                                        [pending]="mediaDetail.hero.userRating.pending"
-                                        (ratingClick)="openUserRatingDialog(media.id, media.mediaType, media.title)"
+                                        [currentRating]="mediaDetail.userRating.currentRating"
+                                        [disabled]="mediaDetail.userRating.disabled"
+                                        [loading]="mediaDetail.userRating.loading"
+                                        [pending]="mediaDetail.userRating.pending"
+                                        (ratingClick)="openUserRatingDialog(mediaDetail.ratingRequest)"
                                     />
                                 }
                             </div>
@@ -238,7 +231,7 @@
         </app-hero-surface>
 
         <div class="page-sections">
-            @if (mediaDetail.creditsSummary.state !== 'success' || mediaDetail.creditsSummary.data) {
+            @if (mediaDetail.showCredits) {
                 <app-page-section subtitle="Top Cast">
                     <a section-controls class="section-link text-body-sm" [routerLink]="['cast']">
                         All cast & crew
@@ -248,25 +241,14 @@
                     <app-media-credits-summary [data]="mediaDetail.creditsSummary" />
                 </app-page-section>
             }
-            @if (mediaDetail.collection.state === 'success' && mediaDetail.collection.data; as collection) {
+            @if (mediaDetail.collection; as collection) {
                 <a class="collection" [routerLink]="['/collection', collection.id]">
                     <app-image class="collection-backdrop" [src]="collection.backdrop_path" params="w1280" />
                     <div class="collection-overlay"></div>
-                    <div class="collection-content u-gap-2">
+                    <div class="collection-content">
                         <h2 class="text-title">Part of the {{ collection.name }}</h2>
-                        @if (collection.parts?.length) {
-                            <p class="text-body-sm">
-                                Includes
-                                @for (part of collection.parts; track part.id; let last = $last) {
-                                    @if (last && collection.parts!.length > 1) {
-                                        and
-                                    }
-                                    {{ part.title }}
-                                    @if (!last && collection.parts!.length > 2) {
-                                        ,
-                                    }
-                                }
-                            </p>
+                        @if (mediaDetail.collectionIncludes; as collectionIncludes) {
+                            <p class="text-body-sm">{{ collectionIncludes }}</p>
                         }
                     </div>
                 </a>
@@ -283,46 +265,42 @@
                 </app-page-section>
             }
 
-            @if (mediaDetail.videos.state === 'loading') {
+            @if (mediaDetail.showVideosSkeleton) {
                 <app-page-section subtitle="Videos">
                     <app-videos-grid [state]="{ state: 'loading' }" />
                 </app-page-section>
-            } @else if (mediaDetail.videos.state === 'success' && mediaDetail.videos.data; as videos) {
+            } @else if (mediaDetail.videos; as videos) {
                 <app-page-section subtitle="Videos">
-                    @if (videos.totalCount > 0) {
-                        <a section-controls class="section-link text-body-sm" [routerLink]="['videos']">
-                            Browse all videos ({{ videos.totalCount }})
-                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                        </a>
-                    }
+                    <a section-controls class="section-link text-body-sm" [routerLink]="['videos']">
+                        Browse all videos ({{ videos.totalCount }})
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </a>
 
                     <app-videos-grid [state]="videos.state" />
                 </app-page-section>
             }
 
-            @if (mediaDetail.photos.state === 'loading') {
+            @if (mediaDetail.showPhotosSkeleton) {
                 <app-page-section subtitle="Photos">
                     <app-photos-preview [state]="{ state: 'loading' }" />
                 </app-page-section>
-            } @else if (mediaDetail.photos.state === 'success' && mediaDetail.photos.data; as photos) {
+            } @else if (mediaDetail.photos; as photos) {
                 <app-page-section subtitle="Photos">
-                    @if (photos.totalCount > 0) {
-                        <a section-controls class="section-link text-body-sm" [routerLink]="['photos']">
-                            Browse all photos ({{ photos.totalCount }})
-                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                        </a>
-                    }
+                    <a section-controls class="section-link text-body-sm" [routerLink]="['photos']">
+                        Browse all photos ({{ photos.totalCount }})
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </a>
 
                     <app-photos-preview
                         [state]="photos.state"
                         [totalCount]="photos.totalCount"
-                        (photoClick)="openPhotoViewer($event)"
+                        (photoClick)="openPhotoViewer($event, photos.allPhotos, photos.link)"
                         (moreClick)="openPhotosPage()"
                     />
                 </app-page-section>
             }
 
-            @if (mediaDetail.reviews.state === 'loading') {
+            @if (mediaDetail.showReviewsSkeleton) {
                 <app-page-section subtitle="Reviews">
                     <app-skeleton class="reviews-summary-skeleton" />
                     <div class="reviews-preview-grid">
@@ -331,59 +309,39 @@
                         }
                     </div>
                 </app-page-section>
-            } @else if (mediaDetail.reviews.state === 'success' && mediaDetail.reviews.data; as reviews) {
-                @if (reviews.totalResults || reviews.previewReviews.length) {
-                    <app-page-section subtitle="Reviews">
-                        <a section-controls class="section-link text-body-sm" routerLink="reviews">
-                            Browse all reviews ({{ reviews.totalResults || reviews.previewReviews.length }})
-                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                        </a>
+            } @else if (mediaDetail.reviews; as reviews) {
+                <app-page-section subtitle="Reviews">
+                    <a section-controls class="section-link text-body-sm" routerLink="reviews">
+                        Browse all reviews ({{ reviews.count }})
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </a>
 
-                        <div class="reviews-preview-grid">
-                            @for (review of reviews.previewReviews; track review.id) {
-                                <app-review-card
-                                    [review]="review"
-                                    variant="preview"
-                                    [reviewLink]="review.id ? ['reviews', review.id] : null"
-                                />
-                            }
-                        </div>
-                    </app-page-section>
-                }
+                    <div class="reviews-preview-grid">
+                        @for (item of reviews.items; track item.review.id) {
+                            <app-review-card [review]="item.review" variant="preview" [reviewLink]="item.link" />
+                        }
+                    </div>
+                </app-page-section>
             }
 
-            @if (mediaDetail.recommendations.state === 'loading') {
+            @if (mediaDetail.showRecommendationsSkeleton) {
                 <app-page-section subtitle="More Like This">
                     <app-media-carousel-panel [state]="{ state: 'loading' }" [showRating]="true" [showDate]="true" />
                 </app-page-section>
-            } @else if (mediaDetail.recommendations.state === 'success' && mediaDetail.recommendations.data; as recommendations) {
+            } @else if (mediaDetail.recommendations; as recommendations) {
                 <app-page-section subtitle="More Like This">
-                    <app-media-carousel-panel [state]="recommendations.state" [showRating]="true" [showDate]="true" />
+                    <app-media-carousel-panel [state]="recommendations" [showRating]="true" [showDate]="true" />
                 </app-page-section>
             }
 
             @if (mediaDetail.media; as media) {
-                @if (mediaDetail.keywords.state === 'success' && mediaDetail.keywords.data.length) {
+                @if (mediaDetail.hasKeywords) {
                     <app-page-section subtitle="Keywords">
-                        <app-keywords-list [keywords]="mediaDetail.keywords.data" [mediaType]="media.mediaType" />
+                        <app-keywords-list [keywords]="mediaDetail.keywords" [mediaType]="media.mediaType" />
                     </app-page-section>
                 }
 
-                @if (
-                    media.releaseDate ||
-                    media.firstAirDate ||
-                    media.lastAirDate ||
-                    media.runtime ||
-                    media.budget ||
-                    media.revenue ||
-                    media.numberOfSeasons ||
-                    media.numberOfEpisodes ||
-                    media.status ||
-                    media.languages.length ||
-                    media.originCountries.length ||
-                    media.networks?.length ||
-                    media.productionCompanies.length
-                ) {
+                @if (mediaDetail.showDetails) {
                     <app-page-section subtitle="Details">
                         <dl class="info-grid" aria-label="Media details">
                             @if (media.releaseDate) {
@@ -449,41 +407,34 @@
                                 </div>
                             }
 
-                            @if (media.languages.length) {
+                            @if (mediaDetail.languagesText; as languagesText) {
                                 <div class="info-grid__item">
                                     <dt class="info-grid__label text-card-meta">Languages</dt>
-                                    <dd class="info-grid__value text-body-strong">{{ media.languages.join(', ') }}</dd>
+                                    <dd class="info-grid__value text-body-strong">{{ languagesText }}</dd>
                                 </div>
                             }
 
-                            @if (media.originCountries.length) {
+                            @if (mediaDetail.originCountriesText; as originCountriesText) {
                                 <div class="info-grid__item">
                                     <dt class="info-grid__label text-card-meta">Origin country</dt>
                                     <dd class="info-grid__value text-body-strong">
-                                        {{ media.originCountries.join(', ') }}
+                                        {{ originCountriesText }}
                                     </dd>
                                 </div>
                             }
 
-                            @if (media.networks?.length) {
+                            @if (mediaDetail.networksText; as networksText) {
                                 <div class="info-grid__item">
                                     <dt class="info-grid__label text-card-meta">Networks</dt>
-                                    <dd class="info-grid__value text-body-strong">
-                                        @for (network of media.networks; track network.id; let i = $index) {
-                                            <span>{{ network.name }}</span>
-                                            @if (i !== media.networks!.length - 1) {
-                                                <span>, </span>
-                                            }
-                                        }
-                                    </dd>
+                                    <dd class="info-grid__value text-body-strong">{{ networksText }}</dd>
                                 </div>
                             }
 
-                            @if (media.productionCompanies.length) {
+                            @if (mediaDetail.hasProductionCompanies) {
                                 <div class="info-grid__item">
                                     <dt class="info-grid__label text-card-meta">Production companies</dt>
                                     <dd class="info-grid__value text-body-strong">
-                                        @for (company of media.productionCompanies; track company.id; let i = $index) {
+                                        @for (company of media.productionCompanies; track company.id; let last = $last) {
                                             <a
                                                 class="info-grid__link"
                                                 [routerLink]="['/discover']"
@@ -494,7 +445,7 @@
                                                     direction: 'desc',
                                                     votes: 'any',
                                                 }"
-                                            >{{ company.label }}</a>@if (i !== media.productionCompanies.length - 1) {<span>, </span>}
+                                            >{{ company.label }}</a>@if (!last) {<span>, </span>}
                                         }
                                     </dd>
                                 </div>

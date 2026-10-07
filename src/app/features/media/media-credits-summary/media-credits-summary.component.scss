@@ -6,6 +6,9 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-2) var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 .cast-member {

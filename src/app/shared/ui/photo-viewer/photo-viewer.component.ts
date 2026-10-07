@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, HostListener, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 
@@ -15,17 +15,8 @@ import { PhotoViewerStoreService } from './photo-viewer-store.service';
 export interface PhotoViewerData {
     readonly images: readonly ViewerImage[];
     readonly activeIndex: number;
-    readonly photosLink?: RouteCommands;
+    readonly photosLink?: RouteCommands | null;
 }
-
-export const PHOTO_VIEWER_DIALOG_CONFIG: MatDialogConfig = {
-    panelClass: 'photo-viewer-panel',
-    maxWidth: '100vw',
-    maxHeight: '100vh',
-    width: '100vw',
-    height: '100vh',
-    autoFocus: false,
-};
 
 @Component({
     selector: 'app-photo-viewer',

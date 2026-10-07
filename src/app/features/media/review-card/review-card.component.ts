@@ -5,7 +5,7 @@ import { marked } from 'marked';
 
 import { Review, ReviewDetails } from '../../../api';
 import { ImagePipe, RatingComponent, RouteCommands } from '../../../shared';
-import { toReviewPreviewText } from '../mappers/review-text.mapper';
+import { toReviewPreviewText } from './review-text.mapper';
 
 export type ReviewCardVariant = 'preview' | 'list' | 'detail';
 type ReviewCardItem = Review | ReviewDetails;

@@ -1,5 +1,5 @@
 @if (data.state === 'loading') {
-    <ul class="cast-grid u-list-none" aria-hidden="true">
+    <ul class="cast-grid" aria-hidden="true">
         @for (slot of skeletonCount | repeat; track slot) {
             <li class="cast-member cast-member--skeleton">
                 <app-skeleton class="cast-member__avatar" />
@@ -12,12 +12,17 @@
     </ul>
 } @else if (data.state === 'success') {
     @if (data.data; as credits) {
-        @if (credits.topCast.length) {
-            <ul class="cast-grid u-list-none">
+        @if (credits.hasTopCast) {
+            <ul class="cast-grid">
                 @for (person of credits.topCast; track person.id) {
                     <li>
                         <a class="cast-member" [routerLink]="['/name', person.id]">
-                            <app-image class="cast-member__avatar" [src]="person.imagePath" [alt]="person.name" type="person" />
+                            <app-image
+                                class="cast-member__avatar"
+                                [src]="person.imagePath"
+                                [alt]="person.name"
+                                type="person"
+                            />
                             <span class="cast-member__text">
                                 <span class="cast-member__name text-card-title">{{ person.name }}</span>
                                 @if (person.subtitle) {
@@ -30,23 +35,23 @@
             </ul>
         }
 
-        @if (credits.isSeries && credits.directors.length) {
+        @if (credits.episodeDirectors; as directors) {
             <div class="list">
                 <div class="row">
                     <span class="label text-caption">Episode directors</span>
 
                     <span class="names text-body-sm">
-                        @for (person of credits.directors.slice(0, 5); track person.id; let i = $index) {
+                        @for (person of directors.visible; track person.id; let last = $last) {
                             <a class="link" [routerLink]="['/name', person.id]">
                                 {{ person.name }}
                             </a>
-                            @if (i < (credits.directors.length > 5 ? 4 : credits.directors.length - 1)) {
+                            @if (!last) {
                                 <span class="separator"> &#x2022; </span>
                             }
                         }
 
-                        @if (credits.directors.length > 5) {
-                            <span class="text-caption"> +{{ credits.directors.length - 5 }} more </span>
+                        @if (directors.hiddenCount) {
+                            <span class="text-caption"> +{{ directors.hiddenCount }} more </span>
                         }
                     </span>
                 </div>
