@@ -1,0 +1,53 @@
+@if (loading) {
+    <div class="days" aria-hidden="true">
+        @for (slot of 2 | repeat; track $index) {
+            <div class="day">
+                <app-skeleton class="day__date-skeleton" />
+                <div class="day__films">
+                    @for (film of 2 | repeat; track $index) {
+                        <div class="film">
+                            <app-skeleton class="film__frame" />
+                            <app-skeleton class="film__title-skeleton" />
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+} @else if (showEmpty) {
+    <app-empty-state
+        iconClass="fa-solid fa-film"
+        iconStyle="plain"
+        text="No theatrical releases are listed for the next two weeks."
+    />
+} @else {
+    <ol class="days">
+        @for (day of days; track day.date) {
+            <li class="day">
+                <h3 class="day__date">
+                    <span class="day__day text-display-sm">{{ day.date | date: 'd MMM' }}</span>
+                    <span class="text-card-meta">{{ day.date | date: 'EEEE' }}</span>
+                </h3>
+
+                <ul class="day__films">
+                    @for (film of day.items; track film.id) {
+                        <li>
+                            <a class="film" [routerLink]="['/title', film.id, film.mediaType]">
+                                <span class="film__frame">
+                                    <app-image
+                                        class="film__still"
+                                        type="media"
+                                        params="w780"
+                                        [src]="film.backdropPath"
+                                        alt=""
+                                    />
+                                </span>
+                                <span class="film__title text-card-title">{{ film.title }}</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+    </ol>
+}

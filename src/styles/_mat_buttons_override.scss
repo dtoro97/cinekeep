@@ -15,12 +15,12 @@
     --mat-button-filled-pressed-state-layer-opacity: 0.1;
 
     --mat-button-outlined-container-shape: var(--control-radius);
-    --mat-button-outlined-outline-color: var(--control-accent-border);
-    --mat-button-outlined-label-text-color: var(--control-accent-border);
+    --mat-button-outlined-outline-color: var(--control-subtle-border);
+    --mat-button-outlined-label-text-color: var(--text-primary);
     --mat-button-outlined-label-text-weight: var(--weight-medium);
-    --mat-button-outlined-hover-state-layer-opacity: 0.2;
+    --mat-button-outlined-hover-state-layer-opacity: 0;
     --mat-button-outlined-focus-state-layer-opacity: 0;
-    --mat-button-outlined-pressed-state-layer-opacity: 0.2;
+    --mat-button-outlined-pressed-state-layer-opacity: 0;
 
     --mat-button-text-container-shape: var(--control-radius);
     --mat-button-text-label-text-color: var(--text-primary);
@@ -32,11 +32,15 @@
     --mat-button-text-pressed-state-layer-opacity: 0;
 
     color: var(--text-primary);
-    transition: color var(--motion-base);
+    transition:
+        color var(--motion-base),
+        background-color var(--motion-base);
 }
 
+// Text buttons are already white, so hover shows a soft surface instead of a colour change.
 .mat-mdc-button.text-button:not(:disabled):is(:hover, :focus-visible, :active) {
-    color: var(--text-accent);
+    color: var(--text-hover);
+    background: var(--control-subtle-surface-hover);
 }
 
 .mat-mdc-button.text-button:not(:disabled) .mdc-button__label {
@@ -67,15 +71,10 @@
     outline-offset: 2px;
 }
 
-// Neutral secondary action that sits beside a filled primary.
-.mat-mdc-outlined-button.button--subtle {
+// Outlined buttons are the neutral secondary action; gold stays with the one filled primary.
+.mat-mdc-outlined-button {
     gap: var(--space-2);
     background: var(--control-subtle-surface);
-    --mat-button-outlined-label-text-color: var(--text-primary);
-    --mat-button-outlined-outline-color: var(--control-subtle-border);
-    --mat-button-outlined-hover-state-layer-opacity: 0;
-    --mat-button-outlined-focus-state-layer-opacity: 0;
-    --mat-button-outlined-pressed-state-layer-opacity: 0;
     transition: background-color var(--motion-base);
 
     &:not(:disabled):hover {

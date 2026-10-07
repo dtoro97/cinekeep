@@ -1,0 +1,31 @@
+@if (loading) {
+    <ul class="tonight" aria-hidden="true">
+        @for (slot of skeletonCount | repeat; track slot) {
+            <li class="tonight__row">
+                <app-skeleton class="tonight__poster" />
+                <span class="tonight__body">
+                    <app-skeleton class="tonight__title-skeleton" />
+                    <app-skeleton class="tonight__meta-skeleton" />
+                </span>
+            </li>
+        }
+    </ul>
+} @else if (showEmpty) {
+    <app-empty-state iconClass="fa-solid fa-tv" iconStyle="plain" text="No TV series are listed as airing today." />
+} @else {
+    <ul class="tonight">
+        @for (item of items; track item.id) {
+            <li>
+                <a class="tonight__row" [routerLink]="['/title', item.id, item.mediaType]">
+                    <app-image class="tonight__poster" type="media" params="w185" [src]="item.thumb" alt="" />
+                    <span class="tonight__body">
+                        <span class="tonight__title text-card-title">{{ item.title }}</span>
+                        @if (item.rating) {
+                            <app-rating class="tonight__rating" [value]="item.rating" />
+                        }
+                    </span>
+                </a>
+            </li>
+        }
+    </ul>
+}

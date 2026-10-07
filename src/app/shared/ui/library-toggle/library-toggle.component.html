@@ -20,6 +20,7 @@
             type="button"
             class="library-toggle"
             [class.library-toggle--active]="libraryToggle.isActive"
+            [class.library-toggle--primary]="primary"
             [disabled]="libraryToggle.isDisabled"
             [attr.aria-label]="libraryToggle.ariaLabel"
             (click)="toggle($event)"

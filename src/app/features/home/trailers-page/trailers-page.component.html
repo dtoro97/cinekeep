@@ -1,8 +1,14 @@
 @if (trailers$ | async; as trailers) {
     <div class="page-container">
         @if (trailers.featured; as featured) {
-            <app-hero-spotlight badge="Featured trailer" backLink="/" backLabel="Home" [spotlight]="featured.spotlight">
-                <a matButton="filled" [href]="featured.href" target="_blank" rel="noopener noreferrer">
+            <app-hero-spotlight backLink="/" backLabel="Home" [spotlight]="featured.spotlight">
+                <a
+                    matButton="filled"
+                    class="hero-action"
+                    [href]="featured.href"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
                     <i class="fa-solid fa-play" aria-hidden="true"></i>
                     Play trailer
                 </a>
@@ -12,16 +18,15 @@
         }
 
         <div class="page-main">
-            <section class="trailers">
-                <header class="trailers__toolbar">
-                    <app-toggle-group
-                        [options]="trailers.feedOptions"
-                        [selectedValue]="trailers.feedType"
-                        (selected)="setFeedType($event)"
-                    />
-                </header>
+            <app-page-section title="Trailers">
+                <app-toggle-group
+                    section-controls
+                    [options]="trailers.feedOptions"
+                    [selectedValue]="trailers.feedType"
+                    (selected)="setFeedType($event)"
+                />
 
-                <ul class="trailers__grid">
+                <ul class="trailers">
                     @for (trailer of trailers.trailers; track trailer.id) {
                         <li>
                             <app-video-card [item]="trailer" />
@@ -30,18 +35,15 @@
 
                     @for (slot of trailers.skeletonCount | repeat; track slot) {
                         <li class="thumb" aria-hidden="true">
-                            <div class="thumb__frame aspect-landscape">
-                                <app-skeleton class="thumb__art" />
-                            </div>
-                            <app-skeleton class="thumb__line thumb__line--primary" />
-                            <app-skeleton class="thumb__line thumb__line--secondary" />
-                            <app-skeleton class="thumb__line thumb__line--tertiary" />
+                            <app-skeleton class="thumb__art aspect-landscape" />
+                            <app-skeleton class="thumb__line thumb__line--title" />
+                            <app-skeleton class="thumb__line thumb__line--meta" />
                         </li>
                     }
                 </ul>
 
                 @if (trailers.showMore) {
-                    <div class="trailers__more">
+                    <div class="trailers-more">
                         <button
                             mat-stroked-button
                             type="button"
@@ -52,7 +54,7 @@
                         </button>
                     </div>
                 }
-            </section>
+            </app-page-section>
         </div>
     </div>
 }

@@ -58,8 +58,8 @@ interface TrailersState {
 }
 
 const FEED_OPTIONS: SelectOption<TrailerFeedType>[] = [
-    { label: 'Trending trailers', value: 'trending' },
-    { label: 'New trailers', value: 'new' },
+    { label: 'Trending', value: 'trending' },
+    { label: 'New', value: 'new' },
 ];
 
 const TRAILER_CONTENT_REGION = 'US';
@@ -82,12 +82,14 @@ const INITIAL_STATE: TrailersState = {
 export class TrailersStoreService extends ComponentStore<TrailersState> {
     readonly trailers$ = this.select(({ feedType, feeds, featured }) => {
         const { trailers, pendingSeeds } = feeds[feedType];
+        const featuredTrailer = remoteData(feeds.trending.trailers, [])[0] ?? remoteData(featured, null);
 
         return {
             feedType,
             feedOptions: FEED_OPTIONS,
-            featured: remoteData(feeds.trending.trailers, [])[0] ?? remoteData(featured, null),
-            trailers: remoteData(trailers, []),
+            featured: featuredTrailer,
+            // The featured trailer already leads the page as the hero, so the grid leaves it out.
+            trailers: remoteData(trailers, []).filter(({ id }) => id !== featuredTrailer?.id),
             skeletonCount: trailers.state === 'loading' || trailers.state === 'loading-more' ? PAGE_SIZE : 0,
             showMore: pendingSeeds.length > 0 || trailers.state === 'loading-more',
             isLoadingMore: trailers.state === 'loading-more',

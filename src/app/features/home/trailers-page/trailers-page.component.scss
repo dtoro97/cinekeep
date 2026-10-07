@@ -1,28 +1,22 @@
 @use 'breakpoints' as *;
 
+.hero-action {
+    min-height: var(--control-height-xl);
+}
+
 .trailers {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-}
-
-.trailers__toolbar {
-    display: flex;
-    align-items: center;
-}
-
-.trailers__grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-5);
+    gap: var(--space-8) var(--space-6);
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.trailers__more {
+.trailers-more {
     display: flex;
     justify-content: center;
+    padding-top: var(--space-6);
 }
 
 .thumb {
@@ -30,46 +24,37 @@
     flex-direction: column;
     gap: var(--space-2);
 
-    &__frame {
-        width: 100%;
-    }
-
     &__art {
         width: 100%;
-        height: 100%;
+        margin-bottom: var(--space-1);
         --skeleton-height: auto;
-        --skeleton-radius: var(--radius-lg);
-        border-radius: var(--radius-lg);
+        --skeleton-radius: var(--radius-media);
     }
 
     &__line {
-        height: 1rem;
-        border-radius: var(--radius-sm);
+        --skeleton-radius: var(--radius-sm);
 
-        &--primary {
-            width: 75%;
-            height: 1rem;
+        &--title {
+            width: 60%;
+            --skeleton-height: 1.0625rem;
         }
 
-        &--secondary {
-            width: 65%;
-        }
-
-        &--tertiary {
-            width: 40%;
+        &--meta {
+            width: 45%;
+            --skeleton-height: 0.875rem;
         }
     }
 }
 
 @include content-md() {
-    .trailers__grid {
+    .trailers {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @include mobile() {
-    .trailers__grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-4);
+    .trailers {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-6);
     }
 }

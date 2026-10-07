@@ -16,16 +16,13 @@
     padding-block: var(--space-10) var(--space-10);
 
     &__content {
-        max-width: 600px;
+        max-width: 56rem;
     }
 }
 
-.badge {
-    max-width: 36rem;
-}
-
+// Wide enough that long titles break into two lines, not one word per line.
 .title {
-    max-width: min(14ch, 560px);
+    max-width: 16ch;
     font-size: var(--text-5xl);
     text-shadow: var(--shadow-text-hero);
 }
@@ -36,6 +33,14 @@
     align-items: center;
     flex-wrap: wrap;
     gap: var(--space-2);
+}
+
+.actions--watchlist-first app-library-toggle {
+    order: -1;
+}
+
+.meta app-rating {
+    --rating-font-size: var(--text-md);
 }
 
 .meta-divider {
@@ -63,12 +68,6 @@
         max-width: var(--layout-content-max-width);
         margin: 0 auto;
         padding: 0 var(--space-6) var(--space-10);
-    }
-
-    &__badge {
-        width: 90px;
-        height: var(--badge-height);
-        border-radius: var(--badge-radius);
     }
 
     &__title {

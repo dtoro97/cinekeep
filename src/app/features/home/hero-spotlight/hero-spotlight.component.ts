@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import {
-    BadgeComponent,
     CardItem,
     HeroSurfaceComponent,
     LibraryToggleComponent,
@@ -38,7 +37,6 @@ export const toSpotlightItem = (card: CardItem): SpotlightItem => ({
     selector: 'app-hero-spotlight',
     imports: [
         RouterLink,
-        BadgeComponent,
         HeroSurfaceComponent,
         LibraryToggleComponent,
         RatingComponent,
@@ -50,7 +48,7 @@ export const toSpotlightItem = (card: CardItem): SpotlightItem => ({
 })
 export class HeroSpotlightComponent {
     @Input() loading = false;
-    @Input() badge = '';
+    @Input() watchlistPrimary = false;
     @Input() spotlight: SpotlightItem | null = null;
     @Input() backLink: string | null = null;
     @Input() backLabel = '';
