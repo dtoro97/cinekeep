@@ -1,0 +1,61 @@
+<div class="page-container">
+    @if (mediaVideos$ | async; as mediaVideos) {
+        <app-sub-page-header
+            [backdropPath]="mediaVideos.media?.backdropPath"
+            [parentTitle]="mediaVideos.media?.title"
+            [backLink]="['../']"
+            pageTitle="Videos"
+        />
+
+        <main class="page-main">
+            @if (mediaVideos.showLoading) {
+                <section class="videos">
+                    <app-browse-toolbar class="videos__toolbar">
+                        <app-skeleton start class="videos__count-skeleton" />
+                        <app-skeleton end class="videos__sort-skeleton" />
+                    </app-browse-toolbar>
+
+                    <div class="videos__grid">
+                        @for (i of skeletonCount | repeat; track i) {
+                            <div class="videos__card-skeleton">
+                                <app-skeleton class="videos__card-media-skeleton" />
+                                <app-skeleton class="videos__card-line-skeleton videos__card-line-skeleton--title" />
+                                <app-skeleton class="videos__card-line-skeleton videos__card-line-skeleton--meta" />
+                                <app-skeleton class="videos__card-line-skeleton videos__card-line-skeleton--short" />
+                            </div>
+                        }
+                    </div>
+                </section>
+            } @else if (mediaVideos.hasVideos) {
+                <section class="videos">
+                    <app-browse-toolbar class="videos__toolbar">
+                        <span start class="text-caption">
+                            {{ mediaVideos.videoCount | pluralize: "video" }}
+                        </span>
+                        <app-sort-button
+                            end
+                            [options]="mediaVideos.sortOptions"
+                            [selectedValue]="mediaVideos.sortField"
+                            [direction]="mediaVideos.sortDirection"
+                            (sortChange)="setSortField($event)"
+                            (directionToggle)="toggleSortDirection()"
+                        />
+                    </app-browse-toolbar>
+
+                    <div class="videos__grid">
+                        @for (item of mediaVideos.videoItems; track item.id) {
+                            <app-video-card [item]="item" />
+                        }
+                    </div>
+                </section>
+            } @else {
+                <section class="videos__empty">
+                    <app-empty-state
+                        iconClass="fa-regular fa-circle-play"
+                        text="No trailers or clips are available for this title yet."
+                    />
+                </section>
+            }
+        </main>
+    }
+</div>

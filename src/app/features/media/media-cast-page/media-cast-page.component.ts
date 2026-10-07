@@ -5,20 +5,21 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { filter, map, tap } from 'rxjs';
+
+import { filter } from 'rxjs';
 
 import {
     BrowseToolbarComponent,
     EmptyStateComponent,
+    isDefined,
     SeoService,
     SkeletonComponent,
     SubPageHeaderComponent,
     ToggleGroupComponent,
-    isDefined,
 } from '../../../shared';
-import { CastCrewGridComponent } from '../cast-crew-grid/cast-crew-grid.component';
 import { toMediaSectionSeoMetadata } from '../media-seo';
 import { MediaStoreService } from '../media-store.service';
+import { CastCrewGridComponent } from './cast-crew-grid/cast-crew-grid.component';
 import { CreditSection, MediaCastPageStoreService } from './media-cast-page-store.service';
 
 @Component({
@@ -42,38 +43,35 @@ import { CreditSection, MediaCastPageStoreService } from './media-cast-page-stor
     styleUrl: './media-cast-page.component.scss',
 })
 export class MediaCastPageComponent {
-    readonly castCrew$ = this.mediaCastPageStoreService.castCrew$;
+    readonly castCrew$ = this.store.castCrew$;
 
     constructor(
-        mediaStoreService: MediaStoreService,
-        private readonly mediaCastPageStoreService: MediaCastPageStoreService,
+        private readonly store: MediaCastPageStoreService,
+        mediaStore: MediaStoreService,
         seoService: SeoService,
     ) {
-        mediaStoreService.mediaDetailsState$
-            .pipe(
-                takeUntilDestroyed(),
-                map((state) => (state.state === 'success' ? state.data : null)),
-                filter(isDefined),
-                tap((media) => seoService.setPage(toMediaSectionSeoMetadata(media, 'Cast & Crew'))),
-            )
-            .subscribe();
+        this.store.load$().pipe(takeUntilDestroyed()).subscribe();
+
+        mediaStore.mediaDetails$
+            .pipe(filter(isDefined), takeUntilDestroyed())
+            .subscribe((media) => seoService.setPage(toMediaSectionSeoMetadata(media, 'Cast & Crew')));
     }
 
-    onSectionChange(section: CreditSection): void {
-        this.mediaCastPageStoreService.setSection(section);
+    setSection(section: CreditSection): void {
+        this.store.setSection(section);
     }
 
-    onDepartmentChange(department: string): void {
-        this.mediaCastPageStoreService.setDepartment(department);
+    setDepartment(department: string): void {
+        this.store.setDepartment(department);
     }
 
-    onQueryInput(event: Event): void {
+    setQuery(event: Event): void {
         if (event.target instanceof HTMLInputElement) {
-            this.mediaCastPageStoreService.setQuery(event.target.value);
+            this.store.setQuery(event.target.value);
         }
     }
 
     clearQuery(): void {
-        this.mediaCastPageStoreService.setQuery('');
+        this.store.setQuery('');
     }
 }

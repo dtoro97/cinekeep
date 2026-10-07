@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 import { ImageComponent, MEDIA_TYPE_LABEL, SkeletonComponent } from '../../../shared';
-import { MediaDetails } from '../models/media-details.model';
+import { MediaDetails } from '../media-store.service';
 
 @Component({
     selector: 'app-review-media-summary',

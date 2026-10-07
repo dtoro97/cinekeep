@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 import { Observable, map } from 'rxjs';
 
-import { ImageList } from '../../api';
 import {
     IMAGE_LANGUAGE_FALLBACK,
     loadCachedResource$,
@@ -46,19 +45,14 @@ export class MediaImagesStoreService extends ComponentStore<MediaImagesState> {
             fetch: () =>
                 this.mediaApiService
                     .getImages$(target, IMAGE_LANGUAGE_FALLBACK, this.localeStore.language())
-                    .pipe(map((images) => this.toViewerImages(images.backdrops ?? [], images.posters ?? []))),
+                    .pipe(
+                        map(({ backdrops, posters }): ViewerImage[] => [
+                            ...(backdrops ?? []).map((image) => ({ ...image, photoType: 'backdrop' as const })),
+                            ...(posters ?? []).map((image) => ({ ...image, photoType: 'poster' as const })),
+                        ]),
+                    ),
             patch: (images) => this.patchState({ images }),
             fallback: [],
         });
-    }
-
-    private toViewerImages(
-        backdrops: NonNullable<ImageList['backdrops']>,
-        posters: NonNullable<ImageList['posters']>,
-    ): ViewerImage[] {
-        return [
-            ...backdrops.map((image) => ({ ...image, photoType: 'backdrop' as const })),
-            ...posters.map((image) => ({ ...image, photoType: 'poster' as const })),
-        ];
     }
 }

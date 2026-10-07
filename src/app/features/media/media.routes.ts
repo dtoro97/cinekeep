@@ -1,11 +1,11 @@
 import { Routes } from '@angular/router';
-import { EpisodeDetailComponent } from './episode-detail-page/episode-detail.component';
+import { EpisodeDetailPageComponent } from './episode-detail-page/episode-detail-page.component';
 import { SeasonDetailPageComponent } from './season-detail-page/season-detail-page.component';
 import { MediaWrapperComponent } from './media-wrapper/media-wrapper.component';
-import { VideosPageComponent } from './videos-page/videos-page.component';
+import { MediaVideosPageComponent } from './media-videos-page/media-videos-page.component';
 import { MediaCastPageComponent } from './media-cast-page/media-cast-page.component';
-import { MediaPhotosPageComponent } from './photos-page/media-photos-page.component';
-import { MediaReviewsPageComponent } from './reviews-page/reviews-page.component';
+import { MediaPhotosPageComponent } from './media-photos-page/media-photos-page.component';
+import { MediaReviewsPageComponent } from './media-reviews-page/media-reviews-page.component';
 import { ReviewDetailPageComponent } from './review-detail-page/review-detail-page.component';
 import { SeasonPhotosPageComponent } from './season-photos-page/season-photos-page.component';
 import { EpisodePhotosPageComponent } from './episode-photos-page/episode-photos-page.component';
@@ -42,7 +42,7 @@ export const mediaRoutes: Routes = [
             },
             {
                 path: 'episodes/:seasonNumber/:episodeNumber',
-                component: EpisodeDetailComponent,
+                component: EpisodeDetailPageComponent,
             },
             {
                 path: 'episodes/:seasonNumber',
@@ -50,7 +50,7 @@ export const mediaRoutes: Routes = [
             },
             {
                 path: 'videos',
-                component: VideosPageComponent,
+                component: MediaVideosPageComponent,
             },
             {
                 path: 'photos',

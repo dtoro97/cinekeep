@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { Router, RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 
-import { filter, switchMap, tap } from 'rxjs';
+import { EMPTY, distinctUntilChanged, map, switchMap } from 'rxjs';
 
 import { MediaImagesStoreService } from '../media-images-store.service';
 import { MediaCreditsStoreService } from '../media-credits-store.service';
@@ -10,11 +10,10 @@ import { MediaReviewsStoreService } from '../media-reviews-store.service';
 import { MediaSeasonsStoreService } from '../media-seasons-store.service';
 import { MediaStoreService } from '../media-store.service';
 import { MediaVideoStoreService } from '../media-video-store.service';
-import { MediaDetailActionsStore } from '../media-detail-actions-store.service';
-import { EpisodeDetailStoreService } from '../episode-detail-page/episode-detail-store.service';
+import { MediaDetailActionsStoreService } from '../media-detail-actions-store.service';
+import { EpisodeDetailStoreService } from '../episode-detail-store.service';
 import { MediaDetailStoreService } from '../media-detail-store.service';
-import { isDefined } from '../../../shared';
-import { toMediaTarget } from '../media-target';
+import { isSameMediaTarget, toMediaTarget } from '../media-target';
 
 @Component({
     selector: 'app-media-wrapper',
@@ -23,7 +22,7 @@ import { toMediaTarget } from '../media-target';
     providers: [
         MediaStoreService,
         MediaDetailStoreService,
-        MediaDetailActionsStore,
+        MediaDetailActionsStoreService,
         EpisodeDetailStoreService,
         MediaCreditsStoreService,
         MediaImagesStoreService,
@@ -34,24 +33,23 @@ import { toMediaTarget } from '../media-target';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MediaWrapperComponent {
-    readonly id = input.required<string>();
-    readonly type = input.required<string>();
-
-    private readonly target = computed(() => toMediaTarget(this.id(), this.type()));
-
     constructor(
         private readonly mediaStore: MediaStoreService,
         private readonly router: Router,
+        activatedRoute: ActivatedRoute,
     ) {
-        toObservable(this.target)
+        activatedRoute.paramMap
             .pipe(
-                tap((target) => {
+                map((paramMap) => toMediaTarget(paramMap.get('id'), paramMap.get('type'))),
+                distinctUntilChanged((previous, current) => current !== null && isSameMediaTarget(previous, current)),
+                switchMap((target) => {
                     if (!target) {
                         this.router.navigate(['/not-found'], { replaceUrl: true });
+                        return EMPTY;
                     }
+
+                    return this.mediaStore.load$(target);
                 }),
-                filter(isDefined),
-                switchMap((target) => this.mediaStore.load$(target)),
                 takeUntilDestroyed(),
             )
             .subscribe();

@@ -1,17 +1,17 @@
 <div class="page-container">
     @if (seasonDetail$ | async; as seasonDetail) {
-        <app-hero-surface [backdropPath]="seasonDetail.media?.backdropPath ?? null" variant="integrated">
+        <app-hero-surface [backdropPath]="seasonDetail.backdropPath" variant="integrated">
             <div class="season-hero">
                 <a class="season-hero__back text-caption" [routerLink]="seasonDetail.overviewLink">
                     <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                    @if (seasonDetail.media?.title; as title) {
+                    @if (seasonDetail.mediaTitle; as title) {
                         Back to {{ title }}
                     } @else {
                         Back
                     }
                 </a>
 
-                @if (seasonDetail.seasonSummary; as season) {
+                @if (seasonDetail.summary; as season) {
                     <div class="season-hero__body">
                         <app-image
                             class="season-hero__poster"
@@ -21,7 +21,7 @@
                         />
 
                         <div class="season-hero__text">
-                            @if (seasonDetail.media?.title; as title) {
+                            @if (seasonDetail.mediaTitle; as title) {
                                 <p class="season-hero__series text-hero-meta">{{ title }}</p>
                             }
                             <h1 class="text-hero-title">{{ season.name }}</h1>
@@ -59,53 +59,53 @@
 
         <main class="page-main season-detail">
             <nav class="season-nav" aria-label="Seasons">
-                @if (seasonDetail.seasonOptions.length) {
+                @if (seasonDetail.hasSeasonOptions) {
                     <app-toggle-group
                         variant="chips"
                         [options]="seasonDetail.seasonOptions"
                         [selectedValue]="seasonDetail.selectedSeason"
-                        (selected)="changeSeason($event, seasonDetail.routeData)"
+                        (selected)="changeSeason($event)"
                     />
                 } @else {
                     <app-skeleton class="season-nav__skeleton" aria-hidden="true" />
                 }
             </nav>
 
-            @if (seasonDetail.ratingBars.length) {
+            @if (seasonDetail.hasRatingBars) {
                 <app-page-section subtitle="Episode ratings">
                     <app-season-ratings-strip [bars]="seasonDetail.ratingBars" />
                 </app-page-section>
             }
 
             <app-page-section subtitle="Episodes">
-                <app-episode-list [state]="seasonDetail.episodesState" />
+                <app-episode-list [state]="seasonDetail.episodes" />
             </app-page-section>
 
-            @if (seasonDetail.seasonImagesState.state !== "success" || seasonDetail.seasonImagesTotalCount) {
+            @if (seasonDetail.showPhotos) {
                 <app-page-section subtitle="Season Photos">
-                    @if (seasonDetail.seasonImagesTotalCount && seasonDetail.selectedSeason !== null) {
+                    @if (seasonDetail.photosLink; as photosLink) {
                         <a
                             section-controls
                             class="section-link text-body-sm"
-                            [routerLink]="seasonDetail.seasonPhotosLink"
+                            [routerLink]="photosLink"
                         >
-                            Browse all photos ({{ seasonDetail.seasonImagesTotalCount }})
+                            Browse all photos ({{ seasonDetail.imageCount }})
                             <i class="fa-solid fa-chevron-right"></i>
                         </a>
                     }
                     <app-photos-preview
-                        [state]="seasonDetail.seasonImagesState"
-                        [totalCount]="seasonDetail.seasonImagesTotalCount"
+                        [state]="seasonDetail.images"
+                        [totalCount]="seasonDetail.imageCount"
                         variant="compact"
-                        (photoClick)="openPhotoViewer($event, seasonDetail.seasonImages)"
-                        (moreClick)="openSeasonPhotosPage(seasonDetail.selectedSeason, seasonDetail.routeData)"
+                        (photoClick)="openPhotoViewer($event, seasonDetail.imageList)"
+                        (moreClick)="openSeasonPhotos(seasonDetail.photosLink)"
                     />
                 </app-page-section>
             }
 
-            @if (seasonDetail.seasonVideosState.state !== "success" || seasonDetail.seasonVideoCount) {
+            @if (seasonDetail.showVideos) {
                 <app-page-section subtitle="Season Videos">
-                    <app-videos-grid [state]="seasonDetail.seasonVideosState" />
+                    <app-videos-grid [state]="seasonDetail.videos" />
                 </app-page-section>
             }
         </main>

@@ -5,7 +5,7 @@
             [parentTitle]="castCrew.media?.title"
             [backLink]="['../']"
             pageTitle="Cast & Crew"
-            [loading]="!castCrew.media"
+            [loading]="castCrew.isMediaLoading"
         />
 
         <main class="page-main cast-page">
@@ -25,7 +25,7 @@
                             start
                             [options]="castCrew.sectionOptions"
                             [selectedValue]="castCrew.section"
-                            (selected)="onSectionChange($event)"
+                            (selected)="setSection($event)"
                         />
                     }
 
@@ -38,7 +38,7 @@
                             placeholder="Filter by name or role"
                             aria-label="Filter cast and crew by name or role"
                             [value]="castCrew.query"
-                            (input)="onQueryInput($event)"
+                            (input)="setQuery($event)"
                         />
                     </mat-form-field>
                 </app-browse-toolbar>
@@ -49,7 +49,7 @@
                             variant="chips"
                             [options]="castCrew.departmentOptions"
                             [selectedValue]="castCrew.department"
-                            (selected)="onDepartmentChange($event)"
+                            (selected)="setDepartment($event)"
                         />
                     </nav>
                 }

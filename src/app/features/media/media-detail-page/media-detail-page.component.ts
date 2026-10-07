@@ -3,45 +3,43 @@ import { ChangeDetectionStrategy, Component, DestroyRef, Inject } from '@angular
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, distinctUntilChanged, filter, map, switchMap, take, tap } from 'rxjs';
+
+import { catchError, filter } from 'rxjs';
 
 import {
     BadgeComponent,
+    buildYoutubeWatchUrl,
     EpisodeListItemComponent,
     ExternalLinksComponent,
     HeroSurfaceComponent,
     ImageComponent,
+    isDefined,
     MediaCarouselPanelComponent,
     MediaRatingDialogService,
-    MediaType,
     MinutesToHoursPipe,
-    PHOTO_VIEWER_DIALOG_CONFIG,
     PageSectionComponent,
-    PhotoViewerComponent,
     PhotosPreviewComponent,
+    PhotoViewerDialogService,
     PluralizePipe,
-    RecentlyViewedStoreService,
     RepeatPipe,
+    RouteCommands,
     SeoService,
     SkeletonComponent,
     SnackbarService,
     TmdbRatingComponent,
     VideosGridComponent,
-    buildYoutubeWatchUrl,
-    isDefined,
+    ViewerImage,
 } from '../../../shared';
-import { KeywordsListComponent } from '../keywords-list/keywords-list.component';
 import { MediaCreditsSummaryComponent } from '../media-credits-summary/media-credits-summary.component';
-import { MediaDetailActionsStore } from '../media-detail-actions-store.service';
-import { MediaDetailStoreService } from '../media-detail-store.service';
-import { MediaListActionsComponent } from '../media-list-actions/media-list-actions.component';
+import { MediaDetailActionsStoreService } from '../media-detail-actions-store.service';
+import { MediaDetailStoreService, MediaRatingRequest } from '../media-detail-store.service';
 import { toMediaSeoMetadata } from '../media-seo';
 import { MediaStoreService } from '../media-store.service';
-import { MediaTarget } from '../media-target';
 import { ReviewCardComponent } from '../review-card/review-card.component';
 import { UserRatingComponent } from '../user-rating/user-rating.component';
+import { KeywordsListComponent } from './keywords-list/keywords-list.component';
+import { MediaListActionsComponent } from './media-list-actions/media-list-actions.component';
 
 @Component({
     selector: 'app-media-detail-page',
@@ -77,125 +75,61 @@ import { UserRatingComponent } from '../user-rating/user-rating.component';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MediaDetailPageComponent {
-    private readonly target$ = this.mediaStore.currentTarget$;
-
-    readonly mediaDetail$ = this.mediaDetailStore.mediaDetail$;
+    readonly mediaDetail$ = this.store.mediaDetail$;
 
     constructor(
+        private readonly store: MediaDetailStoreService,
+        private readonly actionsStore: MediaDetailActionsStoreService,
+        private readonly activatedRoute: ActivatedRoute,
         private readonly destroyRef: DestroyRef,
-        private readonly dialog: MatDialog,
-        private readonly mediaDetailStore: MediaDetailStoreService,
-        private readonly mediaActionsStore: MediaDetailActionsStore,
-        private readonly mediaStore: MediaStoreService,
-        private readonly ratingDialog: MediaRatingDialogService,
-        private readonly recentlyViewedStore: RecentlyViewedStoreService,
-        private readonly route: ActivatedRoute,
+        private readonly photoViewerDialogService: PhotoViewerDialogService,
+        private readonly mediaRatingDialogService: MediaRatingDialogService,
         private readonly router: Router,
         private readonly snackbarService: SnackbarService,
-        private readonly seo: SeoService,
         @Inject(DOCUMENT) private readonly document: Document,
+        mediaStore: MediaStoreService,
+        seoService: SeoService,
     ) {
-        this.mediaDetailStore.openOverview(
-            this.target$.pipe(
-                tap((target) => {
-                    this.mediaActionsStore.updateMedia(target);
-                }),
-            ),
-        );
+        this.store.load$().pipe(takeUntilDestroyed()).subscribe();
 
-        this.mediaDetailStore.mediaDetailsState$
-            .pipe(
-                filter((state) => state.state === 'success' && state.data === null),
-                tap(() => {
-                    this.router.navigate(['/not-found'], { replaceUrl: true });
-                }),
-                takeUntilDestroyed(),
-            )
-            .subscribe();
-
-        this.mediaDetailStore.mediaDetailsState$
-            .pipe(
-                map((state) => (state.state === 'success' ? state.data : null)),
-                filter(isDefined),
-                distinctUntilChanged(
-                    (previous, current) => previous.id === current.id && previous.mediaType === current.mediaType,
-                ),
-                tap((media) => {
-                    this.seo.setPage(toMediaSeoMetadata(media));
-                    this.recentlyViewedStore.addItem({
-                        kind: 'media',
-                        id: media.id,
-                        mediaType: media.mediaType,
-                        title: media.title,
-                        imagePath: media.posterPath,
-                        backdropPath: media.backdropPath,
-                        rating: media.voteAverage,
-                        date: media.releaseDate ?? media.firstAirDate ?? media.year,
-                        overview: media.overview,
-                    });
-                }),
-                takeUntilDestroyed(),
-            )
-            .subscribe();
+        mediaStore.mediaDetails$
+            .pipe(filter(isDefined), takeUntilDestroyed())
+            .subscribe((media) => seoService.setPage(toMediaSeoMetadata(media)));
     }
 
-    openPhotoViewer(index: number): void {
-        this.mediaDetail$.pipe(take(1)).subscribe((mediaDetail) => {
-            const media = mediaDetail.media;
-
-            if (!media || mediaDetail.photos.state !== 'success' || !mediaDetail.photos.data) {
-                return;
-            }
-
-            this.dialog.open(PhotoViewerComponent, {
-                ...PHOTO_VIEWER_DIALOG_CONFIG,
-                data: {
-                    images: mediaDetail.photos.data.allPhotos,
-                    activeIndex: index,
-                    photosLink: ['/title', media.id, media.mediaType, 'photos'],
-                },
-            });
-        });
+    openPhotoViewer(index: number, images: ViewerImage[], photosLink: RouteCommands | null): void {
+        this.photoViewerDialogService.open({ images, activeIndex: index, photosLink });
     }
 
     openPhotosPage(): void {
-        this.router.navigate(['photos'], {
-            relativeTo: this.route,
-        });
+        this.router.navigate(['photos'], { relativeTo: this.activatedRoute });
     }
 
     openTrailer(key: string): void {
         this.document.defaultView?.open(buildYoutubeWatchUrl(key), '_blank', 'noopener,noreferrer');
     }
 
-    openUserRatingDialog(mediaId: number, mediaType: MediaType, title: string): void {
-        const target: MediaTarget = {
-            id: mediaId,
-            type: mediaType,
-        };
+    openUserRatingDialog(ratingRequest: MediaRatingRequest | null): void {
+        if (!ratingRequest) {
+            return;
+        }
 
-        this.mediaActionsStore.userRating$
-            .pipe(
-                take(1),
-                filter((rating) => !rating.disabled),
-                switchMap((rating) =>
-                    this.ratingDialog.open$({
-                        title,
-                        currentRating: rating.currentRating,
-                        save: (value) =>
-                            this.mediaActionsStore
-                                .submitUserRating$(target, value)
-                                .pipe(catchError(() => this.snackbarService.showError$('Could not save your rating.'))),
-                        remove: () =>
-                            this.mediaActionsStore
-                                .deleteUserRating$(target)
-                                .pipe(
-                                    catchError(() => this.snackbarService.showError$('Could not remove your rating.')),
-                                ),
-                    }),
-                ),
-                takeUntilDestroyed(this.destroyRef),
-            )
+        const { target, title, currentRating } = ratingRequest;
+
+        this.mediaRatingDialogService
+            .open$({
+                title,
+                currentRating,
+                save: (value) =>
+                    this.actionsStore
+                        .submitUserRating$(target, value)
+                        .pipe(catchError(() => this.snackbarService.showError$('Could not save your rating.'))),
+                remove: () =>
+                    this.actionsStore
+                        .deleteUserRating$(target)
+                        .pipe(catchError(() => this.snackbarService.showError$('Could not remove your rating.'))),
+            })
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe();
     }
 }

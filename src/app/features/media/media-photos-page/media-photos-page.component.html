@@ -1,0 +1,18 @@
+<div class="page-container">
+    @if (mediaPhotos$ | async; as mediaPhotos) {
+        <app-sub-page-header
+            [backdropPath]="mediaPhotos.media?.backdropPath"
+            [parentTitle]="mediaPhotos.media?.title"
+            [backLink]="['../']"
+            pageTitle="Photos"
+        />
+
+        <main class="page-main">
+            @if (mediaPhotos.images; as images) {
+                <app-photos-browser [images]="images" (photoSelect)="openPhotoViewer($event)" />
+            } @else if (mediaPhotos.showSkeleton) {
+                <app-photos-browser-skeleton />
+            }
+        </main>
+    }
+</div>

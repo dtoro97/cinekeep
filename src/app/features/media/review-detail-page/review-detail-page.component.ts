@@ -1,8 +1,9 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 
-import { catchError, combineLatest, distinctUntilChanged, map, of, shareReplay, startWith, switchMap, tap } from 'rxjs';
+import { distinctUntilChanged, map, switchMap } from 'rxjs';
 
 import {
     EmptyStateComponent,
@@ -10,15 +11,10 @@ import {
     SeoService,
     SkeletonComponent,
     SubPageHeaderComponent,
-    remoteSuccess,
-    formatTitleWithYear,
-    toSeoImage,
 } from '../../../shared';
-import { MediaApiService } from '../media-api.service';
-import { MediaStoreService } from '../media-store.service';
 import { ReviewCardComponent } from '../review-card/review-card.component';
 import { ReviewMediaSummaryComponent } from '../review-media-summary/review-media-summary.component';
-import { MediaDetails } from '../models/media-details.model';
+import { ReviewDetailPageStoreService } from './review-detail-page-store.service';
 
 @Component({
     selector: 'app-review-detail-page',
@@ -31,84 +27,29 @@ import { MediaDetails } from '../models/media-details.model';
         SkeletonComponent,
         SubPageHeaderComponent,
     ],
+    providers: [ReviewDetailPageStoreService],
     templateUrl: './review-detail-page.component.html',
     styleUrl: './review-detail-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReviewDetailPageComponent {
-    readonly reviewId = input.required<string>();
     readonly skeletonLineCount = 8;
-
-    readonly reviewState$ = toObservable(this.reviewId).pipe(
-        distinctUntilChanged(),
-        switchMap((reviewId) => {
-            if (!reviewId) {
-                return of(remoteSuccess(null));
-            }
-
-            return this.mediaApiService.getReviewDetails$(reviewId).pipe(
-                map((review) => remoteSuccess(review)),
-                catchError(() => of(remoteSuccess(null))),
-                startWith({ state: 'loading' as const }),
-            );
-        }),
-        shareReplay({ bufferSize: 1, refCount: true }),
-    );
-
-    readonly reviewDetail$ = combineLatest({
-        reviewState: this.reviewState$,
-        mediaState: this.mediaStore.mediaDetailsState$,
-    }).pipe(
-        map(({ reviewState, mediaState }) => {
-            const review = reviewState.state === 'success' ? reviewState.data : null;
-            const author = review?.author || review?.author_details?.username;
-
-            return {
-                reviewState,
-                media: mediaState.state === 'success' ? mediaState.data : null,
-                pageTitle: author ? `Review by ${author}` : 'Review',
-            };
-        }),
-    );
+    readonly reviewDetail$ = this.store.reviewDetail$;
 
     constructor(
-        private readonly mediaStore: MediaStoreService,
-        private readonly mediaApiService: MediaApiService,
-        private readonly seo: SeoService,
+        private readonly store: ReviewDetailPageStoreService,
+        activatedRoute: ActivatedRoute,
+        seoService: SeoService,
     ) {
-        combineLatest({
-            reviewState: this.reviewState$,
-            mediaState: this.mediaStore.mediaDetailsState$,
-        })
+        activatedRoute.paramMap
             .pipe(
-                tap(({ reviewState, mediaState }) => {
-                    if (reviewState.state !== 'success' || !reviewState.data) {
-                        return;
-                    }
-
-                    const media =
-                        mediaState.state === 'success' ? mediaState.data : null;
-                    const review = reviewState.data;
-                    const mediaTitle = media
-                        ? formatTitleWithYear(media.title, media.year)
-                        : review.media_title ?? 'Review';
-
-                    this.seo.setPage({
-                        title: `${mediaTitle} | Review`,
-                        description:
-                            review.content ||
-                            `Read a full review of ${mediaTitle}.`,
-                        ...toSeoImage(media?.backdropPath, media?.posterPath),
-                        imageAlt: `${mediaTitle} review preview`,
-                        type:
-                            media?.mediaType === 'tv'
-                                ? 'video.tv_show'
-                                : 'video.movie',
-                    });
-                }),
+                map((paramMap) => paramMap.get('reviewId')),
+                distinctUntilChanged(),
+                switchMap((reviewId) => this.store.loadReview$(reviewId)),
                 takeUntilDestroyed(),
             )
             .subscribe();
+
+        this.store.seoMetadata$.pipe(takeUntilDestroyed()).subscribe((metadata) => seoService.setPage(metadata));
     }
 }
-

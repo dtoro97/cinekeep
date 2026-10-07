@@ -1,101 +1,45 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { MatDialog } from '@angular/material/dialog';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 
-import { combineLatest, filter, map, tap } from 'rxjs';
+import { map } from 'rxjs';
 
 import {
-    PHOTO_VIEWER_DIALOG_CONFIG,
-    PhotoViewerComponent,
     PhotosBrowserComponent,
     PhotosBrowserSelection,
     PhotosBrowserSkeletonComponent,
+    PhotoViewerDialogService,
     SeoService,
     SubPageHeaderComponent,
-    formatTitleWithYear,
-    parseBoundedIntegerParam,
 } from '../../../shared';
-import { MediaSeasonsStoreService } from '../media-seasons-store.service';
-import { MediaStoreService } from '../media-store.service';
-import { MediaTarget } from '../media-target';
-import { toMediaSectionSeoMetadata } from '../media-seo';
+import { SeasonPhotosPageStoreService } from './season-photos-page-store.service';
 
 @Component({
     selector: 'app-season-photos-page',
     imports: [AsyncPipe, PhotosBrowserComponent, PhotosBrowserSkeletonComponent, SubPageHeaderComponent],
+    providers: [SeasonPhotosPageStoreService],
     templateUrl: './season-photos-page.component.html',
-    styleUrl: './season-photos-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SeasonPhotosPageComponent {
-    readonly seasonNumber = input.required<string>();
-
-    private readonly season$ = combineLatest([
-        this.mediaStore.currentTarget$,
-        toObservable(this.seasonNumber).pipe(map((value) => parseBoundedIntegerParam(value, 0, Number.MAX_SAFE_INTEGER))),
-    ]).pipe(
-        filter((season): season is [MediaTarget, number] => season[1] !== null),
-        map(([target, seasonNumber]) => ({
-            target,
-            seasonNumber,
-            pageTitle: `Season ${seasonNumber} Photos`,
-            backLink: ['/title', target.id, target.type, 'episodes', seasonNumber],
-        })),
-    );
-
-    readonly seasonPhotos$ = combineLatest({
-        season: this.season$,
-        mediaState: this.mediaStore.mediaDetailsState$,
-        photosState: this.mediaSeasonsStoreService.seasonImagesState$,
-    }).pipe(
-        map(({ season, mediaState, photosState }) => {
-            const media = mediaState.state === 'success' ? mediaState.data : null;
-
-            return {
-                media,
-                photosState,
-                pageTitle: season.pageTitle,
-                backLink: season.backLink,
-                showSkeleton: mediaState.state === 'loading' || photosState.state === 'loading',
-                subtitle: media?.title ? formatTitleWithYear(media.title, media.year) : null,
-            };
-        }),
-    );
+    readonly seasonPhotos$ = this.store.seasonPhotos$;
 
     constructor(
-        private readonly mediaStore: MediaStoreService,
-        private readonly mediaSeasonsStoreService: MediaSeasonsStoreService,
-        private readonly dialog: MatDialog,
-        private readonly seo: SeoService,
+        private readonly store: SeasonPhotosPageStoreService,
+        private readonly photoViewerDialogService: PhotoViewerDialogService,
+        activatedRoute: ActivatedRoute,
+        seoService: SeoService,
     ) {
-        this.season$
-            .pipe(
-                tap(({ target, seasonNumber }) =>
-                    this.mediaSeasonsStoreService.openSeason({ seriesId: target.id, seasonNumber }),
-                ),
-                takeUntilDestroyed(),
-            )
+        this.store
+            .load$(activatedRoute.paramMap.pipe(map((paramMap) => paramMap.get('seasonNumber'))))
+            .pipe(takeUntilDestroyed())
             .subscribe();
 
-        this.seasonPhotos$
-            .pipe(
-                tap((seasonPhotos) => {
-                    if (seasonPhotos.media) {
-                        this.seo.setPage(
-                            toMediaSectionSeoMetadata(seasonPhotos.media, seasonPhotos.pageTitle),
-                        );
-                    }
-                }),
-                takeUntilDestroyed(),
-            )
-            .subscribe();
+        this.store.seoMetadata$.pipe(takeUntilDestroyed()).subscribe((metadata) => seoService.setPage(metadata));
     }
 
     openPhotoViewer(selection: PhotosBrowserSelection): void {
-        this.dialog.open(PhotoViewerComponent, {
-            ...PHOTO_VIEWER_DIALOG_CONFIG,
-            data: { images: selection.images, activeIndex: selection.index },
-        });
+        this.photoViewerDialogService.open({ images: selection.images, activeIndex: selection.index });
     }
 }

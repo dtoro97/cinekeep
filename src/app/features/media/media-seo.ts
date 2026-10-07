@@ -1,20 +1,12 @@
-import {
-    formatTitleWithYear,
-    SeoMetadata,
-    SeoPreviewType,
-    toSeoImage,
-} from '../../shared';
-import { MediaDetails } from './models/media-details.model';
+import { formatTitleWithYear, SeoMetadata, SeoPreviewType, toSeoImage } from '../../shared';
+import { MediaDetails } from './media-store.service';
 
 interface MediaSeoOptions {
     readonly titleSuffix?: string;
     readonly description?: string;
 }
 
-export const toMediaSeoMetadata = (
-    media: MediaDetails,
-    options: MediaSeoOptions = {},
-): SeoMetadata => {
+export const toMediaSeoMetadata = (media: MediaDetails, options: MediaSeoOptions = {}): SeoMetadata => {
     const mediaLabel = media.mediaType === 'tv' ? 'TV Series' : 'Movie';
     const titleSuffix = options.titleSuffix ?? mediaLabel;
     const displayTitle = formatTitleWithYear(media.title, media.year);
@@ -29,10 +21,7 @@ export const toMediaSeoMetadata = (
     };
 };
 
-export const toMediaSectionSeoMetadata = (
-    media: MediaDetails,
-    sectionTitle: string,
-): SeoMetadata =>
+export const toMediaSectionSeoMetadata = (media: MediaDetails, sectionTitle: string): SeoMetadata =>
     toMediaSeoMetadata(media, {
         titleSuffix: sectionTitle,
         description: toMediaSectionDescription(media, sectionTitle),
@@ -41,10 +30,7 @@ export const toMediaSectionSeoMetadata = (
 const getMediaSeoType = (mediaType: MediaDetails['mediaType']): SeoPreviewType =>
     mediaType === 'tv' ? 'video.tv_show' : 'video.movie';
 
-const toMediaSectionDescription = (
-    media: MediaDetails,
-    sectionTitle: string,
-): string => {
+const toMediaSectionDescription = (media: MediaDetails, sectionTitle: string): string => {
     const displayTitle = formatTitleWithYear(media.title, media.year);
 
     switch (sectionTitle) {
