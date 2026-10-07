@@ -1,9 +1,17 @@
 @use 'mixins' as *;
 
+:host {
+    display: block;
+    min-width: 0;
+}
+
+// A still treated like a poster: a printed object that lifts, with the words underneath.
 .video-card {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1-5);
+    gap: var(--space-3);
+    min-width: 0;
+    @include card-hover('.video-card__image', '.video-card__title', $frame-selector: '.video-card__thumb');
 }
 
 .video-card__media {
@@ -13,38 +21,16 @@
 .video-card__thumb {
     position: relative;
     overflow: hidden;
-    border-radius: var(--radius-lg);
-    background: var(--surface-page);
-
-    img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: filter var(--motion-base);
-    }
+    border-radius: var(--radius-media);
+    background: var(--surface-panel);
+    box-shadow: var(--shadow-md);
 }
 
-@mixin video-card-media-active {
-    .video-card__thumb img {
-        filter: var(--interactive-media-hover-filter);
-    }
-
-    .video-card__play {
-        color: var(--text-accent);
-    }
-}
-
-.video-card__media {
-    @include hover-capable {
-        &:hover {
-            @include video-card-media-active;
-        }
-    }
-
-    &:focus-visible {
-        @include video-card-media-active;
-    }
+.video-card__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .video-card__play {
@@ -59,7 +45,6 @@
     border: 2px solid currentColor;
     border-radius: var(--radius-full);
     color: var(--text-primary);
-    transition: color var(--motion-base);
 
     i {
         transform: translateX(0.0625rem);
@@ -72,12 +57,25 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
+    min-width: 0;
 }
 
 .video-card__title {
+    margin: 0;
+    color: inherit;
     @include line-clamp(2);
 }
 
+a.video-card__title {
+    @include text-link(var(--text-primary));
+}
+
 .video-card__metadata {
+    min-width: 0;
     @include meta-list(var(--space-1-5));
+}
+
+.video-card__video-name {
+    min-width: 0;
+    @include line-clamp(1);
 }

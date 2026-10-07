@@ -22,12 +22,12 @@
 
     @include hover-capable {
         &:hover {
-            color: var(--text-accent);
+            color: var(--text-hover);
         }
     }
 
     &:focus-visible {
-        color: var(--text-accent);
+        color: var(--text-hover);
     }
 }
 
@@ -107,7 +107,7 @@
     background: var(--control-subtle-surface-hover);
 
     #{$title-selector} {
-        color: var(--text-accent);
+        color: var(--text-hover);
     }
 
     #{$media-selector} {
@@ -169,7 +169,7 @@
     }
 
     #{$title-selector} {
-        color: var(--text-accent);
+        color: var(--text-hover);
     }
 }
 
@@ -223,7 +223,7 @@
 }
 
 /// Bordered, rounded frame for thumbnails (posters, stills, avatars) in rows and cards.
-@mixin media-frame($radius: var(--radius-md)) {
+@mixin media-frame($radius: var(--radius-media)) {
     overflow: hidden;
     border: 1px solid var(--color-border-subtle);
     border-radius: $radius;

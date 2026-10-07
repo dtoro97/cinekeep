@@ -1,0 +1,31 @@
+@use 'breakpoints' as *;
+
+.shelf {
+    display: grid;
+    grid-template-columns: repeat(var(--shelf-columns), minmax(0, 1fr));
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.shelf__item {
+    min-width: 0;
+}
+
+// On narrow screens the shelf scrolls sideways and snaps poster by poster.
+@include tablet() {
+    .shelf {
+        grid-template-columns: none;
+        grid-auto-flow: column;
+        grid-auto-columns: 9rem;
+        gap: var(--space-4);
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+    }
+
+    .shelf__item {
+        scroll-snap-align: start;
+    }
+}

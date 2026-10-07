@@ -1,0 +1,39 @@
+@use 'breakpoints' as *;
+
+// Set off by hairlines rather than a box, so it reads as part of the page and not as an ad.
+.invite {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    align-items: end;
+    gap: var(--space-16);
+    padding-block: var(--space-12);
+    border-block: 1px solid var(--row-divider);
+}
+
+.invite__title {
+    max-width: 16ch;
+    text-wrap: balance;
+}
+
+.invite__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-6);
+}
+
+.invite__text {
+    max-width: 46ch;
+    margin: 0;
+}
+
+.invite__action {
+    min-height: var(--control-height-xl);
+}
+
+@include tablet() {
+    .invite {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-6);
+    }
+}

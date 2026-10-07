@@ -48,12 +48,12 @@
         @include hover-capable {
             &:hover:not(:disabled) {
                 background: transparent;
-                color: var(--text-accent);
+                color: var(--text-hover);
 
                 .account-menu__avatar {
-                    --user-avatar-border: var(--border-brand-soft);
+                    --user-avatar-border: var(--border-overlay-soft);
                     --user-avatar-surface: var(--control-subtle-surface-hover);
-                    --user-avatar-text: var(--text-accent);
+                    --user-avatar-text: var(--text-hover);
                 }
             }
         }
@@ -141,8 +141,8 @@
         @include hover-capable {
             &:hover:not(:disabled) {
                 --mat-menu-item-label-text-color: var(--text-primary);
-                --mat-menu-item-icon-color: var(--text-accent);
-                --account-menu-icon-color: var(--text-accent);
+                --mat-menu-item-icon-color: var(--text-hover);
+                --account-menu-icon-color: var(--text-hover);
 
                 color: var(--text-primary);
             }

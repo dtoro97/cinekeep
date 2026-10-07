@@ -58,7 +58,7 @@
     }
 
     &--rated .user-rating__icon {
-        color: var(--color-rating);
+        color: var(--color-yours);
     }
 
     &:hover:not(:disabled) .user-rating__icon {

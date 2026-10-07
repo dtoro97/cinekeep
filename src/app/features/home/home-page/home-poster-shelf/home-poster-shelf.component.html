@@ -1,0 +1,15 @@
+<ul class="shelf" [style.--shelf-columns]="columns">
+    @if (loading) {
+        @for (slot of columns | repeat; track slot) {
+            <li class="shelf__item" aria-hidden="true">
+                <app-card-skeleton />
+            </li>
+        }
+    } @else {
+        @for (item of items; track item.mediaType + item.id) {
+            <li class="shelf__item">
+                <app-card [item]="item" [showRating]="false" imageParams="w342" />
+            </li>
+        }
+    }
+</ul>

@@ -35,7 +35,7 @@
             <p class="text-card-meta">Try a shorter title or check the spelling.</p>
             @if (panel.canWiden) {
                 <button
-                    class="search-state__action button--subtle"
+                    class="search-state__action"
                     matButton="outlined"
                     type="button"
                     (click)="widen.emit()"
@@ -51,7 +51,7 @@
             <p class="search-state__title text-card-title">Search isn't responding.</p>
             <p class="text-card-meta">Check your connection, then try again.</p>
             <button
-                class="search-state__action button--subtle"
+                class="search-state__action"
                 matButton="outlined"
                 type="button"
                 (click)="retry.emit()"

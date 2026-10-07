@@ -2,7 +2,7 @@
     display: block;
     flex-shrink: 0;
     overflow: hidden;
-    border-radius: var(--image-radius, var(--radius-sm));
+    border-radius: var(--image-radius, var(--radius-media));
     background: var(--image-surface, var(--media-placeholder-surface));
 }
 

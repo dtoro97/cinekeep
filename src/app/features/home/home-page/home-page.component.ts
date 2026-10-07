@@ -7,22 +7,21 @@ import { distinctUntilChanged, map } from 'rxjs';
 
 import {
     EmptyStateComponent,
-    ImageComponent,
-    MediaCarouselPanelComponent,
     MediaType,
     PageSectionComponent,
-    RatingComponent,
-    RepeatPipe,
     SeoService,
-    SkeletonComponent,
     ToggleGroupComponent,
     toSeoImage,
 } from '../../../shared';
 import { HeroSpotlightComponent } from '../hero-spotlight/hero-spotlight.component';
 import { HOME_SEO_DESCRIPTION } from '../home-seo';
+import { HomeAccountInviteComponent } from './home-account-invite/home-account-invite.component';
+import { HomeAiringTonightComponent } from './home-airing-tonight/home-airing-tonight.component';
+import { HomeLibraryComponent } from './home-library/home-library.component';
+import { HomeOpeningSoonComponent } from './home-opening-soon/home-opening-soon.component';
+import { HomePosterShelfComponent } from './home-poster-shelf/home-poster-shelf.component';
 import { HomeStoreService } from './home-store.service';
 import { HomeTopPicksComponent } from './home-top-picks/home-top-picks.component';
-import { PersonCarouselPanelComponent } from './person-carousel-panel/person-carousel-panel.component';
 
 @Component({
     selector: 'app-home-page',
@@ -30,16 +29,15 @@ import { PersonCarouselPanelComponent } from './person-carousel-panel/person-car
         AsyncPipe,
         EmptyStateComponent,
         HeroSpotlightComponent,
+        HomeAccountInviteComponent,
+        HomeAiringTonightComponent,
+        HomeLibraryComponent,
+        HomeOpeningSoonComponent,
+        HomePosterShelfComponent,
         HomeTopPicksComponent,
-        ImageComponent,
         MatButtonModule,
-        MediaCarouselPanelComponent,
         PageSectionComponent,
-        PersonCarouselPanelComponent,
-        RatingComponent,
-        RepeatPipe,
         RouterLink,
-        SkeletonComponent,
         ToggleGroupComponent,
     ],
     providers: [HomeStoreService],

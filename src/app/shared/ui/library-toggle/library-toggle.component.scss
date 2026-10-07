@@ -26,7 +26,34 @@
 
     &--active {
         .library-toggle__icon {
-            color: var(--color-brand);
+            color: var(--color-yours);
+        }
+    }
+
+    // The screen's one gold action until the title is in the library; then it settles into the quiet style.
+    &--primary:not(.library-toggle--active) {
+        min-height: var(--control-height-xl);
+        background: var(--control-accent-surface);
+        color: var(--control-accent-text);
+        border-color: var(--control-accent-border);
+        font-weight: var(--weight-semibold);
+        --mat-button-outlined-container-height: var(--control-height-xl);
+        --mat-button-outlined-label-text-color: var(--control-accent-text);
+        --mat-button-outlined-outline-color: var(--control-accent-border);
+        --mat-button-outlined-hover-label-text-color: var(--control-accent-text);
+        --mat-button-outlined-hover-outline-color: var(--control-accent-surface-hover);
+
+        @include hover-capable {
+            &:hover {
+                background: var(--control-accent-surface-hover);
+                color: var(--control-accent-text);
+            }
+        }
+
+        &:active:not(:disabled),
+        &:focus:not(:disabled) {
+            background: var(--control-accent-surface-hover);
+            color: var(--control-accent-text);
         }
     }
 

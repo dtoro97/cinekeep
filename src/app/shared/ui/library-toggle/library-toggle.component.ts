@@ -20,6 +20,7 @@ export class LibraryToggleComponent implements OnChanges {
     @Input({ required: true }) flag!: LibraryFlag;
     @Input({ required: true }) media!: LibraryToggleMedia;
     @Input() iconOnly = false;
+    @Input() primary = false;
     @Input() libraryState: RemoteData<MediaStateResponse> | null = null;
 
     readonly libraryToggle$ = this.libraryToggleStoreService.libraryToggle$;

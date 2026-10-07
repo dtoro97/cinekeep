@@ -1,0 +1,64 @@
+<div class="library">
+    <section class="library__group" aria-labelledby="library-watchlist">
+        <h3 id="library-watchlist" class="library__label text-subtitle">Latest on your watchlist</h3>
+
+        @if (library.showWatchlistEmpty) {
+            <p class="library__empty text-body-sm">
+                Titles you add to your watchlist show up here.
+                <a class="library__empty-link" routerLink="/discover">Find something to watch</a>
+            </p>
+        } @else {
+            <app-home-poster-shelf
+                [items]="library.watchlist"
+                [columns]="library.watchlistColumns"
+                [loading]="library.isLoading"
+            />
+        }
+    </section>
+
+    <section class="library__group" aria-labelledby="library-ratings">
+        <h3 id="library-ratings" class="library__label text-subtitle">Recently rated</h3>
+
+        @if (library.isLoading) {
+            <ul class="rated" aria-hidden="true">
+                @for (slot of library.ratingsSkeletonCount | repeat; track slot) {
+                    <li class="rated__row">
+                        <app-skeleton class="rated__still" />
+                        <span class="rated__body">
+                            <app-skeleton class="rated__title-skeleton" />
+                            <app-skeleton class="rated__year-skeleton" />
+                        </span>
+                    </li>
+                }
+            </ul>
+        } @else if (library.showRatingsEmpty) {
+            <p class="library__empty text-body-sm">Your scores for films and series show up here once you rate one.</p>
+        } @else {
+            <ul class="rated">
+                @for (rated of library.ratings; track rated.item.mediaType + rated.item.id) {
+                    <li>
+                        <a class="rated__row" [routerLink]="['/title', rated.item.id, rated.item.mediaType]">
+                            <app-image
+                                class="rated__still"
+                                type="media"
+                                params="w300"
+                                [src]="rated.item.thumb"
+                                alt=""
+                            />
+                            <span class="rated__body">
+                                <span class="rated__title text-card-title">{{ rated.item.title }}</span>
+                                @if (rated.item.date) {
+                                    <span class="text-card-meta">{{ rated.item.date | date: 'yyyy' }}</span>
+                                }
+                            </span>
+                            <span class="rated__score">
+                                <span class="text-rating-yours">{{ rated.score | number: '1.0-1' }}</span>
+                                <span class="text-caption">/10</span>
+                            </span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</div>

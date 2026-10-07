@@ -7,7 +7,7 @@
 .text-display {
     font-family: var(--font-display);
     font-size: var(--text-4xl);
-    font-weight: var(--weight-semibold);
+    font-weight: var(--weight-display);
     line-height: 1.05;
     letter-spacing: var(--tracking-tight);
     color: var(--text-primary);
@@ -16,8 +16,8 @@
 .text-hero-title {
     font-family: var(--font-display);
     font-size: var(--text-5xl);
-    font-weight: var(--weight-semibold);
-    line-height: 0.98;
+    font-weight: var(--weight-display);
+    line-height: 0.95;
     letter-spacing: var(--tracking-tighter);
     color: var(--text-primary);
     text-wrap: balance;
@@ -41,9 +41,9 @@
 
 .text-headline {
     font-family: var(--font-display);
-    font-size: var(--text-3xl);
-    font-weight: var(--weight-semibold);
-    line-height: 1.1;
+    font-size: var(--text-4xl);
+    font-weight: var(--weight-display);
+    line-height: 1.05;
     letter-spacing: var(--tracking-tight);
     color: var(--text-primary);
 }
@@ -51,7 +51,7 @@
 .text-display-sm {
     font-family: var(--font-display);
     font-size: var(--text-2xl);
-    font-weight: var(--weight-semibold);
+    font-weight: var(--weight-display);
     line-height: 1.15;
     letter-spacing: var(--tracking-tight);
     color: var(--text-primary);
@@ -75,7 +75,7 @@
 }
 
 .text-card-title {
-    font-size: var(--text-sm);
+    font-size: var(--text-md);
     font-weight: var(--weight-semibold);
     line-height: 1.25;
     letter-spacing: 0;
@@ -83,7 +83,7 @@
 }
 
 .text-card-meta {
-    font-size: var(--text-xs);
+    font-size: var(--text-sm);
     font-weight: var(--weight-medium);
     line-height: 1.35;
     letter-spacing: 0;
@@ -146,7 +146,7 @@
 // Display-serif numbers: scores, review averages and list ranks share one figure style.
 %text-figure {
     font-family: var(--font-display);
-    font-weight: var(--weight-semibold);
+    font-weight: var(--weight-display);
     line-height: 1;
     letter-spacing: var(--tracking-tight);
     font-variant-numeric: tabular-nums;
@@ -156,6 +156,13 @@
     @extend %text-figure;
     font-size: var(--text-4xl);
     color: var(--color-rating);
+}
+
+/// The signed-in user's own score.
+.text-rating-yours {
+    @extend %text-figure;
+    font-size: var(--text-4xl);
+    color: var(--color-yours);
 }
 
 .text-rating-sm {

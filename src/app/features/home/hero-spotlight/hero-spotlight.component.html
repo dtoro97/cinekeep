@@ -1,7 +1,6 @@
 @if (loading) {
     <div class="skeleton-block" aria-hidden="true">
         <div class="skeleton-block__content">
-            <app-skeleton class="skeleton-block__badge" />
             <app-skeleton class="skeleton-block__title" />
             <app-skeleton class="skeleton-block__meta" />
             <app-skeleton class="skeleton-block__overview" />
@@ -22,8 +21,6 @@
 
         <section class="hero">
             <div class="hero__content u-flex-column u-gap-4">
-                <app-badge class="badge" [label]="badge" variant="outline" />
-
                 <a [routerLink]="['/title', spotlight.id, spotlight.mediaType]">
                     <h1 class="title text-hero-title">
                         {{ spotlight.title }}
@@ -51,10 +48,11 @@
                     </p>
                 }
 
-                <div class="actions">
+                <div class="actions" [class.actions--watchlist-first]="watchlistPrimary">
                     <ng-content />
                     <app-library-toggle
                         flag="watchlist"
+                        [primary]="watchlistPrimary"
                         [media]="spotlight"
                     />
                 </div>

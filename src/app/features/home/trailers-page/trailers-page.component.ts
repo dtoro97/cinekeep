@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { distinctUntilChanged, map } from 'rxjs';
 
 import {
+    PageSectionComponent,
     RepeatPipe,
     SeoService,
     SkeletonComponent,
@@ -22,6 +23,7 @@ import { TrailerFeedType, TrailersStoreService } from './trailers-store.service'
         AsyncPipe,
         HeroSpotlightComponent,
         MatButtonModule,
+        PageSectionComponent,
         RepeatPipe,
         SkeletonComponent,
         ToggleGroupComponent,

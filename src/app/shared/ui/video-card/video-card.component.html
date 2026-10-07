@@ -16,28 +16,22 @@
     }
 
     <div class="video-card__body">
-        <p class="video-card__title text-subtitle">
-            {{ item.title }}
-        </p>
+        @if (headingLink) {
+            <a class="video-card__title text-card-title" [routerLink]="headingLink">{{ heading }}</a>
+        } @else {
+            <p class="video-card__title text-card-title">{{ heading }}</p>
+        }
 
-        @if (item.typeLabel || item.mediaTitle || item.publishedAt) {
-            <p class="video-card__metadata text-caption">
-                @if (item.typeLabel) {
-                    <span>{{ item.typeLabel }}</span>
+        @if (showMetadata) {
+            <p class="video-card__metadata text-card-meta">
+                @if (typeLabel) {
+                    <span>{{ typeLabel }}</span>
                 }
-                @if (item.mediaTitle) {
-                    @if (item.mediaLink) {
-                        <a [routerLink]="item.mediaLink">
-                            {{ item.mediaTitle }}
-                        </a>
-                    } @else {
-                        <span>{{ item.mediaTitle }}</span>
-                    }
+                @if (videoName) {
+                    <span class="video-card__video-name">{{ videoName }}</span>
                 }
                 @if (item.publishedAt) {
-                    <span>
-                        {{ item.publishedAt | date: 'mediumDate' }}
-                    </span>
+                    <span>{{ item.publishedAt | date: 'mediumDate' }}</span>
                 }
             </p>
         }
@@ -46,7 +40,7 @@
 
 <ng-template #thumbnail>
     <div class="video-card__thumb aspect-landscape">
-        <img [src]="item.thumbnailUrl" [alt]="item.alt" />
+        <img class="video-card__image" [src]="item.thumbnailUrl" [alt]="item.alt" />
 
         <div class="video-card__play" aria-hidden="true">
             <i class="fa-solid fa-play" aria-hidden="true"></i>

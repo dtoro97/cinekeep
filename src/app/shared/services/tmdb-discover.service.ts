@@ -77,8 +77,8 @@ export class TmdbDiscoverService {
         });
     }
 
-    /** Up to three titles with posters, alternating between the queries' first pages. */
-    preview$(queries: readonly TmdbDiscoverQuery[]): Observable<CardItem[]> {
+    /** Up to `count` titles with posters (three by default), alternating between the queries' first pages. */
+    preview$(queries: readonly TmdbDiscoverQuery[], count = DISCOVER_PREVIEW_COUNT): Observable<CardItem[]> {
         return forkJoin(
             queries.map((query) =>
                 this.discover$(query).pipe(
@@ -92,7 +92,7 @@ export class TmdbDiscoverService {
                 ),
             ),
         ).pipe(
-            map((groups) => interleave(groups).slice(0, DISCOVER_PREVIEW_COUNT)),
+            map((groups) => interleave(groups).slice(0, count)),
         );
     }
 }

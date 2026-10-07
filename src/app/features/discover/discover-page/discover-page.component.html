@@ -80,7 +80,7 @@
                         <div class="discover-page__toolbar-actions">
                             @if (discover.showFilters) {
                                 <button
-                                    class="discover-page__filter-toggle button--subtle"
+                                    class="discover-page__filter-toggle"
                                     matButton="outlined"
                                     type="button"
                                     [attr.aria-expanded]="showMobileFilters"
@@ -144,7 +144,6 @@
                         @if (discover.showMore) {
                             <div class="discover-page__more">
                                 <button
-                                    class="button--subtle"
                                     matButton="outlined"
                                     type="button"
                                     [disabled]="discover.isLoadingMore"

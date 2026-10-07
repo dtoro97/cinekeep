@@ -1,0 +1,95 @@
+@use 'breakpoints' as *;
+@use 'mixins' as *;
+
+// Release dates are the structure: each day is a heading with that day's films beside it.
+.days {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.day {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-6);
+}
+
+.day__date {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+    font: inherit;
+}
+
+.day__films {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.film {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+    color: inherit;
+    @include card-hover('.film__still', '.film__title', $frame-selector: '.film__frame');
+}
+
+// Clips the still so the hover zoom stays inside the frame.
+.film__frame {
+    display: block;
+    width: 100%;
+    aspect-ratio: var(--backdrop-ratio);
+    overflow: hidden;
+    border-radius: var(--radius-media);
+    box-shadow: var(--shadow-md);
+    --skeleton-radius: var(--radius-media);
+    --skeleton-height: auto;
+}
+
+.film__still {
+    height: 100%;
+    --image-radius: 0;
+}
+
+.film__title {
+    @include line-clamp(2);
+}
+
+.day__date-skeleton {
+    width: 5rem;
+    --skeleton-height: 1.75rem;
+}
+
+.film__title-skeleton {
+    width: 60%;
+    --skeleton-height: 1rem;
+}
+
+@include mobile() {
+    .day {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-3);
+    }
+
+    .day__date {
+        flex-direction: row;
+        align-items: baseline;
+        gap: var(--space-3);
+        padding-top: var(--space-3);
+        border-top: 1px solid var(--row-divider);
+    }
+
+    .day__films {
+        gap: var(--space-3);
+    }
+}
