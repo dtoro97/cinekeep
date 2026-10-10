@@ -7,27 +7,19 @@
     [attr.aria-busy]="ariaBusy"
     (click)="ratingClick.emit()"
 >
-    <span class="text-overline">Your rating</span>
+    <span class="user-rating__label text-meta">Your rating</span>
 
     @if (loading) {
         <app-skeleton class="user-rating__skeleton" aria-hidden="true" />
-    } @else {
+    } @else if (hasRating) {
         <span class="user-rating__summary">
-            <i
-                class="user-rating__icon fa-star"
-                [class.fa-solid]="hasRating"
-                [class.fa-regular]="!hasRating"
-                aria-hidden="true"
-            ></i>
-
-            <span class="user-rating__value text-subtitle">
-                @if (hasRating) {
-                    {{ currentRating | number: '1.1-1' }}
-                    <span class="user-rating__scale text-caption">/10</span>
-                } @else {
-                    Rate
-                }
-            </span>
+            <span class="user-rating__value text-rating-yours">{{ currentRating | number: '1.0-1' }}</span>
+            <span class="user-rating__scale text-meta">/10</span>
+        </span>
+    } @else {
+        <span class="user-rating__summary user-rating__summary--empty">
+            <i class="user-rating__icon fa-regular fa-star" aria-hidden="true"></i>
+            <span class="text-title">Rate</span>
         </span>
     }
 </button>

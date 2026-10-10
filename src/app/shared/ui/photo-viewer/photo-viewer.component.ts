@@ -6,21 +6,21 @@ import { Router } from '@angular/router';
 
 import type { ViewerImage } from '../../models';
 import { ImagePipe } from '../../pipes/image.pipe';
-import { VoteCountPipe } from '../../pipes/vote-count.pipe';
 import type { RouteCommands } from '../../types';
 import { IconButtonComponent } from '../icon-button/icon-button.component';
-import { RatingComponent } from '../rating/rating.component';
 import { PhotoViewerStoreService } from './photo-viewer-store.service';
 
 export interface PhotoViewerData {
     readonly images: readonly ViewerImage[];
     readonly activeIndex: number;
+    /** The title the photos belong to, shown above the photo. */
+    readonly title?: string | null;
     readonly photosLink?: RouteCommands | null;
 }
 
 @Component({
     selector: 'app-photo-viewer',
-    imports: [AsyncPipe, IconButtonComponent, ImagePipe, MatIconModule, RatingComponent, VoteCountPipe],
+    imports: [AsyncPipe, IconButtonComponent, ImagePipe, MatIconModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [PhotoViewerStoreService],
     templateUrl: './photo-viewer.component.html',
@@ -48,6 +48,10 @@ export class PhotoViewerComponent {
 
     next(): void {
         this.photoViewerStoreService.next();
+    }
+
+    show(index: number): void {
+        this.photoViewerStoreService.show(index);
     }
 
     close(): void {

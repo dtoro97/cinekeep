@@ -1,17 +1,19 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { catchError } from 'rxjs';
 
 import {
     HeroSurfaceComponent,
+    ImageComponent,
     MediaRatingDialogService,
     MinutesToHoursPipe,
     PageSectionComponent,
-    PhotosPreviewComponent,
     PhotoViewerDialogService,
+    RepeatPipe,
+    RouteCommands,
     SeoService,
     SkeletonComponent,
     SnackbarService,
@@ -29,10 +31,12 @@ import { UserRatingComponent } from '../user-rating/user-rating.component';
         AsyncPipe,
         DatePipe,
         HeroSurfaceComponent,
+        ImageComponent,
         MediaCreditsSummaryComponent,
         MinutesToHoursPipe,
+        NgTemplateOutlet,
         PageSectionComponent,
-        PhotosPreviewComponent,
+        RepeatPipe,
         RouterLink,
         SkeletonComponent,
         TmdbRatingComponent,
@@ -44,16 +48,16 @@ import { UserRatingComponent } from '../user-rating/user-rating.component';
     styleUrl: './episode-detail-page.component.scss',
 })
 export class EpisodeDetailPageComponent {
+    readonly stillSkeletonCount = 6;
     readonly episodeDetail$ = this.store.episodeDetail$;
 
     constructor(
         private readonly store: EpisodeDetailStoreService,
-        private readonly activatedRoute: ActivatedRoute,
         private readonly destroyRef: DestroyRef,
         private readonly photoViewerDialogService: PhotoViewerDialogService,
         private readonly mediaRatingDialogService: MediaRatingDialogService,
-        private readonly router: Router,
         private readonly snackbarService: SnackbarService,
+        activatedRoute: ActivatedRoute,
         seoService: SeoService,
     ) {
         this.store.load$(activatedRoute.paramMap).pipe(takeUntilDestroyed()).subscribe();
@@ -61,12 +65,8 @@ export class EpisodeDetailPageComponent {
         this.store.episodeSeo$.pipe(takeUntilDestroyed()).subscribe((metadata) => seoService.setPage(metadata));
     }
 
-    openPhotoViewer(index: number, images: ViewerImage[]): void {
-        this.photoViewerDialogService.open({ images, activeIndex: index });
-    }
-
-    openPhotosPage(): void {
-        this.router.navigate(['photos'], { relativeTo: this.activatedRoute });
+    openPhotoViewer(index: number, images: ViewerImage[], title: string, photosLink: RouteCommands | null): void {
+        this.photoViewerDialogService.open({ images, activeIndex: index, title, photosLink });
     }
 
     openUserRatingDialog(ratingRequest: EpisodeRatingRequest | null): void {

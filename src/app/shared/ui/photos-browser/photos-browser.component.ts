@@ -50,8 +50,8 @@ export class PhotosBrowserComponent {
         this.photosBrowserStoreService.toggleSortDirection();
     }
 
-    setSelectedTypes(selectedTypes: readonly string[]): void {
-        this.photosBrowserStoreService.setSelectedTypes(selectedTypes);
+    setSelectedType(selectedType: string): void {
+        this.photosBrowserStoreService.setSelectedType(selectedType);
     }
 
     showMore(): void {

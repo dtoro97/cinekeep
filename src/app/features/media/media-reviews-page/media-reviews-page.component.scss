@@ -1,42 +1,126 @@
 @use 'breakpoints' as *;
+@use 'mixins' as *;
 
 .reviews-layout {
     display: grid;
-    grid-template-columns: 13rem minmax(0, 46rem);
-    gap: var(--space-12);
+    grid-template-columns: 19rem minmax(0, 1fr);
+    gap: var(--space-20);
     align-items: start;
+    padding-bottom: var(--space-20);
 }
 
-// Ties the page back to the title and holds the only facts the review data can support.
+// Stays in view while the list scrolls: how the title scored, and how split the reviewers are.
 .reviews-summary {
     position: sticky;
-    inset-block-start: calc(var(--space-12) + var(--space-3) + var(--space-6));
+    inset-block-start: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
 
-
-    &__stats {
+    &__average {
         display: flex;
         flex-direction: column;
-        gap: var(--space-4);
-        margin: 0;
-        padding-block-start: var(--space-4);
-        border-block-start: 1px solid var(--row-divider);
-    }
+        gap: var(--space-2);
 
-    &__stat {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1-5);
-
-        dd {
+        p {
             margin: 0;
         }
     }
 
-    &__average {
+    &__figure {
         display: flex;
         align-items: baseline;
-        flex-wrap: wrap;
-        gap: var(--space-1) var(--space-2);
+        gap: var(--space-2);
+
+        .text-rating {
+            font-size: 4rem;
+            line-height: 1;
+        }
+    }
+
+    &__skeleton {
+        width: 10rem;
+        --skeleton-height: 4rem;
+    }
+}
+
+// Each band filters the list; the lengths compare, the counts read on their own.
+.score-spread {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+
+    &__title {
+        margin: 0;
+        color: var(--text-secondary);
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__band {
+        display: grid;
+        grid-template-columns: 2.75rem minmax(0, 1fr) 1.75rem;
+        align-items: center;
+        gap: var(--space-3);
+        width: calc(100% + var(--space-4));
+        height: 2.25rem;
+        margin: 0 calc(var(--space-2) * -1);
+        padding: 0 var(--space-2);
+        border: 0;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--text-secondary);
+        font: inherit;
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        text-align: left;
+        cursor: pointer;
+
+        @include hover-capable {
+            &:hover {
+                background: var(--surface-panel-soft);
+                color: var(--text-primary);
+            }
+        }
+
+        &--selected {
+            background: var(--surface-raised);
+            color: var(--text-primary);
+        }
+    }
+
+    &__label {
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__track {
+        position: relative;
+        height: 0.5rem;
+    }
+
+    &__bar {
+        position: absolute;
+        inset: 0 auto 0 0;
+        min-width: 2px;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        background: var(--color-rating);
+    }
+
+    &__count {
+        color: var(--text-muted);
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__hint {
+        margin: var(--space-1) 0 0;
     }
 }
 
@@ -45,18 +129,27 @@
     flex-direction: column;
     min-width: 0;
 
-    > app-review-card + app-review-card,
-    > .review-skeleton + .review-skeleton {
+    > app-review-card,
+    > .review-skeleton {
         border-block-start: 1px solid var(--row-divider);
     }
 
-    > app-review-card:first-of-type {
-        margin-block-start: calc(var(--space-6) * -1);
+    &__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        min-height: 2.5rem;
+        padding-bottom: var(--space-3);
+    }
+
+    &__clear i {
+        margin-right: var(--space-2);
+        font-size: var(--text-xs);
     }
 
     &__more {
         display: flex;
-        justify-content: center;
         padding-block-start: var(--space-6);
         border-block-start: 1px solid var(--row-divider);
     }
@@ -64,31 +157,33 @@
 
 .review-skeleton {
     display: grid;
-    grid-template-columns: 4rem minmax(0, 1fr);
-    gap: var(--space-4);
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: var(--space-8);
     padding-block: var(--space-6);
 
-    &:first-child {
-        padding-block-start: 0;
-    }
-
-    &__score {
-        width: 2.5rem;
-        --skeleton-height: 1.875rem;
-    }
-
+    &__byline,
     &__body {
         display: flex;
         flex-direction: column;
-        gap: var(--space-3);
+        gap: var(--space-2);
+    }
+
+    &__score {
+        width: 3rem;
+        margin-top: var(--space-2);
+        --skeleton-height: 1.75rem;
     }
 
     &__line {
         width: 100%;
 
-        &--byline {
-            width: 40%;
-            --skeleton-height: 1.25rem;
+        &--name {
+            width: 70%;
+            --skeleton-height: 1rem;
+        }
+
+        &--date {
+            width: 45%;
         }
 
         &--short {
@@ -99,30 +194,27 @@
 
 @include tablet() {
     .reviews-layout {
-        grid-template-columns: 10rem minmax(0, 1fr);
-        gap: var(--space-8);
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-10);
+    }
+
+    .reviews-summary {
+        position: static;
     }
 }
 
 @include mobile() {
     .reviews-layout {
         grid-template-columns: minmax(0, 1fr);
-        gap: var(--space-6);
+        gap: var(--space-8);
     }
 
     .reviews-summary {
         position: static;
-
-        &__stats {
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: var(--space-2) var(--space-6);
-            padding-block-start: var(--space-3);
-        }
     }
 
     .review-skeleton {
-        grid-template-columns: 3rem minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--space-3);
     }
 }

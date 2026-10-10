@@ -1,40 +1,71 @@
 <div class="page-container">
     @if (mediaReviews$ | async; as mediaReviews) {
-        <app-sub-page-header
-            [backdropPath]="mediaReviews.media?.backdropPath"
-            [parentTitle]="mediaReviews.media?.title"
-            [backLink]="['../']"
-            pageTitle="Reviews"
-        />
+        <app-media-sub-page-header [media]="mediaReviews.media" pageTitle="Reviews" />
 
         <main class="page-main reviews-layout">
-            <aside class="reviews-summary" aria-label="Review summary">
-                <app-review-media-summary [media]="mediaReviews.media">
-                    @if (mediaReviews.showStats) {
-                        <dl class="reviews-summary__stats">
-                            <div class="reviews-summary__stat">
-                                <dt class="text-overline">Reviews</dt>
-                                <dd class="text-display-sm">{{ mediaReviews.reviewCount }}</dd>
-                            </div>
+            <aside class="reviews-summary" aria-label="How reviewers scored it">
+                @if (mediaReviews.showStats) {
+                    <div class="reviews-summary__average">
+                        <p class="reviews-summary__figure">
+                            <span class="text-rating">{{ mediaReviews.averageRating | number: '1.1-1' }}</span>
+                            <span class="text-meta">/10</span>
+                        </p>
+                        <p class="text-body-sm">{{ mediaReviews.averageLabel }}</p>
+                    </div>
 
-                            @if (mediaReviews.averageRating) {
-                                <div class="reviews-summary__stat">
-                                    <dt class="text-overline">Reviewer average</dt>
-                                    <dd class="reviews-summary__average">
-                                        <span class="text-rating-sm">{{ mediaReviews.averageRating | number: '1.1-1' }}</span>
-                                        <span class="text-caption">/10 {{ mediaReviews.ratedCountLabel }}</span>
-                                    </dd>
-                                </div>
-                            }
-                        </dl>
+                    @if (mediaReviews.showSpread) {
+                        <div class="score-spread">
+                            <h2 class="score-spread__title text-caption-strong">Score spread</h2>
+                            <ul class="score-spread__list">
+                                @for (band of mediaReviews.scoreSpread; track band.id) {
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="score-spread__band"
+                                            [class.score-spread__band--selected]="band.isSelected"
+                                            [attr.aria-pressed]="band.isSelected"
+                                            [attr.aria-label]="band.ariaLabel"
+                                            (click)="toggleBand(band.id)"
+                                        >
+                                            <span class="score-spread__label">{{ band.label }}</span>
+                                            <span class="score-spread__track" aria-hidden="true">
+                                                <span
+                                                    class="score-spread__bar"
+                                                    [style.width.%]="band.widthPercent"
+                                                ></span>
+                                            </span>
+                                            <span class="score-spread__count">{{ band.count }}</span>
+                                        </button>
+                                    </li>
+                                }
+                            </ul>
+                            <p class="score-spread__hint text-caption">Select a band to read only those reviews.</p>
+                        </div>
                     }
-                </app-review-media-summary>
+                } @else if (mediaReviews.showSkeleton) {
+                    <app-skeleton class="reviews-summary__skeleton" />
+                }
             </aside>
 
             <section class="reviews-list" aria-label="Reviews">
                 @if (mediaReviews.showSkeleton) {
                     <ng-container *ngTemplateOutlet="reviewSkeletonList; context: { count: skeletonCount }" />
-                } @else if (mediaReviews.hasReviews) {
+                } @else if (mediaReviews.showEmpty) {
+                    <app-empty-state
+                        iconClass="fa-regular fa-comment-dots"
+                        text="No reviews have been posted for this title yet."
+                    />
+                } @else {
+                    <div class="reviews-list__head">
+                        <span class="text-body-sm">{{ mediaReviews.listLabel }}</span>
+                        @if (mediaReviews.isFiltered) {
+                            <button mat-stroked-button class="reviews-list__clear" type="button" (click)="clearBand()">
+                                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                                Clear filter
+                            </button>
+                        }
+                    </div>
+
                     @for (item of mediaReviews.reviews; track item.review.id) {
                         <app-review-card [review]="item.review" [reviewLink]="item.link" />
                     }
@@ -48,11 +79,6 @@
                             <button mat-stroked-button type="button" (click)="loadMore()">Show more reviews</button>
                         </div>
                     }
-                } @else if (mediaReviews.showEmpty) {
-                    <app-empty-state
-                        iconClass="fa-regular fa-comment-dots"
-                        text="No reviews have been posted for this title yet."
-                    />
                 }
             </section>
         </main>
@@ -62,9 +88,12 @@
 <ng-template #reviewSkeletonList let-count="count">
     @for (i of count | repeat; track i) {
         <div class="review-skeleton" aria-hidden="true">
-            <app-skeleton class="review-skeleton__score" />
+            <div class="review-skeleton__byline">
+                <app-skeleton class="review-skeleton__line review-skeleton__line--name" />
+                <app-skeleton class="review-skeleton__line review-skeleton__line--date" />
+                <app-skeleton class="review-skeleton__score" />
+            </div>
             <div class="review-skeleton__body">
-                <app-skeleton class="review-skeleton__line review-skeleton__line--byline" />
                 <app-skeleton class="review-skeleton__line" />
                 <app-skeleton class="review-skeleton__line" />
                 <app-skeleton class="review-skeleton__line review-skeleton__line--short" />

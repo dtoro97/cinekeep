@@ -1,6 +1,6 @@
 import { Video } from '../../api';
 import { VideoCardItem } from '../models';
-import { buildYoutubeThumbnailUrl, buildYoutubeWatchUrl } from '../utils';
+import { buildYoutubeThumbnailUrls, buildYoutubeWatchUrl } from '../utils';
 
 export interface VideoCardMedia {
     readonly title: string;
@@ -19,7 +19,7 @@ export function toVideoCardItem(
     return {
         id: video.id,
         title,
-        thumbnailUrl: buildYoutubeThumbnailUrl(video.key),
+        thumbnailUrls: buildYoutubeThumbnailUrls(video.key),
         alt: title,
         openLabel: `Open video: ${title}`,
         typeLabel: video.type,

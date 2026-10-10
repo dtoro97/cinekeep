@@ -3,6 +3,7 @@
 
 :host {
     --credit-photo-size: 3.5rem;
+    --credit-columns: 3;
 
     display: block;
 }
@@ -10,15 +11,15 @@
 // Open rows in columns, like the other people lists: round portraits, name over role, a hairline between rows.
 .credit-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
-    column-gap: var(--space-6);
+    grid-template-columns: repeat(var(--credit-columns), minmax(0, 1fr));
+    column-gap: var(--space-10);
     margin: 0;
     padding: 0;
     list-style: none;
 
     > li {
         min-width: 0;
-        border-bottom: 1px solid var(--row-divider);
+        border-top: 1px solid var(--row-divider);
     }
 }
 
@@ -45,6 +46,8 @@
     }
 
     &__name {
+        font-size: var(--text-md);
+        font-weight: var(--weight-semibold);
         color: var(--text-primary);
         @include line-clamp(1);
     }
@@ -70,28 +73,16 @@
     }
 }
 
-.credit-departments {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-10);
-}
-
-.credit-department {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    scroll-margin-top: var(--space-8);
-
-    &__head {
-        display: flex;
-        align-items: baseline;
-        gap: var(--space-3);
+@include tablet() {
+    :host {
+        --credit-columns: 2;
     }
 }
 
 @include mobile() {
     :host {
         --credit-photo-size: 3rem;
+        --credit-columns: 1;
     }
 
     .credit {
@@ -100,9 +91,5 @@
         &__episodes {
             grid-column: 2;
         }
-    }
-
-    .credit-departments {
-        gap: var(--space-8);
     }
 }

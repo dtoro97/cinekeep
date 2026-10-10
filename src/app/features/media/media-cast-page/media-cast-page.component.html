@@ -1,11 +1,15 @@
 <div class="page-container">
     @if (castCrew$ | async; as castCrew) {
-        <app-sub-page-header
-            [backdropPath]="castCrew.media?.backdropPath"
-            [parentTitle]="castCrew.media?.title"
-            [backLink]="['../']"
-            pageTitle="Cast & Crew"
-            [loading]="castCrew.isMediaLoading"
+        <app-media-sub-page-header
+            [media]="castCrew.media"
+            pageTitle="Cast & crew"
+            [backLink]="castCrew.header.backLink"
+            [backLabel]="castCrew.header.backLabel"
+            [imagePath]="castCrew.header.imagePath"
+            [imageLink]="castCrew.header.imageLink"
+            [isLandscapeImage]="castCrew.header.isLandscapeImage"
+            [metaText]="castCrew.header.metaText"
+            [showTabs]="castCrew.header.showTabs"
         />
 
         <main class="page-main cast-page">
@@ -20,7 +24,7 @@
                 <app-browse-toolbar class="cast-page__toolbar">
                     @if (castCrew.showLoading) {
                         <app-skeleton start class="cast-page__toggle-skeleton" />
-                    } @else {
+                    } @else if (castCrew.showSections) {
                         <app-toggle-group
                             start
                             [options]="castCrew.sectionOptions"
@@ -43,34 +47,84 @@
                     </mat-form-field>
                 </app-browse-toolbar>
 
-                @if (castCrew.showDepartments) {
-                    <nav class="cast-page__departments" aria-label="Crew departments">
-                        <app-toggle-group
-                            variant="chips"
-                            [options]="castCrew.departmentOptions"
-                            [selectedValue]="castCrew.department"
-                            (selected)="setDepartment($event)"
-                        />
-                    </nav>
-                }
+                <div class="cast-page__sections">
+                    @if (castCrew.showLoading) {
+                        <app-cast-crew-grid [loading]="true" />
+                    }
 
-                @if (castCrew.noMatchesText; as noMatchesText) {
-                    <div class="cast-page__no-matches">
-                        <app-empty-state
-                            iconClass="fa-solid fa-magnifying-glass"
-                            iconStyle="plain"
-                            [text]="noMatchesText"
-                        />
-                        <button matButton class="text-button" type="button" (click)="clearQuery()">Clear filter</button>
-                    </div>
-                } @else {
-                    <app-cast-crew-grid
-                        [cast]="castCrew.cast"
-                        [departments]="castCrew.departments"
-                        [showCast]="castCrew.showCast"
-                        [loading]="castCrew.showLoading"
-                    />
-                }
+                    @if (castCrew.showCast) {
+                        <app-page-section subtitle="Cast">
+                            <span section-controls class="text-meta">{{ castCrew.castCountLabel }}</span>
+                            <app-cast-crew-grid label="Cast" [people]="castCrew.cast" />
+
+                            @if (castCrew.showAllCastButton) {
+                                <div class="cast-page__more">
+                                    <button mat-stroked-button type="button" (click)="showAllCast()">
+                                        {{ castCrew.allCastLabel }}
+                                    </button>
+                                </div>
+                            }
+                        </app-page-section>
+                    }
+
+                    @if (castCrew.showCrew) {
+                        <app-page-section subtitle="Crew">
+                            <span section-controls class="text-meta">{{ castCrew.crewCountLabel }}</span>
+
+                            <div class="crew-departments">
+                                @for (department of castCrew.departments; track department.id) {
+                                    <section class="crew-department" [attr.aria-labelledby]="department.id">
+                                        <h3 class="crew-department__title text-display-sm" [id]="department.id">
+                                            {{ department.name }}
+                                            <span class="text-meta">{{ department.countLabel }}</span>
+                                        </h3>
+
+                                        <ul class="crew-department__list">
+                                            @for (person of department.people; track person.key) {
+                                                <li class="crew-department__row">
+                                                    <a
+                                                        class="crew-department__name"
+                                                        [routerLink]="['/name', person.id]"
+                                                        >{{ person.name }}</a
+                                                    >
+                                                    @if (person.role) {
+                                                        <span class="crew-department__job text-meta">{{
+                                                            person.role
+                                                        }}</span>
+                                                    }
+                                                </li>
+                                            }
+                                        </ul>
+
+                                        @if (department.showMore) {
+                                            <button
+                                                matButton
+                                                class="crew-department__more text-button"
+                                                type="button"
+                                                (click)="expandDepartment(department.id)"
+                                            >
+                                                {{ department.moreLabel }}
+                                            </button>
+                                        }
+                                    </section>
+                                }
+                            </div>
+                        </app-page-section>
+                    }
+
+                    @if (castCrew.noMatchesText; as noMatchesText) {
+                        <div class="cast-page__no-matches">
+                            <app-empty-state
+                                iconClass="fa-solid fa-magnifying-glass"
+                                iconStyle="plain"
+                                [text]="noMatchesText"
+                            />
+                            <button matButton class="text-button" type="button" (click)="clearQuery()">
+                                Clear filter
+                            </button>
+                        </div>
+                    }
+                </div>
             }
         </main>
     }

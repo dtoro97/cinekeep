@@ -9,13 +9,13 @@ import {
     PhotosBrowserSkeletonComponent,
     PhotoViewerDialogService,
     SeoService,
-    SubPageHeaderComponent,
 } from '../../../shared';
 import { EpisodeDetailStoreService } from '../episode-detail-store.service';
+import { MediaSubPageHeaderComponent } from '../media-sub-page-header/media-sub-page-header.component';
 
 @Component({
     selector: 'app-episode-photos-page',
-    imports: [AsyncPipe, PhotosBrowserComponent, PhotosBrowserSkeletonComponent, SubPageHeaderComponent],
+    imports: [AsyncPipe, MediaSubPageHeaderComponent, PhotosBrowserComponent, PhotosBrowserSkeletonComponent],
     templateUrl: './episode-photos-page.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -33,7 +33,7 @@ export class EpisodePhotosPageComponent {
         this.store.episodePhotosSeo$.pipe(takeUntilDestroyed()).subscribe((metadata) => seoService.setPage(metadata));
     }
 
-    openPhotoViewer(selection: PhotosBrowserSelection): void {
-        this.photoViewerDialogService.open({ images: selection.images, activeIndex: selection.index });
+    openPhotoViewer(selection: PhotosBrowserSelection, title: string): void {
+        this.photoViewerDialogService.open({ images: selection.images, activeIndex: selection.index, title });
     }
 }

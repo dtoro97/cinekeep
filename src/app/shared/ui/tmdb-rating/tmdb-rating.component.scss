@@ -10,6 +10,10 @@
     gap: var(--space-1);
 }
 
+.tmdb-rating__label {
+    order: -1;
+}
+
 .tmdb-rating__summary {
     display: inline-flex;
     min-width: 0;
@@ -26,7 +30,7 @@
 }
 
 .tmdb-rating__icon {
-    color: var(--text-muted);
+    color: var(--color-rating);
     font-size: var(--text-sm);
     line-height: 1;
 }

@@ -1,35 +1,93 @@
 <div class="page-container">
     @if (reviewDetail$ | async; as reviewDetail) {
-        <app-sub-page-header
-            [backdropPath]="reviewDetail.media?.backdropPath"
-            parentTitle="Reviews"
-            [backLink]="['../']"
+        <app-media-sub-page-header
+            [media]="reviewDetail.media"
             [pageTitle]="reviewDetail.pageTitle"
+            [backLink]="['../']"
+            backLabel="Back to reviews"
         />
 
-        <main class="page-main review-detail-layout">
-            <aside class="review-detail-layout__summary">
-                <app-review-media-summary [media]="reviewDetail.media" />
-            </aside>
-
-            <section class="review-detail-layout__body">
+        <main class="page-main review-reading">
+            <article class="review-reading__article">
                 @if (reviewDetail.showSkeleton) {
                     <div class="review-detail-skeleton" aria-hidden="true">
-                        <app-skeleton class="review-detail-skeleton__score" />
-                        <div class="review-detail-skeleton__body">
-                            <app-skeleton class="review-detail-skeleton__line review-detail-skeleton__line--byline" />
-                            @for (slot of skeletonLineCount | repeat; track slot) {
-                                <app-skeleton class="review-detail-skeleton__line" />
-                            }
-                            <app-skeleton class="review-detail-skeleton__line review-detail-skeleton__line--short" />
-                        </div>
+                        <app-skeleton class="review-detail-skeleton__line review-detail-skeleton__line--byline" />
+                        @for (slot of skeletonLineCount | repeat; track slot) {
+                            <app-skeleton class="review-detail-skeleton__line" />
+                        }
+                        <app-skeleton class="review-detail-skeleton__line review-detail-skeleton__line--short" />
                     </div>
                 } @else if (reviewDetail.review; as review) {
                     <app-review-card [review]="review" variant="detail" />
+
+                    @if (reviewDetail.tmdbUrl; as tmdbUrl) {
+                        <a class="review-reading__source" [href]="tmdbUrl" target="_blank" rel="noopener">
+                            Read on TMDb
+                            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                        </a>
+                    }
                 } @else if (reviewDetail.showUnavailable) {
                     <app-empty-state iconClass="fa-regular fa-comment-dots" text="This review is unavailable." />
                 }
-            </section>
+
+                @if (reviewDetail.showPager) {
+                    <nav class="review-pager" aria-label="Other reviews">
+                        @if (reviewDetail.previousReview; as previous) {
+                            <a class="review-pager__link" [routerLink]="previous.link" rel="prev">
+                                <span class="text-meta">
+                                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                                    Previous review
+                                </span>
+                                <span class="review-pager__who">{{ previous.author }}</span>
+                            </a>
+                        } @else {
+                            <span></span>
+                        }
+
+                        @if (reviewDetail.nextReview; as next) {
+                            <a class="review-pager__link review-pager__link--next" [routerLink]="next.link" rel="next">
+                                <span class="text-meta">
+                                    Next review
+                                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                                </span>
+                                <span class="review-pager__who">{{ next.author }}</span>
+                            </a>
+                        }
+                    </nav>
+                }
+            </article>
+
+            <aside class="review-reading__rail">
+                <a class="review-reading__title" [routerLink]="['../../']">
+                    <app-review-media-summary [media]="reviewDetail.media" />
+                </a>
+
+                @if (reviewDetail.hasOtherReviews) {
+                    <section class="more-reviews" aria-labelledby="more-reviews-title">
+                        <h2 id="more-reviews-title" class="more-reviews__title text-display-sm">More reviews</h2>
+
+                        @for (item of reviewDetail.otherReviewItems; track item.id) {
+                            <a class="more-reviews__item" [routerLink]="item.link">
+                                <span class="more-reviews__head">
+                                    <span class="text-subtitle">{{ item.author }}</span>
+                                    @if (item.score) {
+                                        <span class="more-reviews__score">
+                                            <span class="text-rating-sm">{{ item.score | number: '1.0-1' }}</span>
+                                            <span class="text-caption">/10</span>
+                                        </span>
+                                    }
+                                </span>
+                                <span class="more-reviews__excerpt text-body-sm">{{ item.excerpt }}</span>
+                            </a>
+                        }
+
+                        <a class="more-reviews__all" [routerLink]="['../']">
+                            {{ reviewDetail.allReviewsLabel }}
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </a>
+                    </section>
+                }
+            </aside>
         </main>
     }
 </div>

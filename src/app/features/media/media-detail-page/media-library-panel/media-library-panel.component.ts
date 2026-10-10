@@ -1,16 +1,16 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, EventEmitter, Input, Output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
-import { EMPTY, catchError, finalize, of, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, finalize, map, of, switchMap, tap } from 'rxjs';
 
-import { IconButtonComponent, SigninDialogService, SnackbarService, UserSessionStoreService } from '../../../../shared';
-import { MediaDetailActionsStoreService } from '../../media-detail-actions-store.service';
+import { SigninDialogService, SnackbarService, UserSessionStoreService } from '../../../../shared';
+import { MediaDetailActionsStoreService, MediaUserListSummary } from '../../media-detail-actions-store.service';
 import { MediaDetails } from '../../media-store.service';
+import { UserRatingComponent } from '../../user-rating/user-rating.component';
 import {
     MediaListDialogComponent,
     MediaListDialogData,
@@ -18,16 +18,18 @@ import {
 } from './media-list-dialog/media-list-dialog.component';
 
 @Component({
-    selector: 'app-media-list-actions',
-    imports: [AsyncPipe, IconButtonComponent, MatButtonModule, MatTooltipModule],
-    templateUrl: './media-list-actions.component.html',
-    styleUrl: './media-list-actions.component.scss',
+    selector: 'app-media-library-panel',
+    imports: [AsyncPipe, MatButtonModule, RouterLink, UserRatingComponent],
+    templateUrl: './media-library-panel.component.html',
+    styleUrl: './media-library-panel.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MediaListActionsComponent {
+export class MediaLibraryPanelComponent {
     @Input({ required: true }) media!: MediaDetails;
+    @Input() canRate = false;
+    @Output() readonly rate = new EventEmitter<void>();
 
-    readonly listActions$ = this.actionsStore.listActions$;
+    readonly library$ = this.actionsStore.library$;
 
     constructor(
         private readonly actionsStore: MediaDetailActionsStoreService,
@@ -71,7 +73,7 @@ export class MediaListActionsComponent {
         (this.userSessionStore.isAuthenticated()
             ? this.actionsStore.getUserLists$().pipe(
                   // Without the user's lists the dialog still offers to create a new one.
-                  catchError(() => of([])),
+                  catchError(() => of<MediaUserListSummary[]>([])),
                   switchMap((customLists) =>
                       this.matDialog
                           .open<MediaListDialogComponent, MediaListDialogData, MediaListDialogResult>(
@@ -84,9 +86,10 @@ export class MediaListActionsComponent {
                                   width: '100%',
                               },
                           )
-                          .afterClosed(),
+                          .afterClosed()
+                          .pipe(map((result) => ({ result, customLists }))),
                   ),
-                  switchMap((result) => {
+                  switchMap(({ result, customLists }) => {
                       if (result?.kind === 'create-list') {
                           this.router.navigate(['/me/lists/new'], {
                               queryParams: {
@@ -100,12 +103,15 @@ export class MediaListActionsComponent {
                           });
                       }
 
-                      return result?.kind === 'select-list'
-                          ? this.actionsStore.addToList$(result.listId).pipe(
+                      const selectedList =
+                          result?.kind === 'select-list' ? customLists.find(({ id }) => id === result.listId) : null;
+
+                      return selectedList
+                          ? this.actionsStore.addToList$(selectedList).pipe(
                                 tap(() =>
                                     this.snackbarService.showSuccess(`${title} has been added to your list.`, {
                                         label: 'Open list',
-                                        routerLink: ['/me/lists', result.listId],
+                                        routerLink: ['/me/lists', selectedList.id],
                                     }),
                                 ),
                             )

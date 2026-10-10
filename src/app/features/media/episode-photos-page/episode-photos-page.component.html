@@ -1,19 +1,25 @@
 <div class="page-container">
     @if (episodePhotos$ | async; as episodePhotos) {
-        <app-sub-page-header
-            [backdropPath]="episodePhotos.backdropPath"
-            parentTitle="Episode"
-            [backLink]="episodePhotos.backLink"
-            [pageTitle]="episodePhotos.pageTitle"
-            [subtitle]="episodePhotos.subtitle"
-            [loading]="episodePhotos.isHeaderLoading"
+        <app-media-sub-page-header
+            [media]="episodePhotos.media"
+            pageTitle="Stills"
+            [backLink]="episodePhotos.episodeLink"
+            [backLabel]="episodePhotos.backLabel"
+            [imagePath]="episodePhotos.stillPath"
+            [imageLink]="episodePhotos.episodeLink"
+            [isLandscapeImage]="true"
+            [metaText]="episodePhotos.metaText"
+            [showTabs]="false"
         />
 
         <main class="page-main">
             @if (episodePhotos.showSkeleton) {
                 <app-photos-browser-skeleton />
             } @else if (episodePhotos.stills; as stills) {
-                <app-photos-browser [images]="stills" (photoSelect)="openPhotoViewer($event)" />
+                <app-photos-browser
+                    [images]="stills"
+                    (photoSelect)="openPhotoViewer($event, episodePhotos.viewerTitle)"
+                />
             }
         </main>
     }

@@ -1,5 +1,5 @@
 @if (currentMedia; as media) {
-    <app-image class="review-media-summary__poster" [src]="media.posterPath" [alt]="media.title" params="w342" />
+    <app-image class="review-media-summary__poster" [src]="media.posterPath" [alt]="media.title" params="w185" />
 } @else {
     <app-skeleton class="review-media-summary__poster review-media-summary__poster--skeleton" />
 }
@@ -9,7 +9,7 @@
         <div class="review-media-summary__identity">
             <p class="review-media-summary__title text-display-sm">{{ media.title }}</p>
             @if (meta) {
-                <p class="text-card-meta">{{ meta }}</p>
+                <p class="review-media-summary__meta text-card-meta">{{ meta }}</p>
             }
         </div>
     }

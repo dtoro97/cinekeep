@@ -16,7 +16,7 @@ import {
     tap,
 } from 'rxjs';
 
-import { TvEpisode, TvEpisodeImages, TvEpisodeRestControllerService, VideoList } from '../../api';
+import { TvEpisode, TvEpisodeCredits, TvEpisodeImages, TvEpisodeRestControllerService, VideoList } from '../../api';
 import { EpisodeRatingControllerService } from '../../api-cinekeep';
 import {
     EpisodeSnapshotRequest,
@@ -33,18 +33,22 @@ import {
     isDefined,
     mapRemoteData,
     normalizeRatingValue,
+    pluralize,
     remoteData,
     remoteSuccess,
+    RouteCommands,
     toEpisodeSnapshotRequest,
     toMediaSnapshotRequest,
     toRating,
     toSeoImage,
     toVideoCardItems,
+    toCastPersonCardItem,
     toYoutubeVideos,
 } from '../../shared';
-import { toEpisodeCrewRows, toGuestCast } from './episode-credits.mapper';
-import { toEpisodePager } from './episode-pager.mapper';
-import { CreditsSummary } from './media-credits-summary/media-credits-summary.model';
+import { toGuestCast } from './episode-credits.mapper';
+import { toKeyCredits } from './key-credits.mapper';
+import type { CastGridMember, MediaCreditsResource } from './media-credits-store.service';
+import { CreditsSummary, toCreditsSummary } from './media-credits-summary/media-credits-summary.model';
 import { MediaSeasonsStoreService, toSeasonLabel } from './media-seasons-store.service';
 import { MediaStoreService } from './media-store.service';
 import { EpisodeTarget, isSameEpisodeTarget, toEpisodeTarget } from './media-target';
@@ -60,18 +64,22 @@ interface EpisodeDetailState {
     readonly target: EpisodeTarget | null;
     readonly episode: RemoteData<TvEpisode | null>;
     readonly episodeImages: RemoteData<TvEpisodeImages | null>;
+    /** The episode's own cast (regulars who appear in it), guest stars and crew. */
+    readonly episodeCredits: RemoteData<TvEpisodeCredits | null>;
     readonly episodeVideos: RemoteData<VideoList | null>;
     /** The season's episodes, for the previous/next episode names. */
     readonly seasonEpisodes: RemoteData<TvEpisode[]>;
     readonly rating: UserRatingState;
 }
 
-const STILL_PREVIEW_COUNT = 12;
+const STILL_PREVIEW_COUNT = 6;
+const CAST_PREVIEW_COUNT = 6;
 
 const INITIAL_STATE: EpisodeDetailState = {
     target: null,
     episode: { state: 'notAsked' },
     episodeImages: { state: 'notAsked' },
+    episodeCredits: { state: 'notAsked' },
     episodeVideos: { state: 'notAsked' },
     seasonEpisodes: { state: 'notAsked' },
     rating: { userRating: { state: 'notAsked' }, ratingPending: false },
@@ -83,7 +91,10 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
     readonly episodeDetail$ = this.select(
         this.state$,
         this.mediaStore.mediaDetails$,
-        ({ target, episode: episodeState, episodeImages, episodeVideos, seasonEpisodes, rating }, media) => {
+        (
+            { target, episode: episodeState, episodeImages, episodeCredits, episodeVideos, seasonEpisodes, rating },
+            media,
+        ) => {
             const episode = episodeState.state === 'success' ? episodeState.data : null;
             const isLoading = episodeState.state === 'loading';
             const guestStars = episode?.guest_stars ?? [];
@@ -98,14 +109,7 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
             const canRateEpisode = airDate ? airDate <= getISODate(0) : false;
             const tmdbRating = toRating(episode?.vote_average);
             const userRating = toUserRatingDisplay(rating, target !== null);
-            const crewRows = toEpisodeCrewRows(episode?.crew ?? []);
-            const pager = target
-                ? toEpisodePager(
-                      target,
-                      media?.seasons ?? [],
-                      seasonEpisodes.state === 'success' ? seasonEpisodes.data : null,
-                  )
-                : null;
+            const crewRows = toKeyCredits('episode', episode?.crew ?? []);
             const ratingRequest: EpisodeRatingRequest | null =
                 target && !userRating.disabled
                     ? { target, title: episode?.name ?? 'this episode', currentRating: userRating.currentRating }
@@ -113,36 +117,77 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
             const guestCast: RemoteData<CreditsSummary> = isLoading
                 ? { state: 'loading' }
                 : remoteSuccess(toGuestCast(guestStars));
+            const episodeCast: RemoteData<CreditsSummary> =
+                episodeCredits.state === 'notAsked'
+                    ? { state: 'loading' }
+                    : mapRemoteData(episodeCredits, (credits) =>
+                          toCreditsSummary(
+                              (credits?.cast ?? [])
+                                  .filter(({ id }) => !!id)
+                                  .slice(0, CAST_PREVIEW_COUNT)
+                                  .map(toCastPersonCardItem),
+                              [],
+                          ),
+                      );
+            const seasonList = seasonEpisodes.state === 'success' ? seasonEpisodes.data : [];
+            const seasonStrip = target
+                ? seasonList.map((item) => ({
+                      key: item.id ?? item.episode_number ?? 0,
+                      label: `${item.episode_number ?? ''}. ${item.name ?? 'Untitled episode'}`,
+                      stillPath: item.still_path ?? null,
+                      isCurrent: item.episode_number === target.episodeNumber,
+                      ariaCurrent: item.episode_number === target.episodeNumber ? 'page' : null,
+                      link: [
+                          '/title',
+                          target.seriesId,
+                          'tv',
+                          'episodes',
+                          target.seasonNumber,
+                          item.episode_number ?? 0,
+                      ],
+                  }))
+                : [];
 
             return {
-                seriesTitle: media?.title ?? null,
                 episode,
                 hasMeta: !!(episode?.air_date || episode?.runtime),
                 isOverviewEmpty: !episode?.overview,
                 overviewText: episode?.overview || 'No overview available.',
-                showIntroSkeleton: isLoading,
                 tmdbRating,
-                showRatings: tmdbRating !== null || canRateEpisode,
                 canRateEpisode,
                 userRating,
                 ratingRequest,
                 heroImage: episode?.still_path ?? media?.backdropPath ?? null,
-                episodeLabel: episode
-                    ? `Season ${episode.season_number ?? ''} · Episode ${episode.episode_number ?? ''}`
-                    : '',
                 hasCrewRows: crewRows.length > 0,
                 crewRows,
                 guestCast,
                 hasGuestCast: isLoading || guestStars.length > 0,
-                pager: pager?.previous || pager?.next ? pager : null,
                 videos,
                 showVideos: videos.state !== 'success' || videoCount > 0,
-                stills: mapRemoteData(stills, (images) => images.slice(0, STILL_PREVIEW_COUNT)),
+                stillPreview: stillList.slice(0, STILL_PREVIEW_COUNT).map((image, index) => ({
+                    image,
+                    index,
+                    label: `Open still ${index + 1} of ${stillList.length}`,
+                })),
+                stillsLink: target
+                    ? ['/title', target.seriesId, 'tv', 'episodes', target.seasonNumber, target.episodeNumber, 'photos']
+                    : null,
+                allStillsLabel: `All ${stillList.length} stills`,
+                // The preview already shows every still when there are only a few.
+                hasMoreStills: stillList.length > STILL_PREVIEW_COUNT,
+                showStillsSkeleton: stills.state === 'loading',
+                episodeCast,
+                showEpisodeCast: episodeCast.state !== 'success' || !!episodeCast.data?.hasTopCast,
+                castLink: target ? [...toEpisodeLink(target), 'cast'] : null,
+                seasonStrip,
+                hasSeasonStrip: seasonStrip.length > 1,
+                viewerTitle: [media?.title, episode?.name].filter(Boolean).join(' · '),
+                eyebrowLabel: [media?.title, target ? `Episode ${target.episodeNumber}` : null]
+                    .filter(Boolean)
+                    .join(' · '),
+                backLabel: target ? `Back to ${toSeasonLabel(target.seasonNumber)}` : 'Back',
                 stillList,
-                stillCount: stillList.length,
-                hasStills: stillList.length > 0,
                 showStills: stills.state !== 'success' || stillList.length > 0,
-                seriesLink: target ? ['/title', target.seriesId, 'tv'] : null,
                 episodesLink: target ? ['/title', target.seriesId, 'tv', 'episodes', target.seasonNumber] : null,
                 seasonLabel: target ? toSeasonLabel(target.seasonNumber) : '',
             };
@@ -178,23 +223,42 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         this.mediaStore.mediaDetails$,
         ({ target, episode: episodeState, episodeImages }, media) => {
             const episode = episodeState.state === 'success' ? episodeState.data : null;
-            const episodeCode = target ? formatEpisodeCode(target.seasonNumber, target.episodeNumber) : '';
             const stills = toStills(episodeImages);
-
+            const stillCount = remoteData(stills, []).length;
             return {
-                backdropPath: media?.backdropPath ?? null,
-                isHeaderLoading: !episode || !media,
-                pageTitle: episode?.name ? `${episode.name} Photos` : `${episodeCode} Photos`,
-                subtitle: media?.title
-                    ? `${formatTitleWithYear(media.title, media.year)} - ${episodeCode}`
-                    : episodeCode,
-                backLink: target
-                    ? ['/title', target.seriesId, 'tv', 'episodes', target.seasonNumber, target.episodeNumber]
-                    : ['../'],
+                media,
+                ...toEpisodeSubPageHeader(
+                    target,
+                    episode,
+                    media?.title,
+                    stills.state === 'success' ? pluralize(stillCount, 'still') : null,
+                ),
+                viewerTitle: [media?.title, episode?.name].filter(Boolean).join(' · '),
                 showSkeleton: stills.state === 'loading',
                 stills: stills.state === 'success' ? stills.data : null,
             };
         },
+    );
+
+    /** The episode's credits in the shape the cast page reads: regulars first, then guest stars. */
+    readonly episodeCast$ = this.select(
+        this.state$,
+        this.mediaStore.mediaDetails$,
+        ({ target, episode: episodeState, episodeCredits }, media) => ({
+            header: toEpisodeSubPageHeader(
+                target,
+                episodeState.state === 'success' ? episodeState.data : null,
+                media?.title,
+                null,
+            ),
+            credits: mapRemoteData(episodeCredits, (credits): MediaCreditsResource => ({
+                cast: [
+                    ...(credits?.cast ?? []),
+                    ...(credits?.guest_stars ?? []).map((guest): CastGridMember => ({ ...guest })),
+                ],
+                crew: credits?.crew ?? [],
+            })),
+        }),
     );
 
     readonly episodePhotosSeo$ = this.select(
@@ -243,6 +307,7 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
                     target,
                     episode: { state: 'loading' },
                     episodeImages: { state: 'loading' },
+                    episodeCredits: { state: 'loading' },
                     episodeVideos: { state: 'loading' },
                     // Moving to another episode of the same season keeps the loaded season list.
                     seasonEpisodes:
@@ -257,15 +322,17 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
                 return forkJoin({
                     episode: this.fetchEpisode$(target),
                     images: this.fetchEpisodeImages$(target),
+                    credits: this.fetchEpisodeCredits$(target),
                     videos: this.tvEpisodeService
                         .tvEpisodeVideos(target)
                         // Videos are optional, so a failure shows the episode without them.
                         .pipe(catchError(() => of({ results: [] }))),
                 }).pipe(
-                    tap(({ episode, images, videos }) => {
+                    tap(({ episode, images, credits, videos }) => {
                         this.patchState({
                             episode: remoteSuccess(episode),
                             episodeImages: remoteSuccess(images),
+                            episodeCredits: remoteSuccess(credits),
                             episodeVideos: remoteSuccess(videos),
                         });
 
@@ -305,6 +372,39 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
                 }).pipe(
                     tap(({ episode, images }) =>
                         this.patchState({ episode: remoteSuccess(episode), episodeImages: remoteSuccess(images) }),
+                    ),
+                );
+            }),
+        );
+    }
+
+    /** Loads the episode and its credits for the episode cast page, reusing what the episode page loaded. */
+    loadCast$(paramMap$: Observable<ParamMap>): Observable<unknown> {
+        return this.toEpisodeTarget$(paramMap$, true).pipe(
+            switchMap((target) => {
+                const state = this.get();
+
+                if (
+                    isSameEpisodeTarget(state.target, target) &&
+                    state.episode.state === 'success' &&
+                    state.episodeCredits.state === 'success'
+                ) {
+                    return EMPTY;
+                }
+
+                this.setState({
+                    ...INITIAL_STATE,
+                    target,
+                    episode: { state: 'loading' },
+                    episodeCredits: { state: 'loading' },
+                });
+
+                return forkJoin({
+                    episode: this.fetchEpisode$(target),
+                    credits: this.fetchEpisodeCredits$(target),
+                }).pipe(
+                    tap(({ episode, credits }) =>
+                        this.patchState({ episode: remoteSuccess(episode), episodeCredits: remoteSuccess(credits) }),
                     ),
                 );
             }),
@@ -410,6 +510,15 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         );
     }
 
+    private fetchEpisodeCredits$(target: EpisodeTarget): Observable<TvEpisodeCredits | null> {
+        return (
+            this.tvEpisodeService
+                .tvEpisodeCredits(target)
+                // Credits are optional, so a failure shows the episode without its cast.
+                .pipe(catchError(() => of(null)))
+        );
+    }
+
     private fetchEpisodeImages$(target: EpisodeTarget): Observable<TvEpisodeImages | null> {
         return (
             this.tvEpisodeService
@@ -437,3 +546,29 @@ const toStills = (images: RemoteData<TvEpisodeImages | null>): RemoteData<Viewer
         : mapRemoteData(images, (data) =>
               (data?.stills ?? []).map((image): ViewerImage => ({ ...image, photoType: 'still' })),
           );
+
+const toEpisodeLink = (target: EpisodeTarget): RouteCommands => [
+    '/title',
+    target.seriesId,
+    'tv',
+    'episodes',
+    target.seasonNumber,
+    target.episodeNumber,
+];
+
+/** The header of an episode's own subpages (stills, cast): back to the episode, its still and where it sits. */
+const toEpisodeSubPageHeader = (
+    target: EpisodeTarget | null,
+    episode: TvEpisode | null,
+    seriesTitle: string | undefined,
+    countLabel: string | null,
+) => ({
+    episodeLink: target ? toEpisodeLink(target) : null,
+    backLabel: episode?.name ? `Back to ${episode.name}` : 'Back to episode',
+    stillPath: episode?.still_path ?? null,
+    metaText: target
+        ? [seriesTitle, toSeasonLabel(target.seasonNumber), `Episode ${target.episodeNumber}`, countLabel]
+              .filter(Boolean)
+              .join(' · ')
+        : null,
+});

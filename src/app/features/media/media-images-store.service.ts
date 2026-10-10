@@ -46,9 +46,10 @@ export class MediaImagesStoreService extends ComponentStore<MediaImagesState> {
                 this.mediaApiService
                     .getImages$(target, IMAGE_LANGUAGE_FALLBACK, this.localeStore.language())
                     .pipe(
-                        map(({ backdrops, posters }): ViewerImage[] => [
+                        map(({ backdrops, posters, logos }): ViewerImage[] => [
                             ...(backdrops ?? []).map((image) => ({ ...image, photoType: 'backdrop' as const })),
                             ...(posters ?? []).map((image) => ({ ...image, photoType: 'poster' as const })),
+                            ...(logos ?? []).map((image) => ({ ...image, photoType: 'logo' as const })),
                         ]),
                     ),
             patch: (images) => this.patchState({ images }),

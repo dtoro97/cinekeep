@@ -13,11 +13,11 @@ import {
     RemoteData,
     formatYearRange,
     getISODate,
-    hasIdAndName,
     hasRemoteData,
     isDefined,
     loadCachedResource$,
     mapRemoteData,
+    pluralize,
     pickBestYoutubeTrailer,
     remoteData,
     remoteSuccess,
@@ -36,6 +36,7 @@ import {
 import { MediaCreditsStoreService } from './media-credits-store.service';
 import { MediaDetailActionsStoreService } from './media-detail-actions-store.service';
 import { MediaImagesStoreService } from './media-images-store.service';
+import { toKeyCredits } from './key-credits.mapper';
 import { MediaReviewsStoreService } from './media-reviews-store.service';
 import { MediaStoreService } from './media-store.service';
 import { MediaTarget, isSameMediaTarget } from './media-target';
@@ -68,7 +69,7 @@ interface MediaDetailState {
     readonly collection: RemoteData<CollectionDetails | null>;
 }
 
-const HERO_CREDIT_LIMIT = 3;
+const PHOTO_STRIP_COUNT = 4;
 /** The title page shows this many streaming logos, then "+N". */
 const PROVIDER_PREVIEW_COUNT = 3;
 const REVIEW_PREVIEW_COUNT = 3;
@@ -106,6 +107,7 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         this.videoStore.videosState$,
         this.reviewsStore.reviewPageState$,
         this.actionsStore.userRating$,
+        this.actionsStore.library$,
         (
             { target, recommendations, similar, keywords, releaseInfo, watchProviders, collection },
             detailsState,
@@ -115,6 +117,7 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
             videos,
             reviewPage,
             userRating,
+            library,
         ) => {
             const media = detailsState.state === 'success' ? detailsState.data : null;
             const isMovie = media?.mediaType === 'movie';
@@ -138,10 +141,7 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
                                 )
                               : null,
                       );
-            // TV crew is aggregated across episodes, so series credit their creators only.
-            const heroCreditPeople = hasRemoteData(credits)
-                ? (isMovie ? directors : creators).filter(hasIdAndName).slice(0, HERO_CREDIT_LIMIT)
-                : [];
+            const keyCredits = media ? toKeyCredits(isMovie ? 'movie' : 'series', crew, creators) : [];
 
             const certification = mapRemoteData(releaseInfo, (info) => info.certification);
             const providers = remoteData(watchProviders, null);
@@ -150,11 +150,23 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
             const trailerKey = pickBestYoutubeTrailer(videoList)?.key ?? null;
             const videoItems = mapRemoteData(videos, (items) => (media ? toVideoCardItems(items, media) : []));
 
-            const photos = remoteData(images, []);
+            // Logos only belong on the photos page; the title page shows backdrops and posters.
+            const photos = remoteData(images, []).filter((image) => image.photoType !== 'logo');
+            const indexedPhotos = photos.map((image, index) => ({ image, index }));
+            // Landscape stills crop cleanly into the strip's equal tiles; posters only fill in when there are too few.
+            const landscapePhotos = indexedPhotos.filter(({ image }) => (image.aspect_ratio ?? 0) > 1);
+            const stripPhotos = (landscapePhotos.length >= PHOTO_STRIP_COUNT ? landscapePhotos : indexedPhotos).slice(
+                0,
+                PHOTO_STRIP_COUNT,
+            );
+            const hiddenPhotoCount = photos.length - stripPhotos.length + 1;
 
             const reviews = remoteData(reviewPage, null);
             const reviewTotal = reviews?.total_results ?? 0;
             const hasRating = (rating: number | null | undefined): number => (typeof rating === 'number' ? 0 : 1);
+            const reviewScores = (reviews?.results ?? [])
+                .map((review) => review.author_details?.rating)
+                .filter((rating): rating is number => typeof rating === 'number');
             const previewReviews = (reviewPage.state === 'success' ? (reviews?.results ?? []) : [])
                 .filter((review) => (review.content?.trim().length ?? 0) >= REVIEW_PREVIEW_MIN_CONTENT_LENGTH)
                 .sort((left, right) => hasRating(left.author_details?.rating) - hasRating(right.author_details?.rating))
@@ -179,9 +191,11 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
                     media?.mediaType === 'tv'
                         ? formatYearRange(media.firstAirDate?.slice(0, 4) || media.year, media.lastAirDate?.slice(0, 4))
                         : null,
-                heroCredit: heroCreditPeople.length
-                    ? { label: isMovie ? 'Directed by' : 'Created by', people: heroCreditPeople }
-                    : null,
+                keyCredits: hasRemoteData(credits) ? keyCredits : [],
+                hasKeyCredits: hasRemoteData(credits) && keyCredits.length > 0,
+                hasGenres: !!media?.genres.length,
+                // Until the title is in your library the watchlist is the page's gold action; then the trailer is.
+                isTrailerPrimary: library.isInLibrary,
                 externalLinks,
                 showCertificationSkeleton: certification.state === 'loading',
                 certification: remoteData(certification, null),
@@ -189,6 +203,7 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
                 seasonCount: media?.mediaType === 'tv' ? media.numberOfSeasons || null : null,
                 providers,
                 providersMoreLink: providers?.hiddenCount && providers.link ? providers.link : null,
+                showStreamingEmpty: watchProviders.state === 'success' && !providers,
                 showTrailerSkeleton: videos.state === 'loading',
                 trailerKey,
                 showRatings: !!media?.voteAverage || canRateTitle,
@@ -215,12 +230,24 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
                 latestEpisode:
                     media && latestEpisode ? toEpisodeListItem(latestEpisode, media.id, { showCode: true }) : null,
                 showVideosSkeleton: videos.state === 'loading',
-                videos: videoList.length ? { state: videoItems, totalCount: videoList.length } : null,
                 showPhotosSkeleton: images.state === 'loading',
+                leadVideo: remoteData(videoItems, [])[0] ?? null,
+                photoStrip: stripPhotos.map(({ image, index }, position) => {
+                    const isLast = position === stripPhotos.length - 1 && photos.length > PHOTO_STRIP_COUNT;
+
+                    return {
+                        image,
+                        index,
+                        moreLabel: isLast ? `+${hiddenPhotoCount}` : null,
+                        ariaLabel: isLast ? `See all ${photos.length} photos` : `Open photo ${index + 1}`,
+                    };
+                }),
+                videos: videoList.length ? { state: videoItems, totalCount: videoList.length } : null,
                 photos: photos.length
                     ? {
                           state: images,
                           allPhotos: photos,
+                          title: media?.title ?? '',
                           totalCount: photos.length,
                           link: media ? ['/title', media.id, media.mediaType, 'photos'] : null,
                       }
@@ -230,6 +257,10 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
                     reviewTotal || previewReviews.length
                         ? {
                               count: reviewTotal || previewReviews.length,
+                              average: reviewScores.length
+                                  ? reviewScores.reduce((sum, score) => sum + score, 0) / reviewScores.length
+                                  : null,
+                              averageLabel: `average of ${pluralize(reviewScores.length, 'scored review')}`,
                               items: previewReviews.map((review) => ({
                                   review,
                                   link: review.id ? ['reviews', review.id] : null,
@@ -264,7 +295,7 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
                         .map((network) => network.name)
                         .filter(isDefined)
                         .join(', ') || null,
-                hasProductionCompanies: !!media?.productionCompanies.length,
+                showMadeBy: !!media?.productionCompanies.length || !!media?.originCountries.length,
             };
         },
         { debounce: true },

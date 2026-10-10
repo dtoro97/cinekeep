@@ -1,0 +1,80 @@
+@use 'mixins' as *;
+
+:host {
+    display: block;
+}
+
+// The title as part of your collection: a soft tonal panel, not a bordered box.
+.library {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-6);
+    border-radius: var(--radius-md);
+    background: var(--surface-panel-soft);
+}
+
+.library__title {
+    margin: 0 0 var(--space-5);
+}
+
+.library__rating {
+    padding-bottom: var(--space-5);
+}
+
+.library__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: var(--control-height-xl);
+    padding-block: var(--space-3);
+    border-top: 1px solid var(--row-divider);
+
+    &--lists {
+        align-items: flex-start;
+    }
+}
+
+.library__row button {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.library__state {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+    color: var(--text-secondary);
+
+    &--yours {
+        color: var(--text-primary);
+
+        .library__icon {
+            color: var(--color-yours);
+        }
+    }
+}
+
+.library__icon {
+    width: 1.125rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.library__lists {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+    padding-top: var(--space-2);
+}
+
+.library__list-names {
+    padding-left: calc(1.125rem + var(--space-3));
+    @include meta-list(var(--space-1-5));
+}
+
+.library__list-link {
+    @include text-link(var(--text-secondary));
+}

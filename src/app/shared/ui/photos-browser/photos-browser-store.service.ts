@@ -7,8 +7,6 @@ import type { ViewerImage } from '../../models';
 import { ConfigStoreService } from '../../services/config-store.service';
 import type { SelectOption, SortDirection } from '../../types';
 import { isDefined } from '../../utils/is-defined';
-import { toPhotoLayoutAspectRatio } from '../../utils/photo-layout';
-import { pluralize } from '../../utils/pluralize';
 import { sortBy } from '../../utils/sort';
 
 export type PhotoSortField = 'rating' | 'votes' | 'resolution';
@@ -16,33 +14,52 @@ export type PhotoSortField = 'rating' | 'votes' | 'resolution';
 interface PhotosBrowserState {
     readonly images: readonly ViewerImage[];
     readonly configurationImages: ConfigurationImages | undefined;
-    readonly selectedTypes: readonly string[];
+    readonly selectedType: string | null;
     readonly visibleCount: number;
     readonly sortField: PhotoSortField;
     readonly sortDirection: SortDirection;
 }
 
 interface ThumbnailSizeRule {
-    readonly configuredSizes: readonly ('poster_sizes' | 'profile_sizes' | 'still_sizes' | 'backdrop_sizes')[];
+    readonly configuredSizes: readonly (
+        'poster_sizes' | 'profile_sizes' | 'still_sizes' | 'backdrop_sizes' | 'logo_sizes'
+    )[];
     readonly preferredSizes: readonly string[];
     readonly fallbackSize: string;
 }
 
-const PHOTOS_BATCH = 18;
+/** How a type's photos sit in the grid: wide frames, tall frames, or logos fitted on a plain tile. */
+type PhotoGridShape = 'landscape' | 'portrait' | 'logo';
+
+const PHOTOS_BATCH = 24;
+
+// The order a title's photo types are offered in; types not listed follow alphabetically.
+const PHOTO_TYPE_ORDER = ['backdrop', 'still', 'poster', 'logo', 'profile', 'tagged'];
+
+const PHOTO_TYPE_LABELS: Record<string, string> = {
+    backdrop: 'Backdrops',
+    still: 'Stills',
+    poster: 'Posters',
+    logo: 'Logos',
+    profile: 'Profiles',
+    tagged: 'Tagged',
+};
+
+const PHOTO_GRID_SHAPES: Record<string, PhotoGridShape> = {
+    poster: 'portrait',
+    profile: 'portrait',
+    logo: 'logo',
+};
 
 // The first configured size list wins; backdrops and stills stand in for each other.
-const THUMBNAIL_SIZE_RULES: Record<'poster' | 'profile' | 'tagged' | 'backdrop', ThumbnailSizeRule> = {
+const THUMBNAIL_SIZE_RULES: Record<'poster' | 'profile' | 'logo' | 'backdrop', ThumbnailSizeRule> = {
     poster: { configuredSizes: ['poster_sizes'], preferredSizes: ['w342', 'w300', 'w185'], fallbackSize: 'w342' },
     profile: { configuredSizes: ['profile_sizes'], preferredSizes: ['h632', 'w185', 'w45'], fallbackSize: 'w185' },
-    tagged: {
-        configuredSizes: ['still_sizes', 'backdrop_sizes'],
-        preferredSizes: ['w300', 'w185'],
-        fallbackSize: 'w300',
-    },
+    logo: { configuredSizes: ['logo_sizes'], preferredSizes: ['w300', 'w185'], fallbackSize: 'w300' },
     backdrop: {
         configuredSizes: ['backdrop_sizes', 'still_sizes'],
-        preferredSizes: ['w500', 'w300'],
-        fallbackSize: 'w500',
+        preferredSizes: ['w780', 'w500', 'w300'],
+        fallbackSize: 'w780',
     },
 };
 
@@ -55,7 +72,7 @@ export const PHOTO_SORT_OPTIONS: readonly SelectOption<PhotoSortField>[] = [
 const INITIAL_STATE: PhotosBrowserState = {
     images: [],
     configurationImages: undefined,
-    selectedTypes: [],
+    selectedType: null,
     visibleCount: PHOTOS_BATCH,
     sortField: 'rating',
     sortDirection: 'desc',
@@ -64,12 +81,18 @@ const INITIAL_STATE: PhotosBrowserState = {
 @Injectable()
 export class PhotosBrowserStoreService extends ComponentStore<PhotosBrowserState> {
     readonly photosBrowser$ = this.select(
-        ({ images, configurationImages, selectedTypes, visibleCount, sortField, sortDirection }) => {
-            const filteredImages = selectedTypes.length
-                ? images.filter((image) => selectedTypes.includes(image.photoType ?? ''))
-                : images;
+        ({ images, configurationImages, selectedType, visibleCount, sortField, sortDirection }) => {
+            const typeRank = (type: string): number => {
+                const index = PHOTO_TYPE_ORDER.indexOf(type);
+                return index === -1 ? PHOTO_TYPE_ORDER.length : index;
+            };
+            const types = [...new Set(images.map((image) => image.photoType ?? 'photo'))].sort(
+                (left, right) => typeRank(left) - typeRank(right) || left.localeCompare(right),
+            );
+            const activeType = selectedType && types.includes(selectedType) ? selectedType : (types[0] ?? null);
+            const typeImages = images.filter((image) => (image.photoType ?? 'photo') === activeType);
             const sortedImages = sortBy(
-                filteredImages,
+                typeImages,
                 (image) =>
                     sortField === 'votes'
                         ? (image.vote_count ?? 0)
@@ -79,39 +102,44 @@ export class PhotosBrowserStoreService extends ComponentStore<PhotosBrowserState
                 sortDirection,
             );
             const visibleImages = sortedImages.slice(0, visibleCount);
-            const typeOptions = [...new Set(images.map((image) => image.photoType).filter(isDefined))]
-                .sort((left, right) => left.localeCompare(right))
-                .map((type) => ({ label: `${type.charAt(0).toUpperCase()}${type.slice(1)}`, value: type }));
+            const typeLabel = (type: string): string =>
+                PHOTO_TYPE_LABELS[type] ?? `${type.charAt(0).toUpperCase()}${type.slice(1)}`;
+            const rule =
+                THUMBNAIL_SIZE_RULES[
+                    activeType === 'poster' || activeType === 'profile' || activeType === 'logo'
+                        ? activeType
+                        : 'backdrop'
+                ];
+            const sizes = rule.configuredSizes.map((key) => configurationImages?.[key]).find(isDefined) ?? [];
+            const thumbnailSize =
+                rule.preferredSizes.find((size) => sizes.includes(size)) ??
+                [...sizes].reverse().find((size) => size !== 'original') ??
+                rule.fallbackSize;
+            const gridShape = (activeType && PHOTO_GRID_SHAPES[activeType]) ?? 'landscape';
+            const noun = activeType ? typeLabel(activeType).toLocaleLowerCase() : 'photos';
 
             return {
                 hasImages: images.length > 0,
-                countLabel: sortedImages.length ? pluralize(sortedImages.length, 'photo') : null,
-                typeOptions,
-                showTypeFilter: typeOptions.length > 0,
-                selectedTypes,
+                typeOptions: types.map((type) => ({
+                    label: `${typeLabel(type)} (${images.filter((image) => (image.photoType ?? 'photo') === type).length})`,
+                    value: type,
+                })),
+                showTypeFilter: types.length > 1,
+                selectedType: activeType,
+                isPortraitGrid: gridShape === 'portrait',
+                isLogoGrid: gridShape === 'logo',
                 sortField,
                 sortDirection,
                 visibleImages,
                 hasVisibleImages: visibleImages.length > 0,
-                tiles: visibleImages.map((image, index) => {
-                    const rule =
-                        image.photoType === 'poster' || image.photoType === 'profile' || image.photoType === 'tagged'
-                            ? THUMBNAIL_SIZE_RULES[image.photoType]
-                            : THUMBNAIL_SIZE_RULES.backdrop;
-                    const sizes = rule.configuredSizes.map((key) => configurationImages?.[key]).find(isDefined) ?? [];
-                    const thumbnailSize =
-                        rule.preferredSizes.find((size) => sizes.includes(size)) ??
-                        [...sizes].reverse().find((size) => size !== 'original') ??
-                        rule.fallbackSize;
-
-                    return {
-                        image,
-                        index,
-                        thumbnailSize,
-                        layoutAspectRatio: toPhotoLayoutAspectRatio(image),
-                        ariaLabel: `Open photo ${index + 1}`,
-                    };
-                }),
+                tiles: visibleImages.map((image, index) => ({
+                    image,
+                    index,
+                    thumbnailSize,
+                    ariaLabel: `Open photo ${index + 1} of ${sortedImages.length}`,
+                })),
+                shownLabel: `Showing ${visibleImages.length} of ${sortedImages.length} ${noun}`,
+                moreLabel: `Show more ${noun}`,
                 hasMore: sortedImages.length > visibleImages.length,
             };
         },
@@ -124,7 +152,7 @@ export class PhotosBrowserStoreService extends ComponentStore<PhotosBrowserState
             .subscribe(({ images: configurationImages }) => this.patchState({ configurationImages }));
     }
 
-    // A new gallery resets its filter and batch while retaining the preferred sort.
+    // A new gallery resets its type and batch while retaining the preferred sort.
     setImages(images: readonly ViewerImage[]): void {
         const { configurationImages, sortField, sortDirection } = this.get();
         this.setState({ ...INITIAL_STATE, images, configurationImages, sortField, sortDirection });
@@ -138,8 +166,8 @@ export class PhotosBrowserStoreService extends ComponentStore<PhotosBrowserState
         this.patchState(({ sortDirection }) => ({ sortDirection: sortDirection === 'asc' ? 'desc' : 'asc' }));
     }
 
-    setSelectedTypes(selectedTypes: readonly string[]): void {
-        this.patchState({ selectedTypes, visibleCount: PHOTOS_BATCH });
+    setSelectedType(selectedType: string): void {
+        this.patchState({ selectedType, visibleCount: PHOTOS_BATCH });
     }
 
     showMore(): void {
