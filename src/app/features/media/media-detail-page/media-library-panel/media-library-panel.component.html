@@ -1,0 +1,95 @@
+@if (library$ | async; as library) {
+    <section class="library" aria-labelledby="media-library-title">
+        <h2 id="media-library-title" class="library__title text-display-sm">In your library</h2>
+
+        @if (canRate) {
+            <app-user-rating
+                class="library__rating"
+                [currentRating]="library.rating.currentRating"
+                [disabled]="library.rating.disabled"
+                [loading]="library.rating.loading"
+                [pending]="library.rating.pending"
+                (ratingClick)="rate.emit()"
+            />
+        }
+
+        <div class="library__row">
+            <span class="library__state text-body-strong" [class.library__state--yours]="library.isInWatchlist">
+                <i
+                    class="library__icon fa-bookmark"
+                    [class.fa-solid]="library.isInWatchlist"
+                    [class.fa-regular]="!library.isInWatchlist"
+                    aria-hidden="true"
+                ></i>
+                {{ library.watchlistLabel }}
+            </span>
+
+            @if (library.isInLibrary) {
+                <button
+                    matButton
+                    type="button"
+                    class="text-button"
+                    [disabled]="library.pending"
+                    [attr.aria-pressed]="library.isInWatchlist"
+                    (click)="toggleWatchlist()"
+                >
+                    {{ library.watchlistActionLabel }}
+                </button>
+            } @else {
+                <button matButton="filled" type="button" [disabled]="library.pending" (click)="toggleWatchlist()">
+                    {{ library.watchlistActionLabel }}
+                </button>
+            }
+        </div>
+
+        <div class="library__row">
+            <span class="library__state text-body-strong" [class.library__state--yours]="library.isFavorite">
+                <i
+                    class="library__icon fa-heart"
+                    [class.fa-solid]="library.isFavorite"
+                    [class.fa-regular]="!library.isFavorite"
+                    aria-hidden="true"
+                ></i>
+                {{ library.favoriteLabel }}
+            </span>
+
+            <button
+                matButton
+                type="button"
+                class="text-button"
+                [disabled]="library.pending"
+                [attr.aria-pressed]="library.isFavorite"
+                (click)="toggleFavorite()"
+            >
+                {{ library.favoriteActionLabel }}
+            </button>
+        </div>
+
+        <div class="library__row library__row--lists">
+            <span class="library__lists">
+                <span class="library__state text-body-strong" [class.library__state--yours]="library.hasLists">
+                    <i class="library__icon fa-solid fa-list" aria-hidden="true"></i>
+                    {{ library.listsLabel }}
+                </span>
+
+                @if (library.hasLists) {
+                    <span class="library__list-names text-body-sm">
+                        @for (list of library.lists; track list.id) {
+                            <a class="library__list-link" [routerLink]="['/me/lists', list.id]">{{ list.name }}</a>
+                        }
+                    </span>
+                }
+            </span>
+
+            <button
+                matButton="outlined"
+                type="button"
+                [disabled]="library.isListButtonDisabled"
+                attr.aria-label="Add {{ media.title }} to one of your lists"
+                (click)="openListsDialog()"
+            >
+                Add to list
+            </button>
+        </div>
+    </section>
+}

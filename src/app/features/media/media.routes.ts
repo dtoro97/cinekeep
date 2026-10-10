@@ -7,7 +7,6 @@ import { MediaCastPageComponent } from './media-cast-page/media-cast-page.compon
 import { MediaPhotosPageComponent } from './media-photos-page/media-photos-page.component';
 import { MediaReviewsPageComponent } from './media-reviews-page/media-reviews-page.component';
 import { ReviewDetailPageComponent } from './review-detail-page/review-detail-page.component';
-import { SeasonPhotosPageComponent } from './season-photos-page/season-photos-page.component';
 import { EpisodePhotosPageComponent } from './episode-photos-page/episode-photos-page.component';
 import { MediaDetailPageComponent } from './media-detail-page/media-detail-page.component';
 
@@ -34,7 +33,11 @@ export const mediaRoutes: Routes = [
             },
             {
                 path: 'episodes/:seasonNumber/photos',
-                component: SeasonPhotosPageComponent,
+                redirectTo: 'episodes/:seasonNumber',
+            },
+            {
+                path: 'episodes/:seasonNumber/:episodeNumber/cast',
+                component: MediaCastPageComponent,
             },
             {
                 path: 'episodes/:seasonNumber/:episodeNumber/photos',

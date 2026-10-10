@@ -1,27 +1,23 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { map } from 'rxjs';
 
 import {
     HeroSurfaceComponent,
     ImageComponent,
+    MinutesToHoursPipe,
     PageSectionComponent,
-    PhotosPreviewComponent,
-    PhotoViewerDialogService,
-    RouteCommands,
     SeoService,
     SkeletonComponent,
     TmdbRatingComponent,
     ToggleGroupComponent,
     VideosGridComponent,
-    ViewerImage,
 } from '../../../shared';
 import { EpisodeListComponent } from './episode-list/episode-list.component';
 import { SeasonDetailPageStoreService } from './season-detail-page-store.service';
-import { SeasonRatingsStripComponent } from './season-ratings-strip/season-ratings-strip.component';
 
 @Component({
     selector: 'app-season-detail-page',
@@ -31,10 +27,9 @@ import { SeasonRatingsStripComponent } from './season-ratings-strip/season-ratin
         EpisodeListComponent,
         HeroSurfaceComponent,
         ImageComponent,
+        MinutesToHoursPipe,
         PageSectionComponent,
-        PhotosPreviewComponent,
         RouterLink,
-        SeasonRatingsStripComponent,
         SkeletonComponent,
         TmdbRatingComponent,
         ToggleGroupComponent,
@@ -50,8 +45,6 @@ export class SeasonDetailPageComponent {
 
     constructor(
         private readonly store: SeasonDetailPageStoreService,
-        private readonly photoViewerDialogService: PhotoViewerDialogService,
-        private readonly router: Router,
         activatedRoute: ActivatedRoute,
         seoService: SeoService,
     ) {
@@ -65,15 +58,5 @@ export class SeasonDetailPageComponent {
 
     changeSeason(seasonNumber: number): void {
         this.store.changeSeason$(seasonNumber).subscribe();
-    }
-
-    openPhotoViewer(index: number, images: ViewerImage[]): void {
-        this.photoViewerDialogService.open({ images, activeIndex: index });
-    }
-
-    openSeasonPhotos(photosLink: RouteCommands | null): void {
-        if (photosLink) {
-            this.router.navigate(photosLink);
-        }
     }
 }

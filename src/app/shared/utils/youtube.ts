@@ -2,7 +2,12 @@ import { Video } from '../../api';
 
 export const buildYoutubeWatchUrl = (key: string): string => `https://www.youtube.com/watch?v=${key}`;
 
-export const buildYoutubeThumbnailUrl = (key: string): string => `https://img.youtube.com/vi/${key}/hqdefault.jpg`;
+/**
+ * Thumbnails largest first. `maxresdefault` is a true 16:9 still; the smaller sizes are 4:3 with the bars baked in,
+ * and YouTube answers a missing size with a 120x90 placeholder, so callers fall back down the list.
+ */
+export const buildYoutubeThumbnailUrls = (key: string): string[] =>
+    ['maxresdefault', 'sddefault', 'hqdefault'].map((size) => `https://i.ytimg.com/vi/${key}/${size}.jpg`);
 
 /** The YouTube videos, trailers first. */
 export const toYoutubeVideos = (videos: readonly Video[]): Video[] => {

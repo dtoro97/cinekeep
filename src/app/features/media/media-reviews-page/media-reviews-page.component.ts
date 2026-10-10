@@ -12,12 +12,11 @@ import {
     SeoService,
     SkeletonComponent,
     SnackbarService,
-    SubPageHeaderComponent,
 } from '../../../shared';
 import { toMediaSectionSeoMetadata } from '../media-seo';
 import { MediaStoreService } from '../media-store.service';
+import { MediaSubPageHeaderComponent } from '../media-sub-page-header/media-sub-page-header.component';
 import { ReviewCardComponent } from '../review-card/review-card.component';
-import { ReviewMediaSummaryComponent } from '../review-media-summary/review-media-summary.component';
 import { MediaReviewsPageStoreService } from './media-reviews-page-store.service';
 
 @Component({
@@ -27,12 +26,11 @@ import { MediaReviewsPageStoreService } from './media-reviews-page-store.service
         DecimalPipe,
         EmptyStateComponent,
         MatButtonModule,
+        MediaSubPageHeaderComponent,
         NgTemplateOutlet,
         RepeatPipe,
         ReviewCardComponent,
-        ReviewMediaSummaryComponent,
         SkeletonComponent,
-        SubPageHeaderComponent,
     ],
     providers: [MediaReviewsPageStoreService],
     templateUrl: './media-reviews-page.component.html',
@@ -55,6 +53,14 @@ export class MediaReviewsPageComponent {
         mediaStore.mediaDetails$
             .pipe(filter(isDefined), takeUntilDestroyed())
             .subscribe((media) => seoService.setPage(toMediaSectionSeoMetadata(media, 'Reviews')));
+    }
+
+    toggleBand(band: string): void {
+        this.store.toggleBand(band);
+    }
+
+    clearBand(): void {
+        this.store.clearBand();
     }
 
     loadMore(): void {

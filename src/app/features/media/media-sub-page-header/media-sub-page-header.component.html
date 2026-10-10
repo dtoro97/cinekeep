@@ -1,0 +1,39 @@
+<header class="media-sub-header">
+    @if (backTarget) {
+        <a class="media-sub-header__back" [routerLink]="backTarget">
+            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            {{ backText }}
+        </a>
+    }
+
+    <div class="media-sub-header__row" [class.media-sub-header__row--landscape]="isLandscapeImage">
+        @if (thumbLink) {
+            <a class="media-sub-header__poster-link" [routerLink]="thumbLink" tabindex="-1" aria-hidden="true">
+                <app-image class="media-sub-header__poster" [src]="thumbPath" type="media" params="w300" alt="" />
+            </a>
+        } @else {
+            <app-image class="media-sub-header__poster" [src]="null" type="media" alt="" />
+        }
+
+        <div class="media-sub-header__text">
+            <h1 class="media-sub-header__title text-headline">{{ pageTitle }}</h1>
+            @if (metaLabel) {
+                <p class="text-meta">{{ metaLabel }}</p>
+            }
+        </div>
+    </div>
+
+    @if (hasTabs) {
+        <nav class="media-sub-header__tabs" [attr.aria-label]="media?.title">
+            @for (tab of tabs; track tab.label) {
+                <a
+                    class="media-sub-header__tab"
+                    [routerLink]="tab.link"
+                    routerLinkActive="media-sub-header__tab--active"
+                    ariaCurrentWhenActive="page"
+                    >{{ tab.label }}</a
+                >
+            }
+        </nav>
+    }
+</header>

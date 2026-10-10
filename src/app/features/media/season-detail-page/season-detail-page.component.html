@@ -4,11 +4,7 @@
             <div class="season-hero">
                 <a class="season-hero__back text-caption" [routerLink]="seasonDetail.overviewLink">
                     <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                    @if (seasonDetail.mediaTitle; as title) {
-                        Back to {{ title }}
-                    } @else {
-                        Back
-                    }
+                    {{ seasonDetail.backLabel }}
                 </a>
 
                 @if (seasonDetail.summary; as season) {
@@ -21,16 +17,24 @@
                         />
 
                         <div class="season-hero__text">
-                            @if (seasonDetail.mediaTitle; as title) {
-                                <p class="season-hero__series text-hero-meta">{{ title }}</p>
+                            @if (seasonDetail.seriesTitle; as seriesTitle) {
+                                <p class="season-hero__series text-hero-meta">{{ seriesTitle }}</p>
                             }
                             <h1 class="text-hero-title">{{ season.name }}</h1>
 
                             <p class="season-hero__meta text-hero-meta">
-                                @if (season.airDate) {
-                                    <span>{{ season.airDate | date: "y" }}</span>
+                                @if (seasonDetail.lastAirDate; as lastAirDate) {
+                                    <span
+                                        >{{ seasonDetail.firstAirDate | date: 'MMM d' }} –
+                                        {{ lastAirDate | date: 'MMM d, y' }}</span
+                                    >
+                                } @else if (season.airDate) {
+                                    <span>{{ season.airDate | date: 'MMM d, y' }}</span>
                                 }
                                 <span>{{ season.episodeCount }} episodes</span>
+                                @if (seasonDetail.totalRuntime; as totalRuntime) {
+                                    <span>{{ totalRuntime | m2h }} in all</span>
+                                }
                             </p>
 
                             @if (season.overview) {
@@ -41,6 +45,7 @@
                         @if (season.voteAverage) {
                             <aside class="season-hero__ratings" aria-label="Ratings">
                                 <app-tmdb-rating prominent [value]="season.voteAverage" />
+                                <span class="text-meta">Season average</span>
                             </aside>
                         }
                     </div>
@@ -61,7 +66,6 @@
             <nav class="season-nav" aria-label="Seasons">
                 @if (seasonDetail.hasSeasonOptions) {
                     <app-toggle-group
-                        variant="chips"
                         [options]="seasonDetail.seasonOptions"
                         [selectedValue]="seasonDetail.selectedSeason"
                         (selected)="changeSeason($event)"
@@ -71,37 +75,9 @@
                 }
             </nav>
 
-            @if (seasonDetail.hasRatingBars) {
-                <app-page-section subtitle="Episode ratings">
-                    <app-season-ratings-strip [bars]="seasonDetail.ratingBars" />
-                </app-page-section>
-            }
-
             <app-page-section subtitle="Episodes">
                 <app-episode-list [state]="seasonDetail.episodes" />
             </app-page-section>
-
-            @if (seasonDetail.showPhotos) {
-                <app-page-section subtitle="Season Photos">
-                    @if (seasonDetail.photosLink; as photosLink) {
-                        <a
-                            section-controls
-                            class="section-link text-body-sm"
-                            [routerLink]="photosLink"
-                        >
-                            Browse all photos ({{ seasonDetail.imageCount }})
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                    }
-                    <app-photos-preview
-                        [state]="seasonDetail.images"
-                        [totalCount]="seasonDetail.imageCount"
-                        variant="compact"
-                        (photoClick)="openPhotoViewer($event, seasonDetail.imageList)"
-                        (moreClick)="openSeasonPhotos(seasonDetail.photosLink)"
-                    />
-                </app-page-section>
-            }
 
             @if (seasonDetail.showVideos) {
                 <app-page-section subtitle="Season Videos">

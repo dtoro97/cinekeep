@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
-import { Observable, catchError, forkJoin, map, of, switchMap, tap, throwError } from 'rxjs';
+import { Observable, catchError, forkJoin, map, merge, of, switchMap, tap, throwError } from 'rxjs';
 
 import {
     MediaStateResponse,
@@ -18,6 +18,7 @@ import {
     UserLibraryService,
     UserSessionStoreService,
     normalizeRatingValue,
+    remoteData,
     remoteSuccess,
     toMediaKey,
     toMediaSnapshotRequest,
@@ -25,6 +26,11 @@ import {
 import { toUserRatingDisplay, UserRatingState, writeUserRating$ } from './user-rating-state';
 import { MediaStoreService } from './media-store.service';
 import type { MediaTarget } from './media-target';
+
+export interface MediaListLink {
+    readonly id: number;
+    readonly name: string;
+}
 
 export interface MediaUserListSummary {
     readonly id: number;
@@ -38,6 +44,8 @@ export interface MediaUserListSummary {
 interface MediaActionResource extends UserRatingState {
     readonly watchlistState: RemoteData<boolean>;
     readonly favoriteState: RemoteData<boolean>;
+    /** The signed-in user's lists that already contain the title. */
+    readonly memberLists: RemoteData<MediaListLink[]>;
 }
 
 interface MediaActionsState {
@@ -52,6 +60,7 @@ const EMPTY_ACTION_RESOURCE: MediaActionResource = {
     ratingPending: false,
     watchlistState: { state: 'notAsked' },
     favoriteState: { state: 'notAsked' },
+    memberLists: { state: 'notAsked' },
 };
 
 const INITIAL_STATE: MediaActionsState = {
@@ -65,19 +74,29 @@ const INITIAL_STATE: MediaActionsState = {
 export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsState> {
     readonly userRating$ = this.select((state) => toUserRatingDisplay(toActiveActions(state), state.target !== null));
 
-    readonly listActions$ = this.select((state) => {
-        const { watchlistState, favoriteState } = toActiveActions(state);
+    readonly library$ = this.select((state) => {
+        const resource = toActiveActions(state);
+        const { watchlistState, favoriteState, memberLists } = resource;
+        const rating = toUserRatingDisplay(resource, state.target !== null);
         const isInWatchlist = watchlistState.state === 'success' && watchlistState.data;
         const isFavorite = favoriteState.state === 'success' && favoriteState.data;
         const pending = watchlistState.state === 'loading' || favoriteState.state === 'loading';
+        const lists = remoteData(memberLists, []);
 
         return {
+            rating,
             isInWatchlist,
             isFavorite,
+            isInLibrary: isInWatchlist || isFavorite || rating.currentRating !== null,
             pending,
             isListButtonDisabled: pending || state.isListDialogPending,
-            watchlistLabel: isInWatchlist ? 'On watchlist' : 'Add to watchlist',
-            favoriteActionLabel: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+            watchlistLabel: isInWatchlist ? 'On your watchlist' : 'Not on your watchlist',
+            watchlistActionLabel: isInWatchlist ? 'Remove' : 'Add to watchlist',
+            favoriteLabel: isFavorite ? 'A favourite' : 'Not a favourite',
+            favoriteActionLabel: isFavorite ? 'Remove' : 'Add',
+            lists,
+            hasLists: lists.length > 0,
+            listsLabel: lists.length ? `In ${lists.length} of your lists` : 'Not in any of your lists',
         };
     });
 
@@ -105,34 +124,49 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
                     ratingPending: false,
                     watchlistState: { state: 'loading' },
                     favoriteState: { state: 'loading' },
+                    memberLists: { state: 'loading' },
                 },
             },
         }));
 
         return this.userSessionStore.settledIsAuthenticated$.pipe(
             switchMap((isAuthenticated) =>
-                (isAuthenticated
-                    ? this.userLibraryService.getMediaState$(target.id, target.type)
-                    : of<MediaStateResponse | null>(null)
-                ).pipe(
-                    tap((mediaState) =>
-                        this.patchActionResource(target, {
-                            userRating: remoteSuccess(
-                                typeof mediaState?.rating === 'number' ? normalizeRatingValue(mediaState.rating) : null,
-                            ),
-                            watchlistState: remoteSuccess(!!mediaState?.inWatchlist),
-                            favoriteState: remoteSuccess(!!mediaState?.favorite),
+                merge(
+                    (isAuthenticated
+                        ? this.userLibraryService.getMediaState$(target.id, target.type)
+                        : of<MediaStateResponse | null>(null)
+                    ).pipe(
+                        tap((mediaState) =>
+                            this.patchActionResource(target, {
+                                userRating: remoteSuccess(
+                                    typeof mediaState?.rating === 'number'
+                                        ? normalizeRatingValue(mediaState.rating)
+                                        : null,
+                                ),
+                                watchlistState: remoteSuccess(!!mediaState?.inWatchlist),
+                                favoriteState: remoteSuccess(!!mediaState?.favorite),
+                            }),
+                        ),
+                        // Unknown actions show as not set, so the buttons stay usable.
+                        catchError(() => {
+                            this.patchActionResource(target, {
+                                userRating: remoteSuccess(null),
+                                watchlistState: remoteSuccess(false),
+                                favoriteState: remoteSuccess(false),
+                            });
+                            return of(null);
                         }),
                     ),
-                    // Unknown actions show as not set, so the buttons stay usable.
-                    catchError(() => {
-                        this.patchActionResource(target, {
-                            userRating: remoteSuccess(null),
-                            watchlistState: remoteSuccess(false),
-                            favoriteState: remoteSuccess(false),
-                        });
-                        return of(null);
-                    }),
+                    (isAuthenticated
+                        ? this.getUserLists$().pipe(
+                              map((lists) =>
+                                  lists.filter(({ itemPresent }) => itemPresent).map(({ id, name }) => ({ id, name })),
+                              ),
+                              // Without the user's lists the panel shows the title as in none of them.
+                              catchError(() => of<MediaListLink[]>([])),
+                          )
+                        : of<MediaListLink[]>([])
+                    ).pipe(tap((lists) => this.patchActionResource(target, { memberLists: remoteSuccess(lists) }))),
                 ),
             ),
         );
@@ -181,14 +215,22 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
             );
     }
 
-    addToList$(listId: number): Observable<unknown> {
+    addToList$(list: MediaListLink): Observable<unknown> {
         const target = this.get().target;
 
         if (!target) {
             return throwError(() => new Error('No media action context is available.'));
         }
 
-        return this.userLibraryService.addToList$(listId, target.id, target.type, this.loadedSnapshot(target));
+        return this.userLibraryService.addToList$(list.id, target.id, target.type, this.loadedSnapshot(target)).pipe(
+            tap(() => {
+                const memberLists = remoteData(toActiveActions(this.get()).memberLists, []);
+
+                if (!memberLists.some(({ id }) => id === list.id)) {
+                    this.patchActionResource(target, { memberLists: remoteSuccess([...memberLists, list]) });
+                }
+            }),
+        );
     }
 
     /** The user's lists, each flagged with whether it already contains the title. */

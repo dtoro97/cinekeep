@@ -29,7 +29,6 @@ import { toMediaSectionSeoMetadata } from '../media-seo';
 import { MediaSeasonsStoreService } from '../media-seasons-store.service';
 import { MediaStoreService } from '../media-store.service';
 import { isSameMediaTarget } from '../media-target';
-import { toSeasonRatingBars } from './season-ratings-strip/season-ratings.mapper';
 
 @Injectable()
 export class SeasonDetailPageStoreService extends ComponentStore<Record<string, never>> {
@@ -38,32 +37,30 @@ export class SeasonDetailPageStoreService extends ComponentStore<Record<string, 
         this.mediaStore.mediaDetails$,
         this.mediaSeasonsStore.season$,
         (target, media, season) => {
-            const imageCount = remoteData(season.images, []).length;
             const videos = mapRemoteData(season.videos, (videoList) =>
                 media ? toVideoCardItems(toYoutubeVideos(videoList?.results ?? []), media) : [],
             );
             const videoCount = remoteData(videos, []).length;
-            const ratingBars = toSeasonRatingBars(remoteData(season.episodes, []));
+            const episodeEntries = remoteData(season.episodes, []);
+            const airDates = episodeEntries
+                .map((entry) => entry.item.airDate)
+                .filter((date): date is string => !!date)
+                .sort();
+            const totalRuntime = episodeEntries.reduce((sum, entry) => sum + (entry.item.runtime ?? 0), 0);
 
             return {
                 backdropPath: media?.backdropPath ?? null,
-                mediaTitle: media?.title ?? null,
+                seriesTitle: media?.title ?? null,
+                backLabel: media?.title ? `Back to ${media.title}` : 'Back',
                 overviewLink: ['/title', target.id, target.type],
                 summary: season.summary,
                 hasSeasonOptions: season.seasonOptions.length > 0,
                 seasonOptions: season.seasonOptions,
                 selectedSeason: season.seasonNumber,
-                hasRatingBars: ratingBars.length > 0,
-                ratingBars,
+                firstAirDate: airDates[0] ?? null,
+                lastAirDate: airDates.length > 1 ? airDates[airDates.length - 1] : null,
+                totalRuntime: totalRuntime || null,
                 episodes: season.episodes,
-                images: season.images,
-                imageList: remoteData(season.images, []),
-                imageCount,
-                showPhotos: season.images.state !== 'success' || imageCount > 0,
-                photosLink:
-                    season.seasonNumber !== null && imageCount > 0
-                        ? ['/title', target.id, target.type, 'episodes', season.seasonNumber, 'photos']
-                        : null,
                 videos,
                 showVideos: videos.state !== 'success' || videoCount > 0,
             };

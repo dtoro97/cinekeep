@@ -1,11 +1,7 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
 
 import { MatButtonModule } from '@angular/material/button';
-import {
-    MAT_DIALOG_DATA,
-    MatDialogModule,
-    MatDialogRef,
-} from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 
 import { ImageComponent, PluralizePipe } from '../../../../../shared';
 import { MediaUserListSummary } from '../../../media-detail-actions-store.service';
@@ -22,8 +18,7 @@ interface MediaListDialogOption {
 }
 
 export type MediaListDialogResult =
-    | { kind: 'select-list'; listId: number }
-    | { kind: 'create-list'; mediaTitle: string };
+    { kind: 'select-list'; listId: number } | { kind: 'create-list'; mediaTitle: string };
 
 @Component({
     selector: 'app-media-list-dialog',
@@ -39,10 +34,7 @@ export class MediaListDialogComponent {
     constructor(
         @Inject(MAT_DIALOG_DATA)
         readonly data: MediaListDialogData,
-        private readonly dialogRef: MatDialogRef<
-            MediaListDialogComponent,
-            MediaListDialogResult
-        >,
+        private readonly dialogRef: MatDialogRef<MediaListDialogComponent, MediaListDialogResult>,
     ) {
         this.options = data.customLists.map((list) => ({
             list,

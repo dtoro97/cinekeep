@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { filter } from 'rxjs';
 
@@ -12,13 +13,14 @@ import {
     BrowseToolbarComponent,
     EmptyStateComponent,
     isDefined,
+    PageSectionComponent,
     SeoService,
     SkeletonComponent,
-    SubPageHeaderComponent,
     ToggleGroupComponent,
 } from '../../../shared';
 import { toMediaSectionSeoMetadata } from '../media-seo';
 import { MediaStoreService } from '../media-store.service';
+import { MediaSubPageHeaderComponent } from '../media-sub-page-header/media-sub-page-header.component';
 import { CastCrewGridComponent } from './cast-crew-grid/cast-crew-grid.component';
 import { CreditSection, MediaCastPageStoreService } from './media-cast-page-store.service';
 
@@ -33,8 +35,10 @@ import { CreditSection, MediaCastPageStoreService } from './media-cast-page-stor
         MatFormFieldModule,
         MatIconModule,
         MatInputModule,
+        MediaSubPageHeaderComponent,
+        PageSectionComponent,
+        RouterLink,
         SkeletonComponent,
-        SubPageHeaderComponent,
         ToggleGroupComponent,
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,9 +52,10 @@ export class MediaCastPageComponent {
     constructor(
         private readonly store: MediaCastPageStoreService,
         mediaStore: MediaStoreService,
+        activatedRoute: ActivatedRoute,
         seoService: SeoService,
     ) {
-        this.store.load$().pipe(takeUntilDestroyed()).subscribe();
+        this.store.load$(activatedRoute.paramMap).pipe(takeUntilDestroyed()).subscribe();
 
         mediaStore.mediaDetails$
             .pipe(filter(isDefined), takeUntilDestroyed())
@@ -61,10 +66,6 @@ export class MediaCastPageComponent {
         this.store.setSection(section);
     }
 
-    setDepartment(department: string): void {
-        this.store.setDepartment(department);
-    }
-
     setQuery(event: Event): void {
         if (event.target instanceof HTMLInputElement) {
             this.store.setQuery(event.target.value);
@@ -73,5 +74,13 @@ export class MediaCastPageComponent {
 
     clearQuery(): void {
         this.store.setQuery('');
+    }
+
+    showAllCast(): void {
+        this.store.showAllCast();
+    }
+
+    expandDepartment(departmentId: string): void {
+        this.store.expandDepartment(departmentId);
     }
 }

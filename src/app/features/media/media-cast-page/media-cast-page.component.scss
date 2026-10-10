@@ -1,23 +1,30 @@
 @use 'breakpoints' as *;
+@use 'mixins' as *;
 
 .cast-page {
     display: flex;
     flex-direction: column;
-    gap: var(--space-6);
-    padding-bottom: var(--space-10);
+    gap: var(--space-8);
+    padding-bottom: var(--space-20);
 
-    &__toolbar {
-        padding-bottom: var(--space-4);
-        border-bottom: 1px solid var(--row-divider);
+    &__sections {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-16);
     }
 
     &__toggle-skeleton {
-        width: min(14rem, 100%);
+        width: min(18rem, 100%);
         --skeleton-height: var(--control-height-md);
     }
 
     &__filter {
-        width: 18rem;
+        width: 20rem;
+    }
+
+    &__more {
+        padding-top: var(--space-6);
+        border-top: 1px solid var(--row-divider);
     }
 
     &__no-matches {
@@ -33,13 +40,77 @@
     }
 }
 
+// Crew reads as compact name and job lists, one column per department.
+.crew-departments {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-12) var(--space-10);
+    align-items: start;
+}
+
+.crew-department {
+    min-width: 0;
+    scroll-margin-top: var(--space-8);
+
+    &__title {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-3);
+        margin: 0 0 var(--space-3);
+    }
+
+    &__list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    &__row {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding-block: var(--space-2);
+        border-top: 1px solid var(--row-divider);
+        font-size: var(--text-sm);
+    }
+
+    &__name {
+        min-width: 0;
+        font-weight: var(--weight-medium);
+        @include text-link();
+    }
+
+    &__job {
+        text-align: right;
+    }
+
+    &__more {
+        margin-top: var(--space-3);
+    }
+}
+
+@include tablet() {
+    .crew-departments {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @include mobile() {
     .cast-page {
-        gap: var(--space-5);
-        padding-bottom: var(--space-8);
+        gap: var(--space-6);
+        padding-bottom: var(--space-12);
+
+        &__sections {
+            gap: var(--space-12);
+        }
 
         &__filter {
             width: 100%;
         }
+    }
+
+    .crew-departments {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-8);
     }
 }

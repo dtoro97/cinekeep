@@ -10,44 +10,23 @@
             </li>
         }
     </ul>
-} @else if (showCast) {
-    <ul class="credit-grid" aria-label="Cast">
-        @for (person of cast; track person.key) {
-            <li><ng-container [ngTemplateOutlet]="creditRow" [ngTemplateOutletContext]="{ $implicit: person }" /></li>
+} @else {
+    <ul class="credit-grid" [attr.aria-label]="label">
+        @for (person of people; track person.key) {
+            <li>
+                <a class="credit" [routerLink]="['/name', person.id]">
+                    <app-image class="credit__photo" [src]="person.profilePath" alt="" type="person" params="w185" />
+                    <span class="credit__body">
+                        <span class="credit__name">{{ person.name }}</span>
+                        @if (person.role) {
+                            <span class="credit__role text-card-meta">{{ person.role }}</span>
+                        }
+                    </span>
+                    @if (person.episodeLabel) {
+                        <span class="credit__episodes text-caption">{{ person.episodeLabel }}</span>
+                    }
+                </a>
+            </li>
         }
     </ul>
-} @else {
-    <div class="credit-departments">
-        @for (department of departments; track department.id) {
-            <section class="credit-department" [attr.aria-labelledby]="department.id">
-                <header class="credit-department__head">
-                    <h2 class="text-title" [id]="department.id">{{ department.name }}</h2>
-                    <span class="text-card-meta">{{ department.people.length | pluralize: 'person' : 'people' }}</span>
-                </header>
-
-                <ul class="credit-grid">
-                    @for (person of department.people; track person.key) {
-                        <li>
-                            <ng-container [ngTemplateOutlet]="creditRow" [ngTemplateOutletContext]="{ $implicit: person }" />
-                        </li>
-                    }
-                </ul>
-            </section>
-        }
-    </div>
 }
-
-<ng-template #creditRow let-person>
-    <a class="credit" [routerLink]="['/name', person.id]">
-        <app-image class="credit__photo" [src]="person.profilePath" alt="" type="person" params="w185" />
-        <span class="credit__body">
-            <span class="credit__name text-subtitle">{{ person.name }}</span>
-            @if (person.role) {
-                <span class="credit__role text-card-meta">{{ person.role }}</span>
-            }
-        </span>
-        @if (person.episodeLabel) {
-            <span class="credit__episodes text-caption">{{ person.episodeLabel }}</span>
-        }
-    </a>
-</ng-template>

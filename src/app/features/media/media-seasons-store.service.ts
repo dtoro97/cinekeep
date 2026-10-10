@@ -7,23 +7,19 @@ import {
     TvEpisode,
     TvSeason,
     TvSeasonCompact,
-    TvSeasonImages,
     TvSeasonRestControllerService,
     TvSeries,
     VideoList,
 } from '../../api';
 import {
     EpisodeListItemData,
-    IMAGE_LANGUAGE_FALLBACK,
     isDefined,
-    LocaleStoreService,
     mapRemoteData,
     type MediaListItemBadge,
     RemoteData,
     remoteData,
     remoteSuccess,
     toRating,
-    ViewerImage,
 } from '../../shared';
 import { toEpisodeListItem } from './episode-list-item.mapper';
 import { MediaStoreService } from './media-store.service';
@@ -45,7 +41,6 @@ export interface SeasonTarget {
 /** A season's details, posters and videos, which always load together. */
 interface SeasonResources {
     readonly season: TvSeason | null;
-    readonly images: TvSeasonImages | null;
     readonly videos: VideoList | null;
 }
 
@@ -94,7 +89,6 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
                     summary: null,
                     seasonOptions,
                     episodes: LOADING_STATE,
-                    images: LOADING_STATE,
                     videos: LOADING_STATE,
                 };
             }
@@ -150,16 +144,12 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
                         }),
                     }));
                 }),
-                images: mapRemoteData(resources, (data) =>
-                    (data.images?.posters ?? []).map((image): ViewerImage => ({ ...image, photoType: 'poster' })),
-                ),
                 videos: mapRemoteData(resources, (data) => data.videos),
             };
         },
     );
 
     constructor(
-        private readonly localeStore: LocaleStoreService,
         private readonly mediaStore: MediaStoreService,
         private readonly tvSeasonService: TvSeasonRestControllerService,
     ) {
@@ -226,14 +216,6 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
 
         return forkJoin({
             season: this.fetchSeasonDetails$(target),
-            images: this.tvSeasonService
-                .tvSeasonImages({
-                    ...target,
-                    includeImageLanguage: IMAGE_LANGUAGE_FALLBACK,
-                    language: this.localeStore.language(),
-                })
-                // Posters are optional, so a failure shows the season without them.
-                .pipe(catchError(() => of(null))),
             videos: this.tvSeasonService
                 .tvSeasonVideos(target)
                 // Videos are optional, so a failure shows the season without them.

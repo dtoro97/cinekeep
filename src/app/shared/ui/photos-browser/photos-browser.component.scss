@@ -2,59 +2,59 @@
 @use 'mixins' as *;
 
 :host {
-    --photos-browser-gap: var(--space-4);
-    --photos-browser-row-height: 220px;
+    --photos-browser-columns: 4;
+    --photos-browser-ratio: 16 / 9;
+
+    display: block;
 }
 
 .photos-browser {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--space-8);
 
-    &__toolbar-start {
-        display: flex;
-        flex: 1;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-3);
-        min-width: 0;
-    }
-
-    &__count {
-        white-space: nowrap;
-    }
-
-    &__filters {
-        flex: 1;
-        min-width: 0;
-    }
-
-    &__more {
-        display: flex;
-        justify-content: center;
-    }
-
+    // One frame shape per photo type, like a contact sheet.
     &__grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--photos-browser-gap);
-        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(var(--photos-browser-columns), minmax(0, 1fr));
+        gap: var(--space-5);
+
+        &--portrait {
+            --photos-browser-columns: 6;
+            --photos-browser-ratio: 2 / 3;
+        }
+
+        &--logo {
+            --photos-browser-columns: 4;
+        }
     }
 
     &__card {
-        --photo-aspect-ratio: 1.5;
-        position: relative;
-        flex-basis: calc(var(--photo-aspect-ratio) * var(--photos-browser-row-height));
-        flex-grow: var(--photo-aspect-ratio);
-        flex-shrink: 1;
-        height: var(--photos-browser-row-height);
-        min-width: 0;
+        display: block;
+        width: 100%;
+        aspect-ratio: var(--photos-browser-ratio);
+        padding: 0;
         overflow: hidden;
         border: 0;
-        border-radius: var(--radius-lg);
+        border-radius: var(--radius-media);
         background: var(--surface-panel);
-        padding: 0;
-        cursor: pointer;
+        box-shadow: var(--shadow-md);
+        cursor: zoom-in;
+        transition:
+            transform var(--motion-base),
+            box-shadow var(--motion-base);
+
+        @include hover-capable {
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-lg);
+            }
+        }
+
+        &:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
     }
 
     &__image {
@@ -64,37 +64,50 @@
         @include media-hover();
     }
 
-    &__spacer {
-        flex-basis: calc(2 * var(--photos-browser-row-height));
-        flex-grow: 2;
-        flex-shrink: 1;
-        height: 0;
-        overflow: hidden;
+    // Logos are often transparent, so they sit fitted on a plain tile without a print shadow.
+    &__grid--logo &__card {
+        padding: var(--space-6);
+        box-sizing: border-box;
+        box-shadow: none;
+    }
+
+    &__grid--logo &__image {
+        --image-fit: contain;
+        --image-surface: transparent;
+    }
+
+    &__footer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding-top: var(--space-6);
+        border-top: 1px solid var(--row-divider);
     }
 }
 
 @include tablet() {
-    :host {
-        --photos-browser-gap: var(--space-3);
-        --photos-browser-row-height: 180px;
+    .photos-browser__grid {
+        --photos-browser-columns: 3;
+
+        &--portrait {
+            --photos-browser-columns: 4;
+        }
     }
 }
 
 @include mobile() {
-    :host {
-        --photos-browser-gap: var(--space-2);
-        --photos-browser-row-height: 120px;
-    }
-
     .photos-browser {
-        gap: var(--space-3);
+        gap: var(--space-6);
 
-        &__toolbar-start {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-        &__spacer {
-            display: none;
+        &__grid {
+            --photos-browser-columns: 2;
+            gap: var(--space-3);
+
+            &--portrait {
+                --photos-browser-columns: 3;
+            }
         }
     }
 }

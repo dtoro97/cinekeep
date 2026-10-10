@@ -3,7 +3,8 @@ import type { RouteCommands } from '../types';
 export interface VideoCardItem {
     id: string;
     title: string;
-    thumbnailUrl: string;
+    /** Largest first; the card falls back to the next one when a size is missing. */
+    thumbnailUrls: readonly string[];
     alt: string;
     openLabel: string;
     typeLabel?: string;

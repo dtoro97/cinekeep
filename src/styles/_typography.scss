@@ -65,12 +65,14 @@
     color: var(--text-primary);
 }
 
+/// Section headings on reference pages (title, person, season, profile): a smaller Newsreader step
+/// than the home page's headline, because these pages stack many sections.
 .text-section-label {
-    font-size: var(--text-sm);
-    font-weight: var(--weight-semibold);
-    line-height: 1.2;
-    letter-spacing: var(--tracking-wide);
-    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-display);
+    line-height: 1.1;
+    letter-spacing: var(--tracking-tight);
     color: var(--text-primary);
 }
 

@@ -18,7 +18,7 @@ export class TmdbRatingComponent implements OnChanges {
     /** A normalized rating (see `toRating`); `null` renders the empty text. */
     @Input() value: number | null = null;
     @Input() voteCount: number | null | undefined = null;
-    @Input() label = 'Rating';
+    @Input() label = '';
     @Input() loading = false;
     /** Renders the score as the page's headline number. */
     @Input({ transform: booleanAttribute }) prominent = false;

@@ -7,81 +7,52 @@
         >
             @if (mediaDetail.media; as media) {
                 <div class="detail-hero">
-                    <div class="detail-hero__poster-column">
-                        <app-image class="hero-poster" [src]="media.posterPath" type="media" [alt]="media.title" />
-                        @if (mediaDetail.externalLinks; as externalLinks) {
-                            <app-external-links [externalLinks]="externalLinks" />
-                        }
-                    </div>
+                    <app-image class="hero-poster" [src]="media.posterPath" type="media" [alt]="media.title" />
 
                     <div class="detail-hero__main">
-                        <div class="detail-hero__heading">
-                            <p class="text-hero-meta">
-                                @if (mediaDetail.isMovie) {
-                                    Movie
-                                    @if (media.year) {
-                                        &#x2022; {{ media.year }}
-                                    }
-                                } @else {
-                                    TV series
-                                    @if (mediaDetail.tvYearLabel; as tvYearLabel) {
-                                        &#x2022; {{ tvYearLabel }}
-                                    }
+                        <h1 class="hero-title text-hero-title">{{ media.title }}</h1>
+
+                        <p class="hero-meta text-body">
+                            @if (mediaDetail.isMovie) {
+                                @if (media.year) {
+                                    <span>{{ media.year }}</span>
                                 }
-                            </p>
-
-                            <h1 class="hero-title text-hero-title">{{ media.title }}</h1>
-
-                            @if (mediaDetail.heroCredit; as credit) {
-                                <p class="hero-credit text-body">
-                                    {{ credit.label }}
-                                    @for (person of credit.people; track person.id; let last = $last) {
-                                        <a class="hero-credit__link" [routerLink]="['/name', person.id]">{{ person.name }}</a>@if (!last) {<span>, </span>}
-                                    }
-                                </p>
-                            }
-
-                            @if (media.tagline) {
-                                <p class="hero-tagline text-hero-summary">"{{ media.tagline }}"</p>
-                            }
-                        </div>
-
-                        <div class="detail-hero__facts">
-                            @if (mediaDetail.showCertificationSkeleton) {
-                                <app-skeleton class="hero-certification-skeleton" aria-hidden="true" />
-                            } @else if (mediaDetail.certification; as certification) {
-                                <app-badge [label]="certification" />
-                            }
-
-                            @if (mediaDetail.inCinemas) {
-                                <app-badge label="In cinemas" iconClass="fa-solid fa-film" variant="accent" />
+                            } @else if (mediaDetail.tvYearLabel; as tvYearLabel) {
+                                <span>{{ tvYearLabel }}</span>
                             }
 
                             @if (mediaDetail.seasonCount; as seasonCount) {
-                                <span class="text-body-sm">
-                                    {{ seasonCount | pluralize: 'season' : 'seasons' }}
-                                </span>
+                                <span>{{ seasonCount | pluralize: 'season' : 'seasons' }}</span>
                             }
 
                             @if (media.runtime) {
-                                <span class="text-body-sm">{{ media.runtime | m2h }}</span>
+                                <span>{{ media.runtime | m2h }}</span>
                             }
 
-                            @for (genre of media.genres; track genre.id) {
-                                <mat-chip
-                                    class="chip--link"
-                                    [routerLink]="['/discover']"
-                                    [queryParams]="{
-                                        genres: genre.id,
-                                        type: media.mediaType,
-                                    }"
-                                >
-                                    {{ genre.name }}
-                                </mat-chip>
+                            @if (mediaDetail.showCertificationSkeleton) {
+                                <app-skeleton class="hero-certification-skeleton" aria-hidden="true" />
+                            } @else if (mediaDetail.certification; as certification) {
+                                <span>{{ certification }}</span>
                             }
-                        </div>
 
-                        <p class="hero-overview text-hero-summary" [class.hero-overview--empty]="mediaDetail.isOverviewEmpty">
+                            @if (mediaDetail.hasGenres) {
+                                <span class="hero-genres">
+                                    @for (genre of media.genres; track genre.id) {
+                                        <a
+                                            class="hero-genre"
+                                            [routerLink]="['/discover']"
+                                            [queryParams]="{ genres: genre.id, type: media.mediaType }"
+                                            >{{ genre.name }}</a
+                                        >
+                                    }
+                                </span>
+                            }
+                        </p>
+
+                        <p
+                            class="hero-overview text-hero-summary"
+                            [class.hero-overview--empty]="mediaDetail.isOverviewEmpty"
+                        >
                             {{ mediaDetail.overviewText }}
                         </p>
 
@@ -103,356 +74,414 @@
                             </a>
                         }
 
-                        <app-media-list-actions [media]="media">
-                            @if (mediaDetail.showTrailerSkeleton) {
-                                <app-skeleton class="hero-trailer-skeleton" aria-hidden="true" />
-                            } @else if (mediaDetail.trailerKey; as trailerKey) {
-                                <button
-                                    matButton="outlined"
-                                    type="button"
-                                    (click)="openTrailer(trailerKey)"
-                                >
-                                    <i class="fa-solid fa-play" aria-hidden="true"></i>
-                                    Trailer
-                                </button>
-                            }
-                        </app-media-list-actions>
-
-                        @if (mediaDetail.providers; as providers) {
-                                <div class="provider-preview">
-                                    <span class="text-overline">Stream on</span>
-
-                                    <div class="provider-preview-logos">
-                                        @for (provider of providers.providers; track provider.provider_id) {
-                                            <a
-                                                class="provider-preview-link"
-                                                [routerLink]="['/discover']"
-                                                [queryParams]="{
-                                                    type: media.mediaType,
-                                                    providers: provider.provider_id,
-                                                }"
-                                                [attr.aria-label]="provider.provider_name ?? 'Watch provider'"
-                                            >
-                                                <app-image
-                                                    class="provider-preview-logo"
-                                                    [src]="provider.logo_path ?? null"
-                                                    params="w92"
-                                                    [alt]="provider.provider_name ?? 'Watch provider'"
-                                                />
-                                            </a>
-                                        }
-
-                                        @if (mediaDetail.providersMoreLink; as moreLink) {
-                                            <a
-                                                class="provider-preview-more text-caption"
-                                                [href]="moreLink"
-                                                target="_blank"
-                                                rel="noopener"
-                                            >
-                                                +{{ providers.hiddenCount }}
-                                            </a>
-                                        }
-                                    </div>
-
-                                    @if (providers.link) {
-                                        <a
-                                            class="section-link section-link--muted text-caption"
-                                            [href]="providers.link"
-                                            target="_blank"
-                                            rel="noopener"
-                                        >
-                                            Data provided by JustWatch
-                                        </a>
-                                    }
-                                </div>
-                        }
-                    </div>
-
-                    <aside class="detail-hero__side" aria-label="Ratings">
-                        @if (mediaDetail.showRatings) {
-                            <div class="hero-ratings">
-                                <app-tmdb-rating prominent [value]="media.voteAverage" [voteCount]="media.voteCount" />
-
-                                @if (mediaDetail.canRateTitle) {
-                                    <app-user-rating
-                                        class="hero-user-rating hero-user-rating--with-divider"
-                                        [currentRating]="mediaDetail.userRating.currentRating"
-                                        [disabled]="mediaDetail.userRating.disabled"
-                                        [loading]="mediaDetail.userRating.loading"
-                                        [pending]="mediaDetail.userRating.pending"
-                                        (ratingClick)="openUserRatingDialog(mediaDetail.ratingRequest)"
-                                    />
+                        @if (mediaDetail.showTrailerSkeleton) {
+                            <app-skeleton class="hero-trailer-skeleton" aria-hidden="true" />
+                        } @else if (mediaDetail.trailerKey; as trailerKey) {
+                            <div class="hero-actions">
+                                @if (mediaDetail.isTrailerPrimary) {
+                                    <button
+                                        matButton="filled"
+                                        type="button"
+                                        class="hero-action"
+                                        (click)="openTrailer(trailerKey)"
+                                    >
+                                        <i class="fa-solid fa-play" aria-hidden="true"></i>
+                                        Play trailer
+                                    </button>
+                                } @else {
+                                    <button
+                                        matButton="outlined"
+                                        type="button"
+                                        class="hero-action"
+                                        (click)="openTrailer(trailerKey)"
+                                    >
+                                        <i class="fa-solid fa-play" aria-hidden="true"></i>
+                                        Play trailer
+                                    </button>
                                 }
                             </div>
                         }
-                    </aside>
+                    </div>
+
+                    @if (media.voteAverage) {
+                        <aside class="detail-hero__side" aria-label="TMDb rating">
+                            <app-tmdb-rating prominent [value]="media.voteAverage" [voteCount]="media.voteCount" />
+                        </aside>
+                    }
                 </div>
             } @else {
-                <div class="detail-hero detail-hero--loading">
-                    <div class="detail-hero__poster-column">
-                        <app-skeleton class="hero-poster hero-poster--skeleton" />
-                    </div>
+                <div class="detail-hero detail-hero--loading" aria-hidden="true">
+                    <app-skeleton class="hero-poster hero-poster--skeleton" />
 
                     <div class="detail-hero__main">
-                        <app-skeleton class="hero-kicker-skeleton" aria-hidden="true" />
-                        <app-skeleton class="hero-title-skeleton" aria-hidden="true" />
-
-                        <div class="detail-hero__facts">
-                            <app-skeleton class="hero-certification-skeleton" aria-hidden="true" />
-                            <app-skeleton class="hero-meta-skeleton" aria-hidden="true" />
-                            @for (i of 3 | repeat; track i) {
-                                <app-skeleton class="hero-genre-skeleton" aria-hidden="true" />
-                            }
-                        </div>
-
-                        <app-skeleton class="hero-overview-line" aria-hidden="true" />
-                        <app-skeleton class="hero-secondary-skeleton" aria-hidden="true" />
-
-                        <div class="hero-actions">
-                            <app-skeleton class="hero-action-skeleton" aria-hidden="true" />
-                            <app-skeleton class="hero-trailer-skeleton" aria-hidden="true" />
-                        </div>
+                        <app-skeleton class="hero-title-skeleton" />
+                        <app-skeleton class="hero-meta-skeleton" />
+                        <app-skeleton class="hero-overview-line" />
+                        <app-skeleton class="hero-secondary-skeleton" />
+                        <app-skeleton class="hero-trailer-skeleton" />
                     </div>
 
-                    <aside class="detail-hero__side" aria-label="Ratings">
-                        <div class="hero-ratings">
-                            <app-tmdb-rating prominent [loading]="true" />
-                            <app-user-rating
-                                class="hero-user-rating hero-user-rating--with-divider"
-                                [currentRating]="null"
-                                [disabled]="true"
-                                [loading]="true"
-                            />
-                        </div>
+                    <aside class="detail-hero__side">
+                        <app-tmdb-rating prominent [loading]="true" />
                     </aside>
                 </div>
             }
         </app-hero-surface>
 
-        <div class="page-sections">
-            @if (mediaDetail.showCredits) {
-                <app-page-section subtitle="Top Cast">
-                    <a section-controls class="section-link text-body-sm" [routerLink]="['cast']">
-                        All cast & crew
-                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                    </a>
+        <div class="detail-body">
+            <div class="detail-main">
+                @if (mediaDetail.showCredits) {
+                    <app-page-section subtitle="Cast">
+                        <a section-controls class="section-link text-body-sm" [routerLink]="['cast']">
+                            All cast & crew
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </a>
 
-                    <app-media-credits-summary [data]="mediaDetail.creditsSummary" />
-                </app-page-section>
-            }
-            @if (mediaDetail.collection; as collection) {
-                <a class="collection" [routerLink]="['/collection', collection.id]">
-                    <app-image class="collection-backdrop" [src]="collection.backdrop_path" params="w1280" />
-                    <div class="collection-overlay"></div>
-                    <div class="collection-content">
-                        <h2 class="text-title">Part of the {{ collection.name }}</h2>
-                        @if (mediaDetail.collectionIncludes; as collectionIncludes) {
-                            <p class="text-body-sm">{{ collectionIncludes }}</p>
+                        <app-media-credits-summary [data]="mediaDetail.creditsSummary" />
+
+                        @if (mediaDetail.hasKeyCredits) {
+                            <ng-container
+                                *ngTemplateOutlet="keyCreditsList; context: { $implicit: mediaDetail.keyCredits }"
+                            />
                         }
-                    </div>
-                </a>
-            }
+                    </app-page-section>
+                } @else if (mediaDetail.hasKeyCredits) {
+                    <ng-container *ngTemplateOutlet="keyCreditsList; context: { $implicit: mediaDetail.keyCredits }" />
+                }
 
-            @if (mediaDetail.latestEpisode; as episode) {
-                <app-page-section subtitle="Latest Episode">
-                    <a section-controls class="section-link text-body-sm" [routerLink]="['episodes']">
-                        Browse all episodes
-                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                @if (mediaDetail.collection; as collection) {
+                    <a class="collection" [routerLink]="['/collection', collection.id]">
+                        <app-image class="collection-backdrop" [src]="collection.backdrop_path" params="w1280" />
+                        <div class="collection-overlay"></div>
+                        <div class="collection-content">
+                            <h2 class="text-title">Part of the {{ collection.name }}</h2>
+                            @if (mediaDetail.collectionIncludes; as collectionIncludes) {
+                                <p class="text-body-sm">{{ collectionIncludes }}</p>
+                            }
+                        </div>
                     </a>
+                }
 
-                    <app-episode-list-item [item]="episode" />
-                </app-page-section>
-            }
+                @if (mediaDetail.latestEpisode; as episode) {
+                    <app-page-section subtitle="Latest episode">
+                        <a section-controls class="section-link text-body-sm" [routerLink]="['episodes']">
+                            All episodes
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </a>
 
-            @if (mediaDetail.showVideosSkeleton) {
-                <app-page-section subtitle="Videos">
-                    <app-videos-grid [state]="{ state: 'loading' }" />
-                </app-page-section>
-            } @else if (mediaDetail.videos; as videos) {
-                <app-page-section subtitle="Videos">
-                    <a section-controls class="section-link text-body-sm" [routerLink]="['videos']">
-                        Browse all videos ({{ videos.totalCount }})
-                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                    </a>
+                        <app-episode-list-item [item]="episode" />
+                    </app-page-section>
+                }
 
-                    <app-videos-grid [state]="videos.state" />
-                </app-page-section>
-            }
+                @if (mediaDetail.showVideosSkeleton) {
+                    <app-page-section subtitle="Videos">
+                        <app-skeleton class="lead-video-skeleton" />
+                    </app-page-section>
+                } @else if (mediaDetail.videos; as videos) {
+                    <app-page-section subtitle="Videos">
+                        <a section-controls class="section-link text-body-sm" [routerLink]="['videos']">
+                            All {{ videos.totalCount | pluralize: 'video' : 'videos' }}
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </a>
 
-            @if (mediaDetail.showPhotosSkeleton) {
-                <app-page-section subtitle="Photos">
-                    <app-photos-preview [state]="{ state: 'loading' }" />
-                </app-page-section>
-            } @else if (mediaDetail.photos; as photos) {
-                <app-page-section subtitle="Photos">
-                    <a section-controls class="section-link text-body-sm" [routerLink]="['photos']">
-                        Browse all photos ({{ photos.totalCount }})
-                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                    </a>
+                        @if (mediaDetail.leadVideo; as leadVideo) {
+                            <app-video-card class="lead-video" [item]="leadVideo" />
+                        }
+                    </app-page-section>
+                }
 
-                    <app-photos-preview
-                        [state]="photos.state"
-                        [totalCount]="photos.totalCount"
-                        (photoClick)="openPhotoViewer($event, photos.allPhotos, photos.link)"
-                        (moreClick)="openPhotosPage()"
+                @if (mediaDetail.showPhotosSkeleton) {
+                    <app-page-section subtitle="Photos">
+                        <ul class="photo-strip" aria-hidden="true">
+                            @for (i of 4 | repeat; track i) {
+                                <li><app-skeleton class="photo-strip__skeleton" /></li>
+                            }
+                        </ul>
+                    </app-page-section>
+                } @else if (mediaDetail.photos; as photos) {
+                    <app-page-section subtitle="Photos">
+                        <a section-controls class="section-link text-body-sm" [routerLink]="['photos']">
+                            All {{ photos.totalCount | pluralize: 'photo' : 'photos' }}
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </a>
+
+                        <ul class="photo-strip">
+                            @for (tile of mediaDetail.photoStrip; track tile.image.file_path) {
+                                <li>
+                                    @if (tile.moreLabel; as moreLabel) {
+                                        <button
+                                            type="button"
+                                            class="photo-strip__item"
+                                            [attr.aria-label]="tile.ariaLabel"
+                                            (click)="openPhotosPage()"
+                                        >
+                                            <app-image
+                                                class="photo-strip__image"
+                                                [src]="tile.image.file_path"
+                                                params="w780"
+                                                alt=""
+                                            />
+                                            <span class="photo-strip__more text-title">{{ moreLabel }}</span>
+                                        </button>
+                                    } @else {
+                                        <button
+                                            type="button"
+                                            class="photo-strip__item"
+                                            [attr.aria-label]="tile.ariaLabel"
+                                            (click)="
+                                                openPhotoViewer(tile.index, photos.allPhotos, photos.link, photos.title)
+                                            "
+                                        >
+                                            <app-image
+                                                class="photo-strip__image"
+                                                [src]="tile.image.file_path"
+                                                params="w780"
+                                                alt=""
+                                            />
+                                        </button>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </app-page-section>
+                }
+
+                @if (mediaDetail.showReviewsSkeleton) {
+                    <app-page-section subtitle="Reviews">
+                        <app-skeleton class="reviews-summary-skeleton" />
+                        <div class="reviews-list">
+                            @for (i of 3 | repeat; track i) {
+                                <app-skeleton class="review-skeleton-block" />
+                            }
+                        </div>
+                    </app-page-section>
+                } @else if (mediaDetail.reviews; as reviews) {
+                    <app-page-section subtitle="Reviews">
+                        <a section-controls class="section-link text-body-sm" routerLink="reviews">
+                            All {{ reviews.count | pluralize: 'review' : 'reviews' }}
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </a>
+
+                        @if (reviews.average; as average) {
+                            <p class="reviews-average">
+                                <span class="text-rating">{{ average | number: '1.1-1' }}</span>
+                                <span class="text-body-sm">{{ reviews.averageLabel }}</span>
+                            </p>
+                        }
+
+                        <div class="reviews-list">
+                            @for (item of reviews.items; track item.review.id) {
+                                <app-review-card [review]="item.review" variant="list" [reviewLink]="item.link" />
+                            }
+                        </div>
+                    </app-page-section>
+                }
+            </div>
+
+            @if (mediaDetail.media; as media) {
+                <aside class="detail-rail" aria-label="Your library and title details">
+                    <app-media-library-panel
+                        [media]="media"
+                        [canRate]="mediaDetail.canRateTitle"
+                        (rate)="openUserRatingDialog(mediaDetail.ratingRequest)"
                     />
-                </app-page-section>
-            }
 
-            @if (mediaDetail.showReviewsSkeleton) {
-                <app-page-section subtitle="Reviews">
-                    <app-skeleton class="reviews-summary-skeleton" />
-                    <div class="reviews-preview-grid">
-                        @for (i of 3 | repeat; track i) {
-                            <app-skeleton class="review-skeleton-block" />
+                    <section class="rail-section" aria-labelledby="where-to-watch-title">
+                        <h2 id="where-to-watch-title" class="rail-section__title text-display-sm">Where to watch</h2>
+
+                        @if (mediaDetail.inCinemas) {
+                            <p class="rail-section__text text-body-strong">In cinemas now</p>
                         }
-                    </div>
-                </app-page-section>
-            } @else if (mediaDetail.reviews; as reviews) {
-                <app-page-section subtitle="Reviews">
-                    <a section-controls class="section-link text-body-sm" routerLink="reviews">
-                        Browse all reviews ({{ reviews.count }})
-                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                    </a>
 
-                    <div class="reviews-preview-grid">
-                        @for (item of reviews.items; track item.review.id) {
-                            <app-review-card [review]="item.review" variant="preview" [reviewLink]="item.link" />
+                        @if (mediaDetail.providers; as providers) {
+                            <div class="provider-preview-logos">
+                                @for (provider of providers.providers; track provider.provider_id) {
+                                    <a
+                                        class="provider-preview-link"
+                                        [routerLink]="['/discover']"
+                                        [queryParams]="{ type: media.mediaType, providers: provider.provider_id }"
+                                        [attr.aria-label]="provider.provider_name ?? 'Watch provider'"
+                                    >
+                                        <app-image
+                                            class="provider-preview-logo"
+                                            [src]="provider.logo_path ?? null"
+                                            params="w92"
+                                            [alt]="provider.provider_name ?? 'Watch provider'"
+                                        />
+                                    </a>
+                                }
+
+                                @if (mediaDetail.providersMoreLink; as moreLink) {
+                                    <a
+                                        class="provider-preview-more text-caption"
+                                        [href]="moreLink"
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
+                                        +{{ providers.hiddenCount }}
+                                    </a>
+                                }
+                            </div>
+
+                            @if (providers.link) {
+                                <a
+                                    class="rail-section__source text-caption"
+                                    [href]="providers.link"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    Availability from JustWatch
+                                </a>
+                            }
+                        } @else if (mediaDetail.showStreamingEmpty) {
+                            <p class="rail-section__text text-body-sm">
+                                Not on a streaming service in your region yet.
+                            </p>
                         }
-                    </div>
-                </app-page-section>
-            }
+                    </section>
 
+                    @if (mediaDetail.showDetails) {
+                        <section class="rail-section" aria-labelledby="details-title">
+                            <h2 id="details-title" class="rail-section__title text-display-sm">Details</h2>
+
+                            <dl class="facts">
+                                @if (media.releaseDate) {
+                                    <div class="facts__row">
+                                        <dt>Released</dt>
+                                        <dd>{{ media.releaseDate | date }}</dd>
+                                    </div>
+                                }
+                                @if (media.firstAirDate) {
+                                    <div class="facts__row">
+                                        <dt>First aired</dt>
+                                        <dd>{{ media.firstAirDate | date }}</dd>
+                                    </div>
+                                }
+                                @if (media.lastAirDate) {
+                                    <div class="facts__row">
+                                        <dt>Last aired</dt>
+                                        <dd>{{ media.lastAirDate | date }}</dd>
+                                    </div>
+                                }
+                                @if (media.runtime) {
+                                    <div class="facts__row">
+                                        <dt>Runtime</dt>
+                                        <dd>{{ media.runtime | m2h }}</dd>
+                                    </div>
+                                }
+                                @if (media.numberOfSeasons) {
+                                    <div class="facts__row">
+                                        <dt>Seasons</dt>
+                                        <dd>{{ media.numberOfSeasons }}</dd>
+                                    </div>
+                                }
+                                @if (media.numberOfEpisodes) {
+                                    <div class="facts__row">
+                                        <dt>Episodes</dt>
+                                        <dd>{{ media.numberOfEpisodes }}</dd>
+                                    </div>
+                                }
+                                @if (media.status) {
+                                    <div class="facts__row">
+                                        <dt>Status</dt>
+                                        <dd>{{ media.status }}</dd>
+                                    </div>
+                                }
+                                @if (mediaDetail.languagesText; as languagesText) {
+                                    <div class="facts__row">
+                                        <dt>Languages</dt>
+                                        <dd>{{ languagesText }}</dd>
+                                    </div>
+                                }
+                                @if (mediaDetail.networksText; as networksText) {
+                                    <div class="facts__row">
+                                        <dt>Networks</dt>
+                                        <dd>{{ networksText }}</dd>
+                                    </div>
+                                }
+                                @if (media.budget) {
+                                    <div class="facts__row">
+                                        <dt>Budget</dt>
+                                        <dd>${{ media.budget | number }}</dd>
+                                    </div>
+                                }
+                                @if (media.revenue) {
+                                    <div class="facts__row">
+                                        <dt>Revenue</dt>
+                                        <dd>${{ media.revenue | number }}</dd>
+                                    </div>
+                                }
+                            </dl>
+
+                            @if (mediaDetail.showMadeBy) {
+                                <p class="facts__note text-body-sm">
+                                    @for (company of media.productionCompanies; track company.id; let last = $last) {
+                                        <a
+                                            class="facts__link"
+                                            [routerLink]="['/discover']"
+                                            [queryParams]="{
+                                                type: media.mediaType,
+                                                companies: company.id,
+                                                sort: 'popularity',
+                                                direction: 'desc',
+                                                votes: 'any',
+                                            }"
+                                            >{{ company.label }}</a
+                                        >
+                                        @if (!last) {
+                                            <span>, </span>
+                                        }
+                                    }
+                                    @if (mediaDetail.originCountriesText; as originCountriesText) {
+                                        <span class="facts__origin">Made in {{ originCountriesText }}.</span>
+                                    }
+                                </p>
+                            }
+                        </section>
+                    }
+
+                    @if (mediaDetail.hasKeywords) {
+                        <section class="rail-section" aria-labelledby="keywords-title">
+                            <h2 id="keywords-title" class="rail-section__title text-display-sm">Keywords</h2>
+                            <app-keywords-list [keywords]="mediaDetail.keywords" [mediaType]="media.mediaType" />
+                        </section>
+                    }
+
+                    @if (mediaDetail.externalLinks; as externalLinks) {
+                        <section class="rail-section" aria-labelledby="elsewhere-title">
+                            <h2 id="elsewhere-title" class="rail-section__title text-display-sm">Elsewhere</h2>
+                            <app-external-links [externalLinks]="externalLinks" />
+                        </section>
+                    }
+                </aside>
+            }
+        </div>
+
+        <div class="page-sections detail-related">
             @if (mediaDetail.showRecommendationsSkeleton) {
-                <app-page-section subtitle="More Like This">
+                <app-page-section subtitle="More like this">
                     <app-media-carousel-panel [state]="{ state: 'loading' }" [showRating]="true" [showDate]="true" />
                 </app-page-section>
             } @else if (mediaDetail.recommendations; as recommendations) {
-                <app-page-section subtitle="More Like This">
+                <app-page-section subtitle="More like this">
                     <app-media-carousel-panel [state]="recommendations" [showRating]="true" [showDate]="true" />
                 </app-page-section>
-            }
-
-            @if (mediaDetail.media; as media) {
-                @if (mediaDetail.hasKeywords) {
-                    <app-page-section subtitle="Keywords">
-                        <app-keywords-list [keywords]="mediaDetail.keywords" [mediaType]="media.mediaType" />
-                    </app-page-section>
-                }
-
-                @if (mediaDetail.showDetails) {
-                    <app-page-section subtitle="Details">
-                        <dl class="info-grid" aria-label="Media details">
-                            @if (media.releaseDate) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Released</dt>
-                                    <dd class="info-grid__value text-body-strong">{{ media.releaseDate | date }}</dd>
-                                </div>
-                            }
-
-                            @if (media.firstAirDate) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">First aired</dt>
-                                    <dd class="info-grid__value text-body-strong">{{ media.firstAirDate | date }}</dd>
-                                </div>
-                            }
-
-                            @if (media.lastAirDate) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Last aired</dt>
-                                    <dd class="info-grid__value text-body-strong">{{ media.lastAirDate | date }}</dd>
-                                </div>
-                            }
-
-                            @if (media.runtime) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Runtime</dt>
-                                    <dd class="info-grid__value text-body-strong">{{ media.runtime | m2h }}</dd>
-                                </div>
-                            }
-
-                            @if (media.budget) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Budget</dt>
-                                    <dd class="info-grid__value text-body-strong">${{ media.budget | number }}</dd>
-                                </div>
-                            }
-
-                            @if (media.revenue) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Revenue</dt>
-                                    <dd class="info-grid__value text-body-strong">${{ media.revenue | number }}</dd>
-                                </div>
-                            }
-
-                            @if (media.numberOfSeasons) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Seasons</dt>
-                                    <dd class="info-grid__value text-body-strong">{{ media.numberOfSeasons }}</dd>
-                                </div>
-                            }
-
-                            @if (media.numberOfEpisodes) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Episodes</dt>
-                                    <dd class="info-grid__value text-body-strong">{{ media.numberOfEpisodes }}</dd>
-                                </div>
-                            }
-
-                            @if (media.status) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Status</dt>
-                                    <dd class="info-grid__value text-body-strong">{{ media.status }}</dd>
-                                </div>
-                            }
-
-                            @if (mediaDetail.languagesText; as languagesText) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Languages</dt>
-                                    <dd class="info-grid__value text-body-strong">{{ languagesText }}</dd>
-                                </div>
-                            }
-
-                            @if (mediaDetail.originCountriesText; as originCountriesText) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Origin country</dt>
-                                    <dd class="info-grid__value text-body-strong">
-                                        {{ originCountriesText }}
-                                    </dd>
-                                </div>
-                            }
-
-                            @if (mediaDetail.networksText; as networksText) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Networks</dt>
-                                    <dd class="info-grid__value text-body-strong">{{ networksText }}</dd>
-                                </div>
-                            }
-
-                            @if (mediaDetail.hasProductionCompanies) {
-                                <div class="info-grid__item">
-                                    <dt class="info-grid__label text-card-meta">Production companies</dt>
-                                    <dd class="info-grid__value text-body-strong">
-                                        @for (company of media.productionCompanies; track company.id; let last = $last) {
-                                            <a
-                                                class="info-grid__link"
-                                                [routerLink]="['/discover']"
-                                                [queryParams]="{
-                                                    type: media.mediaType,
-                                                    companies: company.id,
-                                                    sort: 'popularity',
-                                                    direction: 'desc',
-                                                    votes: 'any',
-                                                }"
-                                            >{{ company.label }}</a>@if (!last) {<span>, </span>}
-                                        }
-                                    </dd>
-                                </div>
-                            }
-                        </dl>
-                    </app-page-section>
-                }
             }
         </div>
     }
 </div>
+
+<ng-template #keyCreditsList let-keyCredits>
+    <dl class="key-credits" aria-label="Key credits">
+        @for (credit of keyCredits; track credit.label) {
+            <div class="key-credits__item">
+                <dt class="text-caption">{{ credit.label }}</dt>
+                <dd class="key-credits__people">
+                    @for (person of credit.people; track person.id) {
+                        <a class="key-credits__link" [routerLink]="['/name', person.id]">{{ person.name }}</a>
+                    }
+                </dd>
+            </div>
+        }
+    </dl>
+</ng-template>

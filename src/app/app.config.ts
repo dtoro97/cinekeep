@@ -102,6 +102,10 @@ export const appConfig: ApplicationConfig = {
             withEventReplay(),
             withHttpTransferCacheOptions({
                 filter: (req) => !isBackendApiRequest(req.url),
+                // TMDb requests carry the app's API token as a bearer header, which Angular skips by default; without
+                // this the browser refetches every server-rendered response and flashes loading states on hydration.
+                // The filter above still keeps the user's backend requests out of the cache.
+                includeRequestsWithAuthHeaders: true,
             }),
         ),
         //provideServerRendering(withRoutes(serverRoutes)),

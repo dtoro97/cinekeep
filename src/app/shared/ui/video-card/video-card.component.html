@@ -40,7 +40,13 @@
 
 <ng-template #thumbnail>
     <div class="video-card__thumb aspect-landscape">
-        <img class="video-card__image" [src]="item.thumbnailUrl" [alt]="item.alt" />
+        <img
+            class="video-card__image"
+            [src]="thumbnailSrc"
+            [alt]="item.alt"
+            (load)="checkThumbnail($event)"
+            (error)="useNextThumbnail()"
+        />
 
         <div class="video-card__play" aria-hidden="true">
             <i class="fa-solid fa-play" aria-hidden="true"></i>

@@ -2,19 +2,14 @@
     <div class="photos-browser">
         @if (photosBrowser.hasImages) {
             <app-browse-toolbar>
-                <div start class="photos-browser__toolbar-start">
-                    <span class="photos-browser__count text-meta">{{ photosBrowser.countLabel }}</span>
-                    @if (photosBrowser.showTypeFilter) {
-                        <app-toggle-group
-                            class="photos-browser__filters"
-                            [options]="photosBrowser.typeOptions"
-                            [multiple]="true"
-                            variant="chips"
-                            [selectedValues]="photosBrowser.selectedTypes"
-                            (selectedValuesChange)="setSelectedTypes($event)"
-                        />
-                    }
-                </div>
+                @if (photosBrowser.showTypeFilter) {
+                    <app-toggle-group
+                        start
+                        [options]="photosBrowser.typeOptions"
+                        [selectedValue]="photosBrowser.selectedType"
+                        (selected)="setSelectedType($event)"
+                    />
+                }
                 <app-sort-button
                     end
                     [options]="sortOptions"
@@ -27,12 +22,15 @@
         }
 
         @if (photosBrowser.hasVisibleImages) {
-            <div class="photos-browser__grid">
+            <div
+                class="photos-browser__grid"
+                [class.photos-browser__grid--portrait]="photosBrowser.isPortraitGrid"
+                [class.photos-browser__grid--logo]="photosBrowser.isLogoGrid"
+            >
                 @for (tile of photosBrowser.tiles; track tile.image.file_path) {
                     <button
                         type="button"
                         class="photos-browser__card"
-                        [style.--photo-aspect-ratio]="tile.layoutAspectRatio"
                         [attr.aria-label]="tile.ariaLabel"
                         (click)="photoSelect.emit({ images: photosBrowser.visibleImages, index: tile.index })"
                     >
@@ -45,16 +43,14 @@
                         />
                     </button>
                 }
-                <span class="photos-browser__spacer" aria-hidden="true"></span>
-                <span class="photos-browser__spacer" aria-hidden="true"></span>
-                <span class="photos-browser__spacer" aria-hidden="true"></span>
             </div>
 
-            @if (photosBrowser.hasMore) {
-                <div class="photos-browser__more">
-                    <button mat-stroked-button type="button" (click)="showMore()">Show more photos</button>
-                </div>
-            }
+            <div class="photos-browser__footer">
+                <span class="text-meta">{{ photosBrowser.shownLabel }}</span>
+                @if (photosBrowser.hasMore) {
+                    <button mat-stroked-button type="button" (click)="showMore()">{{ photosBrowser.moreLabel }}</button>
+                }
+            </div>
         } @else {
             <div class="empty-panel">
                 <app-empty-state iconClass="fa-regular fa-images" text="No photos are available yet." />

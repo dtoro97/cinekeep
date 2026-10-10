@@ -1,4 +1,3 @@
-// Community scores are reference data: a neutral value with a muted star. Gold is kept for the user's own score.
 :host {
     display: inline-flex;
     align-items: center;
@@ -25,7 +24,7 @@
     justify-content: center;
     width: var(--rating-icon-size);
     height: var(--rating-icon-size);
-    color: var(--text-muted);
+    color: var(--color-rating);
     font-size: var(--rating-icon-size);
     line-height: 1;
 }

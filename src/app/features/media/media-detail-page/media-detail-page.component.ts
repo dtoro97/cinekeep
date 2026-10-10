@@ -1,14 +1,12 @@
-import { AsyncPipe, DOCUMENT, DatePipe, DecimalPipe } from '@angular/common';
+import { AsyncPipe, DOCUMENT, DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, Inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule } from '@angular/material/chips';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { catchError, filter } from 'rxjs';
 
 import {
-    BadgeComponent,
     buildYoutubeWatchUrl,
     EpisodeListItemComponent,
     ExternalLinksComponent,
@@ -19,7 +17,6 @@ import {
     MediaRatingDialogService,
     MinutesToHoursPipe,
     PageSectionComponent,
-    PhotosPreviewComponent,
     PhotoViewerDialogService,
     PluralizePipe,
     RepeatPipe,
@@ -28,7 +25,7 @@ import {
     SkeletonComponent,
     SnackbarService,
     TmdbRatingComponent,
-    VideosGridComponent,
+    VideoCardComponent,
     ViewerImage,
 } from '../../../shared';
 import { MediaCreditsSummaryComponent } from '../media-credits-summary/media-credits-summary.component';
@@ -37,15 +34,13 @@ import { MediaDetailStoreService, MediaRatingRequest } from '../media-detail-sto
 import { toMediaSeoMetadata } from '../media-seo';
 import { MediaStoreService } from '../media-store.service';
 import { ReviewCardComponent } from '../review-card/review-card.component';
-import { UserRatingComponent } from '../user-rating/user-rating.component';
 import { KeywordsListComponent } from './keywords-list/keywords-list.component';
-import { MediaListActionsComponent } from './media-list-actions/media-list-actions.component';
+import { MediaLibraryPanelComponent } from './media-library-panel/media-library-panel.component';
 
 @Component({
     selector: 'app-media-detail-page',
     imports: [
         AsyncPipe,
-        BadgeComponent,
         DatePipe,
         DecimalPipe,
         EpisodeListItemComponent,
@@ -54,21 +49,19 @@ import { MediaListActionsComponent } from './media-list-actions/media-list-actio
         ImageComponent,
         KeywordsListComponent,
         MatButtonModule,
-        MatChipsModule,
         MediaCarouselPanelComponent,
         MediaCreditsSummaryComponent,
-        MediaListActionsComponent,
+        MediaLibraryPanelComponent,
         MinutesToHoursPipe,
+        NgTemplateOutlet,
         PageSectionComponent,
-        PhotosPreviewComponent,
         PluralizePipe,
         RepeatPipe,
         ReviewCardComponent,
         RouterLink,
         SkeletonComponent,
         TmdbRatingComponent,
-        UserRatingComponent,
-        VideosGridComponent,
+        VideoCardComponent,
     ],
     templateUrl: './media-detail-page.component.html',
     styleUrl: './media-detail-page.component.scss',
@@ -97,8 +90,8 @@ export class MediaDetailPageComponent {
             .subscribe((media) => seoService.setPage(toMediaSeoMetadata(media)));
     }
 
-    openPhotoViewer(index: number, images: ViewerImage[], photosLink: RouteCommands | null): void {
-        this.photoViewerDialogService.open({ images, activeIndex: index, photosLink });
+    openPhotoViewer(index: number, images: ViewerImage[], photosLink: RouteCommands | null, title: string): void {
+        this.photoViewerDialogService.open({ images, activeIndex: index, photosLink, title });
     }
 
     openPhotosPage(): void {

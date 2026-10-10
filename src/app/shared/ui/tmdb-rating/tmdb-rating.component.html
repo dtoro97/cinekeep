@@ -3,8 +3,6 @@
         <app-skeleton class="tmdb-rating__label-skeleton" aria-hidden="true" />
         <app-skeleton class="tmdb-rating__value-skeleton" aria-hidden="true" />
     } @else {
-        <span class="tmdb-rating__label text-overline">{{ label }}</span>
-
         <div class="tmdb-rating__summary">
             <span class="tmdb-rating__primary">
                 <i class="tmdb-rating__icon fa-solid fa-star" aria-hidden="true"></i>
@@ -23,5 +21,11 @@
                 <span class="tmdb-rating__count text-meta">{{ count | voteCount }} {{ voteUnit }}</span>
             }
         </div>
+
+        <!-- The optional label renders after the summary and is moved above it with CSS order: an empty @if as the
+             first node of this block made hydration expect the label span that the server never rendered. -->
+        @if (label) {
+            <span class="tmdb-rating__label text-meta">{{ label }}</span>
+        }
     }
 </div>

@@ -1,23 +1,27 @@
 @if (photoViewer$ | async; as photoViewer) {
     @if (photoViewer.image; as image) {
         <div class="photo-viewer">
-            <div class="photo-viewer__toolbar">
-                <span class="photo-viewer__counter text-meta">{{ photoViewer.counter }}</span>
-                <div class="photo-viewer__actions">
-                    @if (photoViewer.showPhotosLink) {
-                        <app-icon-button
-                            appearance="overlay"
-                            (buttonClick)="openPhotosPage()"
-                            ariaLabel="Open photos page"
-                        >
-                            <mat-icon>grid_on</mat-icon>
-                        </app-icon-button>
+            <header class="photo-viewer__top">
+                <p class="photo-viewer__context">
+                    @if (photoViewer.title) {
+                        <span class="photo-viewer__title">{{ photoViewer.title }}</span>
                     }
-                    <app-icon-button appearance="overlay" (buttonClick)="close()" ariaLabel="Close photo viewer">
-                        <mat-icon>close</mat-icon>
-                    </app-icon-button>
-                </div>
-            </div>
+                    @if (photoViewer.typeLabel) {
+                        <span class="text-meta">{{ photoViewer.typeLabel }}</span>
+                    }
+                </p>
+
+                <span class="photo-viewer__counter" aria-live="polite">{{ photoViewer.counter }}</span>
+
+                <app-icon-button
+                    class="photo-viewer__close"
+                    appearance="overlay"
+                    (buttonClick)="close()"
+                    ariaLabel="Close photo viewer"
+                >
+                    <mat-icon>close</mat-icon>
+                </app-icon-button>
+            </header>
 
             <div class="photo-viewer__stage">
                 <app-icon-button
@@ -43,22 +47,38 @@
                 </app-icon-button>
             </div>
 
-            <div class="photo-viewer__meta text-caption">
-                @if (image.caption) {
-                    <span>{{ image.caption }}</span>
-                }
-                @if (photoViewer.showDimensions) {
-                    <span>{{ image.width }} &times; {{ image.height }}</span>
-                }
-                @if (image.vote_average) {
-                    <span class="photo-viewer__score">
-                        <app-rating [value]="image.vote_average" />
-                        @if (image.vote_count) {
-                            <span class="photo-viewer__votes">({{ image.vote_count | voteCount }})</span>
+            <footer class="photo-viewer__bottom">
+                <p class="photo-viewer__facts">
+                    @if (image.caption) {
+                        <span class="photo-viewer__caption">{{ image.caption }}</span>
+                    }
+                    @if (photoViewer.sizeLabel) {
+                        <span class="photo-viewer__size">{{ photoViewer.sizeLabel }}</span>
+                    }
+                </p>
+
+                @if (photoViewer.showFilmstrip) {
+                    <div class="photo-viewer__strip" role="group" aria-label="Photos">
+                        @for (thumb of photoViewer.filmstrip; track thumb.key) {
+                            <button
+                                type="button"
+                                class="photo-viewer__thumb"
+                                [class.photo-viewer__thumb--current]="thumb.isCurrent"
+                                [attr.aria-current]="thumb.isCurrent"
+                                [attr.aria-label]="thumb.label"
+                                (click)="show(thumb.index)"
+                            >
+                                <img [src]="thumb.source | imgSrc: 'w300'" alt="" loading="lazy" />
+                            </button>
                         }
-                    </span>
+                        @if (photoViewer.showMoreLink) {
+                            <button type="button" class="photo-viewer__more" (click)="openPhotosPage()">
+                                {{ photoViewer.moreLabel }}
+                            </button>
+                        }
+                    </div>
                 }
-            </div>
+            </footer>
         </div>
     }
 }

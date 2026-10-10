@@ -14,20 +14,28 @@
     }
 }
 
-/// A link styled as text that takes the accent colour on hover and keyboard focus.
+/// A link styled as text. Hover and keyboard focus brighten it and draw an underline, so the change
+/// is visible even when the link is already white.
 @mixin text-link($color: var(--text-primary)) {
     color: $color;
-    text-decoration: none;
-    transition: color var(--motion-base);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    transition:
+        color var(--motion-base),
+        text-decoration-color var(--motion-base);
 
     @include hover-capable {
         &:hover {
             color: var(--text-hover);
+            text-decoration-color: currentColor;
         }
     }
 
     &:focus-visible {
         color: var(--text-hover);
+        text-decoration-color: currentColor;
     }
 }
 

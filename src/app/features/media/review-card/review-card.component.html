@@ -1,69 +1,55 @@
 @if (currentReview; as review) {
-    <article
-        class="review-card"
-        [class.review-card--list]="variant === 'list'"
-        [class.review-card--preview]="variant === 'preview'"
-        [class.review-card--detail]="variant === 'detail'"
-    >
-        @if (variant !== 'preview') {
-            <p class="review-card__score">
-                @if (score) {
-                    <span class="review-card__score-value text-rating-sm">{{ score | number: '1.1-1' }}</span>
-                    <span class="review-card__score-scale text-caption">/10</span>
-                }
-            </p>
-        } @else {
-            <ng-container [ngTemplateOutlet]="avatar" />
-        }
-
-        <div class="review-card__main">
-            <header class="review-card__header">
-                <div class="review-card__byline">
-                    @if (variant !== 'preview') {
-                        <ng-container [ngTemplateOutlet]="avatar" />
-                    }
-
-                    <h3 class="review-card__author text-body-strong">
-                        {{ review.author || review.author_details?.username || 'Anonymous' }}
-                    </h3>
-
-                    <span class="review-card__meta text-caption">
+    @if (variant === 'detail') {
+        <article class="review-detail">
+            <header class="review-detail__byline">
+                <span class="review-detail__author">
+                    <span class="review-detail__initials" aria-hidden="true">{{ initials }}</span>
+                    <span class="review-detail__who">
+                        <span class="text-body-strong">{{ author }}</span>
                         @if (review.created_at) {
-                            {{ review.created_at | date: 'MMM d, y' }}
+                            <span class="review-detail__date text-meta">{{
+                                review.created_at | date: 'MMMM d, y'
+                            }}</span>
                         }
                     </span>
+                </span>
 
-                    @if (variant === 'preview' && score) {
-                        <app-rating class="review-card__rating" [value]="score" />
-                    }
-                </div>
+                @if (score) {
+                    <div class="review-detail__score">
+                        <span class="text-meta">Their score</span>
+                        <p class="review-detail__figure">
+                            <span class="text-rating">{{ score | number: '1.0-1' }}</span>
+                            <span class="review-card__score-scale text-meta">/10</span>
+                        </p>
+                    </div>
+                }
             </header>
 
-            @if (variant === 'detail') {
-                <div class="review-card__content text-body" [innerHTML]="contentHtml"></div>
-            } @else {
-                <p class="review-card__content review-card__content--collapsed text-body">
-                    {{ contentPreviewText }}
-                </p>
-            }
-
-            @if (reviewLink && variant !== 'detail') {
-                <a class="review-card__link text-caption" [routerLink]="reviewLink">Read full review</a>
-            }
-        </div>
-    </article>
-
-    <ng-template #avatar>
-        @if (review.author_details?.avatar_path; as avatarPath) {
-            <img
-                class="review-card__avatar"
-                [src]="avatarPath | imgSrc: 'w185'"
-                alt=""
-            />
-        } @else {
-            <div class="review-card__avatar review-card__avatar--fallback" aria-hidden="true">
-                {{ initial }}
+            <div class="review-detail__content" [innerHTML]="contentHtml"></div>
+        </article>
+    } @else {
+        <article class="review-row">
+            <div class="review-row__byline">
+                <h3 class="review-row__author text-body-strong">{{ author }}</h3>
+                @if (review.created_at) {
+                    <span class="review-row__date text-caption">{{ review.created_at | date: 'MMM d, y' }}</span>
+                }
+                @if (score) {
+                    <p class="review-row__score">
+                        <span class="text-rating-sm">{{ score | number: '1.0-1' }}</span>
+                        <span class="review-card__score-scale text-caption">/10</span>
+                    </p>
+                } @else {
+                    <p class="review-row__no-score text-caption">No score given</p>
+                }
             </div>
-        }
-    </ng-template>
+
+            <div class="review-row__body">
+                <p class="review-row__content text-body">{{ contentPreviewText }}</p>
+                @if (reviewLink) {
+                    <a class="review-card__link text-caption" [routerLink]="reviewLink">Read full review</a>
+                }
+            </div>
+        </article>
+    }
 }

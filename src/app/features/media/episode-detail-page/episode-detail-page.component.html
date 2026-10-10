@@ -2,162 +2,210 @@
     @if (episodeDetail$ | async; as episodeDetail) {
         <app-hero-surface [backdropPath]="episodeDetail.heroImage" variant="integrated">
             <div class="episode-hero">
-                <a class="episode-hero__back text-caption" [routerLink]="episodeDetail.episodesLink">
-                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                    Back to {{ episodeDetail.seasonLabel }}
-                </a>
-
-                @if (episodeDetail.episode; as episode) {
-                    <div class="episode-hero__text">
-                        <p class="episode-hero__eyebrow text-hero-meta">
-                            @if (episodeDetail.seriesTitle; as title) {
-                                <a class="episode-hero__series" [routerLink]="episodeDetail.seriesLink">{{ title }}</a>
-                            }
-                            <span>{{ episodeDetail.episodeLabel }}</span>
-                        </p>
-
-                        <h1 class="text-hero-title">{{ episode.name }}</h1>
-
-                        @if (episodeDetail.hasMeta) {
-                            <p class="episode-hero__meta text-hero-meta">
-                                @if (episode.air_date) {
-                                    <span>{{ episode.air_date | date: "MMMM d, y" }}</span>
-                                }
-                                @if (episode.runtime) {
-                                    <span>{{ episode.runtime | m2h }}</span>
-                                }
-                            </p>
-                        }
-                    </div>
-                } @else {
-                    <div class="episode-hero__text" aria-hidden="true">
-                        <app-skeleton class="episode-hero__line episode-hero__line--meta" />
-                        <app-skeleton class="episode-hero__line episode-hero__line--title" />
-                        <app-skeleton class="episode-hero__line episode-hero__line--meta" />
-                    </div>
+                @if (episodeDetail.episodesLink; as episodesLink) {
+                    <a class="episode-hero__back text-caption" [routerLink]="episodesLink">
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                        {{ episodeDetail.backLabel }}
+                    </a>
                 }
-            </div>
-        </app-hero-surface>
 
-        <main class="page-main episode-page">
-            @if (episodeDetail.episode; as episode) {
-                <section class="episode-intro">
-                    <div class="episode-intro__text">
-                        <p
-                            class="episode-intro__overview text-hero-summary"
-                            [class.episode-intro__overview--empty]="episodeDetail.isOverviewEmpty"
-                        >
-                            {{ episodeDetail.overviewText }}
-                        </p>
+                <div class="episode-hero__body">
+                    @if (episodeDetail.episode; as episode) {
+                        <div class="episode-hero__text">
+                            <p class="episode-hero__eyebrow text-hero-meta">{{ episodeDetail.eyebrowLabel }}</p>
 
-                        @if (episodeDetail.hasCrewRows) {
-                            <dl class="episode-crew">
-                                @for (row of episodeDetail.crewRows; track row.label) {
-                                    <div class="episode-crew__row">
-                                        <dt class="episode-crew__label text-caption">{{ row.label }}</dt>
-                                        <dd class="episode-crew__names text-body-sm">
-                                            @for (person of row.people; track person.id; let last = $last) {
-                                                <a class="episode-crew__link" [routerLink]="['/name', person.id]">{{ person.name }}</a>@if (!last) {<span>, </span>}
-                                            }
-                                        </dd>
-                                    </div>
-                                }
-                            </dl>
-                        }
-                    </div>
+                            <h1 class="text-hero-title">{{ episode.name }}</h1>
 
-                    @if (episodeDetail.showRatings) {
-                        <aside class="episode-intro__ratings" aria-label="Ratings">
-                            @if (episodeDetail.tmdbRating) {
+                            @if (episodeDetail.hasMeta) {
+                                <p class="episode-hero__meta text-hero-meta">
+                                    @if (episode.air_date) {
+                                        <span>{{ episode.air_date | date: 'MMMM d, y' }}</span>
+                                    }
+                                    @if (episode.runtime) {
+                                        <span>{{ episode.runtime | m2h }}</span>
+                                    }
+                                </p>
+                            }
+
+                            <p
+                                class="episode-hero__overview text-hero-summary"
+                                [class.episode-hero__overview--empty]="episodeDetail.isOverviewEmpty"
+                            >
+                                {{ episodeDetail.overviewText }}
+                            </p>
+                        </div>
+
+                        @if (episodeDetail.tmdbRating) {
+                            <aside class="episode-hero__rating" aria-label="Rating">
                                 <app-tmdb-rating
                                     prominent
                                     [value]="episodeDetail.tmdbRating"
                                     [voteCount]="episode.vote_count"
                                 />
-                            }
+                            </aside>
+                        }
+                    } @else {
+                        <div class="episode-hero__text" aria-hidden="true">
+                            <app-skeleton class="episode-hero__line episode-hero__line--meta" />
+                            <app-skeleton class="episode-hero__line episode-hero__line--title" />
+                            <app-skeleton class="episode-hero__line episode-hero__line--meta" />
+                            <app-skeleton class="episode-hero__line" />
+                        </div>
+                    }
+                </div>
+            </div>
+        </app-hero-surface>
 
-                            @if (episodeDetail.canRateEpisode) {
-                                <app-user-rating
-                                    class="episode-intro__user-rating"
-                                    [currentRating]="episodeDetail.userRating.currentRating"
-                                    [disabled]="episodeDetail.userRating.disabled"
-                                    [loading]="episodeDetail.userRating.loading"
-                                    [pending]="episodeDetail.userRating.pending"
-                                    (ratingClick)="openUserRatingDialog(episodeDetail.ratingRequest)"
+        <main class="page-main episode-page">
+            <div class="episode-body" [class.episode-body--single]="!episodeDetail.canRateEpisode">
+                <div class="episode-main">
+                    @if (episodeDetail.hasGuestCast) {
+                        <app-page-section subtitle="Guest stars">
+                            <app-media-credits-summary [data]="episodeDetail.guestCast" />
+                        </app-page-section>
+                    }
+
+                    @if (episodeDetail.showEpisodeCast) {
+                        <app-page-section subtitle="Cast">
+                            @if (episodeDetail.castLink; as castLink) {
+                                <a section-controls class="section-link text-body-sm" [routerLink]="castLink">
+                                    All cast & crew
+                                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                                </a>
+                            }
+                            <app-media-credits-summary [data]="episodeDetail.episodeCast" />
+
+                            @if (episodeDetail.hasCrewRows) {
+                                <ng-container
+                                    *ngTemplateOutlet="crewList; context: { $implicit: episodeDetail.crewRows }"
                                 />
                             }
-                        </aside>
+                        </app-page-section>
+                    } @else if (episodeDetail.hasCrewRows) {
+                        <ng-container *ngTemplateOutlet="crewList; context: { $implicit: episodeDetail.crewRows }" />
                     }
-                </section>
-            } @else if (episodeDetail.showIntroSkeleton) {
-                <section class="episode-intro" aria-hidden="true">
-                    <div class="episode-intro__text">
-                        <app-skeleton class="episode-intro__line" />
-                        <app-skeleton class="episode-intro__line" />
-                        <app-skeleton class="episode-intro__line episode-intro__line--short" />
-                    </div>
-                </section>
-            }
 
-            @if (episodeDetail.pager; as pager) {
-                <nav class="episode-pager" aria-label="Other episodes">
-                    @if (pager.previous; as previous) {
-                        <a class="episode-pager__link" [routerLink]="previous.routeCommands" rel="prev">
-                            <span class="episode-pager__direction text-caption">
-                                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-                                {{ previous.label }}
-                            </span>
-                            @if (previous.title) {
-                                <span class="episode-pager__title text-subtitle">{{ previous.title }}</span>
+                    @if (episodeDetail.showStills) {
+                        <app-page-section subtitle="Stills">
+                            @if (episodeDetail.hasMoreStills) {
+                                <a
+                                    section-controls
+                                    class="section-link text-body-sm"
+                                    [routerLink]="episodeDetail.stillsLink"
+                                >
+                                    {{ episodeDetail.allStillsLabel }}
+                                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                                </a>
                             }
-                        </a>
-                    } @else {
-                        <span></span>
+
+                            <div class="episode-stills">
+                                @if (episodeDetail.showStillsSkeleton) {
+                                    @for (slot of stillSkeletonCount | repeat; track slot) {
+                                        <app-skeleton class="episode-stills__item" />
+                                    }
+                                } @else {
+                                    @for (still of episodeDetail.stillPreview; track still.image.file_path) {
+                                        <button
+                                            type="button"
+                                            class="episode-stills__item"
+                                            [attr.aria-label]="still.label"
+                                            (click)="
+                                                openPhotoViewer(
+                                                    still.index,
+                                                    episodeDetail.stillList,
+                                                    episodeDetail.viewerTitle,
+                                                    episodeDetail.stillsLink
+                                                )
+                                            "
+                                        >
+                                            <app-image
+                                                [src]="still.image.file_path"
+                                                params="w780"
+                                                type="media"
+                                                alt=""
+                                            />
+                                        </button>
+                                    }
+                                }
+                            </div>
+                        </app-page-section>
                     }
 
-                    @if (pager.next; as next) {
-                        <a class="episode-pager__link episode-pager__link--next" [routerLink]="next.routeCommands" rel="next">
-                            <span class="episode-pager__direction text-caption">
-                                {{ next.label }}
-                                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                            </span>
-                            @if (next.title) {
-                                <span class="episode-pager__title text-subtitle">{{ next.title }}</span>
-                            }
+                    @if (episodeDetail.showVideos) {
+                        <app-page-section subtitle="Videos">
+                            <app-videos-grid [state]="episodeDetail.videos" />
+                        </app-page-section>
+                    }
+                </div>
+
+                @if (episodeDetail.canRateEpisode) {
+                    <aside class="episode-rail" aria-label="Your rating">
+                        <section class="episode-library" aria-labelledby="episode-library-title">
+                            <h2 id="episode-library-title" class="episode-rail__title text-display-sm">
+                                In your library
+                            </h2>
+                            <app-user-rating
+                                [currentRating]="episodeDetail.userRating.currentRating"
+                                [disabled]="episodeDetail.userRating.disabled"
+                                [loading]="episodeDetail.userRating.loading"
+                                [pending]="episodeDetail.userRating.pending"
+                                (ratingClick)="openUserRatingDialog(episodeDetail.ratingRequest)"
+                            />
+                        </section>
+                    </aside>
+                }
+            </div>
+
+            @if (episodeDetail.hasSeasonStrip) {
+                <app-page-section [subtitle]="episodeDetail.seasonLabel">
+                    @if (episodeDetail.episodesLink; as episodesLink) {
+                        <a section-controls class="section-link text-body-sm" [routerLink]="episodesLink">
+                            Season overview
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                         </a>
                     }
-                </nav>
-            }
 
-            @if (episodeDetail.hasGuestCast) {
-                <app-page-section subtitle="Guest stars">
-                    <app-media-credits-summary [data]="episodeDetail.guestCast" />
-                </app-page-section>
-            }
-
-            @if (episodeDetail.showStills) {
-                <app-page-section subtitle="Stills">
-                    @if (episodeDetail.hasStills) {
-                        <a section-controls class="section-link text-body-sm" [routerLink]="['photos']">
-                            Browse all photos ({{ episodeDetail.stillCount }})
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                    }
-                    <app-photos-preview
-                        [state]="episodeDetail.stills"
-                        [totalCount]="episodeDetail.stillCount"
-                        variant="compact"
-                        (photoClick)="openPhotoViewer($event, episodeDetail.stillList)"
-                        (moreClick)="openPhotosPage()"
-                    />
-                </app-page-section>
-            }
-
-            @if (episodeDetail.showVideos) {
-                <app-page-section subtitle="Videos">
-                    <app-videos-grid [state]="episodeDetail.videos" />
+                    <ol class="season-strip">
+                        @for (item of episodeDetail.seasonStrip; track item.key) {
+                            <li>
+                                <a
+                                    class="season-strip__item"
+                                    [class.season-strip__item--current]="item.isCurrent"
+                                    [routerLink]="item.link"
+                                    [attr.aria-current]="item.ariaCurrent"
+                                >
+                                    <app-image
+                                        class="season-strip__still"
+                                        [src]="item.stillPath"
+                                        params="w300"
+                                        type="media"
+                                        alt=""
+                                    />
+                                    <span class="season-strip__label">{{ item.label }}</span>
+                                </a>
+                            </li>
+                        }
+                    </ol>
                 </app-page-section>
             }
         </main>
     }
 </div>
+
+<ng-template #crewList let-rows>
+    <dl class="episode-crew" aria-label="Episode crew">
+        @for (row of rows; track row.label) {
+            <div class="episode-crew__row">
+                <dt class="text-caption">{{ row.label }}</dt>
+                <dd class="episode-crew__names">
+                    @for (person of row.people; track person.id; let last = $last) {
+                        <a class="episode-crew__link" [routerLink]="['/name', person.id]">{{ person.name }}</a>
+                        @if (!last) {
+                            <span>, </span>
+                        }
+                    }
+                </dd>
+            </div>
+        }
+    </dl>
+</ng-template>
