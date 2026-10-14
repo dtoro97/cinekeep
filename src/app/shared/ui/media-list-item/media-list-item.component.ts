@@ -9,10 +9,8 @@ import { ImageComponent } from '../image/image.component';
 import { RatingComponent } from '../rating/rating.component';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
 
-/**
- * A movie or TV row: poster, title with rating and badges, a meta line, overview and cast.
- * Project `[media-list-item-note]` under the overview and `[media-list-item-action]` at the end.
- */
+// A movie or TV row: poster, title with rating and badges, a meta line, overview and cast.
+// Project `[media-list-item-note]` under the overview and `[media-list-item-action]` at the end.
 @Component({
     selector: 'app-media-list-item',
     templateUrl: './media-list-item.component.html',
@@ -22,7 +20,7 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
 })
 export class MediaListItemComponent implements OnChanges {
     @Input() item: MediaListItem | null = null;
-    /** Without a link the row renders as plain text. */
+    // Without a link the row renders as plain text.
     @Input() link: RouteCommands | null = null;
     @Input() genreNames: readonly string[] = [];
     @Input() loading = false;

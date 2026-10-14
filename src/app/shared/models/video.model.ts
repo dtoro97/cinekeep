@@ -8,7 +8,7 @@ export interface VideoCardItem {
     openLabel: string;
     typeLabel?: string;
     publishedAt?: string;
-    /** The movie or series the video belongs to, when the card is shown away from its title page. */
+    // The movie or series the video belongs to, when the card is shown away from its title page.
     mediaTitle?: string;
     mediaLink?: RouteCommands;
     href?: string;

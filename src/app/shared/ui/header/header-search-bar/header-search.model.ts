@@ -14,11 +14,11 @@ export interface HeaderSearchOption {
     readonly titleSegments: readonly HeaderSearchTitleSegment[];
     readonly thumb: string | null;
     readonly imageType: ImageType;
-    /** "2021 · Movie" for titles, the department for people. */
+    // "2021 · Movie" for titles, the department for people.
     readonly meta: string;
-    /** Single-line summary for compact rows; people also get their known-for titles. */
+    // Single-line summary for compact rows; people also get their known-for titles.
     readonly compactMeta: string;
-    /** Overview for titles, "Known for …" for people. Only the top hit shows it. */
+    // Overview for titles, "Known for …" for people. Only the top hit shows it.
     readonly detail: string;
     readonly rating: number | null;
     readonly routeCommands: RouteCommands;
@@ -26,7 +26,7 @@ export interface HeaderSearchOption {
 
 export interface HeaderSearchGroup {
     readonly label: string;
-    /** Result groups are separated by a rule; only the recent list needs a visible label. */
+    // Result groups are separated by a rule; only the recent list needs a visible label.
     readonly showLabel: boolean;
     readonly options: readonly HeaderSearchOption[];
 }
@@ -59,9 +59,10 @@ export type HeaderSearchPanel =
       }
     | { readonly kind: 'error' };
 
-export type HeaderSearchSubmitAction =
-    | { readonly kind: 'option'; readonly routeCommands: RouteCommands }
-    | { readonly kind: 'search'; readonly queryParams: Readonly<Record<string, string>> }
-    | { readonly kind: 'none' };
+// Where Enter in the search box goes: the active option, or the search page for the query.
+export interface HeaderSearchTarget {
+    readonly commands: RouteCommands;
+    readonly queryParams?: Readonly<Record<string, string>>;
+}
 
 export type HeaderSearchDismissStep = 'panel' | 'query' | 'sheet' | 'none';

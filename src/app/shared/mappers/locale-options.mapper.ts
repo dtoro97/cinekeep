@@ -31,7 +31,7 @@ export function toRegionOptions(countries: readonly Country[], selectedRegion?: 
     return options;
 }
 
-/** The options whose label or value contains the query, ignoring case; every option for a blank query. */
+// The options whose label or value contains the query, ignoring case; every option for a blank query.
 export function filterOptionsByQuery<T extends string>(
     options: readonly SelectOption<T>[],
     query: string,

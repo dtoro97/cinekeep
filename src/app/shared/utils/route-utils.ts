@@ -15,7 +15,7 @@ export const parsePositiveIntegerParam = (value: string | null | undefined): num
     return parsed !== null && parsed > 0 ? parsed : null;
 };
 
-/** `'3,1,3'` → `[3, 1]`; entries that are not positive integers are dropped. */
+// `'3,1,3'` → `[3, 1]`; entries that are not positive integers are dropped.
 export const parsePositiveIntegerListParam = (value: string | null | undefined): number[] => [
     ...new Set((value ?? '').split(',').map((part) => parsePositiveIntegerParam(part)).filter(isDefined)),
 ];

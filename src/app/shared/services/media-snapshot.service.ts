@@ -17,10 +17,8 @@ import {
 import { SeriesSnapshotRequest } from '../../api-cinekeep';
 import { MediaType } from '../types';
 
-/**
- * CineKeep stores a display snapshot (title, poster, ...) with every saved item. Callers that
- * already hold the TMDb data pass it in; otherwise it is fetched from TMDb here.
- */
+// CineKeep stores a display snapshot (title, poster, ...) with every saved item. Callers that
+// already hold the TMDb data pass it in; otherwise it is fetched from TMDb here.
 @Injectable({ providedIn: 'root' })
 export class MediaSnapshotService {
     constructor(

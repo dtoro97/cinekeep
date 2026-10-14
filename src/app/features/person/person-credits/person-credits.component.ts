@@ -54,7 +54,7 @@ export class PersonCreditsComponent {
         { label: 'Title', value: 'title' },
     ];
 
-    /** The toolbar controls emit `unknown`, but only ever offer the options passed to them. */
+    // The toolbar controls emit `unknown`, but only ever offer the options passed to them.
     changeMediaType(value: unknown): void {
         this.mediaTypeChange.emit(value as PersonCreditMediaFilter);
     }

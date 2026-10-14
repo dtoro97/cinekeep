@@ -3,7 +3,7 @@ import type { TmdbDiscoverSortKey, TmdbWatchMonetizationType } from './tmdb-disc
 
 export type StreamingDatePreset = 'today' | 'current-month' | 'current-season' | 'current-two-months';
 
-/** A streaming list's filters, before they become one TMDb request per media type. */
+// A streaming list's filters, before they become one TMDb request per media type.
 export interface StreamingBaseQuery {
     readonly mediaTypes: readonly MediaType[];
     readonly providerIds?: readonly number[];

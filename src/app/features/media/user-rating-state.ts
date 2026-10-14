@@ -14,10 +14,8 @@ export const toUserRatingDisplay = (rating: UserRatingState, hasTarget: boolean)
     pending: rating.ratingPending,
 });
 
-/**
- * Marks the rating as pending while `request$` runs, then stores `nextRating` on success or
- * clears the pending flag on failure and rethrows.
- */
+// Marks the rating as pending while `request$` runs, then stores `nextRating` on success or
+// clears the pending flag on failure and rethrows.
 export const writeUserRating$ = (
     request$: Observable<unknown>,
     nextRating: number | null,

@@ -34,7 +34,7 @@ export const mapRemoteData = <T, R>(
 export const updateRemoteData = <T>(state: RemoteData<T>, update: (data: T) => T): RemoteData<T> =>
     hasRemoteData(state) ? { ...state, data: update(state.data) } : state;
 
-/** Emits the data the first time the state settles on `success`, then completes. */
+// Emits the data the first time the state settles on `success`, then completes.
 export const whenSuccess$ = <T>(state$: Observable<RemoteData<T>>): Observable<T> =>
     state$.pipe(
         filter((state): state is Extract<RemoteData<T>, { state: 'success' }> => state.state === 'success'),
@@ -43,20 +43,18 @@ export const whenSuccess$ = <T>(state$: Observable<RemoteData<T>>): Observable<T
     );
 
 export interface CachedResourceRequest<T> {
-    /** The resource's state right now. */
+    // The resource's state right now.
     readonly current: RemoteData<T>;
-    /** The resource's state over time, used to wait for a request already in flight. */
+    // The resource's state over time, used to wait for a request already in flight.
     readonly state$: Observable<RemoteData<T>>;
     readonly fetch: () => Observable<T>;
     readonly patch: (state: RemoteData<T>) => void;
-    /** Stored and emitted as a successful result when the request fails. */
+    // Stored and emitted as a successful result when the request fails.
     readonly fallback: T;
 }
 
-/**
- * Loads a resource at most once: a loaded resource is returned as is, a resource in flight
- * is awaited, and anything else is fetched and written back through `patch`.
- */
+// Loads a resource at most once: a loaded resource is returned as is, a resource in flight
+// is awaited, and anything else is fetched and written back through `patch`.
 export const loadCachedResource$ = <T>({
     current,
     state$,

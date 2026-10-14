@@ -2,7 +2,7 @@ import { EpisodeRatingRequest, SeriesSnapshotRequest, WatchlistItemResponse } fr
 import { CardItem, MediaListItem } from '../models';
 import type { MediaType } from '../types';
 
-/** The snapshot fields every CineKeep item response shares (watchlist, favorites, ratings, list items). */
+// The snapshot fields every CineKeep item response shares (watchlist, favorites, ratings, list items).
 export type MediaSnapshot = Pick<
     WatchlistItemResponse,
     'tmdbId' | 'mediaType' | 'title' | 'posterPath' | 'backdropPath' | 'overview' | 'releaseDate' | 'voteAverage'
@@ -55,7 +55,7 @@ export function toSnapshotMediaListItem(item: MediaSnapshot, rating: number | nu
     };
 }
 
-/** The TMDb fields a snapshot is built from; matches movies, TV series and search results. */
+// The TMDb fields a snapshot is built from; matches movies, TV series and search results.
 interface TmdbMediaLike {
     readonly title?: string | null;
     readonly name?: string | null;

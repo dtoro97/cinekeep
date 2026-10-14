@@ -14,7 +14,7 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
 })
 export class PersonListItemComponent {
     @Input() person: PersonListItem | null = null;
-    /** A rank shown before the portrait; also reserves the rank column while loading. */
+    // A rank shown before the portrait; also reserves the rank column while loading.
     @Input() index: number | null = null;
     @Input() loading = false;
 }

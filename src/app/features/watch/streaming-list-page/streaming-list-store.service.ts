@@ -248,7 +248,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
         this.navigate({ direction: this.get().sortDirection === 'asc' ? 'desc' : 'asc' });
     }
 
-    /** Only the media types the list offers can be picked, so the route resolves any other value back. */
+    // Only the media types the list offers can be picked, so the route resolves any other value back.
     setMediaType(value: unknown): void {
         this.navigate({ type: value === 'movie' || value === 'tv' ? value : this.get().mediaType });
     }

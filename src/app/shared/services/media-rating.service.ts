@@ -17,7 +17,7 @@ export class MediaRatingService {
         private readonly ratingController: RatingControllerService,
     ) {}
 
-    /** `null` when the episode is not rated. */
+    // `null` when the episode is not rated.
     getEpisodeRating$(seriesId: number, seasonNumber: number, episodeNumber: number): Observable<number | null> {
         return this.episodeRatingController
             .getEpisodeRating({ seriesTmdbId: seriesId, seasonNumber, episodeNumber })

@@ -29,7 +29,7 @@ interface CarouselItemContext<T> {
     readonly index: number;
 }
 
-/** A page scroll stops this much short, so the item at the edge stays partly in view. */
+// A page scroll stops this much short, so the item at the edge stays partly in view.
 const PAGE_OVERLAP_PX = 48;
 
 @Component({
@@ -119,7 +119,7 @@ export class CarouselComponent<T extends CarouselItem> implements AfterViewInit,
         });
     }
 
-    /** Scroll and resize events can fire many times a frame; the buttons are synced once per frame. */
+    // Scroll and resize events can fire many times a frame; the buttons are synced once per frame.
     private scheduleSync(): void {
         if (!this.isBrowser || !this.viewport) {
             return;

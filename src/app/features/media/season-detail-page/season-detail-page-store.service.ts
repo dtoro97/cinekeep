@@ -92,7 +92,7 @@ export class SeasonDetailPageStoreService extends ComponentStore<Record<string, 
         super({});
     }
 
-    /** `seasonParam` is `null` on the `episodes` route, which opens the default season. */
+    // `seasonParam` is `null` on the `episodes` route, which opens the default season.
     load$(seasonParam$: Observable<string | null>): Observable<unknown> {
         const route$ = combineLatest([this.mediaStore.currentTarget$, seasonParam$]).pipe(
             distinctUntilChanged(

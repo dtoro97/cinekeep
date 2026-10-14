@@ -6,10 +6,8 @@ import { Observable, filter, map, of } from 'rxjs';
 
 import { SessionUser } from '../models';
 
-/**
- * `unknown` until the browser has tried to restore the session from the refresh cookie.
- * The server render always stays `unknown`, so it never shows a signed-in or signed-out view.
- */
+// `unknown` until the browser has tried to restore the session from the refresh cookie.
+// The server render always stays `unknown`, so it never shows a signed-in or signed-out view.
 type AuthStatus = 'unknown' | 'anonymous' | 'authenticated';
 
 interface UserSessionState {
@@ -24,10 +22,8 @@ const INITIAL_SESSION_STATE: UserSessionState = {
     user: null,
 };
 
-/**
- * Holds the CineKeep session. The access token lives in memory only; after a reload
- * it is restored from the httpOnly refresh cookie by `AuthService.restoreSession$`.
- */
+// Holds the CineKeep session. The access token lives in memory only; after a reload
+// it is restored from the httpOnly refresh cookie by `AuthService.restoreSession$`.
 @Injectable({ providedIn: 'root' })
 export class UserSessionStoreService extends ComponentStore<UserSessionState> {
     readonly user$ = this.select((state) => state.user);
@@ -42,10 +38,8 @@ export class UserSessionStoreService extends ComponentStore<UserSessionState> {
         };
     });
 
-    /**
-     * Emits once the browser session restore has settled, then on every sign-in and sign-out.
-     * On the server it emits `false` once, so server-rendered data uses the anonymous view.
-     */
+    // Emits once the browser session restore has settled, then on every sign-in and sign-out.
+    // On the server it emits `false` once, so server-rendered data uses the anonymous view.
     readonly settledIsAuthenticated$: Observable<boolean>;
 
     constructor(@Inject(PLATFORM_ID) platformId: object) {

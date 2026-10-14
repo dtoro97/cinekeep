@@ -43,7 +43,7 @@ interface MediaActionResource extends UserRatingState {
 interface MediaActionsState {
     readonly target: MediaTarget | null;
     readonly actionsByMediaKey: Readonly<Record<string, MediaActionResource>>;
-    /** Set while the user's lists load for the "add to list" dialog. */
+    // Set while the user's lists load for the "add to list" dialog.
     readonly isListDialogPending: boolean;
 }
 
@@ -60,26 +60,32 @@ const INITIAL_STATE: MediaActionsState = {
     isListDialogPending: false,
 };
 
-/** The signed-in user's watchlist, favourite, rating and list actions for a title, kept per title. */
+// The signed-in user's watchlist, favourite, rating and list actions for a title, kept per title.
 @Injectable()
 export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsState> {
     readonly userRating$ = this.select((state) => toUserRatingDisplay(toActiveActions(state), state.target !== null));
 
-    readonly listActions$ = this.select((state) => {
-        const { watchlistState, favoriteState } = toActiveActions(state);
-        const isInWatchlist = watchlistState.state === 'success' && watchlistState.data;
-        const isFavorite = favoriteState.state === 'success' && favoriteState.data;
-        const pending = watchlistState.state === 'loading' || favoriteState.state === 'loading';
+    readonly listActions$ = this.select(
+        this.state$,
+        this.userSessionStore.authSession$,
+        (state, { isAuthenticated }) => {
+            const { watchlistState, favoriteState } = toActiveActions(state);
+            const isInWatchlist = watchlistState.state === 'success' && watchlistState.data;
+            const isFavorite = favoriteState.state === 'success' && favoriteState.data;
+            const pending = watchlistState.state === 'loading' || favoriteState.state === 'loading';
 
-        return {
-            isInWatchlist,
-            isFavorite,
-            pending,
-            isListButtonDisabled: pending || state.isListDialogPending,
-            watchlistLabel: isInWatchlist ? 'On watchlist' : 'Add to watchlist',
-            favoriteActionLabel: isFavorite ? 'Remove from favorites' : 'Add to favorites',
-        };
-    });
+            return {
+                isInWatchlist,
+                isFavorite,
+                pending,
+                isListButtonDisabled: pending || state.isListDialogPending,
+                watchlistLabel: isInWatchlist ? 'On watchlist' : 'Add to watchlist',
+                favoriteActionLabel: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+                isAuthenticated,
+            };
+        },
+        { debounce: true },
+    );
 
     constructor(
         private readonly mediaRatingService: MediaRatingService,
@@ -92,7 +98,7 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
         super(INITIAL_STATE);
     }
 
-    /** Loads the title's actions, and loads them again whenever the user signs in or out. */
+    // Loads the title's actions, and loads them again whenever the user signs in or out.
     load$(target: MediaTarget): Observable<unknown> {
         const key = toMediaKey(target.type, target.id);
 
@@ -191,7 +197,7 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
         return this.userLibraryService.addToList$(listId, target.id, target.type, this.loadedSnapshot(target));
     }
 
-    /** The user's lists, each flagged with whether it already contains the title. */
+    // The user's lists, each flagged with whether it already contains the title.
     getUserLists$(): Observable<MediaUserListSummary[]> {
         const target = this.get().target;
 

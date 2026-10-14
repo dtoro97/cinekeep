@@ -7,11 +7,11 @@ export interface ExternalLink {
     readonly url: string;
     readonly label: string;
     readonly iconClass: string;
-    /** The official website sits apart from the social profiles. */
+    // The official website sits apart from the social profiles.
     readonly hasDividerBefore: boolean;
 }
 
-/** The social profiles and official website of a title or person; `null` when there is nothing to link to. */
+// The social profiles and official website of a title or person; `null` when there is nothing to link to.
 export const buildExternalLinks = ({
     links,
     homepage,

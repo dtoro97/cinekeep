@@ -2,14 +2,14 @@ import type { TvEpisode, TvEpisodeCompact } from '../../api';
 import { EpisodeListItemData, formatEpisodeCode, isDefined, MediaListItemBadge, toRating } from '../../shared';
 
 interface EpisodeListItemOptions {
-    /** Shows the `S2E8` code; season lists lead with the episode number instead. */
+    // Shows the `S2E8` code; season lists lead with the episode number instead.
     readonly showCode?: boolean;
-    /** The season to link to when the episode does not carry its own season number. */
+    // The season to link to when the episode does not carry its own season number.
     readonly fallbackSeasonNumber?: number;
     readonly badges?: readonly MediaListItemBadge[];
 }
 
-/** A TMDb episode as a list row linking to its episode page. */
+// A TMDb episode as a list row linking to its episode page.
 export const toEpisodeListItem = (
     episode: TvEpisode | TvEpisodeCompact,
     seriesId: number,

@@ -4,7 +4,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 export type IconButtonTone = 'neutral' | 'accent' | 'danger';
 
-/** `overlay` is the larger scrim-backed button that sits on images, e.g. carousel and photo viewer controls. */
+// `overlay` is the larger scrim-backed button that sits on images, e.g. carousel and photo viewer controls.
 export type IconButtonAppearance = 'plain' | 'overlay';
 
 @Component({

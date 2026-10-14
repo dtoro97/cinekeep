@@ -11,7 +11,7 @@ interface RecentlyViewedState {
 const STORAGE_KEY_RECENTLY_VIEWED = 'tmdb_recently_viewed';
 const MAX_RECENTLY_VIEWED_ITEMS = 12;
 
-/** The visitor's last viewed titles and people, kept in local storage, which stays the source of truth. */
+// The visitor's last viewed titles and people, kept in local storage, which stays the source of truth.
 @Injectable({ providedIn: 'root' })
 export class RecentlyViewedStoreService extends ComponentStore<RecentlyViewedState> {
     readonly recentlyViewed$ = this.select(({ items }) => ({ items, hasItems: items.length > 0 }));

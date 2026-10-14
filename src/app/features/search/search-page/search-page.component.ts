@@ -72,7 +72,7 @@ export class SearchPageComponent {
         );
     }
 
-    /** The toggle group emits `unknown`, but only ever offers `typeOptions`. */
+    // The toggle group emits `unknown`, but only ever offers `typeOptions`.
     setType(type: unknown): void {
         this.store.setType(type as MediaOrPersonFilterType);
     }

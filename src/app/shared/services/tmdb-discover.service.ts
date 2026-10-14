@@ -12,7 +12,7 @@ import { LocaleStoreService } from './locale-store.service';
 
 export const DISCOVER_PREVIEW_COUNT = 3;
 
-/** Turns discover queries into TMDb requests, so every feature filters titles the same way. */
+// Turns discover queries into TMDb requests, so every feature filters titles the same way.
 @Injectable({ providedIn: 'root' })
 export class TmdbDiscoverService {
     constructor(
@@ -20,7 +20,7 @@ export class TmdbDiscoverService {
         private localeStoreService: LocaleStoreService,
     ) {}
 
-    /** One page of TMDb results; callers map the items for their own view. */
+    // One page of TMDb results; callers map the items for their own view.
     discover$(query: TmdbDiscoverQuery): Observable<MoviePage | TvSeriesPage> {
         const watchRegion = query.watchRegion || this.localeStoreService.region();
         const providers = serializeNumberListParam(query.providerIds, '|') ?? undefined;
@@ -77,7 +77,7 @@ export class TmdbDiscoverService {
         });
     }
 
-    /** Up to three titles with posters, alternating between the queries' first pages. */
+    // Up to three titles with posters, alternating between the queries' first pages.
     preview$(queries: readonly TmdbDiscoverQuery[]): Observable<CardItem[]> {
         return forkJoin(
             queries.map((query) =>

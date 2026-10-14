@@ -7,14 +7,14 @@ export const MEDIA_TYPE_OPTION: Readonly<Record<MediaType, SelectOption<MediaTyp
 
 export const MEDIA_TYPE_OPTIONS: readonly SelectOption<MediaType>[] = [MEDIA_TYPE_OPTION.movie, MEDIA_TYPE_OPTION.tv];
 
-/** What a single title or person is, for badges and meta lines ("Movie", not the filter's "Movies"). */
+// What a single title or person is, for badges and meta lines ("Movie", not the filter's "Movies").
 export const MEDIA_TYPE_LABEL: Readonly<Record<MediaOrPersonType, string>> = {
     movie: 'Movie',
     tv: 'TV series',
     person: 'Person',
 };
 
-/** Search filters: everything, one media type, or people. */
+// Search filters: everything, one media type, or people.
 export const SEARCH_TYPE_OPTIONS: readonly SelectOption<MediaOrPersonFilterType>[] = [
     { label: 'All', value: 'all' },
     ...MEDIA_TYPE_OPTIONS,

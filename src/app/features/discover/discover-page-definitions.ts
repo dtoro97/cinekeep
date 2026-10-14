@@ -50,7 +50,7 @@ export interface DiscoverGenreExclusion {
 export interface DiscoverPageDefinition {
     readonly key: DiscoverPageKey;
     readonly title: string;
-    /** Only when it adds something the title and visible filters don't already say. */
+    // Only when it adds something the title and visible filters don't already say.
     readonly subtitle?: string;
     readonly seoDescription: string;
     readonly mediaType: MediaType;
@@ -63,7 +63,7 @@ export interface DiscoverPageDefinition {
     readonly defaultVoteCountGte?: number;
     readonly lockedVoteCountGte?: number;
     readonly lockedReleaseType?: DiscoverMovieReleaseType;
-    /** Genres left out by default; users can remove the exclusion like any other active filter. */
+    // Genres left out by default; users can remove the exclusion like any other active filter.
     readonly defaultGenreExclusion?: DiscoverGenreExclusion;
     readonly lockedFilters?: readonly DiscoverLockedFilterDefinition[];
 }

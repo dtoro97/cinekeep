@@ -46,14 +46,14 @@ type TrailerVideoCardItem = VideoCardItem & { readonly spotlight: SpotlightItem 
 
 interface TrailerFeed {
     readonly trailers: RemoteData<TrailerVideoCardItem[]>;
-    /** Titles not turned into trailer cards yet; "show more" works through them a page at a time. */
+    // Titles not turned into trailer cards yet; "show more" works through them a page at a time.
     readonly pendingSeeds: readonly CardItem[];
 }
 
 interface TrailersState {
     readonly feedType: TrailerFeedType;
     readonly feeds: Record<TrailerFeedType, TrailerFeed>;
-    /** The first trending trailer, loaded on its own only while the trending feed isn't. */
+    // The first trending trailer, loaded on its own only while the trending feed isn't.
     readonly featured: RemoteData<TrailerVideoCardItem | null>;
 }
 
@@ -64,9 +64,9 @@ const FEED_OPTIONS: SelectOption<TrailerFeedType>[] = [
 
 const TRAILER_CONTENT_REGION = 'US';
 const TRAILER_VIDEO_LANGUAGE = 'en';
-/** Titles a feed draws from; "show more" works through them a page at a time. */
+// Titles a feed draws from; "show more" works through them a page at a time.
 const TRAILER_SEED_COUNT = 60;
-/** "New" covers titles released within this many days either side of today. */
+// "New" covers titles released within this many days either side of today.
 const NEW_TRAILER_WINDOW_DAYS = 30;
 
 const INITIAL_STATE: TrailersState = {
@@ -95,7 +95,7 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
         };
     });
 
-    /** Each feed loads once per visit, so switching back to one shows it straight away. */
+    // Each feed loads once per visit, so switching back to one shows it straight away.
     private readonly loadFeed = this.effect<string | null>((feedType$) =>
         feedType$.pipe(
             mergeMap((value) => {
@@ -187,7 +187,7 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
         );
     }
 
-    /** The titles a feed draws its trailers from, most relevant first. */
+    // The titles a feed draws its trailers from, most relevant first.
     private seeds$(feedType: TrailerFeedType): Observable<CardItem[]> {
         const newWindow = { from: getISODate(-NEW_TRAILER_WINDOW_DAYS), to: getISODate(NEW_TRAILER_WINDOW_DAYS) };
         const seeds$: Observable<CardItem[]> =
@@ -237,7 +237,7 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
         );
     }
 
-    /** One card per title that has a YouTube trailer; titles without one are left out. */
+    // One card per title that has a YouTube trailer; titles without one are left out.
     private videoCards$(seeds: readonly CardItem[]): Observable<TrailerVideoCardItem[]> {
         // forkJoin of nothing never emits, which would leave the feed loading.
         if (seeds.length === 0) {

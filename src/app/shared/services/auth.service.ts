@@ -29,10 +29,8 @@ export class AuthService {
             .pipe(map((response) => this.applyAuthResponse(response)));
     }
 
-    /**
-     * Silently restores the session from the refresh cookie. Browser only: during server
-     * rendering there is no cookie on the auth path, so the status stays `unknown`.
-     */
+    // Silently restores the session from the refresh cookie. Browser only: during server
+    // rendering there is no cookie on the auth path, so the status stays `unknown`.
     restoreSession$() {
         if (!isPlatformBrowser(this.platformId)) {
             return of(undefined);
@@ -44,10 +42,8 @@ export class AuthService {
         );
     }
 
-    /**
-     * Rotates the refresh cookie and returns a new access token. Concurrent callers share
-     * one request, so a burst of 401s triggers a single refresh.
-     */
+    // Rotates the refresh cookie and returns a new access token. Concurrent callers share
+    // one request, so a burst of 401s triggers a single refresh.
     refreshAccessToken$(): Observable<string> {
         if (!this.refreshInFlight$) {
             this.refreshInFlight$ = this.authController.refresh().pipe(
@@ -74,7 +70,7 @@ export class AuthService {
         );
     }
 
-    /** Stores the session and returns its access token. */
+    // Stores the session and returns its access token.
     private applyAuthResponse(response: AuthResponse): string {
         const accessToken = response.accessToken?.trim();
 

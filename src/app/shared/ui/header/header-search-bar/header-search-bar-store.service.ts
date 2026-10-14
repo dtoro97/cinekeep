@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { ComponentStore } from '@ngrx/component-store';
 import { EMPTY, catchError, map, switchMap, tap, timer } from 'rxjs';
 
 import { SearchRestControllerService } from '../../../../api';
 import { toMediaListItem, toPersonListItem } from '../../../mappers';
-import { RecentlyViewedItem } from '../../../models';
 import { RecentlyViewedStoreService } from '../../../services/recently-viewed-store.service';
 import { MediaOrPersonFilterType, RemoteData } from '../../../types';
 import { isMediaResult } from '../../../utils';
@@ -20,21 +19,15 @@ import {
     toSearchPageQueryParams,
     toTitleResultOption,
 } from './header-search.mapper';
-import {
-    HeaderSearchDismissStep,
-    HeaderSearchOption,
-    HeaderSearchPanel,
-    HeaderSearchSubmitAction,
-} from './header-search.model';
+import { HeaderSearchDismissStep, HeaderSearchOption, HeaderSearchTarget } from './header-search.model';
 
 interface HeaderSearchBarState {
     readonly query: string;
     readonly searchFilter: MediaOrPersonFilterType;
     readonly searchResultsState: RemoteData<readonly HeaderSearchOption[]>;
-    readonly recentItems: readonly RecentlyViewedItem[];
-    /** Whether the results panel may show; its content decides if anything renders. */
+    // Whether the results panel may show; its content decides if anything renders.
     readonly panelOpen: boolean;
-    /** Mobile full-screen search sheet. */
+    // The mobile full-screen search sheet.
     readonly searchOpen: boolean;
     readonly activeOptionId: string | null;
 }
@@ -46,7 +39,6 @@ const INITIAL_STATE: HeaderSearchBarState = {
     query: '',
     searchFilter: 'all',
     searchResultsState: { state: 'notAsked' },
-    recentItems: [],
     panelOpen: false,
     searchOpen: false,
     activeOptionId: null,
@@ -54,10 +46,28 @@ const INITIAL_STATE: HeaderSearchBarState = {
 
 @Injectable()
 export class HeaderSearchBarStoreService extends ComponentStore<HeaderSearchBarState> {
-    readonly searchBar$ = this.select((state) => {
-        const panel = toPanel(state);
-
+    readonly searchBar$ = this.select(this.state$, this.recentlyViewedStoreService.items$, (state, recentItems) => {
+        const query = state.query.trim();
+        const panel = toHeaderSearchPanel({
+            panelOpen: state.panelOpen,
+            query,
+            searchFilter: state.searchFilter,
+            searchResultsState: state.searchResultsState,
+            recentItems,
+        });
         const showListbox = panel.kind === 'recent' || panel.kind === 'results';
+        const activeOption =
+            state.activeOptionId && state.activeOptionId !== HEADER_SEARCH_SEE_ALL_ID
+                ? findPanelOption(panel, state.activeOptionId)
+                : null;
+        const submitTarget: HeaderSearchTarget | null = activeOption
+            ? { commands: activeOption.routeCommands }
+            : query
+              ? { commands: ['/search'], queryParams: toSearchPageQueryParams(query, state.searchFilter) }
+              : null;
+        // Escape peels back one layer at a time: the panel, then the query, then the mobile sheet.
+        const dismissStep: HeaderSearchDismissStep =
+            panel.kind !== 'hidden' ? 'panel' : state.query ? 'query' : state.searchOpen ? 'sheet' : 'none';
 
         return {
             searchFilter: state.searchFilter,
@@ -69,18 +79,19 @@ export class HeaderSearchBarStoreService extends ComponentStore<HeaderSearchBarS
             listboxId: SEARCH_LISTBOX_ID,
             ariaControls: showListbox ? SEARCH_LISTBOX_ID : null,
             activeOptionId: state.activeOptionId,
+            optionIds: toNavigableOptionIds(panel),
+            submitTarget,
+            dismissStep,
             statusMessage: toHeaderSearchStatusMessage(panel),
         };
     });
 
     constructor(
         private readonly searchRestControllerService: SearchRestControllerService,
-        recentlyViewedStoreService: RecentlyViewedStoreService,
+        private readonly recentlyViewedStoreService: RecentlyViewedStoreService,
+        private readonly router: Router,
     ) {
         super(INITIAL_STATE);
-        recentlyViewedStoreService.items$
-            .pipe(takeUntilDestroyed())
-            .subscribe((recentItems) => this.patchState({ recentItems }));
     }
 
     updateQuery(query: string): void {
@@ -142,68 +153,48 @@ export class HeaderSearchBarStoreService extends ComponentStore<HeaderSearchBarS
         this.patchState({ panelOpen: false, searchOpen: false });
     }
 
-    moveActiveOption(delta: 1 | -1): string | null {
-        const state = this.get();
+    moveActiveOption(delta: 1 | -1, optionIds: readonly string[]): void {
+        const { panelOpen, activeOptionId } = this.get();
 
-        if (!state.panelOpen) {
+        if (!panelOpen) {
             this.openPanel();
-            return null;
+            return;
         }
 
-        const ids = toNavigableOptionIds(toPanel(state));
-
-        if (!ids.length) {
-            return null;
+        if (!optionIds.length) {
+            return;
         }
 
-        const currentIndex = state.activeOptionId ? ids.indexOf(state.activeOptionId) : -1;
+        const currentIndex = activeOptionId ? optionIds.indexOf(activeOptionId) : -1;
         const nextIndex =
-            currentIndex < 0 ? (delta > 0 ? 0 : ids.length - 1) : (currentIndex + delta + ids.length) % ids.length;
-        const activeOptionId = ids[nextIndex];
+            currentIndex < 0
+                ? delta > 0
+                    ? 0
+                    : optionIds.length - 1
+                : (currentIndex + delta + optionIds.length) % optionIds.length;
 
-        this.patchState({ activeOptionId });
-
-        return activeOptionId;
+        this.patchState({ activeOptionId: optionIds[nextIndex] });
     }
 
-    getSubmitAction(): HeaderSearchSubmitAction {
-        const state = this.get();
-        const query = state.query.trim();
-
-        if (state.panelOpen && state.activeOptionId && state.activeOptionId !== HEADER_SEARCH_SEE_ALL_ID) {
-            const option = findPanelOption(toPanel(state), state.activeOptionId);
-
-            if (option) {
-                return { kind: 'option', routeCommands: option.routeCommands };
-            }
+    submit(target: HeaderSearchTarget | null): void {
+        if (target) {
+            this.router.navigate([...target.commands], { queryParams: target.queryParams });
         }
-
-        return query
-            ? { kind: 'search', queryParams: toSearchPageQueryParams(query, state.searchFilter) }
-            : { kind: 'none' };
     }
 
-    /** Escape peels back one layer at a time: the panel, then the query, then the mobile sheet. */
-    dismiss(): HeaderSearchDismissStep {
-        const state = this.get();
-
-        if (state.panelOpen && toPanel(state).kind !== 'hidden') {
-            this.closePanel();
-            return 'panel';
+    dismiss(step: HeaderSearchDismissStep): void {
+        switch (step) {
+            case 'panel':
+                this.closePanel();
+                break;
+            case 'query':
+                this.updateQuery('');
+                this.closePanel();
+                break;
+            case 'sheet':
+                this.closeSearch();
+                break;
         }
-
-        if (state.query) {
-            this.updateQuery('');
-            this.closePanel();
-            return 'query';
-        }
-
-        if (state.searchOpen) {
-            this.closeSearch();
-            return 'sheet';
-        }
-
-        return 'none';
     }
 
     // Each call cancels the pending request, so clearing or retyping never lets a stale response land.
@@ -289,12 +280,3 @@ export class HeaderSearchBarStoreService extends ComponentStore<HeaderSearchBarS
         ),
     );
 }
-
-const toPanel = (state: HeaderSearchBarState): HeaderSearchPanel =>
-    toHeaderSearchPanel({
-        panelOpen: state.panelOpen,
-        query: state.query.trim(),
-        searchFilter: state.searchFilter,
-        searchResultsState: state.searchResultsState,
-        recentItems: state.recentItems,
-    });

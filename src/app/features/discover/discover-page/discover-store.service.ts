@@ -82,7 +82,7 @@ import {
     VOTE_COUNT_FILTER_OPTIONS,
 } from '../discover-page-definitions';
 
-/** A change from the filter panel; the search keys carry the typed text. */
+// A change from the filter panel; the search keys carry the typed text.
 export type DiscoverFilterChange =
     | { readonly key: 'keywordSearch' | 'companySearch' | 'languageSearch' | 'watchRegion'; readonly value: string }
     | { readonly key: 'keyword' | 'company'; readonly value: number }
@@ -96,14 +96,14 @@ export interface DiscoverActiveFilter {
     readonly id: string;
     readonly label: string;
     readonly group: keyof DiscoverFilterVisibility;
-    /** The query params that remove this filter. */
+    // The query params that remove this filter.
     readonly clearParams: Record<string, string | number | null>;
 }
 
-/** Everything the filter panel renders: which filters show, their options, and the current values. */
+// Everything the filter panel renders: which filters show, their options, and the current values.
 export type DiscoverFilters = ObservedValueOf<DiscoverStoreService['discover$']>['filters'];
 
-/** The searchable filters, picked by name and stored in the URL by id. */
+// The searchable filters, picked by name and stored in the URL by id.
 type LookupKey = 'keyword' | 'company';
 
 interface DiscoverRequest {
@@ -116,22 +116,22 @@ interface DiscoverRequest {
 
 interface DiscoverState {
     readonly definition: DiscoverPageDefinition | null;
-    /** The filters this page offers for the current media type. */
+    // The filters this page offers for the current media type.
     readonly visible: DiscoverFilterVisibility;
     readonly query: DiscoverQueryState;
-    /** The locale's region; a watch region other than this one counts as an active filter. */
+    // The locale's region; a watch region other than this one counts as an active filter.
     readonly defaultRegion: string;
     readonly page: number;
     readonly totalPages: number;
     readonly totalResults: number;
     readonly results: RemoteData<MediaListItem[]>;
     readonly providerOptions: readonly SelectOption<number>[];
-    /** Movie certifications per region, loaded once since the response covers every region. */
+    // Movie certifications per region, loaded once since the response covers every region.
     readonly certifications: Record<string, readonly SelectOption<string>[]>;
     readonly suggestions: Record<LookupKey, readonly SelectOption<number>[]>;
     readonly labels: Record<LookupKey, ReadonlyMap<number, string>>;
     readonly languageSearch: string;
-    /** Watchlist and favorite states for the loaded titles; `null` while signed out. */
+    // Watchlist and favorite states for the loaded titles; `null` while signed out.
     readonly libraryStates: MediaStateLookup | null;
 }
 
@@ -149,7 +149,7 @@ interface DiscoverLookup {
     readonly toLabel: (entity: NamedResult & { readonly name: string }) => string;
 }
 
-/** Whose certifications to offer when the watch region has none of its own. */
+// Whose certifications to offer when the watch region has none of its own.
 const CERTIFICATION_FALLBACK_REGION = 'US';
 const LOADING_MORE_SKELETON_COUNT = 5;
 const MIN_LOOKUP_QUERY_LENGTH = 2;
@@ -167,7 +167,7 @@ const ADVANCED_TITLES: Record<MediaType, string> = {
     tv: 'Discover TV Series',
 };
 
-/** Filters folded under "More filters"; the panel shows how many of them are active. */
+// Filters folded under "More filters"; the panel shows how many of them are active.
 const MORE_FILTER_GROUPS: readonly (keyof DiscoverFilterVisibility)[] = [
     'keywords',
     'companies',
@@ -195,7 +195,7 @@ const NO_FILTERS: DiscoverFilterVisibility = {
 
 const ANY_CERTIFICATION_OPTION: SelectOption<string | null> = { label: 'Any certification', value: null };
 
-/** Days from today where each date window starts and ends. */
+// Days from today where each date window starts and ends.
 const DATE_WINDOW_DAYS: Record<DiscoverDateWindow, readonly [number, number]> = {
     'airing-today': [0, 0],
     'now-playing': [-15, 15],
@@ -262,7 +262,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
             const regionOptions = toRegionOptions(countries, query.watchRegion);
             const findLabel = <T>(options: readonly { readonly label: string; readonly value: T }[], value: T) =>
                 options.find((option) => option.value === value)?.label;
-            /** One chip per selected id; the filter group doubles as the query param name. */
+            // One chip per selected id; the filter group doubles as the query param name.
             const toIdFilters = (
                 group: 'genres' | 'providers' | 'keywords' | 'companies',
                 ids: readonly number[],
@@ -762,7 +762,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         this.navigate(filter.clearParams);
     }
 
-    /** Clears every query param, keeping only a media type the advanced page was switched to. */
+    // Clears every query param, keeping only a media type the advanced page was switched to.
     resetFilters(): void {
         const { definition, query } = this.get();
 
@@ -775,7 +775,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         });
     }
 
-    /** A page is replaced on a new request and appended on "show more". */
+    // A page is replaced on a new request and appended on "show more".
     private fetchPage$(definition: DiscoverPageDefinition, query: DiscoverQueryState, page: number) {
         const windowDays = definition.dateWindow ? DATE_WINDOW_DAYS[definition.dateWindow] : null;
         const runtime = RUNTIME_RANGES[query.runtimePreset];
@@ -842,7 +842,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         );
     }
 
-    /** Names for the selected ids not named yet, so the active filter chips show names instead of ids. */
+    // Names for the selected ids not named yet, so the active filter chips show names instead of ids.
     private fetchLabels$(key: LookupKey, ids: readonly number[]): Observable<unknown> {
         const lookup = this.lookups[key];
         const known = this.get().labels[key];
@@ -920,7 +920,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
     }
 }
 
-/** Pages with a default vote count store "any" when it is cleared and nothing when it matches the default. */
+// Pages with a default vote count store "any" when it is cleared and nothing when it matches the default.
 const toVoteCountParam = (
     voteCount: number | null,
     definition: DiscoverPageDefinition | null,

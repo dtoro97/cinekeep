@@ -30,11 +30,11 @@ const RESULTS_LABEL = 'Search results';
 
 const HIDDEN_PANEL: HeaderSearchPanel = { kind: 'hidden' };
 
-export interface HeaderSearchPanelSource {
+interface HeaderSearchPanelSource {
     readonly panelOpen: boolean;
     readonly query: string;
     readonly searchFilter: MediaOrPersonFilterType;
-    /** Result options without highlighting; the panel highlights them for the current query. */
+    // Result options without highlighting; the panel highlights them for the current query.
     readonly searchResultsState: RemoteData<readonly HeaderSearchOption[]>;
     readonly recentItems: readonly RecentlyViewedItem[];
 }
@@ -182,7 +182,7 @@ export const toHeaderSearchStatusMessage = (panel: HeaderSearchPanel): string =>
     }
 };
 
-export const toTitleSegments = (title: string, query: string): HeaderSearchTitleSegment[] => {
+const toTitleSegments = (title: string, query: string): HeaderSearchTitleSegment[] => {
     const needle = query.trim().toLocaleLowerCase();
     const haystack = title.toLocaleLowerCase();
     const start = needle ? haystack.indexOf(needle) : -1;

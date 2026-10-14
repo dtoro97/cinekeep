@@ -4,9 +4,9 @@ import type { RouteCommands } from '../../../../shared';
 export interface SeasonRatingBar {
     readonly id: string;
     readonly episodeNumber: number | null;
-    /** The rating with one decimal, or an empty string for unrated episodes. */
+    // The rating with one decimal, or an empty string for unrated episodes.
     readonly ratingLabel: string;
-    /** Bar height relative to the season's own range, so small differences stay visible. */
+    // Bar height relative to the season's own range, so small differences stay visible.
     readonly heightPercent: number;
     readonly isBest: boolean;
     readonly isRated: boolean;
@@ -17,7 +17,7 @@ export interface SeasonRatingBar {
 const MIN_BAR_PERCENT = 18;
 const UNRATED_BAR_PERCENT = 6;
 
-/** Bars for the season's episode ratings; empty when fewer than two episodes are rated. */
+// Bars for the season's episode ratings; empty when fewer than two episodes are rated.
 export const toSeasonRatingBars = (entries: readonly EpisodeListEntry[]): SeasonRatingBar[] => {
     const ratings = entries.map((entry) => entry.item.voteAverage ?? 0).filter((rating) => rating > 0);
 

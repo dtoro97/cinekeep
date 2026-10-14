@@ -29,7 +29,7 @@ const DEFAULT_PREVIEW_IMAGE_HEIGHT = 630;
 const DEFAULT_ROBOTS = 'index, follow';
 const DESCRIPTION_MAX_LENGTH = 180;
 
-/** A wide image goes out as a 1280×720 preview; without one, the fallback (a poster) goes out unsized. */
+// A wide image goes out as a 1280×720 preview; without one, the fallback (a poster) goes out unsized.
 export const toSeoImage = (
     widePath: string | null | undefined,
     fallbackPath?: string | null,

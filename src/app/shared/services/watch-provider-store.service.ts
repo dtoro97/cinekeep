@@ -22,7 +22,7 @@ const FEATURED_PROVIDER_IDS = [8, 337, 1899, 119];
 
 @Injectable({ providedIn: 'root' })
 export class WatchProviderStoreService extends ComponentStore<WatchProviderStoreState> {
-    /** The providers of the locale's region. Changing the region reloads the page, so they load once. */
+    // The providers of the locale's region. Changing the region reloads the page, so they load once.
     readonly regionProviders$ = this.select((state) => state.regionProviders);
 
     private readonly providerRequests = new Map<string, Observable<WatchProviderOption[]>>();
@@ -45,7 +45,7 @@ export class WatchProviderStoreService extends ComponentStore<WatchProviderStore
         }).pipe(tap((regionProviders) => this.patchState({ regionProviders: remoteSuccess(regionProviders) })));
     }
 
-    /** The providers for one media type and region, fetched once per session. */
+    // The providers for one media type and region, fetched once per session.
     providers$(mediaType: MediaType, region: string): Observable<WatchProviderOption[]> {
         const key = `${mediaType}:${region}`;
         const cached$ = this.providerRequests.get(key);
@@ -89,7 +89,7 @@ export class WatchProviderStoreService extends ComponentStore<WatchProviderStore
     }
 }
 
-/** Featured providers first, in their listed order, then TMDb's display priority. */
+// Featured providers first, in their listed order, then TMDb's display priority.
 export const sortWatchProviders = <T extends { readonly id: number; readonly displayPriority: number }>(
     providers: readonly T[],
 ): T[] => {

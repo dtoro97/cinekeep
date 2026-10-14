@@ -136,7 +136,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
         super(INITIAL_STATE);
     }
 
-    /** Loads every section side by side; each one shows its own skeleton until it lands. */
+    // Loads every section side by side; each one shows its own skeleton until it lands.
     load$(): Observable<unknown> {
         const today = getISODate(0);
         const region = this.localeStoreService.region();

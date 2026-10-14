@@ -12,7 +12,7 @@ export class StepperInputComponent implements OnChanges {
     @Input() min = 0;
     @Input() max = 100;
     @Input() placeholder = '';
-    /** The value an empty field steps to first; without it, stepping down starts at `max` and up at `min`. */
+    // The value an empty field steps to first; without it, stepping down starts at `max` and up at `min`.
     @Input() start: number | null = null;
 
     @Output() readonly valueChanged = new EventEmitter<number | null>();

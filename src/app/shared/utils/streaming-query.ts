@@ -23,7 +23,7 @@ const STREAMING_DATE_WINDOWS: Record<StreamingDatePreset, (now: Date) => TmdbDat
     }),
 };
 
-/** The TMDb request behind a streaming list, for one of its media types. */
+// The TMDb request behind a streaming list, for one of its media types.
 export const toStreamingDiscoverQuery = (
     query: StreamingBaseQuery,
     mediaType: MediaType,
@@ -54,11 +54,11 @@ export const toStreamingDiscoverQuery = (
     };
 };
 
-/** One preview request per media type the list covers. */
+// One preview request per media type the list covers.
 export const toStreamingPreviewQueries = (query: StreamingBaseQuery): TmdbDiscoverQuery[] =>
     query.mediaTypes.map((mediaType) => toStreamingDiscoverQuery(query, mediaType));
 
-/** "This month": TV series with episodes this month on the region's top providers, once they are known. */
+// "This month": TV series with episodes this month on the region's top providers, once they are known.
 export const toStreamingThisMonthQuery = (tvProviders: readonly WatchProviderOption[]): StreamingBaseQuery => ({
     mediaTypes: ['tv'],
     providerIds: tvProviders.slice(0, TOP_PROVIDER_COUNT).map((provider) => provider.id),

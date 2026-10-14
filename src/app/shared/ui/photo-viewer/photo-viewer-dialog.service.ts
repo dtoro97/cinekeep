@@ -16,7 +16,7 @@ const PHOTO_VIEWER_DIALOG_CONFIG: MatDialogConfig = {
 export class PhotoViewerDialogService {
     constructor(private readonly matDialog: MatDialog) {}
 
-    /** Opens the fullscreen photo viewer at `activeIndex`. */
+    // Opens the fullscreen photo viewer at `activeIndex`.
     open(data: PhotoViewerData): void {
         this.matDialog.open(PhotoViewerComponent, { ...PHOTO_VIEWER_DIALOG_CONFIG, data });
     }
