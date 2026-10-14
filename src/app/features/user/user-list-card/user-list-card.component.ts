@@ -1,15 +1,9 @@
 import { DatePipe, NgTemplateOutlet } from '@angular/common';
-import {
-    ChangeDetectionStrategy,
-    Component,
-    EventEmitter,
-    Input,
-    Output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { IconButtonComponent, ImageComponent, PluralizePipe } from '../../../shared';
-import { UserListSummaryItem } from '../user-lists-store.service';
+import { UserListSummaryItem } from '../user-list-summary.mapper';
 
 @Component({
     selector: 'app-user-list-card',
@@ -21,7 +15,7 @@ import { UserListSummaryItem } from '../user-lists-store.service';
 export class UserListCardComponent {
     @Input({ required: true }) item!: UserListSummaryItem;
     @Input() actionsEnabled = false;
-    /** Renders a static, non-interactive card, e.g. the live preview while creating a list. */
+    // A static, non-interactive card: the live preview while creating a list.
     @Input() preview = false;
 
     @Output() readonly editList = new EventEmitter<UserListSummaryItem>();

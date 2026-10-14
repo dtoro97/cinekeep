@@ -9,5 +9,4 @@ import { SkeletonComponent } from '../../../shared';
     styleUrl: './user-list-card-skeleton.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserListCardSkeletonComponent {
-}
+export class UserListCardSkeletonComponent {}

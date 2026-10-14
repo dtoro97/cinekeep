@@ -1,7 +1,6 @@
 import { AsyncPipe, ViewportScroller } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 import { EMPTY, catchError, switchMap } from 'rxjs';
@@ -11,59 +10,68 @@ import {
     BrowseToolbarComponent,
     CardComponent,
     CardItem,
+    CardSkeletonComponent,
     ConfirmationDialogService,
     EmptyStateComponent,
     IconButtonComponent,
     MEDIA_TYPE_OPTIONS,
     MediaType,
-    ToggleGroupComponent,
     RepeatPipe,
-    CardSkeletonComponent,
     SnackbarService,
     SortButtonComponent,
     SubPageHeaderComponent,
+    ToggleGroupComponent,
 } from '../../../shared';
 import { USER_ACCOUNT_SORT_FIELD, USER_ACCOUNT_SORT_OPTIONS } from '../user-list-sort-options';
-import { UserFavouritesStore } from '../user-favourites-store.service';
+import { UserFavouritesPageStoreService } from './user-favourites-page-store.service';
 
 @Component({
     selector: 'app-user-favourites-page',
     imports: [
         AsyncPipe,
-        MatPaginatorModule,
         BrowseToolbarComponent,
         CardComponent,
+        CardSkeletonComponent,
         EmptyStateComponent,
         IconButtonComponent,
-        ToggleGroupComponent,
+        MatPaginatorModule,
         RepeatPipe,
-        CardSkeletonComponent,
         SortButtonComponent,
         SubPageHeaderComponent,
+        ToggleGroupComponent,
     ],
+    providers: [UserFavouritesPageStoreService],
     templateUrl: './user-favourites-page.component.html',
     styleUrl: './user-favourites-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [UserFavouritesStore],
 })
 export class UserFavouritesPageComponent {
     readonly mediaTypeOptions = MEDIA_TYPE_OPTIONS;
-
-    readonly posterImageParams = 'w342';
-    readonly skeletonCount = PAGE_SIZE;
     readonly sortOptions = USER_ACCOUNT_SORT_OPTIONS;
     readonly sortField = USER_ACCOUNT_SORT_FIELD;
+    readonly posterImageParams = 'w342';
+    readonly skeletonCount = PAGE_SIZE;
     readonly favourites$ = this.store.favourites$;
 
     constructor(
-        private readonly destroyRef: DestroyRef,
+        private readonly store: UserFavouritesPageStoreService,
         private readonly confirmationDialog: ConfirmationDialogService,
-        private readonly viewportScroller: ViewportScroller,
         private readonly snackbarService: SnackbarService,
-        private readonly store: UserFavouritesStore,
+        private readonly viewportScroller: ViewportScroller,
+        private readonly destroyRef: DestroyRef,
     ) {
         this.store
             .loadPage$(0)
+            .pipe(
+                catchError(() => this.snackbarService.showError$('Could not load your favorites.')),
+                takeUntilDestroyed(),
+            )
+            .subscribe();
+    }
+
+    setMediaType(mediaType: MediaType): void {
+        this.store
+            .setMediaType$(mediaType)
             .pipe(
                 catchError(() => this.snackbarService.showError$('Could not load your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
@@ -71,7 +79,7 @@ export class UserFavouritesPageComponent {
             .subscribe();
     }
 
-    onSortDirectionToggle(): void {
+    toggleSortDirection(): void {
         this.store
             .toggleSortDirection$()
             .pipe(
@@ -81,7 +89,19 @@ export class UserFavouritesPageComponent {
             .subscribe();
     }
 
-    onRemoveFromFavourites(item: CardItem): void {
+    changePage(event: PageEvent): void {
+        this.viewportScroller.scrollToPosition([0, 0]);
+
+        this.store
+            .loadPage$(event.pageIndex)
+            .pipe(
+                catchError(() => this.snackbarService.showError$('Could not load your favorites.')),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe();
+    }
+
+    remove(item: CardItem): void {
         this.confirmationDialog
             .confirm$({
                 title: `Remove ${item.title} from favorites?`,
@@ -90,30 +110,8 @@ export class UserFavouritesPageComponent {
                 tone: 'danger',
             })
             .pipe(
-                switchMap((confirmed) => (confirmed ? this.store.removeFromFavourites$(item) : EMPTY)),
+                switchMap((confirmed) => (confirmed ? this.store.remove$(item) : EMPTY)),
                 catchError(() => this.snackbarService.showError$('Could not update your favorites.')),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe();
-    }
-
-    onMediaTypeSelected(value: MediaType): void {
-        this.store
-            .setMediaType$(value)
-            .pipe(
-                catchError(() => this.snackbarService.showError$('Could not load your favorites.')),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe();
-    }
-
-    onPageChange(event: PageEvent): void {
-        this.viewportScroller.scrollToPosition([0, 0]);
-
-        this.store
-            .loadPage$(event.pageIndex)
-            .pipe(
-                catchError(() => this.snackbarService.showError$('Could not load your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();

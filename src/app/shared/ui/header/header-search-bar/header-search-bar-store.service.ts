@@ -122,15 +122,11 @@ export class HeaderSearchBarStoreService extends ComponentStore<HeaderSearchBarS
     }
 
     openPanel(): void {
-        if (!this.get().panelOpen) {
-            this.patchState({ panelOpen: true, activeOptionId: null });
-        }
+        this.patchState({ panelOpen: true, activeOptionId: null });
     }
 
     closePanel(): void {
-        if (this.get().panelOpen) {
-            this.patchState({ panelOpen: false, activeOptionId: null });
-        }
+        this.patchState({ panelOpen: false, activeOptionId: null });
     }
 
     openSearch(): void {

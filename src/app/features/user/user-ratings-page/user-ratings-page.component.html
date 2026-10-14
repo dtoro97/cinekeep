@@ -1,14 +1,10 @@
 @if (ratings$ | async; as ratings) {
-    <app-sub-page-header
-        parentTitle="Profile"
-        backLink="/me"
-        pageTitle="Ratings"
-    />
+    <app-sub-page-header parentTitle="Profile" backLink="/me" pageTitle="Ratings" />
 
     <main class="page-main page page-list-column">
         <app-browse-toolbar>
             <div start class="page__total">
-                @if (ratings.itemsState === "success") {
+                @if (ratings.showTotal) {
                     <span class="text-caption">{{ ratings.totalLabel }}</span>
                 }
             </div>
@@ -17,133 +13,103 @@
                 <app-toggle-group
                     [options]="contentTypeOptions"
                     [selectedValue]="ratings.contentType"
-                    (selected)="onContentTypeSelected($event)"
+                    (selected)="setContentType($event)"
                 />
 
                 <app-sort-button
                     [options]="sortOptions"
                     [selectedValue]="sortField"
                     [direction]="ratings.sortDirection"
-                    (directionToggle)="onSortDirectionToggle()"
+                    (directionToggle)="toggleSortDirection()"
                 />
             </div>
         </app-browse-toolbar>
 
-        @if (ratings.contentType === "episode") {
-            @if (ratings.episodeItems.state === "loading") {
-                <ul class="page__episode-list" aria-hidden="true">
-                    @for (placeholder of episodeSkeletonCount | repeat; track placeholder) {
-                        <li>
-                            <app-episode-list-item [loading]="true" />
-                        </li>
-                    }
-                </ul>
-            } @else if (ratings.episodeItems.state === "success") {
-                @if (ratings.episodeItems.data.length) {
-                    <ul class="page__episode-list" aria-label="Rated episodes">
-                        @for (episode of ratings.episodeItems.data; track episode.key) {
-                            <li>
-                                <app-episode-list-item [item]="episode.item">
-                                    <div class="page__actions">
-                                        <app-icon-button
-                                            title="Edit rating"
-                                            ariaLabel="Edit rating for {{ episode.title }}"
-                                            (buttonClick)="onEditEpisodeRating(episode)"
-                                        >
-                                            <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
-                                        </app-icon-button>
-
-                                        <app-icon-button
-                                            tone="danger"
-                                            title="Remove rating"
-                                            ariaLabel="Remove rating from {{ episode.title }}"
-                                            (buttonClick)="onRemoveEpisodeRating(episode)"
-                                        >
-                                            <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
-                                        </app-icon-button>
-                                    </div>
-                                </app-episode-list-item>
-                            </li>
-                        }
-                    </ul>
-
-                    @if (ratings.total > ratings.pageSize) {
-                        <mat-paginator
-                            class="page__paginator"
-                            [length]="ratings.total"
-                            [pageIndex]="ratings.page"
-                            [pageSize]="ratings.pageSize"
-                            [hidePageSize]="true"
-                            (page)="onPageChange($event)"
-                        />
-                    }
-                } @else {
-                    <section class="page__empty">
-                        <app-empty-state
-                            [iconClass]="ratings.emptyState.iconClass"
-                            [title]="ratings.emptyState.title"
-                            [text]="ratings.emptyState.text"
-                        />
-                    </section>
+        @if (ratings.showTitleSkeleton) {
+            <div class="page__list" aria-hidden="true">
+                @for (placeholder of skeletonCount | repeat; track placeholder) {
+                    <app-media-list-item [loading]="true" />
                 }
-            }
-        } @else {
-            @if (ratings.mediaItems.state === "loading") {
-                <div class="page__list" aria-hidden="true">
-                    @for (placeholder of skeletonCount | repeat; track placeholder) {
-                        <app-media-list-item [loading]="true" />
-                    }
-                </div>
-            } @else if (ratings.mediaItems.state === "success") {
-                @if (ratings.mediaItems.data.length) {
-                    <div class="page__list">
-                        @for (item of ratings.mediaItems.data; track item.mediaType + "-" + item.id) {
-                            <app-media-list-item
-                                [item]="item"
-                                [link]="['/title', item.id, item.mediaType]"
+            </div>
+        } @else if (ratings.showEpisodeSkeleton) {
+            <ul class="page__episode-list" aria-hidden="true">
+                @for (placeholder of skeletonCount | repeat; track placeholder) {
+                    <li>
+                        <app-episode-list-item [loading]="true" />
+                    </li>
+                }
+            </ul>
+        } @else if (ratings.hasTitles) {
+            <div class="page__list">
+                @for (item of ratings.titles; track item.id) {
+                    <app-media-list-item [item]="item" [link]="['/title', item.id, item.mediaType]">
+                        <div media-list-item-action class="page__actions">
+                            <app-icon-button
+                                title="Edit rating"
+                                ariaLabel="Edit rating for {{ item.title }}"
+                                (buttonClick)="editTitleRating(item)"
                             >
-                                <div media-list-item-action class="page__actions">
-                                    <app-icon-button
-                                        title="Edit rating"
-                                        ariaLabel="Edit rating for {{ item.title }}"
-                                        (buttonClick)="onEditMediaRating(item)"
-                                    >
-                                        <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
-                                    </app-icon-button>
+                                <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+                            </app-icon-button>
 
-                                    <app-icon-button
-                                        tone="danger"
-                                        title="Remove rating"
-                                        ariaLabel="Remove rating from {{ item.title }}"
-                                        (buttonClick)="onRemoveMediaRating(item)"
-                                    >
-                                        <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
-                                    </app-icon-button>
-                                </div>
-                            </app-media-list-item>
-                        }
-                    </div>
-
-                    @if (ratings.total > ratings.pageSize) {
-                        <mat-paginator
-                            class="page__paginator"
-                            [length]="ratings.total"
-                            [pageIndex]="ratings.page"
-                            [pageSize]="ratings.pageSize"
-                            [hidePageSize]="true"
-                            (page)="onPageChange($event)"
-                        />
-                    }
-                } @else {
-                    <section class="page__empty">
-                        <app-empty-state
-                            [iconClass]="ratings.emptyState.iconClass"
-                            [title]="ratings.emptyState.title"
-                            [text]="ratings.emptyState.text"
-                        />
-                    </section>
+                            <app-icon-button
+                                tone="danger"
+                                title="Remove rating"
+                                ariaLabel="Remove rating from {{ item.title }}"
+                                (buttonClick)="removeTitleRating(item)"
+                            >
+                                <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                            </app-icon-button>
+                        </div>
+                    </app-media-list-item>
                 }
-            }
+            </div>
+        } @else if (ratings.hasEpisodes) {
+            <ul class="page__episode-list" aria-label="Rated episodes">
+                @for (episode of ratings.episodes; track episode.key) {
+                    <li>
+                        <app-episode-list-item [item]="episode.item">
+                            <div class="page__actions">
+                                <app-icon-button
+                                    title="Edit rating"
+                                    ariaLabel="Edit rating for {{ episode.title }}"
+                                    (buttonClick)="editEpisodeRating(episode)"
+                                >
+                                    <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+                                </app-icon-button>
+
+                                <app-icon-button
+                                    tone="danger"
+                                    title="Remove rating"
+                                    ariaLabel="Remove rating from {{ episode.title }}"
+                                    (buttonClick)="removeEpisodeRating(episode)"
+                                >
+                                    <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                                </app-icon-button>
+                            </div>
+                        </app-episode-list-item>
+                    </li>
+                }
+            </ul>
+        } @else if (ratings.showEmpty) {
+            <section class="page__empty">
+                <app-empty-state
+                    iconClass="fa-regular fa-star"
+                    [title]="ratings.emptyTitle"
+                    [text]="ratings.emptyText"
+                />
+            </section>
+        }
+
+        @if (ratings.showPaginator) {
+            <mat-paginator
+                class="page__paginator"
+                [length]="ratings.total"
+                [pageIndex]="ratings.pageIndex"
+                [pageSize]="ratings.pageSize"
+                [hidePageSize]="true"
+                (page)="changePage($event)"
+            />
         }
     </main>
 }

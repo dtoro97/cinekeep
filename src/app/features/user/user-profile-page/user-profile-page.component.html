@@ -1,0 +1,111 @@
+@if (userProfile$ | async; as userProfile) {
+    <section class="profile page-main">
+        <aside class="profile__rail" aria-label="Profile summary">
+            <div class="profile__identity">
+                <app-user-avatar [name]="userProfile.displayName" size="lg" />
+
+                <div class="profile__identity-copy">
+                    <h1 class="text-headline">
+                        {{ userProfile.displayName }}
+                    </h1>
+
+                    @if (userProfile.username; as username) {
+                        <p class="text-meta">@{{ username }}</p>
+                    }
+
+                    @if (userProfile.hasProfileMeta) {
+                        <p class="profile__meta text-caption">
+                            @for (item of userProfile.profileMeta; track item) {
+                                <span>{{ item }}</span>
+                            }
+                        </p>
+                    }
+                </div>
+            </div>
+
+            <nav class="profile__nav" aria-label="Profile navigation">
+                @for (stat of userProfile.stats; track stat.link) {
+                    <a class="profile__nav-link" [routerLink]="stat.link">
+                        <strong class="profile__stat-value text-headline">{{ stat.total }}</strong>
+                        <span class="text-overline">{{ stat.label }}</span>
+                    </a>
+                }
+            </nav>
+        </aside>
+
+        <main class="profile__main">
+            @for (shelf of userProfile.shelves; track shelf.key) {
+                <section class="profile__section" [attr.aria-labelledby]="shelf.titleId">
+                    <header class="profile__section-header">
+                        <div class="profile__section-heading">
+                            <h2 [id]="shelf.titleId" class="text-section-label">{{ shelf.title }}</h2>
+                            <p class="profile__section-count text-caption">{{ shelf.countLabel }}</p>
+                        </div>
+
+                        <a class="profile__section-link text-body-sm" [routerLink]="shelf.link">
+                            {{ shelf.linkLabel }}
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </a>
+                    </header>
+
+                    @if (shelf.showEmpty) {
+                        <div class="profile__empty">
+                            <app-empty-state
+                                [iconClass]="shelf.emptyIconClass"
+                                iconStyle="plain"
+                                [title]="shelf.emptyTitle"
+                                [text]="shelf.emptyText"
+                            />
+                        </div>
+                    } @else {
+                        <app-media-carousel-panel
+                            [ariaLabel]="shelf.ariaLabel"
+                            [state]="shelf.items"
+                            [columns]="shelf.columns"
+                            [imageParams]="shelf.imageParams"
+                            [skeletonCount]="shelf.columns"
+                        />
+                    }
+                </section>
+            }
+
+            <section class="profile__section" aria-labelledby="profile-lists-title">
+                <header class="profile__section-header">
+                    <div class="profile__section-heading">
+                        <h2 id="profile-lists-title" class="text-section-label">Lists</h2>
+                        <p class="profile__section-count text-caption">{{ userProfile.listCountLabel }}</p>
+                    </div>
+
+                    <a class="profile__section-link text-body-sm" routerLink="/me/lists">
+                        View lists
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </a>
+                </header>
+
+                @if (userProfile.showListSkeleton) {
+                    <div class="profile__list-grid">
+                        @for (placeholder of listSkeletonCount | repeat; track placeholder) {
+                            <app-user-list-card-skeleton />
+                        }
+                    </div>
+                } @else if (userProfile.hasLists) {
+                    <div class="profile__list-grid">
+                        @for (list of userProfile.lists; track list.id) {
+                            <app-user-list-card [item]="list" />
+                        }
+                    </div>
+                } @else if (userProfile.showListEmpty) {
+                    <div class="profile__empty">
+                        <app-empty-state
+                            iconClass="fa-solid fa-list"
+                            iconStyle="plain"
+                            title="No custom lists"
+                            text="Custom lists will appear here."
+                        />
+                        <a class="profile__empty-link" routerLink="/me/lists/new">Create list</a>
+                    </div>
+                }
+            </section>
+        </main>
+    </section>
+}

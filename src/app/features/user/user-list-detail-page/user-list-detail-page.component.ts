@@ -5,16 +5,11 @@ import {
     DestroyRef,
     ElementRef,
     Injector,
+    ViewChild,
     afterNextRender,
-    computed,
-    input,
-    numberAttribute,
-    signal,
-    viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
-
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,32 +19,35 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { EMPTY, catchError, distinctUntilChanged, finalize, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, distinctUntilChanged, map, switchMap, tap } from 'rxjs';
 
 import {
     BrowseToolbarComponent,
     ConfirmationDialogService,
     EmptyStateComponent,
     IconButtonComponent,
+    MediaListItemComponent,
     RepeatPipe,
     SeoService,
     SnackbarService,
     SortButtonComponent,
     SubPageHeaderComponent,
-    MediaListItemComponent,
 } from '../../../shared';
+import { UserListEditDialogComponent } from '../user-list-edit-dialog/user-list-edit-dialog.component';
+import {
+    UserListEditDialogData,
+    UserListEditDialogResult,
+} from '../user-list-edit-dialog/user-list-edit-dialog-store.service';
+import { USER_LIST_SORT_FIELD_OPTIONS, UserListSortField } from '../user-list-sort-options';
 import {
     UserListAddItemsDialogComponent,
     UserListAddItemsDialogData,
-} from '../user-list-add-items-dialog/user-list-add-items-dialog.component';
+} from './user-list-add-items-dialog/user-list-add-items-dialog.component';
 import {
-    UserListEditDialogComponent,
-    UserListEditDialogData,
-} from '../user-list-edit-dialog/user-list-edit-dialog.component';
-import { UserListResponse } from '../../../api-cinekeep';
-import { UserListDetailHeader, UserListDetailItem, UserListDetailStore } from '../user-list-detail-store.service';
-import { isSameUserListCover } from '../user-list-cover';
-import { USER_LIST_SORT_FIELD_OPTIONS, UserListSort, toUserListSortBy } from '../user-list-sort-options';
+    UserListDetailHeader,
+    UserListDetailItem,
+    UserListDetailPageStoreService,
+} from './user-list-detail-page-store.service';
 
 @Component({
     selector: 'app-user-list-detail-page',
@@ -57,82 +55,64 @@ import { USER_LIST_SORT_FIELD_OPTIONS, UserListSort, toUserListSortBy } from '..
         AsyncPipe,
         BrowseToolbarComponent,
         EmptyStateComponent,
+        IconButtonComponent,
         MatButtonModule,
         MatFormFieldModule,
         MatIconModule,
         MatInputModule,
         MatMenuModule,
         MatPaginatorModule,
-        SortButtonComponent,
         MatTooltipModule,
         MediaListItemComponent,
-        IconButtonComponent,
         RepeatPipe,
+        SortButtonComponent,
         SubPageHeaderComponent,
     ],
+    providers: [UserListDetailPageStoreService],
     templateUrl: './user-list-detail-page.component.html',
     styleUrl: './user-list-detail-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [UserListDetailStore],
 })
 export class UserListDetailPageComponent {
-    readonly listId = input.required({ transform: numberAttribute });
-    readonly userListDetail$ = this.store.userListDetail$;
     readonly backLink = ['/', 'me', 'lists'];
-    readonly initialSkeletonCount = 6;
+    readonly skeletonCount = 6;
     readonly sortFieldOptions = USER_LIST_SORT_FIELD_OPTIONS;
-    readonly editingCommentKey = signal<string | null>(null);
-    readonly commentDraft = signal('');
-    readonly commentPending = signal(false);
-    readonly commentSaveLabel = computed(() => (this.commentPending() ? 'Saving…' : 'Save'));
-    private readonly commentInput = viewChild<ElementRef<HTMLTextAreaElement>>('commentInput');
+    readonly userListDetail$ = this.store.userListDetail$;
+
+    @ViewChild('commentInput') private commentInput?: ElementRef<HTMLTextAreaElement>;
 
     constructor(
-        private readonly destroyRef: DestroyRef,
-        private readonly injector: Injector,
+        private readonly store: UserListDetailPageStoreService,
         private readonly confirmationDialog: ConfirmationDialogService,
-        private readonly dialog: MatDialog,
-        private readonly viewportScroller: ViewportScroller,
+        private readonly matDialog: MatDialog,
         private readonly router: Router,
-        private readonly seo: SeoService,
         private readonly snackbarService: SnackbarService,
-        private readonly store: UserListDetailStore,
+        private readonly viewportScroller: ViewportScroller,
+        private readonly injector: Injector,
+        private readonly destroyRef: DestroyRef,
+        activatedRoute: ActivatedRoute,
+        seoService: SeoService,
     ) {
-        toObservable(this.listId)
+        activatedRoute.paramMap
             .pipe(
+                map((paramMap) => Number(paramMap.get('listId'))),
                 distinctUntilChanged(),
-                switchMap((listId) => this.store.loadList$(listId)),
-                catchError(() => {
-                    this.router.navigate(['not-found']);
-                    return EMPTY;
-                }),
-                takeUntilDestroyed(this.destroyRef),
+                switchMap((listId) =>
+                    this.store.load$(listId).pipe(
+                        catchError(() => {
+                            this.router.navigate(['not-found']);
+                            return EMPTY;
+                        }),
+                    ),
+                ),
+                takeUntilDestroyed(),
             )
             .subscribe();
 
-        this.userListDetail$
-            .pipe(
-                tap(({ header }) => {
-                    if (header.state === 'success') {
-                        this.seo.setPage({
-                            title: `${header.data.name} | List`,
-                            description: header.data.description || 'Your saved movies and TV series in one CineKeep list.',
-                            robots: 'noindex, nofollow',
-                        });
-                        return;
-                    }
-
-                    this.seo.setPage({
-                        title: 'List',
-                        robots: 'noindex, nofollow',
-                    });
-                }),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe();
+        this.store.seoMetadata$.pipe(takeUntilDestroyed()).subscribe((metadata) => seoService.setPage(metadata));
     }
 
-    onPageChange(event: PageEvent): void {
+    changePage(event: PageEvent): void {
         this.viewportScroller.scrollToPosition([0, 0]);
 
         this.store
@@ -144,88 +124,9 @@ export class UserListDetailPageComponent {
             .subscribe();
     }
 
-    onAddTitles(listId: number): void {
-        this.dialog
-            .open<UserListAddItemsDialogComponent, UserListAddItemsDialogData, true | undefined>(
-                UserListAddItemsDialogComponent,
-                {
-                    autoFocus: false,
-                    data: { listId },
-                    maxWidth: '42rem',
-                    panelClass: ['media-list-dialog-panel', 'user-list-add-items-dialog-panel'],
-                    width: '100%',
-                },
-            )
-            .afterClosed()
-            .pipe(
-                switchMap((changed) => (changed ? this.store.reload$() : EMPTY)),
-                catchError(() => this.snackbarService.showError$('Could not refresh this list.')),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe();
-    }
-
-    onEditDetails(header: UserListDetailHeader, defaultSortBy: UserListResponse.SortByEnum): void {
-        this.dialog
-            .open<UserListEditDialogComponent, UserListEditDialogData>(UserListEditDialogComponent, {
-                ariaLabelledBy: 'edit-list-title',
-                autoFocus: false,
-                data: {
-                    listId: header.id,
-                    cover: header.cover,
-                    name: header.name,
-                    description: header.description,
-                    sortBy: defaultSortBy,
-                },
-                maxWidth: '40rem',
-                panelClass: 'media-list-dialog-panel',
-                width: '100%',
-            })
-            .afterClosed()
-            .pipe(
-                switchMap((result) => {
-                    if (!result) {
-                        return EMPTY;
-                    }
-
-                    if (
-                        result.name === header.name &&
-                        result.description === (header.description ?? '') &&
-                        result.sortBy === defaultSortBy &&
-                        isSameUserListCover(result.cover, header.cover)
-                    ) {
-                        return EMPTY;
-                    }
-
-                    return this.store.updateList$(result).pipe(
-                        tap(() => {
-                            this.snackbarService.showSuccess('List details updated.');
-                        }),
-                    );
-                }),
-                catchError(() => this.snackbarService.showError$('Could not update this list.')),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe();
-    }
-
-    onSortFieldChange(value: unknown, current: UserListSort): void {
-        const field = this.sortFieldOptions.find((option) => option.value === value)?.value;
-
-        if (!field || field === current.field) {
-            return;
-        }
-
-        this.applySort(toUserListSortBy({ field, direction: current.direction }));
-    }
-
-    onSortDirectionToggle(current: UserListSort): void {
-        this.applySort(toUserListSortBy({ ...current, direction: current.direction === 'asc' ? 'desc' : 'asc' }));
-    }
-
-    private applySort(sortBy: UserListResponse.SortByEnum): void {
+    setSortField(field: UserListSortField): void {
         this.store
-            .setSortBy$(sortBy)
+            .setSortField$(field)
             .pipe(
                 catchError(() => this.snackbarService.showError$('Could not update list sorting.')),
                 takeUntilDestroyed(this.destroyRef),
@@ -233,7 +134,67 @@ export class UserListDetailPageComponent {
             .subscribe();
     }
 
-    onClearList(): void {
+    toggleSortDirection(): void {
+        this.store
+            .toggleSortDirection$()
+            .pipe(
+                catchError(() => this.snackbarService.showError$('Could not update list sorting.')),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe();
+    }
+
+    addTitles(header: UserListDetailHeader): void {
+        this.matDialog
+            .open<UserListAddItemsDialogComponent, UserListAddItemsDialogData, true | undefined>(
+                UserListAddItemsDialogComponent,
+                {
+                    autoFocus: false,
+                    data: { listId: header.id },
+                    maxWidth: '42rem',
+                    panelClass: ['media-list-dialog-panel', 'user-list-add-items-dialog-panel'],
+                    width: '100%',
+                },
+            )
+            .afterClosed()
+            .pipe(
+                switchMap((hasChanges) => (hasChanges ? this.store.reload$() : EMPTY)),
+                catchError(() => this.snackbarService.showError$('Could not refresh this list.')),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe();
+    }
+
+    editList(header: UserListDetailHeader): void {
+        this.matDialog
+            .open<UserListEditDialogComponent, UserListEditDialogData, UserListEditDialogResult>(
+                UserListEditDialogComponent,
+                {
+                    ariaLabelledBy: 'edit-list-title',
+                    autoFocus: false,
+                    data: {
+                        listId: header.id,
+                        cover: header.cover,
+                        name: header.name,
+                        description: header.description,
+                        sortBy: header.sortBy,
+                    },
+                    maxWidth: '40rem',
+                    panelClass: 'media-list-dialog-panel',
+                    width: '100%',
+                },
+            )
+            .afterClosed()
+            .pipe(
+                switchMap((changes) => (changes ? this.store.updateList$(changes) : EMPTY)),
+                tap(() => this.snackbarService.showSuccess('List details updated.')),
+                catchError(() => this.snackbarService.showError$('Could not update this list.')),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe();
+    }
+
+    clearList(): void {
         this.confirmationDialog
             .confirm$({
                 title: 'Clear this list?',
@@ -243,16 +204,14 @@ export class UserListDetailPageComponent {
             })
             .pipe(
                 switchMap((confirmed) => (confirmed ? this.store.clearList$() : EMPTY)),
-                tap(() => {
-                    this.snackbarService.showSuccess('List cleared.');
-                }),
+                tap(() => this.snackbarService.showSuccess('List cleared.')),
                 catchError(() => this.snackbarService.showError$('Could not clear this list.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
     }
 
-    onDeleteList(): void {
+    deleteList(): void {
         this.confirmationDialog
             .confirm$({
                 title: 'Delete this list?',
@@ -272,67 +231,44 @@ export class UserListDetailPageComponent {
             .subscribe();
     }
 
-    onRemoveItem(item: UserListDetailItem): void {
+    removeItem(item: UserListDetailItem): void {
         this.confirmationDialog
             .confirm$({
-                title: `Remove ${item.title}?`,
+                title: `Remove ${item.mediaItem.title}?`,
                 message: 'This removes the title from this list only.',
                 confirmLabel: 'Remove item',
                 tone: 'danger',
             })
             .pipe(
                 switchMap((confirmed) => (confirmed ? this.store.removeItem$(item) : EMPTY)),
-                tap(() => {
-                    this.snackbarService.showSuccess('Item removed from the list.');
-                }),
+                tap(() => this.snackbarService.showSuccess('Item removed from the list.')),
                 catchError(() => this.snackbarService.showError$('Could not remove this item.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
     }
 
-    onStartComment(item: UserListDetailItem): void {
-        this.editingCommentKey.set(item.key);
-        this.commentDraft.set(item.comment);
-        afterNextRender(() => this.commentInput()?.nativeElement.focus(), { injector: this.injector });
+    startComment(item: UserListDetailItem): void {
+        this.store.startComment(item);
+        afterNextRender(() => this.commentInput?.nativeElement.focus(), { injector: this.injector });
     }
 
-    onCancelComment(): void {
-        this.editingCommentKey.set(null);
-        this.commentDraft.set('');
+    updateCommentDraft(draft: string): void {
+        this.store.updateCommentDraft(draft);
     }
 
-    onCommentDraftInput(event: Event): void {
-        const target = event.target;
-
-        if (target instanceof HTMLTextAreaElement) {
-            this.commentDraft.set(target.value);
-        }
+    cancelComment(): void {
+        this.store.cancelComment();
     }
 
-    onSaveComment(item: UserListDetailItem): void {
-        if (this.commentPending()) {
-            return;
-        }
-
-        const comment = this.commentDraft().trim();
-
-        if (comment === item.comment) {
-            this.onCancelComment();
-            return;
-        }
-
-        this.commentPending.set(true);
-
+    saveComment(item: UserListDetailItem): void {
         this.store
-            .updateItemComment$(item, comment)
+            .saveComment$(item)
             .pipe(
-                tap(() => {
-                    this.onCancelComment();
-                    this.snackbarService.showSuccess(comment ? 'Comment saved.' : 'Comment removed.');
-                }),
-                catchError(() => this.snackbarService.showError$('Could not save this comment. Your text is still here, try again.')),
-                finalize(() => this.commentPending.set(false)),
+                tap((comment) => this.snackbarService.showSuccess(comment ? 'Comment saved.' : 'Comment removed.')),
+                catchError(() =>
+                    this.snackbarService.showError$('Could not save this comment. Your text is still here, try again.'),
+                ),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();

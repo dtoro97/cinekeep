@@ -1,25 +1,23 @@
 import { Routes } from '@angular/router';
 
 import { authenticatedGuard } from '../../shared';
-import { UserListsStore } from './user-lists-store.service';
 import { UserFavouritesPageComponent } from './user-favourites-page/user-favourites-page.component';
-import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserListCreatePageComponent } from './user-list-create-page/user-list-create-page.component';
 import { UserListDetailPageComponent } from './user-list-detail-page/user-list-detail-page.component';
+import { UserListsPageComponent } from './user-lists-page/user-lists-page.component';
+import { UserProfilePageComponent } from './user-profile-page/user-profile-page.component';
 import { UserRatingsPageComponent } from './user-ratings-page/user-ratings-page.component';
 import { UserWatchlistPageComponent } from './user-watchlist-page/user-watchlist-page.component';
-import { UserListsComponent } from './user-lists/user-lists.component';
 
 export const userRoutes: Routes = [
     {
         path: '',
         canActivate: [authenticatedGuard],
-        providers: [UserListsStore],
         children: [
             {
                 path: '',
                 pathMatch: 'full',
-                component: UserProfileComponent,
+                component: UserProfilePageComponent,
                 title: 'Your Profile',
             },
             {
@@ -48,7 +46,7 @@ export const userRoutes: Routes = [
             },
             {
                 path: 'lists',
-                component: UserListsComponent,
+                component: UserListsPageComponent,
                 title: 'Your Lists',
             },
         ],

@@ -18,8 +18,8 @@
                                 class="u-visually-hidden"
                                 type="radio"
                                 name="edit-list-cover"
-                                [checked]="cover.automaticSelected"
-                                (change)="onSelectAutomaticCover()"
+                                [checked]="cover.isAutomaticSelected"
+                                (change)="selectAutomaticCover()"
                             />
                             <span class="cover-picker__frame cover-picker__frame--automatic" aria-hidden="true">
                                 <i class="fa-solid fa-clock-rotate-left"></i>
@@ -41,8 +41,8 @@
                                         class="u-visually-hidden"
                                         type="radio"
                                         name="edit-list-cover"
-                                        [checked]="option.selected"
-                                        (change)="onSelectCover(option.candidate)"
+                                        [checked]="option.isSelected"
+                                        (change)="selectCover(option.candidate)"
                                     />
                                     <span class="cover-picker__frame">
                                         <app-image
@@ -58,7 +58,7 @@
                         }
                     </div>
 
-                    @if (cover.options.state === 'success' && !cover.options.data.length) {
+                    @if (cover.showEmpty) {
                         <p class="cover-picker__empty text-caption">
                             Titles you add with artwork will show up here as cover options.
                         </p>
