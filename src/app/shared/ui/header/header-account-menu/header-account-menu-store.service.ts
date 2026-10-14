@@ -1,5 +1,4 @@
 import { Injectable, afterNextRender } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { ComponentStore } from '@ngrx/component-store';
 import { EMPTY, Observable, catchError, defer, switchMap, tap } from 'rxjs';
@@ -13,47 +12,33 @@ import { SigninDialogService } from '../../signin-dialog/signin-dialog.service';
 
 interface HeaderAccountMenuState {
     readonly hasRendered: boolean;
-    readonly hasResolvedSession: boolean;
-    readonly isAuthenticated: boolean;
-    readonly username: string | null;
-    readonly displayName: string;
     readonly operation: RemoteData<unknown>;
 }
 
 @Injectable()
 export class HeaderAccountMenuStoreService extends ComponentStore<HeaderAccountMenuState> {
-    readonly account$ = this.select((state) => ({
-        isReady: state.hasRendered && state.hasResolvedSession,
-        isAuthenticated: state.isAuthenticated,
-        displayName: state.displayName,
-        avatarName: state.username ?? state.displayName,
-        isBusy: state.operation.state === 'loading',
-    }));
+    readonly account$ = this.select(
+        this.state$,
+        this.userSessionStoreService.authSession$,
+        ({ hasRendered, operation }, { resolved, isAuthenticated, username, displayName }) => ({
+            // Hydration and session restore must both settle before the account menu replaces its placeholder.
+            isReady: hasRendered && resolved,
+            isAuthenticated,
+            displayName,
+            avatarName: username ?? displayName,
+            isBusy: operation.state === 'loading',
+        }),
+        { debounce: true },
+    );
 
     constructor(
         private readonly authService: AuthService,
         private readonly confirmationDialogService: ConfirmationDialogService,
         private readonly signinDialogService: SigninDialogService,
         private readonly router: Router,
-        userSessionStoreService: UserSessionStoreService,
+        private readonly userSessionStoreService: UserSessionStoreService,
     ) {
-        super({
-            hasRendered: false,
-            hasResolvedSession: false,
-            isAuthenticated: false,
-            username: null,
-            displayName: 'Member',
-            operation: { state: 'notAsked' },
-        });
-        userSessionStoreService.authSession$.pipe(takeUntilDestroyed()).subscribe((auth) =>
-            this.patchState({
-                hasResolvedSession: auth.resolved,
-                isAuthenticated: auth.isAuthenticated,
-                username: auth.username,
-                displayName: auth.displayName,
-            }),
-        );
-        // Hydration and session restore must both settle before the account menu replaces its placeholder.
+        super({ hasRendered: false, operation: { state: 'notAsked' } });
         afterNextRender(() => this.patchState({ hasRendered: true }));
     }
 

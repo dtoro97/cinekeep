@@ -9,7 +9,7 @@ const ACCEPT_LANGUAGE_QUALITY_PATTERN = /;\s*q=([0-9.]+)/i;
 const NON_COUNTRY_REGION_CODES = new Set(['EU', 'XX']);
 const EMPTY_LOCALE: DetectedLocale = { language: null, region: null };
 
-/** The two-letter language of a locale tag: `en-GB`, `pt_BR` and `EN` give `en`, `pt` and `en`. */
+// The two-letter language of a locale tag: `en-GB`, `pt_BR` and `EN` give `en`, `pt` and `en`.
 export const parseLanguageTag = (tag: string | null | undefined): string | null => parseLocaleTag(tag).language;
 
 export function detectBrowserLocale(): DetectedLocale {
@@ -44,7 +44,7 @@ export function detectServerLocale(acceptLanguage: string | null): DetectedLocal
     return detectLocaleFromTags(tags);
 }
 
-/** The first tag's language, with the region of the first tag in that language that has one. */
+// The first tag's language, with the region of the first tag in that language that has one.
 function detectLocaleFromTags(localeTags: readonly (string | null | undefined)[]): DetectedLocale {
     const locales = localeTags.map(parseLocaleTag).filter((locale) => locale.language);
     const language = locales[0]?.language ?? null;

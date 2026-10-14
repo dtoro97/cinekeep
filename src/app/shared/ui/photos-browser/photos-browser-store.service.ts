@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ComponentStore } from '@ngrx/component-store';
+import { map, startWith } from 'rxjs';
 
 import type { ConfigurationImages } from '../../../api';
 import type { ViewerImage } from '../../models';
@@ -15,7 +15,6 @@ export type PhotoSortField = 'rating' | 'votes' | 'resolution';
 
 interface PhotosBrowserState {
     readonly images: readonly ViewerImage[];
-    readonly configurationImages: ConfigurationImages | undefined;
     readonly selectedTypes: readonly string[];
     readonly visibleCount: number;
     readonly sortField: PhotoSortField;
@@ -54,7 +53,6 @@ export const PHOTO_SORT_OPTIONS: readonly SelectOption<PhotoSortField>[] = [
 
 const INITIAL_STATE: PhotosBrowserState = {
     images: [],
-    configurationImages: undefined,
     selectedTypes: [],
     visibleCount: PHOTOS_BATCH,
     sortField: 'rating',
@@ -64,7 +62,13 @@ const INITIAL_STATE: PhotosBrowserState = {
 @Injectable()
 export class PhotosBrowserStoreService extends ComponentStore<PhotosBrowserState> {
     readonly photosBrowser$ = this.select(
-        ({ images, configurationImages, selectedTypes, visibleCount, sortField, sortDirection }) => {
+        this.state$,
+        // Until the configuration loads, thumbnails use each rule's fallback size.
+        this.configStoreService.configuration$.pipe(
+            map(({ images }) => images),
+            startWith<ConfigurationImages | undefined>(undefined),
+        ),
+        ({ images, selectedTypes, visibleCount, sortField, sortDirection }, configurationImages) => {
             const filteredImages = selectedTypes.length
                 ? images.filter((image) => selectedTypes.includes(image.photoType ?? ''))
                 : images;
@@ -115,19 +119,17 @@ export class PhotosBrowserStoreService extends ComponentStore<PhotosBrowserState
                 hasMore: sortedImages.length > visibleImages.length,
             };
         },
+        { debounce: true },
     );
 
-    constructor(configStoreService: ConfigStoreService) {
+    constructor(private readonly configStoreService: ConfigStoreService) {
         super(INITIAL_STATE);
-        configStoreService.configuration$
-            .pipe(takeUntilDestroyed())
-            .subscribe(({ images: configurationImages }) => this.patchState({ configurationImages }));
     }
 
     // A new gallery resets its filter and batch while retaining the preferred sort.
     setImages(images: readonly ViewerImage[]): void {
-        const { configurationImages, sortField, sortDirection } = this.get();
-        this.setState({ ...INITIAL_STATE, images, configurationImages, sortField, sortDirection });
+        const { sortField, sortDirection } = this.get();
+        this.setState({ ...INITIAL_STATE, images, sortField, sortDirection });
     }
 
     setSortField(sortField: PhotoSortField): void {

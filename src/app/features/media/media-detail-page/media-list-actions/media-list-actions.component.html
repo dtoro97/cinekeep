@@ -7,7 +7,7 @@
             [class.watchlist-button--active]="listActions.isInWatchlist"
             [disabled]="listActions.pending"
             [attr.aria-pressed]="listActions.isInWatchlist"
-            (click)="toggleWatchlist()"
+            (click)="toggleWatchlist(listActions.isAuthenticated)"
         >
             <i
                 [class.fa-solid]="listActions.isInWatchlist"
@@ -26,7 +26,7 @@
             [disabled]="listActions.pending"
             ariaLabel="{{ listActions.favoriteActionLabel }}: {{ media.title }}"
             [matTooltip]="listActions.favoriteActionLabel"
-            (buttonClick)="toggleFavorite()"
+            (buttonClick)="toggleFavorite(listActions.isAuthenticated)"
         >
             <i
                 [class.fa-solid]="listActions.isFavorite"
@@ -41,7 +41,7 @@
             [disabled]="listActions.isListButtonDisabled"
             ariaLabel="Add {{ media.title }} to one of your lists"
             matTooltip="Add to one of your lists"
-            (buttonClick)="openListsDialog()"
+            (buttonClick)="openListsDialog(listActions.isAuthenticated)"
         >
             <i class="icon fa-solid fa-list" aria-hidden="true"></i>
         </app-icon-button>

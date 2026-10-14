@@ -20,6 +20,6 @@ export class HomeTopPicksComponent {
     @Input({ required: true }) loading!: boolean;
     @Input({ required: true }) items!: readonly TopPickItem[];
 
-    /** The chart always lists ten titles, five per column. */
+    // The chart always lists ten titles, five per column.
     readonly skeletonCount = MEDIUM_LIST_COUNT;
 }

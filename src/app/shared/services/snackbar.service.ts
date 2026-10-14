@@ -32,7 +32,7 @@ export class SnackbarService {
         });
     }
 
-    /** Shows the error right away and returns `EMPTY`, so `catchError` can report and end a failed action. */
+    // Shows the error right away and returns `EMPTY`, so `catchError` can report and end a failed action.
     showError$(message: string): Observable<never> {
         this.matSnackBar.openFromComponent<SnackbarComponent, SnackbarData>(SnackbarComponent, {
             data: { message },

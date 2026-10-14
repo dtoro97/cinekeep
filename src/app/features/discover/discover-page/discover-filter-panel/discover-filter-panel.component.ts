@@ -40,7 +40,7 @@ export class DiscoverFilterPanelComponent {
 
     keywordSearchText = '';
     companySearchText = '';
-    /** Starts closed even when a default (like 250+ votes) is active; the toggle's badge shows the count. */
+    // Starts closed even when a default (like 250+ votes) is active; the toggle's badge shows the count.
     showMoreFilters = false;
 
     searchKeywords(text: string): void {

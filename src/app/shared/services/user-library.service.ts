@@ -17,7 +17,7 @@ import { toMediaKey } from '../utils/media-key';
 import { MediaSnapshotService } from './media-snapshot.service';
 import { UserSessionStoreService } from './user-session-store.service';
 
-/** One media-state entry per title, keyed by `mediaType:id`. */
+// One media-state entry per title, keyed by `mediaType:id`.
 export type MediaStateLookup = ReadonlyMap<string, MediaStateResponse>;
 
 export interface MediaKey {
@@ -25,7 +25,7 @@ export interface MediaKey {
     readonly mediaType: MediaType;
 }
 
-/** Per-title state for a library toggle: not asked while signed out, loading until fetched. */
+// Per-title state for a library toggle: not asked while signed out, loading until fetched.
 export const toLibraryState = (lookup: MediaStateLookup | null, item: MediaKey): RemoteData<MediaStateResponse> => {
     if (!lookup) {
         return { state: 'notAsked' };
@@ -62,7 +62,7 @@ export class UserLibraryService {
         return request$.pipe(map(() => watchlist));
     }
 
-    /** Whether the title is on the watchlist or in favorites. */
+    // Whether the title is on the watchlist or in favorites.
     getLibraryFlag$(flag: LibraryFlag, mediaId: number, mediaType: MediaType): Observable<boolean> {
         return this.getMediaState$(mediaId, mediaType).pipe(
             map((state) => (flag === 'watchlist' ? !!state.inWatchlist : !!state.favorite)),
@@ -118,7 +118,7 @@ export class UserLibraryService {
         return this.mediaStateController.getMediaState({ mediaType, tmdbId: mediaId });
     }
 
-    /** States for up to 100 movies and 100 TV series in one request. */
+    // States for up to 100 movies and 100 TV series in one request.
     getMediaStates$(items: readonly MediaKey[]): Observable<MediaStateLookup> {
         return this.mediaStateController
             .getMediaStates({
@@ -133,10 +133,8 @@ export class UserLibraryService {
             );
     }
 
-    /**
-     * Library states for the titles a list has loaded. Fetches only titles it has not seen,
-     * so "show more" asks for the new page alone; emits `null` while signed out.
-     */
+    // Library states for the titles a list has loaded. Fetches only titles it has not seen,
+    // so "show more" asks for the new page alone; emits `null` while signed out.
     mediaStates$(items$: Observable<readonly MediaKey[]>): Observable<MediaStateLookup | null> {
         return this.userSessionStore.settledIsAuthenticated$.pipe(
             switchMap((authenticated) => {
@@ -168,7 +166,7 @@ export class UserLibraryService {
         );
     }
 
-    /** Saves a title with its snapshot, fetching the snapshot from TMDb when none is passed. */
+    // Saves a title with its snapshot, fetching the snapshot from TMDb when none is passed.
     private saveWithSnapshot$<T>(
         mediaId: number,
         mediaType: MediaType,

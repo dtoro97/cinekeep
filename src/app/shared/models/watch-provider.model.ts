@@ -5,5 +5,5 @@ export interface WatchProviderOption {
     readonly displayPriority: number;
 }
 
-/** How many of a region's providers count as its main ones, e.g. for "streaming this month". */
+// How many of a region's providers count as its main ones, e.g. for "streaming this month".
 export const TOP_PROVIDER_COUNT = 3;

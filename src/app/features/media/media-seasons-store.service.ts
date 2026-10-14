@@ -30,9 +30,9 @@ import { MediaStoreService } from './media-store.service';
 
 export interface EpisodeListEntry {
     readonly id: string;
-    /** The season's highest-rated episode. */
+    // The season's highest-rated episode.
     readonly isBest: boolean;
-    /** Accessible name, e.g. "Episode 8: Better Call Saul"; used by the season ratings strip. */
+    // Accessible name, e.g. "Episode 8: Better Call Saul"; used by the season ratings strip.
     readonly label: string;
     readonly item: EpisodeListItemData;
 }
@@ -42,7 +42,7 @@ export interface SeasonTarget {
     readonly seasonNumber: number;
 }
 
-/** A season's details, posters and videos, which always load together. */
+// A season's details, posters and videos, which always load together.
 interface SeasonResources {
     readonly season: TvSeason | null;
     readonly images: TvSeasonImages | null;
@@ -67,10 +67,8 @@ const INITIAL_STATE: MediaSeasonsState = {
 
 @Injectable()
 export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> {
-    /**
-     * The selected season, from its loaded details or, until they arrive, the series' season list.
-     * Resources not requested yet show as loading, because opening the season requests them.
-     */
+    // The selected season, from its loaded details or, until they arrive, the series' season list.
+    // Resources not requested yet show as loading, because opening the season requests them.
     readonly season$ = this.select(
         this.state$,
         this.mediaStore.mediaState$,
@@ -166,10 +164,8 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
         super(INITIAL_STATE);
     }
 
-    /**
-     * A season's episodes for prev/next links: reuses the season page's cache when present,
-     * otherwise fetches only the season details (no posters or videos).
-     */
+    // A season's episodes for prev/next links: reuses the season page's cache when present,
+    // otherwise fetches only the season details (no posters or videos).
     seasonEpisodes$(target: SeasonTarget): Observable<TvEpisode[]> {
         const cached = this.get().resourcesByKey[toSeasonKey(target)];
 
@@ -180,7 +176,7 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
         return this.fetchSeasonDetails$(target).pipe(map((season) => season?.episodes ?? []));
     }
 
-    /** Opens the series' default season once the series has loaded. */
+    // Opens the series' default season once the series has loaded.
     openSeries$(seriesId: number): Observable<unknown> {
         if (this.get().seriesId !== seriesId) {
             this.setState({ ...INITIAL_STATE, seriesId });
@@ -257,7 +253,7 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
     }
 }
 
-/** The season's own name, or `Specials` for season 0 and `Season N` otherwise. */
+// The season's own name, or `Specials` for season 0 and `Season N` otherwise.
 export const toSeasonLabel = (seasonNumber: number, name?: string | null): string =>
     name ?? (seasonNumber === 0 ? 'Specials' : `Season ${seasonNumber}`);
 

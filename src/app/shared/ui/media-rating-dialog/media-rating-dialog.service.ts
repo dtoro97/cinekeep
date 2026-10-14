@@ -25,7 +25,7 @@ export class MediaRatingDialogService {
         private readonly userSessionStore: UserSessionStoreService,
     ) {}
 
-    /** Opens the rating dialog and runs the chosen action; choosing to sign in opens the sign-in dialog. */
+    // Opens the rating dialog and runs the chosen action; choosing to sign in opens the sign-in dialog.
     open$({ title, currentRating, save, remove }: MediaRatingDialogRequest): Observable<unknown> {
         return this.dialog
             .open<MediaRatingDialogComponent, MediaRatingDialogData, MediaRatingDialogResult>(

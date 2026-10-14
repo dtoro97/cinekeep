@@ -1,6 +1,6 @@
 import { PersonCardItem } from '../../../shared';
 
-/** How many cast members the credits summary grid shows. */
+// How many cast members the credits summary grid shows.
 export const TOP_CAST_GRID_COUNT = 12;
 
 const EPISODE_DIRECTOR_PREVIEW_COUNT = 5;
@@ -13,7 +13,7 @@ export interface CreditsSummaryLink {
 export interface CreditsSummary {
     readonly topCast: readonly PersonCardItem[];
     readonly hasTopCast: boolean;
-    /** Series directors are per-episode, so they get their own row under the cast. */
+    // Series directors are per-episode, so they get their own row under the cast.
     readonly episodeDirectors: {
         readonly visible: readonly CreditsSummaryLink[];
         readonly hiddenCount: number;

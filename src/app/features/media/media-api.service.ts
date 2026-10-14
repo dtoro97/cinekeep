@@ -35,7 +35,7 @@ export class MediaApiService {
         private readonly tvService: TvSeriesRestControllerService,
     ) {}
 
-    /** Details with external ids, which the external links need. */
+    // Details with external ids, which the external links need.
     getDetails$(target: MediaTarget): Observable<Movie | TvSeries> {
         const appendToResponse = 'external_ids';
 

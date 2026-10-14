@@ -10,21 +10,21 @@ import { isSameMediaTarget } from '../media-target';
 
 export type CreditSection = 'cast' | 'crew';
 
-/** A person in the cast or crew list: their character ("as Dom Cobb") or merged jobs as `role`. */
+// A person in the cast or crew list: their character ("as Dom Cobb") or merged jobs as `role`.
 export interface CreditPerson {
     readonly key: string;
     readonly id: number;
     readonly name: string;
     readonly profilePath: string | null;
     readonly role: string | null;
-    /** "62 episodes" for TV credits. */
+    // "62 episodes" for TV credits.
     readonly episodeLabel: string | null;
-    /** Lower-cased name and role, matched by the page filter. */
+    // Lower-cased name and role, matched by the page filter.
     readonly searchText: string;
 }
 
 export interface CreditDepartment {
-    /** Stable value for the department filter. */
+    // Stable value for the department filter.
     readonly id: string;
     readonly name: string;
     readonly people: readonly CreditPerson[];

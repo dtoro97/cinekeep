@@ -11,13 +11,11 @@ import { environment } from '../../../environments/environment';
 const API_PREFIX = `${environment.backendApiUrl}/api/`;
 const AUTH_PREFIX = `${environment.backendApiUrl}/api/auth/`;
 
-/** CineKeep API requests carry user data, so they are also kept out of the SSR transfer cache. */
+// CineKeep API requests carry user data, so they are also kept out of the SSR transfer cache.
 export const isBackendApiRequest = (url: string): boolean => url.startsWith(API_PREFIX);
 
-/**
- * Adds the CineKeep access token to CineKeep API requests only. TMDb requests carry their
- * own read token and must never receive the user's JWT.
- */
+// Adds the CineKeep access token to CineKeep API requests only. TMDb requests carry their
+// own read token and must never receive the user's JWT.
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
     if (!isBackendApiRequest(req.url)) {
         return next(req);

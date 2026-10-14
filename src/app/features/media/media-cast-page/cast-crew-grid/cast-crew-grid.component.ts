@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { ImageComponent, PluralizePipe, RepeatPipe, SkeletonComponent } from '../../../../shared';
 import { CreditDepartment, CreditPerson } from '../media-cast-page-store.service';
 
-/** Cast as one grid of people, or crew as one grid per department. */
+// Cast as one grid of people, or crew as one grid per department.
 @Component({
     selector: 'app-cast-crew-grid',
     imports: [ImageComponent, NgTemplateOutlet, PluralizePipe, RepeatPipe, RouterLink, SkeletonComponent],

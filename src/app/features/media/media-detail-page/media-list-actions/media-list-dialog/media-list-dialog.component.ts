@@ -17,7 +17,7 @@ export interface MediaListDialogData {
 
 interface MediaListDialogOption {
     readonly list: MediaUserListSummary;
-    /** Accessible name for the option, e.g. "Add Heat to Favourite heists". */
+    // Accessible name for the option, e.g. "Add Heat to Favourite heists".
     readonly label: string;
 }
 

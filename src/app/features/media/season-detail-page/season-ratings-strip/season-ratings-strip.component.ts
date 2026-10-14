@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import type { SeasonRatingBar } from './season-ratings.mapper';
 
-/** The shape of a season: one bar per episode, highest-rated in gold, each linking to its episode. */
+// The shape of a season: one bar per episode, highest-rated in gold, each linking to its episode.
 @Component({
     selector: 'app-season-ratings-strip',
     imports: [RouterLink],

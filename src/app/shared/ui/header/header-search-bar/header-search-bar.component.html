@@ -5,7 +5,7 @@
         [class.header-search--open]="searchBar.searchOpen"
         [cdkTrapFocus]="searchBar.searchOpen"
         [cdkTrapFocusAutoCapture]="searchBar.searchOpen"
-        (focusout)="onFocusOut($event)"
+        (focusout)="closePanelOnFocusLeave($event)"
     >
         <div class="header-search__top">
             <div class="header-search__bar">
@@ -46,7 +46,10 @@
                     [formControl]="searchControl"
                     (focus)="openPanel()"
                     (click)="openPanel()"
-                    (keydown)="onInputKeydown($event)"
+                    (keydown.arrowdown)="moveActiveOption($event, 1, searchBar.optionIds)"
+                    (keydown.arrowup)="moveActiveOption($event, -1, searchBar.optionIds)"
+                    (keydown.enter)="submit($event, searchBar.submitTarget)"
+                    (keydown.escape)="dismiss($event, searchBar.dismissStep)"
                 />
 
                 @if (searchBar.hasQuery) {

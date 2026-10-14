@@ -79,7 +79,7 @@ export class LocaleStoreService extends ComponentStore<LocaleState> {
         this.reloadBrowserPage();
     }
 
-    /** Cookies alone: the server reads them to render in the visitor's locale. */
+    // Cookies alone: the server reads them to render in the visitor's locale.
     private persistLocale(language: string, region: string): void {
         this.browserStorage.setCookie(STORAGE_KEY_LANGUAGE, language);
         this.browserStorage.setCookie(STORAGE_KEY_REGION, region);

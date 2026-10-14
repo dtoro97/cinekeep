@@ -3,9 +3,9 @@ import type { EpisodeTarget } from './media-target';
 import type { RouteCommands } from '../../shared';
 
 export interface EpisodePagerLink {
-    /** "Episode 7", or "Season 1 finale" / "Season 3 premiere" across seasons. */
+    // "Episode 7", or "Season 1 finale" / "Season 3 premiere" across seasons.
     readonly label: string;
-    /** The neighbouring episode's name when the season's episode list is loaded. */
+    // The neighbouring episode's name when the season's episode list is loaded.
     readonly title: string | null;
     readonly routeCommands: RouteCommands;
 }
@@ -15,11 +15,9 @@ export interface EpisodePager {
     readonly next: EpisodePagerLink | null;
 }
 
-/**
- * Previous/next episode links. Within a season they carry the episode names from the
- * season's episode list; across seasons they rely on the series' episode counts alone.
- * Specials (season 0) only link within themselves.
- */
+// Previous/next episode links. Within a season they carry the episode names from the
+// season's episode list; across seasons they rely on the series' episode counts alone.
+// Specials (season 0) only link within themselves.
 export const toEpisodePager = (
     target: EpisodeTarget,
     seasons: readonly TvSeasonCompact[],

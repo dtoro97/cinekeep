@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-/** Age in whole years at `endDate`, or today when it is unset: `birthday | age: deathday`. */
+// Age in whole years at `endDate`, or today when it is unset: `birthday | age: deathday`.
 @Pipe({ name: 'age' })
 export class AgePipe implements PipeTransform {
     transform(birthday: string | null | undefined, endDate?: string | null): number | null {

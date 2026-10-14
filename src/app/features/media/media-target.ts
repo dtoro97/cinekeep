@@ -21,14 +21,14 @@ export const isSameEpisodeTarget = (left: EpisodeTarget | null, right: EpisodeTa
 
 const isMediaType = (value: string | null | undefined): value is MediaType => value === 'movie' || value === 'tv';
 
-/** `null` when the route params do not name a movie or TV series. */
+// `null` when the route params do not name a movie or TV series.
 export const toMediaTarget = (id: string | null | undefined, type: string | null | undefined): MediaTarget | null => {
     const mediaId = parsePositiveIntegerParam(id);
 
     return mediaId !== null && isMediaType(type) ? { id: mediaId, type } : null;
 };
 
-/** `null` when the route params do not form a valid episode (seasons start at 0 for specials). */
+// `null` when the route params do not form a valid episode (seasons start at 0 for specials).
 export const toEpisodeTarget = (
     seriesId: number,
     seasonNumber: string | null | undefined,

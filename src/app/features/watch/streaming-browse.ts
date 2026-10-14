@@ -17,7 +17,7 @@ export const AIRING_TODAY_SLUG = 'airing-today';
 
 export const getStreamingThisMonthTitle = (): string => `Streaming in ${getCurrentMonthName()}`;
 
-/** Its list waits for the region's providers and then uses `toStreamingThisMonthQuery(providers)`. */
+// Its list waits for the region's providers and then uses `toStreamingThisMonthQuery(providers)`.
 export const STREAMING_THIS_MONTH_SECTION: StreamingEditorialSection = {
     slug: STREAMING_THIS_MONTH_SLUG,
     title: "This month's streaming arrivals",

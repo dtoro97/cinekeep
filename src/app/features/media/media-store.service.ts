@@ -84,7 +84,7 @@ const INITIAL_STATE: MediaState = {
 
 @Injectable()
 export class MediaStoreService extends ComponentStore<MediaState> {
-    /** The title the media pages show, set by `MediaWrapperComponent` from the route. */
+    // The title the media pages show, set by `MediaWrapperComponent` from the route.
     readonly currentTarget$ = this.select((state) => state.target).pipe(filter(isDefined));
 
     readonly mediaState$ = this.select((state) => state.media);
@@ -93,7 +93,7 @@ export class MediaStoreService extends ComponentStore<MediaState> {
         target ? mapRemoteData(media, (data) => this.toMediaDetails(data, target)) : { state: 'notAsked' },
     );
 
-    /** The loaded title's details, `null` until they arrive. */
+    // The loaded title's details, `null` until they arrive.
     readonly mediaDetails$ = this.select(this.mediaDetailsState$, (state) =>
         state.state === 'success' ? state.data : null,
     );

@@ -61,7 +61,7 @@ interface EpisodeDetailState {
     readonly episode: RemoteData<TvEpisode | null>;
     readonly episodeImages: RemoteData<TvEpisodeImages | null>;
     readonly episodeVideos: RemoteData<VideoList | null>;
-    /** The season's episodes, for the previous/next episode names. */
+    // The season's episodes, for the previous/next episode names.
     readonly seasonEpisodes: RemoteData<TvEpisode[]>;
     readonly rating: UserRatingState;
 }
@@ -77,7 +77,7 @@ const INITIAL_STATE: EpisodeDetailState = {
     rating: { userRating: { state: 'notAsked' }, ratingPending: false },
 };
 
-/** Shared by the episode page and its photos page, so moving between them keeps the loaded episode. */
+// Shared by the episode page and its photos page, so moving between them keeps the loaded episode.
 @Injectable()
 export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState> {
     readonly episodeDetail$ = this.select(
@@ -232,7 +232,7 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         super(INITIAL_STATE);
     }
 
-    /** Loads the episode named by the route, redirecting to not-found when there is none. */
+    // Loads the episode named by the route, redirecting to not-found when there is none.
     load$(paramMap$: Observable<ParamMap>): Observable<unknown> {
         return this.toEpisodeTarget$(paramMap$, true).pipe(
             switchMap((target) => {
@@ -278,7 +278,7 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         );
     }
 
-    /** Loads the episode and its stills for the photos page, reusing what the episode page loaded. */
+    // Loads the episode and its stills for the photos page, reusing what the episode page loaded.
     loadPhotos$(paramMap$: Observable<ParamMap>): Observable<unknown> {
         return this.toEpisodeTarget$(paramMap$, false).pipe(
             switchMap((target) => {
@@ -344,7 +344,7 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         );
     }
 
-    /** Follows sign-in changes, so the rating appears or clears without a reload. */
+    // Follows sign-in changes, so the rating appears or clears without a reload.
     private readonly loadEpisodeRating = this.effect<EpisodeTarget>((target$) =>
         target$.pipe(
             switchMap((target) =>
@@ -370,7 +370,7 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
         ),
     );
 
-    /** Loads the season's episode list once per season; moving between its episodes reuses it. */
+    // Loads the season's episode list once per season; moving between its episodes reuses it.
     private readonly loadSeasonEpisodes = this.effect<EpisodeTarget>((target$) =>
         target$.pipe(
             distinctUntilChanged(
@@ -430,7 +430,7 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
     }
 }
 
-/** Stills not requested yet show as loading, because opening the episode requests them. */
+// Stills not requested yet show as loading, because opening the episode requests them.
 const toStills = (images: RemoteData<TvEpisodeImages | null>): RemoteData<ViewerImage[]> =>
     images.state === 'notAsked'
         ? { state: 'loading' }

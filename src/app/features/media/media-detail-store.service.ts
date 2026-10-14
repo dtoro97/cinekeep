@@ -69,7 +69,7 @@ interface MediaDetailState {
 }
 
 const HERO_CREDIT_LIMIT = 3;
-/** The title page shows this many streaming logos, then "+N". */
+// The title page shows this many streaming logos, then "+N".
 const PROVIDER_PREVIEW_COUNT = 3;
 const REVIEW_PREVIEW_COUNT = 3;
 const REVIEW_PREVIEW_MIN_CONTENT_LENGTH = 100;
@@ -91,10 +91,8 @@ const INITIAL_STATE: MediaDetailState = {
     collection: { state: 'notAsked' },
 };
 
-/**
- * The title page's own resources. Provided by the media wrapper, so they stay loaded while the
- * user visits the title's sub-pages and comes back.
- */
+// The title page's own resources. Provided by the media wrapper, so they stay loaded while the
+// user visits the title's sub-pages and comes back.
 @Injectable()
 export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
     readonly mediaDetail$ = this.select(
@@ -285,10 +283,8 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         super(INITIAL_STATE);
     }
 
-    /**
-     * Loads everything the title page shows, records the title as recently viewed, and redirects
-     * to not-found when the title does not exist.
-     */
+    // Loads everything the title page shows, records the title as recently viewed, and redirects
+    // to not-found when the title does not exist.
     load$(): Observable<unknown> {
         return merge(
             this.mediaStore.currentTarget$.pipe(

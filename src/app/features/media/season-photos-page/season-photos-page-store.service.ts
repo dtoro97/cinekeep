@@ -9,7 +9,7 @@ import { MediaSeasonsStoreService } from '../media-seasons-store.service';
 import { MediaStoreService } from '../media-store.service';
 
 interface SeasonPhotosPageState {
-    /** `null` when the route's season number is invalid. */
+    // `null` when the route's season number is invalid.
     readonly seasonNumber: number | null;
 }
 

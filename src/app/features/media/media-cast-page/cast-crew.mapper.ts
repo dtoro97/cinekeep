@@ -2,7 +2,7 @@ import { toEpisodeLabel } from '../../../shared';
 import type { CastGridMember, CrewGridMember } from '../media-credits-store.service';
 import type { CreditDepartment, CreditPerson } from './media-cast-page-store.service';
 
-/** Departments in the order a film's credits are usually read; anything else follows alphabetically. */
+// Departments in the order a film's credits are usually read; anything else follows alphabetically.
 const DEPARTMENT_ORDER = [
     'Directing',
     'Writing',
@@ -17,7 +17,7 @@ const DEPARTMENT_ORDER = [
     'Crew',
 ];
 
-/** Lead credits open their department; everyone else keeps TMDb's order after them. */
+// Lead credits open their department; everyone else keeps TMDb's order after them.
 const KEY_JOBS = [
     'Director',
     'Screenplay',
@@ -70,7 +70,7 @@ interface CrewEntry {
     episodeCount: number;
 }
 
-/** One row per person per department, with their jobs merged ("Director, Writer"). */
+// One row per person per department, with their jobs merged ("Director, Writer").
 export const toCrewDepartments = (crew: readonly CrewGridMember[]): CreditDepartment[] => {
     const departments = new Map<string, Map<number, CrewEntry>>();
 

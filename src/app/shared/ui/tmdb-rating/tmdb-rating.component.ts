@@ -15,12 +15,12 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TmdbRatingComponent implements OnChanges {
-    /** A normalized rating (see `toRating`); `null` renders the empty text. */
+    // A normalized rating (see `toRating`); `null` renders the empty text.
     @Input() value: number | null = null;
     @Input() voteCount: number | null | undefined = null;
     @Input() label = 'Rating';
     @Input() loading = false;
-    /** Renders the score as the page's headline number. */
+    // Renders the score as the page's headline number.
     @Input({ transform: booleanAttribute }) prominent = false;
 
     protected voteUnit = 'votes';

@@ -8,10 +8,8 @@ const HTML_ENTITIES: Readonly<Record<string, string>> = {
     '&nbsp;': ' ',
 };
 
-/**
- * Turns review markdown into plain text for clamped excerpts, so markers like `*feeling*`
- * or `[link](url)` don't show up literally. The full review still renders the markdown.
- */
+// Turns review markdown into plain text for clamped excerpts, so markers like `*feeling*`
+// or `[link](url)` don't show up literally. The full review still renders the markdown.
 export const toReviewPreviewText = (markdown: string): string =>
     markdown
         .replace(/<[^>]*>/g, ' ')

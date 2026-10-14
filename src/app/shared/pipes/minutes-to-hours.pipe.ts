@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-/** `125 | m2h` → `2h 5min`. */
+// `125 | m2h` → `2h 5min`.
 @Pipe({ name: 'm2h' })
 export class MinutesToHoursPipe implements PipeTransform {
     transform(value: number): string {

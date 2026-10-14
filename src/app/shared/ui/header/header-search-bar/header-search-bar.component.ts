@@ -8,11 +8,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { EventType, Router } from '@angular/router';
-import { filter, tap } from 'rxjs';
+import { distinctUntilChanged, filter, map } from 'rxjs';
 
 import { SEARCH_TYPE_OPTIONS } from '../../../models/media-type-options.model';
 import type { MediaOrPersonFilterType } from '../../../types';
+import { isDefined } from '../../../utils/is-defined';
 import { HeaderSearchBarStoreService } from './header-search-bar-store.service';
+import { HeaderSearchDismissStep, HeaderSearchTarget } from './header-search.model';
 import { HeaderSearchResultsComponent } from './header-search-results/header-search-results.component';
 
 const EDITABLE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
@@ -43,31 +45,42 @@ export class HeaderSearchBarComponent {
 
     constructor(
         private readonly headerSearchBarStoreService: HeaderSearchBarStoreService,
-        private readonly router: Router,
         private readonly elementRef: ElementRef<HTMLElement>,
+        router: Router,
     ) {
         this.searchControl.valueChanges.pipe(takeUntilDestroyed()).subscribe((query) => {
             this.headerSearchBarStoreService.updateQuery(query);
         });
 
-        this.router.events
+        router.events
             .pipe(
-                takeUntilDestroyed(),
                 filter((event) => event.type === EventType.NavigationEnd),
-                tap(() => this.closeSearch()),
+                takeUntilDestroyed(),
             )
-            .subscribe();
+            .subscribe(() => this.closeSearch());
+
+        // Keeps the option picked with the arrow keys in view.
+        this.searchBar$
+            .pipe(
+                map(({ activeOptionId }) => activeOptionId),
+                distinctUntilChanged(),
+                filter(isDefined),
+                takeUntilDestroyed(),
+            )
+            .subscribe((optionId) =>
+                this.elementRef.nativeElement.querySelector(`#${optionId}`)?.scrollIntoView({ block: 'nearest' }),
+            );
     }
 
     @HostListener('document:click', ['$event'])
-    onDocumentClick(event: MouseEvent): void {
+    closePanelOnOutsideClick(event: MouseEvent): void {
         if (!this.elementRef.nativeElement.contains(event.target as Node)) {
             this.headerSearchBarStoreService.closePanel();
         }
     }
 
     @HostListener('document:keydown', ['$event'])
-    onDocumentKeydown(event: KeyboardEvent): void {
+    focusOnSlashKey(event: KeyboardEvent): void {
         if (
             event.key !== '/' ||
             event.defaultPrevented ||
@@ -86,7 +99,7 @@ export class HeaderSearchBarComponent {
         this.focusSearch();
     }
 
-    onFocusOut(event: FocusEvent): void {
+    closePanelOnFocusLeave(event: FocusEvent): void {
         const next = event.relatedTarget;
 
         if (next instanceof Node && this.elementRef.nativeElement.contains(next)) {
@@ -104,24 +117,29 @@ export class HeaderSearchBarComponent {
         this.headerSearchBarStoreService.closePanel();
     }
 
-    onInputKeydown(event: KeyboardEvent): void {
-        switch (event.key) {
-            case 'ArrowDown':
-                event.preventDefault();
-                this.moveActiveOption(1);
-                break;
-            case 'ArrowUp':
-                event.preventDefault();
-                this.moveActiveOption(-1);
-                break;
-            case 'Enter':
-                event.preventDefault();
-                this.submit();
-                break;
-            case 'Escape':
-                this.dismiss(event);
-                break;
+    moveActiveOption(event: Event, delta: 1 | -1, optionIds: readonly string[]): void {
+        event.preventDefault();
+        this.headerSearchBarStoreService.moveActiveOption(delta, optionIds);
+    }
+
+    submit(event: Event, target: HeaderSearchTarget | null): void {
+        event.preventDefault();
+        this.headerSearchBarStoreService.submit(target);
+    }
+
+    dismiss(event: Event, step: HeaderSearchDismissStep): void {
+        if (step === 'none') {
+            return;
         }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (step === 'query') {
+            this.searchControl.setValue('', { emitEvent: false });
+        }
+
+        this.headerSearchBarStoreService.dismiss(step);
     }
 
     setFilter(filter: MediaOrPersonFilterType): void {
@@ -149,42 +167,6 @@ export class HeaderSearchBarComponent {
 
     toggleSearch(): void {
         this.headerSearchBarStoreService.toggleSearch();
-    }
-
-    private moveActiveOption(delta: 1 | -1): void {
-        const activeOptionId = this.headerSearchBarStoreService.moveActiveOption(delta);
-
-        if (activeOptionId) {
-            this.elementRef.nativeElement.querySelector(`#${activeOptionId}`)?.scrollIntoView({ block: 'nearest' });
-        }
-    }
-
-    private submit(): void {
-        const action = this.headerSearchBarStoreService.getSubmitAction();
-
-        switch (action.kind) {
-            case 'option':
-                this.router.navigate([...action.routeCommands]);
-                break;
-            case 'search':
-                this.router.navigate(['/search'], { queryParams: action.queryParams });
-                break;
-        }
-    }
-
-    private dismiss(event: KeyboardEvent): void {
-        const step = this.headerSearchBarStoreService.dismiss();
-
-        if (step === 'none') {
-            return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (step === 'query') {
-            this.searchControl.setValue('', { emitEvent: false });
-        }
     }
 
     private focusSearch(): void {

@@ -12,7 +12,7 @@ export interface EpisodeCrewRow {
     readonly people: readonly EpisodeCrewPerson[];
 }
 
-/** Key jobs first, in the order a credits roll would list them. */
+// Key jobs first, in the order a credits roll would list them.
 const JOB_ORDER = [
     'Director',
     'Writer',
@@ -39,7 +39,7 @@ const JOB_LABELS: Readonly<Record<string, string>> = {
 
 const MAX_CREW_ROWS = 8;
 
-/** Crew grouped by job as a short credits list, instead of one accordion per department. */
+// Crew grouped by job as a short credits list, instead of one accordion per department.
 export const toEpisodeCrewRows = (crew: readonly CrewMember[]): EpisodeCrewRow[] => {
     const byJob = new Map<string, EpisodeCrewPerson[]>();
 
@@ -68,6 +68,6 @@ export const toEpisodeCrewRows = (crew: readonly CrewMember[]): EpisodeCrewRow[]
         .map(([job, people]) => ({ label: JOB_LABELS[job] ?? job, people }));
 };
 
-/** Guest stars in the same compact grid the title page uses for its cast. */
+// Guest stars in the same compact grid the title page uses for its cast.
 export const toGuestCast = (guestStars: readonly CastMember[]): CreditsSummary =>
     toCreditsSummary(guestStars.filter(({ id }) => !!id).map(toCastPersonCardItem), []);

@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 
 import { EMPTY, catchError, finalize, of, switchMap, tap } from 'rxjs';
 
-import { IconButtonComponent, SigninDialogService, SnackbarService, UserSessionStoreService } from '../../../../shared';
+import { IconButtonComponent, SigninDialogService, SnackbarService } from '../../../../shared';
 import { MediaDetailActionsStoreService } from '../../media-detail-actions-store.service';
 import { MediaDetails } from '../../media-store.service';
 import {
@@ -36,14 +36,10 @@ export class MediaListActionsComponent {
         private readonly router: Router,
         private readonly signinDialogService: SigninDialogService,
         private readonly snackbarService: SnackbarService,
-        private readonly userSessionStore: UserSessionStoreService,
     ) {}
 
-    toggleWatchlist(): void {
-        (this.userSessionStore.isAuthenticated()
-            ? this.actionsStore.toggleLibraryFlag$('watchlist')
-            : this.signinDialogService.open$()
-        )
+    toggleWatchlist(isAuthenticated: boolean): void {
+        (isAuthenticated ? this.actionsStore.toggleLibraryFlag$('watchlist') : this.signinDialogService.open$())
             .pipe(
                 catchError(() => this.snackbarService.showError$('Could not update your watchlist.')),
                 takeUntilDestroyed(this.destroyRef),
@@ -51,11 +47,8 @@ export class MediaListActionsComponent {
             .subscribe();
     }
 
-    toggleFavorite(): void {
-        (this.userSessionStore.isAuthenticated()
-            ? this.actionsStore.toggleLibraryFlag$('favorite')
-            : this.signinDialogService.open$()
-        )
+    toggleFavorite(isAuthenticated: boolean): void {
+        (isAuthenticated ? this.actionsStore.toggleLibraryFlag$('favorite') : this.signinDialogService.open$())
             .pipe(
                 catchError(() => this.snackbarService.showError$('Could not update your favorites.')),
                 takeUntilDestroyed(this.destroyRef),
@@ -63,12 +56,12 @@ export class MediaListActionsComponent {
             .subscribe();
     }
 
-    openListsDialog(): void {
+    openListsDialog(isAuthenticated: boolean): void {
         const { id, title, mediaType, backdropPath } = this.media;
 
         this.actionsStore.setListDialogPending(true);
 
-        (this.userSessionStore.isAuthenticated()
+        (isAuthenticated
             ? this.actionsStore.getUserLists$().pipe(
                   // Without the user's lists the dialog still offers to create a new one.
                   catchError(() => of([])),

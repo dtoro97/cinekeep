@@ -5,7 +5,7 @@ import { map, take } from 'rxjs';
 
 import { UserSessionStoreService } from '../services/user-session-store.service';
 
-/** Waits for the browser session restore, then lets only signed-in users through. */
+// Waits for the browser session restore, then lets only signed-in users through.
 export const authenticatedGuard: CanActivateFn = () => {
     const userSessionStore = inject(UserSessionStoreService);
     const router = inject(Router);

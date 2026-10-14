@@ -19,7 +19,7 @@ export class ImageComponent {
         this.showImage = !!src;
     }
 
-    /** The image path; a failed load falls back to the placeholder instead of showing alt text. */
+    // The image path; a failed load falls back to the placeholder instead of showing alt text.
     currentSrc: string | null = null;
     showImage = false;
 

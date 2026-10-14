@@ -103,7 +103,7 @@ const SHORT_GENRE_NAMES: Readonly<Record<string, string>> = {
     'War & Politics': 'War',
 };
 
-/** List rows with up to three genre names and a link to the title. */
+// List rows with up to three genre names and a link to the title.
 export const toMediaListEntries = (
     items: readonly MediaListItem[],
     genreMap: ReadonlyMap<number, string> = EMPTY_GENRE_MAP,
@@ -130,7 +130,7 @@ export const toPersonCardItem = (person: PersonLike): PersonCardItem => ({
     subtitle: person.known_for_department ?? '',
 });
 
-/** Department plus the best-known title, e.g. "Acting · Reacher". */
+// Department plus the best-known title, e.g. "Acting · Reacher".
 export const toKnownForPersonCardItem = (person: PersonLike): PersonCardItem => ({
     ...toPersonCardItem(person),
     subtitle: [person.known_for_department, toKnownForLinks(person.known_for)[0]?.title].filter(Boolean).join(' · '),
@@ -158,7 +158,7 @@ export const toCardItem = (
     };
 };
 
-/** A list row's title as a poster card. */
+// A list row's title as a poster card.
 export const mediaListItemToCardItem = (item: MediaListItem): CardItem => ({
     id: item.id,
     mediaType: item.mediaType,
