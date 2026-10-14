@@ -1,14 +1,10 @@
 @if (favourites$ | async; as favourites) {
-    <app-sub-page-header
-        parentTitle="Profile"
-        backLink="/me"
-        pageTitle="Favorites"
-    />
+    <app-sub-page-header parentTitle="Profile" backLink="/me" pageTitle="Favorites" />
 
     <main class="page-main page">
         <app-browse-toolbar>
             <div start class="page__total">
-                @if (favourites.items.state === "success") {
+                @if (favourites.showTotal) {
                     <span class="text-caption">{{ favourites.totalLabel }}</span>
                 }
             </div>
@@ -17,66 +13,61 @@
                 <app-toggle-group
                     [options]="mediaTypeOptions"
                     [selectedValue]="favourites.mediaType"
-                    (selected)="onMediaTypeSelected($event)"
+                    (selected)="setMediaType($event)"
                 />
 
                 <app-sort-button
                     [options]="sortOptions"
                     [selectedValue]="sortField"
                     [direction]="favourites.sortDirection"
-                    (directionToggle)="onSortDirectionToggle()"
+                    (directionToggle)="toggleSortDirection()"
                 />
             </div>
         </app-browse-toolbar>
 
-        @if (favourites.items.state === "loading") {
+        @if (favourites.showSkeleton) {
             <div class="page__grid" aria-hidden="true">
                 @for (placeholder of skeletonCount | repeat; track placeholder) {
                     <app-card-skeleton />
                 }
             </div>
-        } @else if (favourites.items.state === "success") {
-            @if (favourites.items.data.length) {
-                <div class="page__grid">
-                    @for (item of favourites.items.data; track item.mediaType + "-" + item.id) {
-                        <article class="page__item">
-                            <app-card
-                                [item]="item"
-                                [imageParams]="posterImageParams"
-                            />
+        } @else if (favourites.hasItems) {
+            <div class="page__grid">
+                @for (item of favourites.items; track item.id) {
+                    <article class="page__item">
+                        <app-card [item]="item" [imageParams]="posterImageParams" />
 
-                            <app-icon-button
-                                class="page__remove"
-                                [selected]="true"
-                                title="Remove from favorites"
-                                ariaLabel="Remove {{ item.title }} from favorites"
-                                (buttonClick)="onRemoveFromFavourites(item)"
-                            >
-                                <i class="fa-solid fa-heart" aria-hidden="true"></i>
-                            </app-icon-button>
-                        </article>
-                    }
-                </div>
-
-                @if (favourites.total > favourites.pageSize) {
-                    <mat-paginator
-                        class="page__paginator"
-                        [length]="favourites.total"
-                        [pageIndex]="favourites.page"
-                        [pageSize]="favourites.pageSize"
-                        [hidePageSize]="true"
-                        (page)="onPageChange($event)"
-                    />
+                        <app-icon-button
+                            class="page__remove"
+                            [selected]="true"
+                            title="Remove from favorites"
+                            ariaLabel="Remove {{ item.title }} from favorites"
+                            (buttonClick)="remove(item)"
+                        >
+                            <i class="fa-solid fa-heart" aria-hidden="true"></i>
+                        </app-icon-button>
+                    </article>
                 }
-            } @else {
-                <section class="page__empty">
-                    <app-empty-state
-                        iconClass="fa-regular fa-heart"
-                        title="No favorite titles"
-                        text="Movies and TV series you mark as favorites will appear here."
-                    />
-                </section>
-            }
+            </div>
+        } @else if (favourites.showEmpty) {
+            <section class="page__empty">
+                <app-empty-state
+                    iconClass="fa-regular fa-heart"
+                    title="No favorite titles"
+                    text="Movies and TV series you mark as favorites will appear here."
+                />
+            </section>
+        }
+
+        @if (favourites.showPaginator) {
+            <mat-paginator
+                class="page__paginator"
+                [length]="favourites.total"
+                [pageIndex]="favourites.pageIndex"
+                [pageSize]="favourites.pageSize"
+                [hidePageSize]="true"
+                (page)="changePage($event)"
+            />
         }
     </main>
 }

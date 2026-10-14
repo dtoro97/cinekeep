@@ -23,9 +23,9 @@
                 </p>
             }
 
-            @if (addItems.state.state === 'loading') {
+            @if (addItems.showSkeleton) {
                 <div class="dialog__results">
-                    @for (placeholder of [1, 2, 3, 4]; track placeholder) {
+                    @for (placeholder of skeletonCount | repeat; track placeholder) {
                         <article class="dialog__result">
                             <app-skeleton class="dialog__poster-skeleton" />
                             <div class="dialog__result-copy">
@@ -35,9 +35,9 @@
                         </article>
                     }
                 </div>
-            } @else if (addItems.state.state === 'success' && addItems.state.data.length) {
+            } @else if (addItems.hasResults) {
                 <div class="dialog__results">
-                    @for (item of addItems.state.data; track item.key) {
+                    @for (item of addItems.results; track item.key) {
                         <article class="dialog__result">
                             <app-image
                                 class="dialog__poster"
@@ -69,17 +69,15 @@
                         </article>
                     }
                 </div>
-            } @else if (addItems.state.state === 'success') {
+            } @else if (addItems.showNoMatches) {
                 <p class="text-meta">No matching titles found.</p>
-            } @else {
-                <p class="text-meta">
-                    Search for a movie or TV series to add it to this list.
-                </p>
+            } @else if (addItems.showPrompt) {
+                <p class="text-meta">Search for a movie or TV series to add it to this list.</p>
             }
         </mat-dialog-content>
 
         <mat-dialog-actions align="end">
-            <button matButton="filled" type="button" (click)="close()">Done adding</button>
+            <button matButton="filled" type="button" (click)="close(addItems.hasChanges)">Done adding</button>
         </mat-dialog-actions>
     </div>
 }

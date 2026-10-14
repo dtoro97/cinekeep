@@ -1,14 +1,12 @@
 @if (userListDetail$ | async; as userListDetail) {
     <div class="detail page-container">
-        @if (userListDetail.header.state === 'success') {
-            @let header = userListDetail.header.data;
-
+        @if (userListDetail.header; as header) {
             <app-sub-page-header
                 parentTitle="your lists"
                 [backLink]="backLink"
                 [backdropPath]="header.backdropPath"
                 [pageTitle]="header.name"
-                [subtitle]="userListDetail.headerSubtitle"
+                [subtitle]="header.subtitle"
             />
 
             <main class="page-main detail__main page-list-column">
@@ -18,16 +16,11 @@
 
                 <app-browse-toolbar class="detail__toolbar">
                     <div start class="detail__actions" role="group" aria-label="List actions">
-                        <button matButton="filled" type="button" (click)="onAddTitles(header.id)">
+                        <button matButton="filled" type="button" (click)="addTitles(header)">
                             <i class="fa-solid fa-plus" aria-hidden="true"></i>
                             Add titles
                         </button>
-                        <button
-                            matButton="outlined"
-                            class="button--subtle"
-                            type="button"
-                            (click)="onEditDetails(header, userListDetail.defaultSortBy)"
-                        >
+                        <button matButton="outlined" class="button--subtle" type="button" (click)="editList(header)">
                             <i class="fa-solid fa-pencil" aria-hidden="true"></i>
                             Edit list
                         </button>
@@ -43,11 +36,11 @@
                         </button>
 
                         <mat-menu #listMenu="matMenu" xPosition="before">
-                            <button mat-menu-item type="button" [disabled]="!header.itemCount" (click)="onClearList()">
+                            <button mat-menu-item type="button" [disabled]="!header.canClear" (click)="clearList()">
                                 <mat-icon aria-hidden="true">clear_all</mat-icon>
                                 <span>Clear list</span>
                             </button>
-                            <button class="detail__menu-danger" mat-menu-item type="button" (click)="onDeleteList()">
+                            <button class="detail__menu-danger" mat-menu-item type="button" (click)="deleteList()">
                                 <mat-icon aria-hidden="true">delete</mat-icon>
                                 <span>Delete list</span>
                             </button>
@@ -59,123 +52,118 @@
                         [options]="sortFieldOptions"
                         [selectedValue]="userListDetail.sort.field"
                         [direction]="userListDetail.sort.direction"
-                        (sortChange)="onSortFieldChange($event, userListDetail.sort)"
-                        (directionToggle)="onSortDirectionToggle(userListDetail.sort)"
+                        (sortChange)="setSortField($event)"
+                        (directionToggle)="toggleSortDirection()"
                     />
                 </app-browse-toolbar>
 
-                @if (userListDetail.items.state === 'loading') {
+                @if (userListDetail.showSkeleton) {
                     <div class="detail__items" aria-hidden="true">
-                        @for (placeholder of initialSkeletonCount | repeat; track placeholder) {
+                        @for (placeholder of skeletonCount | repeat; track placeholder) {
                             <app-media-list-item [loading]="true" />
                         }
                     </div>
-                } @else if (userListDetail.items.state === 'success') {
-                    @if (userListDetail.items.data.length) {
-                        <div class="detail__items">
-                            @for (item of userListDetail.items.data; track item.key) {
-                                <app-media-list-item [item]="item.mediaItem" [link]="item.link">
-                                    <div media-list-item-action class="detail__item-actions">
-                                        <app-icon-button
-                                            [title]="item.commentActionLabel"
-                                            [ariaLabel]="item.commentActionLabel"
-                                            [selected]="editingCommentKey() === item.key"
-                                            (buttonClick)="onStartComment(item)"
-                                        >
-                                            <i class="fa-regular fa-comment" aria-hidden="true"></i>
-                                        </app-icon-button>
-                                        <app-icon-button
-                                            tone="danger"
-                                            title="Remove from list"
-                                            ariaLabel="Remove {{ item.title }} from this list"
-                                            (buttonClick)="onRemoveItem(item)"
-                                        >
-                                            <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
-                                        </app-icon-button>
-                                    </div>
+                } @else if (userListDetail.hasItems) {
+                    <div class="detail__items">
+                        @for (item of userListDetail.items; track item.key) {
+                            <app-media-list-item [item]="item.mediaItem" [link]="item.link">
+                                <div media-list-item-action class="detail__item-actions">
+                                    <app-icon-button
+                                        [title]="item.commentActionLabel"
+                                        [ariaLabel]="item.commentActionLabel"
+                                        [selected]="item.isEditingComment"
+                                        (buttonClick)="startComment(item)"
+                                    >
+                                        <i class="fa-regular fa-comment" aria-hidden="true"></i>
+                                    </app-icon-button>
+                                    <app-icon-button
+                                        tone="danger"
+                                        title="Remove from list"
+                                        ariaLabel="Remove {{ item.mediaItem.title }} from this list"
+                                        (buttonClick)="removeItem(item)"
+                                    >
+                                        <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                                    </app-icon-button>
+                                </div>
 
-                                    @if (editingCommentKey() === item.key) {
-                                        <div media-list-item-note class="detail__comment-editor">
-                                            <mat-form-field
-                                                class="detail__comment-field"
-                                                appearance="outline"
-                                                subscriptSizing="dynamic"
+                                @if (item.isEditingComment) {
+                                    <div media-list-item-note class="detail__comment-editor">
+                                        <mat-form-field
+                                            class="detail__comment-field"
+                                            appearance="outline"
+                                            subscriptSizing="dynamic"
+                                        >
+                                            <textarea
+                                                #commentInput
+                                                matInput
+                                                rows="2"
+                                                placeholder="Why does it belong on this list?"
+                                                attr.aria-label="Comment for {{ item.mediaItem.title }}"
+                                                aria-describedby="comment-editor-hint"
+                                                [value]="userListDetail.commentDraft"
+                                                [disabled]="userListDetail.isSavingComment"
+                                                (input)="updateCommentDraft(commentInput.value)"
+                                                (keydown.escape)="cancelComment()"
+                                                (keydown.control.enter)="saveComment(item)"
+                                                (keydown.meta.enter)="saveComment(item)"
+                                            ></textarea>
+                                        </mat-form-field>
+
+                                        <div class="detail__comment-actions">
+                                            <span id="comment-editor-hint" class="detail__comment-hint text-caption">
+                                                Ctrl+Enter to save, Esc to cancel
+                                            </span>
+                                            <button
+                                                matButton
+                                                class="text-button"
+                                                type="button"
+                                                [disabled]="userListDetail.isSavingComment"
+                                                (click)="cancelComment()"
                                             >
-                                                <textarea
-                                                    #commentInput
-                                                    matInput
-                                                    rows="2"
-                                                    placeholder="Why does it belong on this list?"
-                                                    attr.aria-label="Comment for {{ item.title }}"
-                                                    aria-describedby="comment-editor-hint"
-                                                    [value]="commentDraft()"
-                                                    [disabled]="commentPending()"
-                                                    (input)="onCommentDraftInput($event)"
-                                                    (keydown.escape)="onCancelComment()"
-                                                    (keydown.control.enter)="onSaveComment(item)"
-                                                    (keydown.meta.enter)="onSaveComment(item)"
-                                                ></textarea>
-                                            </mat-form-field>
-
-                                            <div class="detail__comment-actions">
-                                                <span
-                                                    id="comment-editor-hint"
-                                                    class="detail__comment-hint text-caption"
-                                                >
-                                                    Ctrl+Enter to save, Esc to cancel
-                                                </span>
-                                                <button
-                                                    matButton
-                                                    class="text-button"
-                                                    type="button"
-                                                    [disabled]="commentPending()"
-                                                    (click)="onCancelComment()"
-                                                >
-                                                    Cancel
-                                                </button>
-                                                <button
-                                                    matButton="filled"
-                                                    type="button"
-                                                    [disabled]="commentPending()"
-                                                    (click)="onSaveComment(item)"
-                                                >
-                                                    {{ commentSaveLabel() }}
-                                                </button>
-                                            </div>
+                                                Cancel
+                                            </button>
+                                            <button
+                                                matButton="filled"
+                                                type="button"
+                                                [disabled]="userListDetail.isSavingComment"
+                                                (click)="saveComment(item)"
+                                            >
+                                                {{ userListDetail.commentSaveLabel }}
+                                            </button>
                                         </div>
-                                    } @else if (item.comment) {
-                                        <p media-list-item-note class="detail__comment text-body-sm">
-                                            <i class="fa-regular fa-comment" aria-hidden="true"></i>
-                                            <span>{{ item.comment }}</span>
-                                        </p>
-                                    }
-                                </app-media-list-item>
-                            }
-                        </div>
-
-                        @if (userListDetail.total > userListDetail.pageSize) {
-                            <mat-paginator
-                                class="detail__paginator"
-                                [length]="userListDetail.total"
-                                [pageIndex]="userListDetail.page"
-                                [pageSize]="userListDetail.pageSize"
-                                [hidePageSize]="true"
-                                (page)="onPageChange($event)"
-                            />
+                                    </div>
+                                } @else if (item.showComment) {
+                                    <p media-list-item-note class="detail__comment text-body-sm">
+                                        <i class="fa-regular fa-comment" aria-hidden="true"></i>
+                                        <span>{{ item.comment }}</span>
+                                    </p>
+                                }
+                            </app-media-list-item>
                         }
-                    } @else {
-                        <section class="detail__empty">
-                            <app-empty-state
-                                iconClass="fa-solid fa-film"
-                                title="Nothing on this list yet"
-                                text="Search for films and series and add them here."
-                            />
-                            <button matButton="filled" type="button" (click)="onAddTitles(header.id)">
-                                <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                                Add titles
-                            </button>
-                        </section>
-                    }
+                    </div>
+                } @else if (userListDetail.showEmpty) {
+                    <section class="detail__empty">
+                        <app-empty-state
+                            iconClass="fa-solid fa-film"
+                            title="Nothing on this list yet"
+                            text="Search for films and series and add them here."
+                        />
+                        <button matButton="filled" type="button" (click)="addTitles(header)">
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                            Add titles
+                        </button>
+                    </section>
+                }
+
+                @if (userListDetail.showPaginator) {
+                    <mat-paginator
+                        class="detail__paginator"
+                        [length]="userListDetail.total"
+                        [pageIndex]="userListDetail.pageIndex"
+                        [pageSize]="userListDetail.pageSize"
+                        [hidePageSize]="true"
+                        (page)="changePage($event)"
+                    />
                 }
             </main>
         } @else {
@@ -183,7 +171,7 @@
 
             <main class="page-main detail__main page-list-column">
                 <div class="detail__items" aria-hidden="true">
-                    @for (placeholder of initialSkeletonCount | repeat; track placeholder) {
+                    @for (placeholder of skeletonCount | repeat; track placeholder) {
                         <app-media-list-item [loading]="true" />
                     }
                 </div>

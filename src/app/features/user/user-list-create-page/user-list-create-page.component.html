@@ -1,29 +1,33 @@
-<div class="list-create page-container">
-    <app-sub-page-header
-        [parentTitle]="backParentTitle"
-        [backLink]="backLink"
-        pageTitle="New list"
-        [subtitle]="pageSubtitle"
-    />
+@if (userListCreate$ | async; as userListCreate) {
+    <div class="list-create page-container">
+        <app-sub-page-header
+            [parentTitle]="userListCreate.backParentTitle"
+            [backLink]="userListCreate.backLink"
+            pageTitle="New list"
+            [subtitle]="userListCreate.subtitle"
+        />
 
-    <main class="page-main list-create__main">
-        <form
-            class="list-create__form"
-            [formGroup]="form"
-            [attr.aria-busy]="pending() || null"
-            (ngSubmit)="submit()"
-        >
-            <app-user-list-form-fields [form]="form" idPrefix="create-list" />
+        <main class="page-main list-create__main">
+            <form
+                class="list-create__form"
+                [formGroup]="form"
+                [attr.aria-busy]="userListCreate.isSaving || null"
+                (ngSubmit)="submit()"
+            >
+                <app-user-list-form-fields [form]="form" idPrefix="create-list" />
 
-            <div class="list-create__actions">
-                <button matButton="filled" type="submit" [disabled]="pending()">{{ submitButtonLabel() }}</button>
-                <a matButton class="text-button" [routerLink]="backLink">Cancel</a>
-            </div>
-        </form>
+                <div class="list-create__actions">
+                    <button matButton="filled" type="submit" [disabled]="userListCreate.isSaving">
+                        {{ userListCreate.submitLabel }}
+                    </button>
+                    <a matButton class="text-button" [routerLink]="userListCreate.backLink">Cancel</a>
+                </div>
+            </form>
 
-        <aside class="list-create__preview" aria-hidden="true">
-            <span class="list-create__preview-label text-caption">How it will look in your lists</span>
-            <app-user-list-card [item]="preview()" [preview]="true" />
-        </aside>
-    </main>
-</div>
+            <aside class="list-create__preview" aria-hidden="true">
+                <span class="list-create__preview-label text-caption">How it will look in your lists</span>
+                <app-user-list-card [item]="userListCreate.preview" [preview]="true" />
+            </aside>
+        </main>
+    </div>
+}

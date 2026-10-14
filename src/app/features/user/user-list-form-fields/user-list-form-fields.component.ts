@@ -37,7 +37,6 @@ const trimmedRequiredValidator: ValidatorFn = (control: AbstractControl): Valida
     return value ? null : { required: true };
 };
 
-/** The list form shared by the create page and the edit dialog. */
 export const createUserListForm = (
     formBuilder: NonNullableFormBuilder,
     initial: Partial<UserListFormValue> = {},
@@ -48,11 +47,7 @@ export const createUserListForm = (
         sortBy: formBuilder.control<UserListResponse.SortByEnum>(initial.sortBy ?? DEFAULT_USER_LIST_SORT_BY),
     });
 
-/**
- * The list name, description and default order. The host owns the `<form>`, submit and actions,
- * so the same fields serve the create page and the edit dialog. Visibility has no control here:
- * new lists stay private and edits keep the list's current visibility.
- */
+// The host owns the `<form>` and its actions. Visibility has no field: new lists stay private and edits keep it.
 @Component({
     selector: 'app-user-list-form-fields',
     imports: [MatFormFieldModule, MatSelectModule, ReactiveFormsModule],
@@ -62,7 +57,7 @@ export const createUserListForm = (
 })
 export class UserListFormFieldsComponent {
     @Input({ required: true }) form!: UserListForm;
-    /** Prefix for element ids, so two instances never collide. */
+    // Prefixes element ids, so two instances never collide.
     @Input({ required: true }) idPrefix!: string;
     @Input() showSortSelector = true;
 
