@@ -4,7 +4,7 @@
             <app-image class="media-card__image" [src]="item.imagePath" [alt]="item.title" [params]="imageParams" />
         </div>
 
-        <div class="media-card__content">
+        <div class="media-card__content" [class.media-card__content--role-only]="isRoleOnly">
             <span class="media-card__title text-card-title">{{ item.title }}</span>
 
             @if (showMetadata) {

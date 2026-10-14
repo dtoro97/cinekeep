@@ -12,6 +12,7 @@ import { filter, tap } from 'rxjs';
 
 import { SEARCH_TYPE_OPTIONS } from '../../../models/media-type-options.model';
 import type { MediaOrPersonFilterType } from '../../../types';
+import { ToggleGroupComponent } from '../../toggle-group/toggle-group.component';
 import { HeaderSearchBarStoreService } from './header-search-bar-store.service';
 import { HeaderSearchResultsComponent } from './header-search-results/header-search-results.component';
 
@@ -28,6 +29,7 @@ const EDITABLE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
         ReactiveFormsModule,
         HeaderSearchResultsComponent,
         CdkTrapFocus,
+        ToggleGroupComponent,
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [HeaderSearchBarStoreService],
@@ -135,6 +137,10 @@ export class HeaderSearchBarComponent {
 
     retry(): void {
         this.headerSearchBarStoreService.retry();
+    }
+
+    clearRecent(): void {
+        this.headerSearchBarStoreService.clearRecent();
     }
 
     clearSearch(): void {

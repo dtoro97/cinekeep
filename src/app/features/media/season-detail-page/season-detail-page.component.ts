@@ -12,7 +12,7 @@ import {
     PageSectionComponent,
     SeoService,
     SkeletonComponent,
-    TmdbRatingComponent,
+    RatingComponent,
     ToggleGroupComponent,
     VideosGridComponent,
 } from '../../../shared';
@@ -31,7 +31,7 @@ import { SeasonDetailPageStoreService } from './season-detail-page-store.service
         PageSectionComponent,
         RouterLink,
         SkeletonComponent,
-        TmdbRatingComponent,
+        RatingComponent,
         ToggleGroupComponent,
         VideosGridComponent,
     ],

@@ -13,7 +13,6 @@
             attr.aria-label="Open account menu for {{ account.displayName }}"
         >
             <app-user-avatar class="account-menu__avatar" [name]="account.avatarName" size="sm" />
-            <mat-icon class="account-menu__chevron" aria-hidden="true">expand_more</mat-icon>
         </button>
 
         <mat-menu #accountMenu="matMenu" xPosition="before">
@@ -65,8 +64,7 @@
             [attr.aria-busy]="account.isBusy"
             (click)="startLogin()"
         >
-            <mat-icon class="account-menu__signin-icon" aria-hidden="true">login</mat-icon>
-            <span class="account-menu__signin-label">Sign in</span>
+            Sign in
         </button>
     }
 }

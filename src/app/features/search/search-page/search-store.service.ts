@@ -4,20 +4,19 @@ import { ComponentStore } from '@ngrx/component-store';
 import { catchError, EMPTY, forkJoin, map, Observable, tap } from 'rxjs';
 
 import { SearchRestControllerService } from '../../../api';
-import { PAGE_SIZE, SMALL_LIST_COUNT } from '../../../constants';
 import {
-    GenreService,
+    MEDIA_TYPE_LABEL,
     MediaListItem,
     MediaOrPersonFilterType,
     MediaOrPersonType,
     PersonListItem,
-    RemoteData,
-    toMediaListEntryState,
+    pluralize,
     toMediaListItem,
     toPersonListItem,
+    toTitleSegments,
 } from '../../../shared';
 
-interface SearchResultsBySection {
+interface SearchResultsByType {
     movie: MediaListItem;
     tv: MediaListItem;
     person: PersonListItem;
@@ -27,14 +26,14 @@ interface SearchResultsPage<T> {
     results: T[];
     page: number;
     totalPages: number;
+    totalResults: number;
 }
 
 interface SearchSection<T> extends SearchResultsPage<T> {
     status: 'notAsked' | 'loading' | 'loading-more' | 'success';
-    visible: number;
 }
 
-type SearchSections = { [K in MediaOrPersonType]: SearchSection<SearchResultsBySection[K]> };
+type SearchSections = { [K in MediaOrPersonType]: SearchSection<SearchResultsByType[K]> };
 
 interface SearchState {
     query: string;
@@ -43,13 +42,21 @@ interface SearchState {
 }
 
 const SECTION_KEYS: MediaOrPersonType[] = ['movie', 'tv', 'person'];
+const TITLE_PREVIEW_COUNT = 5;
+const PEOPLE_PREVIEW_COUNT = 6;
+
+const SECTION_TITLES: Record<MediaOrPersonType, string> = {
+    movie: 'Movies',
+    tv: 'TV series',
+    person: 'People',
+};
 
 const EMPTY_SECTION: SearchSection<never> = {
     status: 'notAsked',
     results: [],
     page: 0,
     totalPages: 0,
-    visible: 0,
+    totalResults: 0,
 };
 
 const INITIAL_STATE: SearchState = {
@@ -62,68 +69,123 @@ const INITIAL_STATE: SearchState = {
 export class SearchStoreService extends ComponentStore<SearchState> {
     readonly query$ = this.select((state) => state.query);
 
-    readonly searchResults$ = this.select(
-        this.state$,
-        this.genreService.movieGenres$,
-        this.genreService.tvGenres$,
-        ({ query, type, sections }, movieGenres, tvGenres) => {
-            const hasQuery = query.length > 0;
-            const resultSections = [
-                {
-                    key: 'movie' as const,
-                    title: 'Movies',
-                    moreLabel: 'Show more movies',
-                    state: toMediaListEntryState(toSectionState(sections.movie), movieGenres),
-                    hasMore: hasMoreResults(sections.movie),
-                },
-                {
-                    key: 'tv' as const,
-                    title: 'TV series',
-                    moreLabel: 'Show more TV series',
-                    state: toMediaListEntryState(toSectionState(sections.tv), tvGenres),
-                    hasMore: hasMoreResults(sections.tv),
-                },
-                {
-                    key: 'person' as const,
-                    title: 'People',
-                    moreLabel: 'Show more people',
-                    state: toSectionState(sections.person),
-                    hasMore: hasMoreResults(sections.person),
-                },
-            ];
+    readonly searchPage$ = this.select(({ query, type, sections }) => {
+        const hasQuery = query.length > 0;
+        const isLoading = SECTION_KEYS.some((key) => sections[key].status === 'loading');
+        const totals: Record<MediaOrPersonFilterType, number> = {
+            all: SECTION_KEYS.reduce((total, key) => total + sections[key].totalResults, 0),
+            movie: sections.movie.totalResults,
+            tv: sections.tv.totalResults,
+            person: sections.person.totalResults,
+        };
+        const toTitleRows = (results: MediaListItem[]) =>
+            results.map((item) => ({
+                id: item.id,
+                mediaType: item.mediaType,
+                titleSegments: toTitleSegments(item.title, query),
+                thumb: item.thumb,
+                meta: [item.date, MEDIA_TYPE_LABEL[item.mediaType]].filter(Boolean),
+                overview: item.overview,
+                rating: item.rating,
+            }));
+        const toPeopleRows = (results: PersonListItem[]) =>
+            results.map((person) => ({
+                id: person.id,
+                nameSegments: toTitleSegments(person.name, query),
+                imagePath: person.imagePath,
+                initials: person.name
+                    .split(/\s+/)
+                    .map((word) => word.charAt(0))
+                    .join('')
+                    .slice(0, 2)
+                    .toLocaleUpperCase(),
+                meta: [
+                    person.subtitle,
+                    person.knownForLinks
+                        .slice(0, 2)
+                        .map((link) => link.title)
+                        .join(', '),
+                ]
+                    .filter(Boolean)
+                    .join(' · '),
+            }));
+        const toSection = (key: MediaOrPersonType, isPreview: boolean) => {
+            const section = sections[key];
+            const previewCount = key === 'person' ? PEOPLE_PREVIEW_COUNT : TITLE_PREVIEW_COUNT;
+            const limit = <T>(items: T[]): T[] => (isPreview ? items.slice(0, previewCount) : items);
+            const titleRows = key === 'person' ? [] : toTitleRows(limit(sections[key].results));
+            const peopleRows = key === 'person' ? toPeopleRows(limit(sections.person.results)) : [];
+            const shownCount = key === 'person' ? peopleRows.length : titleRows.length;
 
             return {
-                type,
-                hasQuery,
-                pageTitle: hasQuery ? `Results for "${query}"` : 'Search',
-                skeletonCount: type === 'all' ? SMALL_LIST_COUNT : PAGE_SIZE,
-                sections: resultSections.filter(
-                    ({ state }) =>
-                        hasQuery &&
-                        (state.state === 'loading' ||
-                            state.state === 'loading-more' ||
-                            (state.state === 'success' && state.data.length > 0)),
-                ),
-                hasNoResults:
-                    hasQuery &&
-                    SECTION_KEYS.every(
-                        (key) => sections[key].status === 'success' && sections[key].results.length === 0,
-                    ),
+                key,
+                headingId: `search-section-${key}`,
+                title: SECTION_TITLES[key],
+                isPeople: key === 'person',
+                showSkeleton: section.status === 'loading',
+                show: section.status === 'loading' || section.results.length > 0,
+                titleRows,
+                peopleRows,
+                showJump: isPreview && section.totalResults > shownCount,
+                jumpLabel: `All ${section.totalResults.toLocaleString('en-US')}`,
+                showShowing: !isPreview && section.status !== 'loading',
+                showingLabel: `${shownCount.toLocaleString('en-US')} of ${section.totalResults.toLocaleString('en-US')}`,
+                showMore: !isPreview && section.page < section.totalPages,
+                isLoadingMore: section.status === 'loading-more',
+                moreLabel: `Show more ${SECTION_TITLES[key].toLocaleLowerCase()}`,
             };
-        },
-    );
+        };
+        const isAll = type === 'all';
+        const hasNoResults = hasQuery && !isLoading && totals.all === 0;
+
+        return {
+            hasQuery,
+            heading: hasQuery ? `“${query}”` : 'Search',
+            totalLabel: isLoading ? '' : hasNoResults ? 'No results' : pluralize(totals.all, 'result'),
+            showTabs: hasQuery && !hasNoResults,
+            tabs: (['all', ...SECTION_KEYS] as MediaOrPersonFilterType[]).map((value) => ({
+                value,
+                label: value === 'all' ? 'All' : SECTION_TITLES[value],
+                count: isLoading ? '' : totals[value].toLocaleString('en-US'),
+            })),
+            selectedType: type,
+            railLabel: isAll ? 'People' : 'Other result types',
+            mainSections: hasNoResults
+                ? []
+                : isAll
+                  ? [toSection('movie', true), toSection('tv', true)].filter((section) => section.show)
+                  : [toSection(type, false)],
+            peopleRail: isAll && !hasNoResults ? toSection('person', true) : null,
+            otherTypes: isAll
+                ? []
+                : SECTION_KEYS.filter((key) => key !== type).map((key) => ({
+                      value: key,
+                      label: SECTION_TITLES[key],
+                      count: isLoading ? '' : totals[key].toLocaleString('en-US'),
+                  })),
+            otherTypesTitle: `Also for “${query}”`,
+            hasNoResults,
+        };
+    });
 
     private readonly requests: {
-        [K in MediaOrPersonType]: (query: string, page: number) => Observable<SearchResultsPage<SearchResultsBySection[K]>>;
+        [K in MediaOrPersonType]: (
+            query: string,
+            page: number,
+        ) => Observable<SearchResultsPage<SearchResultsByType[K]>>;
     } = {
         movie: (query, page) =>
-            this.searchRestControllerService
-                .searchMovie({ query, page })
-                .pipe(map((response) => toResultsPage(response, page, (item) => toMediaListItem(item, 'movie', 'year')))),
+            this.searchRestControllerService.searchMovie({ query, page }).pipe(
+                map((response) =>
+                    toResultsPage(response, page, (item) => toMediaListItem(item, 'movie', 'year')),
+                ),
+            ),
         tv: (query, page) =>
-            this.searchRestControllerService
-                .searchTv({ query, page })
-                .pipe(map((response) => toResultsPage(response, page, (item) => toMediaListItem(item, 'tv', 'year')))),
+            this.searchRestControllerService.searchTv({ query, page }).pipe(
+                map((response) =>
+                    toResultsPage(response, page, (item) => toMediaListItem(item, 'tv', 'year')),
+                ),
+            ),
         person: (query, page) =>
             this.searchRestControllerService
                 .searchPerson({ query, page })
@@ -132,7 +194,6 @@ export class SearchStoreService extends ComponentStore<SearchState> {
 
     constructor(
         private searchRestControllerService: SearchRestControllerService,
-        private genreService: GenreService,
         private router: Router,
         private activatedRoute: ActivatedRoute,
     ) {
@@ -141,36 +202,37 @@ export class SearchStoreService extends ComponentStore<SearchState> {
 
     search$(query: string, type: MediaOrPersonFilterType): Observable<unknown> {
         const trimmedQuery = query.trim();
-        const requestedKeys = SECTION_KEYS.filter((key) => trimmedQuery && (type === 'all' || type === key));
-        const toInitialSection = (key: MediaOrPersonType): SearchSection<never> => ({
-            ...EMPTY_SECTION,
-            status: requestedKeys.includes(key) ? 'loading' : 'success',
-        });
+        const state = this.get();
 
+        // Every type is loaded for the counts, so switching tabs for the same query needs no request.
+        if (trimmedQuery && trimmedQuery === state.query) {
+            this.patchState({ type });
+            return EMPTY;
+        }
+
+        const status = trimmedQuery ? 'loading' : 'notAsked';
         this.setState({
             query: trimmedQuery,
             type,
-            sections: { movie: toInitialSection('movie'), tv: toInitialSection('tv'), person: toInitialSection('person') },
+            sections: {
+                movie: { ...EMPTY_SECTION, status },
+                tv: { ...EMPTY_SECTION, status },
+                person: { ...EMPTY_SECTION, status },
+            },
         });
 
-        const visible = type === 'all' ? SMALL_LIST_COUNT : PAGE_SIZE;
-        return forkJoin(requestedKeys.map((key) => this.fetchPage$(key, trimmedQuery, 1, visible)));
+        return trimmedQuery ? forkJoin(SECTION_KEYS.map((key) => this.fetchPage$(key, trimmedQuery, 1))) : EMPTY;
     }
 
     loadMore$(key: MediaOrPersonType): Observable<unknown> {
         const { query, sections } = this.get();
         const section = sections[key];
-        if (!query) {
-            return EMPTY;
-        }
-
-        if (section.visible < section.results.length) {
-            this.patchSection(key, (current) => ({ ...current, visible: current.results.length }));
+        if (!query || section.status !== 'success' || section.page >= section.totalPages) {
             return EMPTY;
         }
 
         this.patchSection(key, (current) => ({ ...current, status: 'loading-more' }));
-        return this.fetchPage$(key, query, section.page + 1, section.results.length + PAGE_SIZE);
+        return this.fetchPage$(key, query, section.page + 1);
     }
 
     setType(type: MediaOrPersonFilterType): void {
@@ -181,12 +243,7 @@ export class SearchStoreService extends ComponentStore<SearchState> {
         });
     }
 
-    private fetchPage$<K extends MediaOrPersonType>(
-        key: K,
-        query: string,
-        page: number,
-        visible: number,
-    ): Observable<unknown> {
+    private fetchPage$<K extends MediaOrPersonType>(key: K, query: string, page: number): Observable<unknown> {
         return this.requests[key](query, page).pipe(
             tap((response) =>
                 this.patchSection(key, (current) => ({
@@ -194,10 +251,10 @@ export class SearchStoreService extends ComponentStore<SearchState> {
                     results: [...current.results, ...response.results],
                     page: response.page,
                     totalPages: response.totalPages,
-                    visible,
+                    totalResults: response.totalResults,
                 })),
             ),
-            // A failed first page leaves the section empty and hidden; a failed "show more" keeps what is listed.
+            // A failed first page leaves the type empty and hidden; a failed "show more" keeps what is listed.
             catchError(() => {
                 this.patchSection(key, (current) => ({ ...current, status: 'success' }));
                 return EMPTY;
@@ -207,28 +264,14 @@ export class SearchStoreService extends ComponentStore<SearchState> {
 
     private patchSection<K extends MediaOrPersonType>(
         key: K,
-        update: (section: SearchSection<SearchResultsBySection[K]>) => SearchSection<SearchResultsBySection[K]>,
+        update: (section: SearchSection<SearchResultsByType[K]>) => SearchSection<SearchResultsByType[K]>,
     ): void {
         this.patchState((state) => ({ sections: { ...state.sections, [key]: update(state.sections[key]) } }));
     }
 }
 
-function hasMoreResults(section: SearchSection<unknown>): boolean {
-    return section.visible < section.results.length || section.page < section.totalPages;
-}
-
-function toSectionState<T>({ status, results, visible }: SearchSection<T>): RemoteData<T[]> {
-    switch (status) {
-        case 'notAsked':
-        case 'loading':
-            return { state: status };
-        default:
-            return { state: status, data: results.slice(0, visible) };
-    }
-}
-
 function toResultsPage<TItem, TResult>(
-    response: { results?: TItem[]; page?: number; total_pages?: number },
+    response: { results?: TItem[]; page?: number; total_pages?: number; total_results?: number },
     requestedPage: number,
     toResult: (item: TItem) => TResult,
 ): SearchResultsPage<TResult> {
@@ -236,5 +279,6 @@ function toResultsPage<TItem, TResult>(
         results: (response.results ?? []).map((item) => toResult(item)),
         page: response.page ?? requestedPage,
         totalPages: response.total_pages ?? 0,
+        totalResults: response.total_results ?? 0,
     };
 }

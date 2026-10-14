@@ -21,7 +21,9 @@
                     <span class="tonight__body">
                         <span class="tonight__title text-card-title">{{ item.title }}</span>
                         @if (item.rating) {
-                            <app-rating class="tonight__rating" [value]="item.rating" />
+                            <span class="tonight__meta text-card-meta">
+                                <app-rating class="tonight__rating" [value]="item.rating" />
+                            </span>
                         }
                     </span>
                 </a>

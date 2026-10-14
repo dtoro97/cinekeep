@@ -14,8 +14,8 @@
     }
 }
 
-/// A link styled as text. Hover and keyboard focus brighten it and draw an underline, so the change
-/// is visible even when the link is already white.
+/// A link styled as text. Hover brightens it and draws an underline, so the change is visible even
+/// when the link is already white.
 @mixin text-link($color: var(--text-primary)) {
     color: $color;
     text-decoration: underline;
@@ -31,11 +31,6 @@
             color: var(--text-hover);
             text-decoration-color: currentColor;
         }
-    }
-
-    &:focus-visible {
-        color: var(--text-hover);
-        text-decoration-color: currentColor;
     }
 }
 
@@ -105,10 +100,6 @@
             filter: var(--interactive-media-hover-filter);
         }
     }
-
-    &:focus-visible {
-        filter: var(--interactive-media-hover-filter);
-    }
 }
 
 @mixin -row-hover-state($media-selector, $title-selector) {
@@ -125,7 +116,6 @@
 
 /// Hover for clickable list rows (ranked charts, episode lists, account lists): a soft row tint,
 /// the title in the accent colour and the thumbnail brightened.
-/// Keyboard focus on the row, or on a link inside it, looks the same.
 @mixin row-hover($media-selector, $title-selector) {
     transition: background-color var(--motion-base);
 
@@ -141,11 +131,6 @@
         &:hover {
             @include -row-hover-state($media-selector, $title-selector);
         }
-    }
-
-    &:focus-visible,
-    &:has(:focus-visible) {
-        @include -row-hover-state($media-selector, $title-selector);
     }
 }
 
@@ -183,7 +168,6 @@
 
 /// Hover for clickable cards (posters, backdrops, people, lists, promos): the card lifts and
 /// deepens its shadow, the image brightens and gently zooms, the title takes the accent colour.
-/// Keyboard focus on the card, or on a link inside it, looks the same.
 ///
 /// $frame-selector: the element carrying the elevation; defaults to the card itself.
 /// $scale: zooms the media, so the media needs a clipping (`overflow: hidden`) parent.
@@ -222,11 +206,6 @@
         &:hover {
             @include -card-hover-state($media-selector, $title-selector, $frame-selector, $border-color, $background, $scale);
         }
-    }
-
-    &:focus-visible,
-    &:has(:focus-visible) {
-        @include -card-hover-state($media-selector, $title-selector, $frame-selector, $border-color, $background, $scale);
     }
 }
 
@@ -269,5 +248,23 @@
     @include mobile() {
         gap: var(--space-1) var(--row-gap-compact);
         padding: var(--row-padding-compact);
+    }
+}
+
+@mixin section-link() {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    white-space: nowrap;
+    cursor: pointer;
+    @include text-link(var(--text-secondary));
+
+    i {
+        font-size: var(--text-2xs);
     }
 }

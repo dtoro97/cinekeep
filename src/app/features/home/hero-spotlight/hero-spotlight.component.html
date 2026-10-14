@@ -20,7 +20,7 @@
         }
 
         <section class="hero">
-            <div class="hero__content u-flex-column u-gap-4">
+            <div class="hero__content">
                 <a [routerLink]="['/title', spotlight.id, spotlight.mediaType]">
                     <h1 class="title text-hero-title">
                         {{ spotlight.title }}
@@ -35,9 +35,6 @@
                         <span class="meta-item text-meta">{{ spotlight.mediaTypeLabel }}</span>
                     }
                     @if (spotlight.year) {
-                        @if (spotlight.mediaTypeLabel) {
-                            <span class="meta-divider" aria-hidden="true">&#x2022;</span>
-                        }
                         <span class="meta-item text-meta">{{ spotlight.year }}</span>
                     }
                 </div>

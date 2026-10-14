@@ -2,7 +2,7 @@ import { AsyncPipe, DOCUMENT, DatePipe, DecimalPipe, NgTemplateOutlet } from '@a
 import { ChangeDetectionStrategy, Component, DestroyRef, Inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 
 import { catchError, filter } from 'rxjs';
 
@@ -13,6 +13,7 @@ import {
     HeroSurfaceComponent,
     ImageComponent,
     isDefined,
+    LibraryToggleComponent,
     MediaCarouselPanelComponent,
     MediaRatingDialogService,
     MinutesToHoursPipe,
@@ -24,8 +25,9 @@ import {
     SeoService,
     SkeletonComponent,
     SnackbarService,
-    TmdbRatingComponent,
+    RatingComponent,
     VideoCardComponent,
+    VoteCountPipe,
     ViewerImage,
 } from '../../../shared';
 import { MediaCreditsSummaryComponent } from '../media-credits-summary/media-credits-summary.component';
@@ -49,7 +51,9 @@ import { MediaLibraryPanelComponent } from './media-library-panel/media-library-
         ImageComponent,
         KeywordsListComponent,
         MatButtonModule,
-        MediaCarouselPanelComponent,
+        LibraryToggleComponent,
+        LibraryToggleComponent,
+    MediaCarouselPanelComponent,
         MediaCreditsSummaryComponent,
         MediaLibraryPanelComponent,
         MinutesToHoursPipe,
@@ -60,8 +64,9 @@ import { MediaLibraryPanelComponent } from './media-library-panel/media-library-
         ReviewCardComponent,
         RouterLink,
         SkeletonComponent,
-        TmdbRatingComponent,
+        RatingComponent,
         VideoCardComponent,
+        VoteCountPipe,
     ],
     templateUrl: './media-detail-page.component.html',
     styleUrl: './media-detail-page.component.scss',
@@ -73,11 +78,9 @@ export class MediaDetailPageComponent {
     constructor(
         private readonly store: MediaDetailStoreService,
         private readonly actionsStore: MediaDetailActionsStoreService,
-        private readonly activatedRoute: ActivatedRoute,
         private readonly destroyRef: DestroyRef,
         private readonly photoViewerDialogService: PhotoViewerDialogService,
         private readonly mediaRatingDialogService: MediaRatingDialogService,
-        private readonly router: Router,
         private readonly snackbarService: SnackbarService,
         @Inject(DOCUMENT) private readonly document: Document,
         mediaStore: MediaStoreService,
@@ -94,9 +97,6 @@ export class MediaDetailPageComponent {
         this.photoViewerDialogService.open({ images, activeIndex: index, photosLink, title });
     }
 
-    openPhotosPage(): void {
-        this.router.navigate(['photos'], { relativeTo: this.activatedRoute });
-    }
 
     openTrailer(key: string): void {
         this.document.defaultView?.open(buildYoutubeWatchUrl(key), '_blank', 'noopener,noreferrer');

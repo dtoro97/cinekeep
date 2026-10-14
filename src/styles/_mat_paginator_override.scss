@@ -85,7 +85,7 @@
         color var(--motion-base);
 }
 
-.mat-mdc-paginator-range-actions .mat-mdc-icon-button:not([aria-disabled="true"]):is(:hover, :focus-visible) {
+.mat-mdc-paginator-range-actions .mat-mdc-icon-button:not([aria-disabled="true"]):hover {
     --mat-paginator-enabled-icon-color: var(--text-primary);
 
     background: var(--control-subtle-surface-hover);

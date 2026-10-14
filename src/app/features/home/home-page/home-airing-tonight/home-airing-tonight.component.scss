@@ -14,13 +14,9 @@
 }
 
 .tonight__row {
-    display: grid;
-    grid-template-columns: 3rem minmax(0, 1fr);
+    @include list-row('.tonight__poster', '.tonight__title');
+    grid-template-columns: var(--row-thumb-poster-compact) minmax(0, 1fr);
     align-items: center;
-    gap: var(--space-4);
-    padding-block: var(--space-3);
-    color: inherit;
-    @include row-hover('.tonight__poster', '.tonight__title');
 }
 
 .tonight__poster {
@@ -53,4 +49,8 @@
 .tonight__meta-skeleton {
     width: 4rem;
     --skeleton-height: 0.875rem;
+}
+
+.tonight__meta {
+    @include meta-list();
 }

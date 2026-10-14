@@ -4,16 +4,16 @@
     --hero-fallback-bg: var(--surface-page);
     --gradient-hero-scrim: linear-gradient(
         to bottom,
-        color-mix(in oklch, var(--surface-page) 2%, transparent) 0%,
+        transparent 0%,
         color-mix(in oklch, var(--surface-page) 28%, transparent) 52%,
         var(--surface-page) 100%
     );
     --gradient-hero-lateral: linear-gradient(
         to right,
         var(--surface-page) 0%,
-        color-mix(in srgb, var(--surface-page) 76%, transparent) 26%,
-        color-mix(in srgb, var(--surface-page) 12%, transparent) 58%,
-        transparent 78%
+        color-mix(in oklch, var(--surface-page) 80%, transparent) 30%,
+        color-mix(in oklch, var(--surface-page) 20%, transparent) 60%,
+        transparent 85%
     );
 }
 
@@ -38,18 +38,10 @@
         --hero-surface-min-height: 180px;
     }
 
-    &__backdrop-blur,
     &__backdrop {
         position: absolute;
         --image-radius: 0;
         --image-position: center 20%;
-    }
-
-    &__backdrop-blur {
-        inset: -20px;
-        width: calc(100% + 40px);
-        height: calc(100% + 40px);
-        filter: blur(30px) saturate(1.2);
     }
 
     &__backdrop {
@@ -72,35 +64,12 @@
         background: var(--gradient-hero-scrim);
     }
 
-    &--detail &__overlay::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: var(--gradient-hero-lateral);
-        pointer-events: none;
-    }
-
-    // Text sits on the left, so the right of the backdrop stays bright enough to read as an image.
-    &--integrated &__overlay {
-        background: linear-gradient(
-            to bottom,
-            color-mix(in oklch, var(--surface-page) 20%, transparent) 0%,
-            color-mix(in oklch, var(--surface-page) 52%, transparent) 58%,
-            var(--surface-page) 100%
-        );
-    }
-
+    &--detail &__overlay::after,
     &--integrated &__overlay::after {
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(
-            to right,
-            var(--surface-page) 0%,
-            color-mix(in srgb, var(--surface-page) 84%, transparent) 32%,
-            color-mix(in srgb, var(--surface-page) 30%, transparent) 62%,
-            transparent 90%
-        );
+        background: var(--gradient-hero-lateral);
         pointer-events: none;
     }
 
@@ -186,10 +155,6 @@
             min-height: auto;
             padding-top: var(--space-12);
             padding-bottom: var(--space-6);
-        }
-
-        &__backdrop-blur {
-            display: none;
         }
 
         &--detail.hero-surface--has-backdrop &__content {

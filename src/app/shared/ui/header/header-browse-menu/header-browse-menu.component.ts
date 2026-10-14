@@ -3,14 +3,13 @@ import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Inject } fr
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IsActiveMatchOptions, RouterLink, RouterLinkActive } from '@angular/router';
 
-import { MatIconModule } from '@angular/material/icon';
-
 import { BehaviorSubject, filter, fromEvent, merge, take, takeUntil } from 'rxjs';
+
+import { HeaderLocaleRegionMenuComponent } from '../header-locale-region-menu/header-locale-region-menu.component';
 
 interface HeaderBrowseGroup {
     readonly id: string;
     readonly title: string;
-    readonly icon: string;
     readonly links: readonly { readonly label: string; readonly routerLink: string }[];
 }
 
@@ -18,7 +17,6 @@ const BROWSE_GROUPS: readonly HeaderBrowseGroup[] = [
     {
         id: 'movies',
         title: 'Movies',
-        icon: 'movie',
         links: [
             { label: 'Popular movies', routerLink: '/movies/popular' },
             { label: 'Top-rated movies', routerLink: '/movies/top-rated' },
@@ -29,7 +27,6 @@ const BROWSE_GROUPS: readonly HeaderBrowseGroup[] = [
     {
         id: 'tv-shows',
         title: 'TV series',
-        icon: 'live_tv',
         links: [
             { label: 'Popular series', routerLink: '/tv/popular' },
             { label: 'Top-rated series', routerLink: '/tv/top-rated' },
@@ -40,13 +37,11 @@ const BROWSE_GROUPS: readonly HeaderBrowseGroup[] = [
     {
         id: 'people',
         title: 'People',
-        icon: 'groups',
         links: [{ label: 'Trending people', routerLink: '/people/popular' }],
     },
     {
         id: 'watch',
         title: 'Watch',
-        icon: 'play_circle',
         links: [
             { label: 'Streaming guide', routerLink: '/watch/streaming' },
             { label: 'Latest trailers', routerLink: '/trailers/trending' },
@@ -63,7 +58,7 @@ const EXACT_MATCH: IsActiveMatchOptions = {
 
 @Component({
     selector: 'app-header-browse-menu',
-    imports: [AsyncPipe, MatIconModule, RouterLink, RouterLinkActive],
+    imports: [AsyncPipe, RouterLink, RouterLinkActive, HeaderLocaleRegionMenuComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './header-browse-menu.component.html',
     styleUrl: './header-browse-menu.component.scss',
@@ -94,7 +89,12 @@ export class HeaderBrowseMenuComponent {
         // Listens only while open: a click outside, Escape or a page scroll closes the menu.
         merge(
             fromEvent<MouseEvent>(this.document, 'click').pipe(
-                filter((event) => !this.elementRef.nativeElement.contains(event.target as Node)),
+                // Clicks in an overlay (the language menu opened from the phone sheet) stay inside the menu.
+                filter(
+                    (event) =>
+                        !this.elementRef.nativeElement.contains(event.target as Node) &&
+                        !(event.target instanceof Element && event.target.closest('.cdk-overlay-container')),
+                ),
             ),
             fromEvent<KeyboardEvent>(this.document, 'keydown').pipe(filter((event) => event.key === 'Escape')),
             fromEvent(documentWindow, 'scroll'),

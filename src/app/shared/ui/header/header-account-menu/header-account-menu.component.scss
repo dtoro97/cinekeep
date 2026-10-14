@@ -30,11 +30,6 @@
             }
         }
 
-        &:focus-visible {
-            outline: 2px solid var(--control-focus-ring-inner);
-            outline-offset: 2px;
-        }
-
         &:disabled {
             cursor: default;
             opacity: var(--control-disabled-opacity);
@@ -42,8 +37,15 @@
     }
 
     &__trigger {
-        gap: var(--space-1);
-        padding: 0 var(--space-1) 0 0;
+        margin-left: var(--space-2);
+        padding: 0;
+        border-radius: var(--radius-full);
+
+        &[aria-expanded='true'] {
+            box-shadow:
+                0 0 0 2px var(--surface-page),
+                0 0 0 3px var(--border-strong);
+        }
 
         @include hover-capable {
             &:hover:not(:disabled) {
@@ -60,8 +62,14 @@
     }
 
     &__signin {
-        gap: var(--space-2);
-        padding: 0 var(--space-3);
+        height: var(--space-10);
+        margin-left: var(--space-2);
+        padding: 0 var(--space-4);
+        border: 1px solid var(--control-subtle-border);
+        border-radius: var(--radius-sm);
+        color: var(--text-primary);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
         white-space: nowrap;
     }
 
@@ -72,27 +80,16 @@
     }
 
     &__avatar {
-        --round-media-sm: var(--control-height-sm);
+        --round-media-sm: 2.25rem;
         --user-avatar-border: var(--color-border);
         --user-avatar-surface: var(--control-subtle-surface-active);
         --user-avatar-text: var(--text-primary);
     }
 
-    &__chevron {
-        @include icon-size(1rem);
-        flex-shrink: 0;
-        color: currentColor;
-    }
-
-    &__signin-icon,
     &__placeholder-icon,
     &__item-icon {
         @include icon-size(1.125rem);
         flex-shrink: 0;
-    }
-
-    &__signin-icon {
-        color: var(--color-brand);
     }
 
     &__panel {
@@ -167,12 +164,13 @@
 
 @include mobile() {
     .account-menu {
-        &__trigger {
-            padding: 0 var(--space-1) 0 0;
+        &__trigger,
+        &__signin {
+            margin-left: 0;
         }
 
-        &__signin-label {
-            display: none;
+        &__signin {
+            padding: 0 var(--space-3);
         }
     }
 }

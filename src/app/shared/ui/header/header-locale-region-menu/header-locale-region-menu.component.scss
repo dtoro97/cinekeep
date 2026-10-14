@@ -14,54 +14,40 @@
         justify-content: center;
         gap: var(--space-2);
         min-width: 0;
-        height: var(--control-height-sm);
-        padding: 0 var(--space-2);
+        height: var(--space-10);
+        padding: 0 var(--space-3);
         border: 0;
-        border-radius: var(--control-radius);
+        border-radius: var(--radius-sm);
         background: transparent;
         color: var(--text-secondary);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
         transition: var(--control-transition);
         cursor: pointer;
 
         @include hover-capable {
             &:hover {
-                background: var(--control-subtle-surface-hover);
+                background: var(--surface-panel-soft);
                 color: var(--text-primary);
             }
-        }
-
-        &:focus-visible {
-            outline: 2px solid var(--control-focus-ring-inner);
-            outline-offset: 2px;
         }
     }
 
     &__trigger-icon {
-        @include icon-size(1.125rem);
+        @include icon-size(1rem);
         flex-shrink: 0;
-        color: var(--color-brand);
     }
 
     &__trigger-value {
         display: inline-flex;
-        align-items: center;
+        align-items: baseline;
         gap: var(--space-1-5);
-        color: var(--text-secondary);
-        font-variant-numeric: tabular-nums;
         white-space: nowrap;
     }
 
     &__trigger-region {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--space-1-5);
-
-        &::before {
-            content: '';
-            width: 1px;
-            height: 0.875rem;
-            background: var(--color-border);
-        }
+        color: var(--text-muted);
+        font-size: var(--text-xs);
     }
 
     &__panel {
@@ -92,10 +78,6 @@
     .locale-region-menu {
         &__trigger {
             padding-inline: var(--space-2);
-        }
-
-        &__trigger-icon {
-            display: none;
         }
     }
 }

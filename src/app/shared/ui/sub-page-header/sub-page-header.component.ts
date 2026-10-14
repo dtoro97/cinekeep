@@ -3,12 +3,13 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { HeroSurfaceComponent } from '../hero-surface/hero-surface.component';
+import { ImageComponent, ImageType } from '../image/image.component';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
 import type { RouteCommands } from '../../types';
 
 @Component({
     selector: 'app-sub-page-header',
-    imports: [HeroSurfaceComponent, NgTemplateOutlet, RouterLink, SkeletonComponent],
+    imports: [HeroSurfaceComponent, ImageComponent, NgTemplateOutlet, RouterLink, SkeletonComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './sub-page-header.component.html',
     styleUrl: './sub-page-header.component.scss',
@@ -21,4 +22,8 @@ export class SubPageHeaderComponent {
     @Input() pageTitle: string | null = null;
     @Input() subtitle: string | null = null;
     @Input() loading = false;
+    /** When set, a small poster or portrait linking back to the parent sits beside the title. */
+    @Input() thumbLink: RouteCommands | null = null;
+    @Input() thumbPath: string | null | undefined = null;
+    @Input() thumbType: ImageType = 'media';
 }

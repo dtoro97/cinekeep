@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { marked } from 'marked';
 
 import { Review, ReviewDetails } from '../../../api';
-import { RouteCommands } from '../../../shared';
+import { RatingComponent, RouteCommands } from '../../../shared';
 import { toReviewPreviewText } from './review-text.mapper';
 
 export type ReviewCardVariant = 'list' | 'detail';
@@ -12,7 +12,7 @@ type ReviewCardItem = Review | ReviewDetails;
 
 @Component({
     selector: 'app-review-card',
-    imports: [DatePipe, DecimalPipe, RouterLink],
+    imports: [DatePipe, DecimalPipe, RatingComponent, RouterLink],
     templateUrl: './review-card.component.html',
     styleUrl: './review-card.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,

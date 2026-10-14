@@ -9,6 +9,12 @@
             <div class="media-carousel-panel__skeleton-media">
                 <app-skeleton class="media-carousel-panel__skeleton-fill" />
             </div>
+            @if (variant === 'backdrop') {
+                <div class="media-carousel-panel__skeleton-content">
+                    <app-skeleton class="media-carousel-panel__skeleton-title" />
+                    <app-skeleton class="media-carousel-panel__skeleton-meta" />
+                </div>
+            }
         } @else {
             @if (variant === 'card') {
                 <app-card

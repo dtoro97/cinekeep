@@ -2,7 +2,8 @@ import type { MediaListItem, PersonListItem, RecentlyViewedItem } from '../../..
 import { MEDIA_TYPE_LABEL } from '../../../models/media-type-options.model';
 import type { MediaOrPersonFilterType, MediaOrPersonType, MediaType, RemoteData } from '../../../types';
 import { pluralize } from '../../../utils/pluralize';
-import type { HeaderSearchOption, HeaderSearchPanel, HeaderSearchTitleSegment } from './header-search.model';
+import { toTitleSegments } from '../../../utils/title-segments';
+import type { HeaderSearchOption, HeaderSearchPanel, HeaderSearchResults } from './header-search.model';
 
 const OPTION_ID_PREFIX = 'header-search-option';
 const MAX_RECENT_OPTIONS = 5;
@@ -35,7 +36,7 @@ export interface HeaderSearchPanelSource {
     readonly query: string;
     readonly searchFilter: MediaOrPersonFilterType;
     /** Result options without highlighting; the panel highlights them for the current query. */
-    readonly searchResultsState: RemoteData<readonly HeaderSearchOption[]>;
+    readonly searchResultsState: RemoteData<HeaderSearchResults>;
     readonly recentItems: readonly RecentlyViewedItem[];
 }
 
@@ -76,7 +77,7 @@ export const toHeaderSearchPanel = (source: HeaderSearchPanelSource): HeaderSear
             ? {
                   kind: 'recent',
                   label: RECENT_LABEL,
-                  groups: [{ label: RECENT_LABEL, showLabel: true, options }],
+                  groups: [{ label: RECENT_LABEL, options }],
               }
             : HIDDEN_PANEL;
     }
@@ -90,7 +91,8 @@ export const toHeaderSearchPanel = (source: HeaderSearchPanelSource): HeaderSear
         case 'failure':
             return { kind: 'error' };
         case 'success': {
-            const options = source.searchResultsState.data.map((option) => ({
+            const { options: resultOptions, totalResults } = source.searchResultsState.data;
+            const options = resultOptions.map((option) => ({
                 ...option,
                 titleSegments: toTitleSegments(option.title, source.query),
             }));
@@ -105,19 +107,16 @@ export const toHeaderSearchPanel = (source: HeaderSearchPanelSource): HeaderSear
                     ? [
                           {
                               label: 'Titles',
-                              showLabel: false,
                               options: rest.filter((option) => option.kind !== 'person').slice(0, MAX_TITLE_OPTIONS),
                           },
                           {
                               label: 'People',
-                              showLabel: false,
                               options: rest.filter((option) => option.kind === 'person').slice(0, MAX_PEOPLE_OPTIONS),
                           },
                       ]
                     : [
                           {
                               label: SINGLE_TYPE_GROUP_LABELS[source.searchFilter],
-                              showLabel: false,
                               options: rest.slice(0, MAX_SINGLE_TYPE_OPTIONS),
                           },
                       ];
@@ -130,6 +129,7 @@ export const toHeaderSearchPanel = (source: HeaderSearchPanelSource): HeaderSear
                 seeAll: {
                     optionId: HEADER_SEARCH_SEE_ALL_ID,
                     query: source.query,
+                    label: totalResults > 0 ? `See all ${pluralize(totalResults, 'result')}` : 'See all results',
                     queryParams: toSearchPageQueryParams(source.query, source.searchFilter),
                 },
             };
@@ -180,27 +180,6 @@ export const toHeaderSearchStatusMessage = (panel: HeaderSearchPanel): string =>
         default:
             return '';
     }
-};
-
-export const toTitleSegments = (title: string, query: string): HeaderSearchTitleSegment[] => {
-    const needle = query.trim().toLocaleLowerCase();
-    const haystack = title.toLocaleLowerCase();
-    const start = needle ? haystack.indexOf(needle) : -1;
-
-    // Lower-casing can change string length for a few scripts; skip highlighting rather than mis-slice.
-    if (start < 0 || haystack.length !== title.length) {
-        return [{ key: 'full', text: title, match: false }];
-    }
-
-    const end = start + needle.length;
-
-    return (
-        [
-            { key: 'before', text: title.slice(0, start), match: false },
-            { key: 'match', text: title.slice(start, end), match: true },
-            { key: 'after', text: title.slice(end), match: false },
-        ] satisfies HeaderSearchTitleSegment[]
-    ).filter((segment) => segment.text.length > 0);
 };
 
 export const toTitleResultOption = (item: MediaListItem): HeaderSearchOption =>

@@ -1,6 +1,14 @@
 <div class="page-container">
     @if (personDetail$ | async; as personDetail) {
-        <app-sub-page-header [parentTitle]="personDetail.personName" [backLink]="['../']" pageTitle="Photos" />
+        <app-sub-page-header
+            [parentTitle]="personDetail.personName"
+            [backLink]="['../']"
+            pageTitle="Photos"
+            [subtitle]="personDetail.photosSubtitle"
+            [thumbLink]="['../']"
+            [thumbPath]="personDetail.profilePath"
+            thumbType="person"
+        />
 
         <div class="page-main">
             @if (personDetail.photos.state === 'loading') {

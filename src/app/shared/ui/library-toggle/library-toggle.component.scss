@@ -50,8 +50,7 @@
             }
         }
 
-        &:active:not(:disabled),
-        &:focus:not(:disabled) {
+        &:active:not(:disabled) {
             background: var(--control-accent-surface-hover);
             color: var(--control-accent-text);
         }
@@ -69,10 +68,6 @@
 
     &:active:not(:disabled) {
         background: var(--control-subtle-surface-active);
-        color: var(--text-primary);
-    }
-
-    &:focus:not(:disabled) {
         color: var(--text-primary);
     }
 }

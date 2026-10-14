@@ -24,13 +24,14 @@ import {
     HeaderSearchDismissStep,
     HeaderSearchOption,
     HeaderSearchPanel,
+    HeaderSearchResults,
     HeaderSearchSubmitAction,
 } from './header-search.model';
 
 interface HeaderSearchBarState {
     readonly query: string;
     readonly searchFilter: MediaOrPersonFilterType;
-    readonly searchResultsState: RemoteData<readonly HeaderSearchOption[]>;
+    readonly searchResultsState: RemoteData<HeaderSearchResults>;
     readonly recentItems: readonly RecentlyViewedItem[];
     /** Whether the results panel may show; its content decides if anything renders. */
     readonly panelOpen: boolean;
@@ -66,6 +67,7 @@ export class HeaderSearchBarStoreService extends ComponentStore<HeaderSearchBarS
             hasQuery: state.query.length > 0,
             panel,
             showListbox,
+            isWidePanel: panel.kind === 'results' || panel.kind === 'loading',
             listboxId: SEARCH_LISTBOX_ID,
             ariaControls: showListbox ? SEARCH_LISTBOX_ID : null,
             activeOptionId: state.activeOptionId,
@@ -75,7 +77,7 @@ export class HeaderSearchBarStoreService extends ComponentStore<HeaderSearchBarS
 
     constructor(
         private readonly searchRestControllerService: SearchRestControllerService,
-        recentlyViewedStoreService: RecentlyViewedStoreService,
+        private readonly recentlyViewedStoreService: RecentlyViewedStoreService,
     ) {
         super(INITIAL_STATE);
         recentlyViewedStoreService.items$
@@ -119,6 +121,10 @@ export class HeaderSearchBarStoreService extends ComponentStore<HeaderSearchBarS
             searchResultsState: hasQuery ? { state: 'loading' } : { state: 'notAsked' },
         });
         this.searchEffect();
+    }
+
+    clearRecent(): void {
+        this.recentlyViewedStoreService.clearAll();
     }
 
     openPanel(): void {
@@ -225,59 +231,51 @@ export class HeaderSearchBarStoreService extends ComponentStore<HeaderSearchBarS
                     switchMap(() => {
                         switch (searchFilter) {
                             case 'movie':
-                                return this.searchRestControllerService
-                                    .searchMovie({ query: trimmedQuery })
-                                    .pipe(
-                                        map(({ results }) =>
-                                            (results ?? [])
-                                                .filter(({ id }) => !!id)
-                                                .map((item) =>
-                                                    toTitleResultOption(toMediaListItem(item, 'movie', 'year')),
-                                                ),
-                                        ),
-                                    );
+                                return this.searchRestControllerService.searchMovie({ query: trimmedQuery }).pipe(
+                                    map(({ results, total_results }) => ({
+                                        totalResults: total_results ?? 0,
+                                        options: (results ?? [])
+                                            .filter(({ id }) => !!id)
+                                            .map((item) => toTitleResultOption(toMediaListItem(item, 'movie', 'year'))),
+                                    })),
+                                );
                             case 'tv':
-                                return this.searchRestControllerService
-                                    .searchTv({ query: trimmedQuery })
-                                    .pipe(
-                                        map(({ results }) =>
-                                            (results ?? [])
-                                                .filter(({ id }) => !!id)
-                                                .map((item) =>
-                                                    toTitleResultOption(toMediaListItem(item, 'tv', 'year')),
-                                                ),
-                                        ),
-                                    );
+                                return this.searchRestControllerService.searchTv({ query: trimmedQuery }).pipe(
+                                    map(({ results, total_results }) => ({
+                                        totalResults: total_results ?? 0,
+                                        options: (results ?? [])
+                                            .filter(({ id }) => !!id)
+                                            .map((item) => toTitleResultOption(toMediaListItem(item, 'tv', 'year'))),
+                                    })),
+                                );
                             case 'person':
-                                return this.searchRestControllerService
-                                    .searchPerson({ query: trimmedQuery })
-                                    .pipe(
-                                        map(({ results }) =>
-                                            (results ?? [])
-                                                .filter(({ id }) => !!id)
-                                                .map((person) => toPersonResultOption(toPersonListItem(person))),
-                                        ),
-                                    );
+                                return this.searchRestControllerService.searchPerson({ query: trimmedQuery }).pipe(
+                                    map(({ results, total_results }) => ({
+                                        totalResults: total_results ?? 0,
+                                        options: (results ?? [])
+                                            .filter(({ id }) => !!id)
+                                            .map((person) => toPersonResultOption(toPersonListItem(person))),
+                                    })),
+                                );
                             default:
-                                return this.searchRestControllerService
-                                    .searchMulti({ query: trimmedQuery })
-                                    .pipe(
-                                        map(({ results }) =>
-                                            (results ?? [])
-                                                .filter(({ id }) => !!id)
-                                                .flatMap((item) =>
-                                                    isMediaResult(item)
-                                                        ? [
-                                                              toTitleResultOption(
-                                                                  toMediaListItem(item, item.media_type, 'year'),
-                                                              ),
-                                                          ]
-                                                        : item.media_type === 'person'
-                                                          ? [toPersonResultOption(toPersonListItem(item))]
-                                                          : [],
-                                                ),
-                                        ),
-                                    );
+                                return this.searchRestControllerService.searchMulti({ query: trimmedQuery }).pipe(
+                                    map(({ results, total_results }) => ({
+                                        totalResults: total_results ?? 0,
+                                        options: (results ?? [])
+                                            .filter(({ id }) => !!id)
+                                            .flatMap((item) =>
+                                                isMediaResult(item)
+                                                    ? [
+                                                          toTitleResultOption(
+                                                              toMediaListItem(item, item.media_type, 'year'),
+                                                          ),
+                                                      ]
+                                                    : item.media_type === 'person'
+                                                      ? [toPersonResultOption(toPersonListItem(item))]
+                                                      : [],
+                                            ),
+                                    })),
+                                );
                         }
                     }),
                     tap((data) =>

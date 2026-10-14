@@ -9,16 +9,10 @@
 }
 
 <ng-template #header>
-    <header class="sub-page-header">
+    <header class="sub-page-header" [class.sub-page-header--thumb]="thumbLink">
         @if (backLink) {
-            <a
-                class="sub-page-header__back-link text-caption"
-                [routerLink]="backLink"
-            >
-                <i
-                    class="sub-page-header__back-icon fa-solid fa-chevron-left"
-                    aria-hidden="true"
-                ></i>
+            <a class="sub-page-header__back-link text-caption" [routerLink]="backLink">
+                <i class="sub-page-header__back-icon fa-solid fa-chevron-left" aria-hidden="true"></i>
                 @if (parentTitle) {
                     Back to {{ parentTitle }}
                 } @else {
@@ -27,24 +21,38 @@
             </a>
         }
 
-        <div class="sub-page-header__content">
-            @if (pageTitle) {
-                <div class="sub-page-header__title-row">
-                    <h1 class="sub-page-header__title text-headline">
-                        {{ pageTitle }}
-                    </h1>
-                </div>
-            } @else if (loading) {
-                <app-skeleton class="sub-page-header__title-skeleton" />
+        <div class="sub-page-header__row">
+            @if (thumbLink) {
+                <a class="sub-page-header__thumb-link" [routerLink]="thumbLink" tabindex="-1" aria-hidden="true">
+                    <app-image
+                        class="sub-page-header__thumb"
+                        [src]="thumbPath"
+                        [type]="thumbType"
+                        params="w185"
+                        alt=""
+                    />
+                </a>
             }
 
-            @if (subtitle) {
-                <p class="text-meta">
-                    {{ subtitle }}
-                </p>
-            } @else if (loading) {
-                <app-skeleton class="sub-page-header__subtitle-skeleton" />
-            }
+            <div class="sub-page-header__content">
+                @if (pageTitle) {
+                    <div class="sub-page-header__title-row">
+                        <h1 class="sub-page-header__title text-headline">
+                            {{ pageTitle }}
+                        </h1>
+                    </div>
+                } @else if (loading) {
+                    <app-skeleton class="sub-page-header__title-skeleton" />
+                }
+
+                @if (subtitle) {
+                    <p class="text-meta">
+                        {{ subtitle }}
+                    </p>
+                } @else if (loading) {
+                    <app-skeleton class="sub-page-header__subtitle-skeleton" />
+                }
+            </div>
         </div>
     </header>
 </ng-template>

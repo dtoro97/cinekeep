@@ -100,12 +100,6 @@
         }
     }
 
-    &__option:has(input:focus-visible) .cover-picker__frame {
-        box-shadow:
-            0 0 0 2px var(--color-brand),
-            0 0 0 5px var(--control-focus-ring-outer);
-    }
-
     &__empty {
         margin: 0;
         color: var(--text-muted);

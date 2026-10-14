@@ -31,11 +31,13 @@ export class CardComponent implements OnChanges {
     datePattern = CARD_DATE_PATTERNS.year;
     rating: number | null = null;
     showMetadata = false;
+    isRoleOnly = false;
 
     ngOnChanges(): void {
         this.routeCommands = this.item.routeCommands ?? ['/title', this.item.id, this.item.mediaType];
         this.datePattern = CARD_DATE_PATTERNS[this.dateFormat];
         this.rating = this.showRating ? this.item.rating : null;
         this.showMetadata = !!this.rating || !!this.item.date;
+        this.isRoleOnly = !this.showMetadata && !!this.item.role;
     }
 }

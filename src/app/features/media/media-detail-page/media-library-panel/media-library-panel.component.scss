@@ -4,13 +4,9 @@
     display: block;
 }
 
-// The title as part of your collection: a soft tonal panel, not a bordered box.
 .library {
     display: flex;
     flex-direction: column;
-    padding: var(--space-6);
-    border-radius: var(--radius-md);
-    background: var(--surface-panel-soft);
 }
 
 .library__title {

@@ -41,17 +41,6 @@ export class MediaLibraryPanelComponent {
         private readonly userSessionStore: UserSessionStoreService,
     ) {}
 
-    toggleWatchlist(): void {
-        (this.userSessionStore.isAuthenticated()
-            ? this.actionsStore.toggleLibraryFlag$('watchlist')
-            : this.signinDialogService.open$()
-        )
-            .pipe(
-                catchError(() => this.snackbarService.showError$('Could not update your watchlist.')),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe();
-    }
 
     toggleFavorite(): void {
         (this.userSessionStore.isAuthenticated()

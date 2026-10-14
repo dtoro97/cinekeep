@@ -36,8 +36,7 @@
                 }
                 @if (score) {
                     <p class="review-row__score">
-                        <span class="text-rating-sm">{{ score | number: '1.0-1' }}</span>
-                        <span class="review-card__score-scale text-caption">/10</span>
+                        <app-rating [value]="score" />
                     </p>
                 } @else {
                     <p class="review-row__no-score text-caption">No score given</p>

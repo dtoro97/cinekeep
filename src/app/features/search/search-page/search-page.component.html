@@ -1,66 +1,206 @@
-<div class="search-page page-container">
-    @if (searchResults$ | async; as searchResults) {
-        <div class="search-header inner-container">
-            <div class="header-row">
-                <h1 class="text-headline">{{ searchResults.pageTitle }}</h1>
+@if (searchPage$ | async; as searchPage) {
+    <div class="page-container">
+        <section class="search-head inner-container" aria-labelledby="search-title">
+            <div class="search-head__title-row">
+                <h1 id="search-title" class="search-head__title text-headline">{{ searchPage.heading }}</h1>
+                @if (searchPage.totalLabel) {
+                    <span class="search-head__total">{{ searchPage.totalLabel }}</span>
+                }
             </div>
-            @if (searchResults.hasQuery) {
+
+            @if (searchPage.showTabs) {
                 <app-toggle-group
-                    [options]="typeOptions"
-                    [selectedValue]="searchResults.type"
+                    [options]="searchPage.tabs"
+                    [selectedValue]="searchPage.selectedType"
+                    ariaLabel="Show"
                     (selected)="setType($event)"
                 />
             }
-        </div>
+        </section>
 
-        <div class="results inner-container page-list-column">
-            @if (!searchResults.hasQuery) {
-                <div class="empty-panel">
-                    <app-empty-state
-                        iconClass="fa-solid fa-magnifying-glass"
-                        title="Start a search"
-                        text="Use the search bar above to find movies, TV series, and people."
-                        iconStyle="plain"
-                    />
+        @if (!searchPage.hasQuery) {
+            <div class="search-intro inner-container">
+                <p class="search-intro__text text-body">
+                    Find films, series and people with the search bar above. Press
+                    <kbd class="search-intro__key">/</kbd> from any page.
+                </p>
+            </div>
+        } @else if (searchPage.hasNoResults) {
+            <div class="search-empty inner-container">
+                <p class="search-empty__title text-title">Nothing matches that search.</p>
+                <p class="search-empty__text text-body">
+                    Check the spelling, or try fewer words: a title on its own usually finds it.
+                </p>
+                <div class="search-empty__actions">
+                    <a matButton="outlined" routerLink="/movies/popular">Browse popular movies</a>
+                    <a matButton="outlined" routerLink="/discover">Explore by filters</a>
                 </div>
-            }
+            </div>
+        } @else {
+            <div class="search-body">
+                <div class="search-main">
+                    @for (section of searchPage.mainSections; track section.key) {
+                        <section class="search-section" [attr.aria-labelledby]="section.headingId">
+                            <header class="search-section__head">
+                                <h2 [id]="section.headingId" class="search-section__title text-section-label">
+                                    {{ section.title }}
+                                </h2>
+                                @if (section.showJump) {
+                                    <button type="button" class="search-link" (click)="setType(section.key)">
+                                        {{ section.jumpLabel }}
+                                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                                    </button>
+                                } @else if (section.showShowing) {
+                                    <span class="text-meta">{{ section.showingLabel }}</span>
+                                }
+                            </header>
 
-            @for (section of searchResults.sections; track section.key) {
-                <app-page-section [subtitle]="section.title">
-                    <div>
-                        @if (section.key === 'person') {
-                            <app-person-list
-                                [state]="section.state"
-                                [skeletonCount]="searchResults.skeletonCount"
-                                [showIndex]="false"
+                            @if (section.showSkeleton) {
+                                <ng-container [ngTemplateOutlet]="rowSkeletons" />
+                            } @else if (section.isPeople) {
+                                <ng-container
+                                    [ngTemplateOutlet]="peopleList"
+                                    [ngTemplateOutletContext]="{ $implicit: section.peopleRows }"
+                                />
+                            } @else {
+                                <ul class="title-rows">
+                                    @for (row of section.titleRows; track row.mediaType + '-' + row.id) {
+                                        <li>
+                                            <a class="title-row" [routerLink]="['/title', row.id, row.mediaType]">
+                                                <app-image
+                                                    class="title-row__poster"
+                                                    [src]="row.thumb"
+                                                    params="w185"
+                                                    alt=""
+                                                />
+                                                <span class="title-row__text">
+                                                    <!-- prettier-ignore -->
+                                                    <span class="title-row__title">@for (segment of row.titleSegments; track segment.key) {@if (segment.match) {<mark class="match">{{ segment.text }}</mark>} @else {<span>{{ segment.text }}</span>}}</span>
+                                                    <span class="title-row__meta text-meta">
+                                                        @if (row.rating) {
+                                                            <app-rating [value]="row.rating" />
+                                                        }
+                                                        @for (item of row.meta; track item) {
+                                                            <span>{{ item }}</span>
+                                                        }
+                                                    </span>
+                                                    @if (row.overview) {
+                                                        <span class="title-row__overview text-body-sm">{{
+                                                            row.overview
+                                                        }}</span>
+                                                    }
+                                                </span>
+
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+
+                            @if (section.showMore) {
+                                <button
+                                    matButton="outlined"
+                                    class="search-section__more"
+                                    type="button"
+                                    [disabled]="section.isLoadingMore"
+                                    (click)="loadMore(section.key)"
+                                >
+                                    {{ section.moreLabel }}
+                                </button>
+                            }
+                        </section>
+                    }
+                </div>
+
+                <aside class="search-rail" [attr.aria-label]="searchPage.railLabel">
+                    @if (searchPage.peopleRail; as people) {
+                        @if (people.show) {
+                            <section class="search-section" aria-labelledby="search-rail-people">
+                                <header class="search-section__head">
+                                    <h2 id="search-rail-people" class="text-title">People</h2>
+                                    @if (people.showJump) {
+                                        <button type="button" class="search-link" (click)="setType('person')">
+                                            {{ people.jumpLabel }}
+                                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                                        </button>
+                                    }
+                                </header>
+
+                                @if (people.showSkeleton) {
+                                    <ng-container [ngTemplateOutlet]="rowSkeletons" />
+                                } @else {
+                                    <ng-container
+                                        [ngTemplateOutlet]="peopleList"
+                                        [ngTemplateOutletContext]="{ $implicit: people.peopleRows }"
+                                    />
+                                }
+                            </section>
+                        }
+                    } @else {
+                        <section class="search-section" aria-labelledby="search-rail-other">
+                            <h2 id="search-rail-other" class="search-rail__title text-title">
+                                {{ searchPage.otherTypesTitle }}
+                            </h2>
+                            <ul class="jump-list">
+                                @for (other of searchPage.otherTypes; track other.value) {
+                                    <li>
+                                        <button type="button" class="jump-list__item" (click)="setType(other.value)">
+                                            <span>{{ other.label }}</span>
+                                            <span class="jump-list__count">
+                                                {{ other.count }}
+                                                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                                            </span>
+                                        </button>
+                                    </li>
+                                }
+                            </ul>
+                        </section>
+                    }
+                </aside>
+            </div>
+        }
+    </div>
+
+    <ng-template #peopleList let-rows>
+        <ul class="person-rows">
+            @for (row of rows; track row.id) {
+                <li>
+                    <a class="person-row" [routerLink]="['/name', row.id]">
+                        @if (row.imagePath) {
+                            <app-image
+                                class="person-row__face"
+                                [src]="row.imagePath"
+                                type="person"
+                                params="w185"
+                                alt=""
                             />
                         } @else {
-                            <app-media-list
-                                [state]="section.state"
-                                [skeletonCount]="searchResults.skeletonCount"
-                                density="compact"
-                            />
+                            <span class="person-row__initials" aria-hidden="true">{{ row.initials }}</span>
                         }
-                    </div>
-                    @if (section.hasMore) {
-                        <div class="search-section-footer">
-                            <button mat-stroked-button type="button" (click)="loadMore(section.key)">
-                                {{ section.moreLabel }}
-                            </button>
-                        </div>
-                    }
-                </app-page-section>
+                        <span class="person-row__text">
+                            <!-- prettier-ignore -->
+                            <span class="person-row__name text-card-title">@for (segment of row.nameSegments; track segment.key) {@if (segment.match) {<mark class="match">{{ segment.text }}</mark>} @else {<span>{{ segment.text }}</span>}}</span>
+                            @if (row.meta) {
+                                <span class="person-row__meta text-meta">{{ row.meta }}</span>
+                            }
+                        </span>
+                    </a>
+                </li>
             }
+        </ul>
+    </ng-template>
 
-            @if (searchResults.hasNoResults) {
-                <div class="empty-panel">
-                    <app-empty-state
-                        iconClass="fa-solid fa-magnifying-glass"
-                        title="No results found"
-                        text="Try a different search term."
-                    />
-                </div>
+    <ng-template #rowSkeletons>
+        <ul class="title-rows" aria-hidden="true">
+            @for (i of 5 | repeat; track i) {
+                <li class="title-row title-row--skeleton">
+                    <app-skeleton class="title-row__poster" />
+                    <span class="title-row__text">
+                        <app-skeleton class="title-row__line-skeleton" />
+                        <app-skeleton class="title-row__line-skeleton title-row__line-skeleton--short" />
+                    </span>
+                </li>
             }
-        </div>
-    }
-</div>
+        </ul>
+    </ng-template>
+}

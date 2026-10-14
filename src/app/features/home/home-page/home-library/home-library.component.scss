@@ -43,13 +43,9 @@
 }
 
 .rated__row {
-    display: grid;
-    grid-template-columns: 7rem minmax(0, 1fr) auto;
+    @include list-row('.rated__still', '.rated__title');
+    grid-template-columns: var(--row-thumb-still) minmax(0, 1fr) auto;
     align-items: center;
-    gap: var(--space-4);
-    padding-block: var(--space-3);
-    color: inherit;
-    @include row-hover('.rated__still', '.rated__title');
 }
 
 .rated__still {
@@ -92,4 +88,15 @@
         grid-template-columns: minmax(0, 1fr);
         gap: var(--space-10);
     }
+}
+
+@include mobile() {
+    .rated__row {
+        grid-template-columns: var(--row-thumb-still-compact) minmax(0, 1fr) auto;
+    }
+}
+
+.rated__score-skeleton {
+    width: var(--text-4xl);
+    --skeleton-height: var(--text-4xl);
 }

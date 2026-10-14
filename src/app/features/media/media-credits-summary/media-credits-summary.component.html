@@ -41,13 +41,10 @@
                     <span class="label text-caption">Episode directors</span>
 
                     <span class="names text-body-sm">
-                        @for (person of directors.visible; track person.id; let last = $last) {
+                        @for (person of directors.visible; track person.id) {
                             <a class="link" [routerLink]="['/name', person.id]">
                                 {{ person.name }}
                             </a>
-                            @if (!last) {
-                                <span class="separator"> &#x2022; </span>
-                            }
                         }
 
                         @if (directors.hiddenCount) {

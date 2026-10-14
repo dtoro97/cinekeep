@@ -1,32 +1,33 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { distinctUntilChanged, map, switchMap } from 'rxjs';
 
 import {
-    EmptyStateComponent,
-    MediaListComponent,
+    ImageComponent,
     MediaOrPersonFilterType,
     MediaOrPersonType,
-    PageSectionComponent,
-    SEARCH_TYPE_OPTIONS,
+    RatingComponent,
+    RepeatPipe,
     SeoService,
+    SkeletonComponent,
     ToggleGroupComponent,
 } from '../../../shared';
-import { PersonListComponent } from './person-list/person-list.component';
 import { SearchStoreService } from './search-store.service';
 
 @Component({
     selector: 'app-search-page',
     imports: [
         AsyncPipe,
+        NgTemplateOutlet,
         MatButtonModule,
-        EmptyStateComponent,
-        MediaListComponent,
-        PageSectionComponent,
-        PersonListComponent,
+        RouterLink,
+        ImageComponent,
+        RatingComponent,
+        RepeatPipe,
+        SkeletonComponent,
         ToggleGroupComponent,
     ],
     providers: [SearchStoreService],
@@ -35,8 +36,7 @@ import { SearchStoreService } from './search-store.service';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchPageComponent {
-    readonly searchResults$ = this.store.searchResults$;
-    readonly typeOptions = SEARCH_TYPE_OPTIONS;
+    readonly searchPage$ = this.store.searchPage$;
 
     constructor(
         private store: SearchStoreService,
@@ -72,9 +72,8 @@ export class SearchPageComponent {
         );
     }
 
-    /** The toggle group emits `unknown`, but only ever offers `typeOptions`. */
-    setType(type: unknown): void {
-        this.store.setType(type as MediaOrPersonFilterType);
+    setType(type: MediaOrPersonFilterType): void {
+        this.store.setType(type);
     }
 
     loadMore(section: MediaOrPersonType): void {

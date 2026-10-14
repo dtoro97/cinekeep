@@ -104,6 +104,10 @@
 
 .link {
     @include text-link(inherit);
+
+    &:not(:last-of-type)::after {
+        content: ',';
+    }
 }
 
 @include tablet() {

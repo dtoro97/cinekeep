@@ -92,9 +92,6 @@
     --control-border: var(--color-border-subtle);
     --control-text: var(--text-secondary);
     --control-text-hover: var(--text-primary);
-    --control-focus-border: var(--color-brand);
-    --control-focus-ring-inner: color-mix(in oklch, var(--gold-500) 24%, transparent);
-    --control-focus-ring-outer: color-mix(in oklch, var(--gold-500) 14%, transparent);
 
     --control-subtle-surface: color-mix(in oklch, var(--ink-1) 86%, transparent);
     --control-subtle-surface-hover: var(--ink-2);
@@ -203,6 +200,7 @@
     /** Hairline between rows of a list; strong enough to read on near-black without boxes. */
     --row-divider: var(--color-border);
     --border-overlay-soft: color-mix(in oklch, var(--paper-0) 12%, transparent);
+    --border-strong: color-mix(in oklch, var(--paper-0) 34%, transparent);
     --border-brand-soft: color-mix(in oklch, var(--gold-500) 28%, transparent);
     --border-success-soft: color-mix(in oklch, var(--green-500) 30%, transparent);
     --border-danger-soft: color-mix(in oklch, var(--red-300) 34%, transparent);
@@ -262,7 +260,6 @@
         transparent 85%
     );
 
-    --shadow-text-hero: 0 1px 3px color-mix(in oklch, var(--ink-shadow) 55%, transparent);
 
     --z-overlay: 1000;
     --z-dialog: 1100;

@@ -8,6 +8,10 @@
         (focusout)="onFocusOut($event)"
     >
         <div class="header-search__top">
+            <button class="header-search__back" type="button" aria-label="Close search" (click)="closeSearch()">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            </button>
+
             <div class="header-search__bar">
                 <mat-form-field
                     class="header-search__filter-field mat-mdc-form-field--borderless"
@@ -62,17 +66,29 @@
                     <kbd class="header-search__shortcut" title="Press / to search" aria-hidden="true">/</kbd>
                 }
             </div>
-
-            <button class="header-search__cancel" type="button" (click)="closeSearch()">Cancel</button>
         </div>
 
+        @if (searchBar.searchOpen) {
+            <app-toggle-group
+                class="header-search__scope-row"
+                [options]="filterOptions"
+                [selectedValue]="searchBar.searchFilter"
+                (selected)="setFilter($event)"
+            />
+        }
+
         @if (searchBar.panel.kind !== 'hidden') {
-            <div class="header-search__dropdown" (mousedown)="$event.preventDefault()">
+            <div
+                class="header-search__dropdown"
+                [class.header-search__dropdown--wide]="searchBar.isWidePanel"
+                (mousedown)="$event.preventDefault()"
+            >
                 <app-header-search-results
                     [panel]="searchBar.panel"
                     [listboxId]="searchBar.listboxId"
                     [activeOptionId]="searchBar.activeOptionId"
                     (optionSelected)="closePanel()"
+                    (clearRecent)="clearRecent()"
                     (retry)="retry()"
                     (widen)="widenSearch()"
                 />

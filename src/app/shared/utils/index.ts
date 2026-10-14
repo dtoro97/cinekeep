@@ -19,3 +19,4 @@ export * from './youtube';
 export * from './pluralize';
 export * from './episode-label';
 export * from './tmdb-image';
+export * from './title-segments';

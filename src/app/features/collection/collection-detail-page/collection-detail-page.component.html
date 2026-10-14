@@ -16,10 +16,14 @@
 
                     <div class="collection-hero__main">
                         <div class="collection-hero__heading">
-                            <p class="text-hero-meta">
-                                Collection
+                            <p class="collection-hero__meta text-hero-meta">
+                                @if (collectionDetail.averageRating; as rating) {
+                                    <app-rating [value]="rating" />
+                                    <span>average</span>
+                                }
+                                <span>Collection</span>
                                 @if (collectionDetail.timelineLabel; as timelineLabel) {
-                                    &#x2022; {{ timelineLabel }}
+                                    <span>{{ timelineLabel }}</span>
                                 }
                             </p>
                             <h1 class="hero-title text-hero-title">
@@ -38,9 +42,6 @@
 
                     <aside class="collection-hero__side" aria-label="Collection facts">
                         <div class="collection-facts">
-                            @if (collectionDetail.averageRating; as rating) {
-                                <app-tmdb-rating prominent label="Average rating" [value]="rating" />
-                            }
 
                             @if (collectionDetail.partsCount; as count) {
                                 <div class="collection-facts__item">

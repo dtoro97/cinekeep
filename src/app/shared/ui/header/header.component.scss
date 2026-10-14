@@ -5,49 +5,29 @@
     top: 0;
     z-index: var(--z-overlay);
     width: 100%;
-    background-color: var(--surface-panel);
+    background-color: var(--surface-page);
     border-bottom: 1px solid var(--color-border-subtle);
 
     &__inner {
         display: flex;
         align-items: center;
-        gap: var(--space-3);
-        height: calc(var(--space-12) + var(--space-3));
+        gap: var(--space-1);
+        height: var(--space-16);
     }
 
     &__brand {
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
         flex-shrink: 0;
+        margin-right: var(--space-5);
+        font-size: var(--text-3xl);
         color: var(--text-primary);
         text-decoration: none;
     }
 
-    &__brand-icon {
-        inline-size: var(--space-8);
-        block-size: var(--space-8);
-        flex-shrink: 0;
-    }
-
-    &__brand-text {
-        display: inline-flex;
-        font-family: var(--font-brand);
-        font-size: var(--text-xl);
-        font-weight: var(--weight-semibold);
-        line-height: 1;
-        letter-spacing: 0;
-    }
-
-    &__brand-text-accent {
-        color: var(--color-brand);
-    }
-
     &__search {
         display: flex;
-        flex: 1;
-        justify-content: flex-end;
+        flex: 0 1 35rem;
         min-width: 0;
+        margin-left: var(--space-5);
     }
 
     &__actions {
@@ -56,17 +36,35 @@
         gap: var(--space-2);
         flex-shrink: 0;
         min-width: 0;
+        margin-left: auto;
     }
 }
 
+// Phones: wordmark, then search, account and the Browse menu, which also holds language and region.
 @include mobile() {
     .header {
-        &__brand-text {
-            display: none;
+        &__brand {
+            margin-right: auto;
+            font-size: var(--text-2xl);
+        }
+
+        &__search {
+            flex: none;
+            order: 1;
+            margin-left: 0;
         }
 
         &__actions {
-            gap: var(--space-1);
+            order: 2;
+            margin-left: 0;
+        }
+
+        &__locale {
+            display: none;
+        }
+
+        &__browse {
+            order: 3;
         }
     }
 }

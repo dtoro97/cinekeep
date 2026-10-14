@@ -1,5 +1,5 @@
 @if (hasOptions) {
-    <div class="toggle-group" [class.toggle-group--chips]="showChips">
+    <div class="toggle-group" [class.toggle-group--chips]="showChips" role="group" [attr.aria-label]="ariaLabel">
         @for (option of viewOptions; track option.value) {
             <button
                 type="button"
@@ -9,6 +9,9 @@
                 (click)="toggle(option.value)"
             >
                 {{ option.label }}
+                @if (option.hasCount) {
+                    <span class="toggle-group__count">{{ option.count }}</span>
+                }
             </button>
         }
     </div>

@@ -12,7 +12,7 @@ import {
     PluralizePipe,
     SeoService,
     SkeletonComponent,
-    TmdbRatingComponent,
+    RatingComponent,
     toSeoImage,
 } from '../../../shared';
 import { CollectionDetailStoreService } from './collection-detail-store.service';
@@ -27,7 +27,7 @@ import { CollectionDetailStoreService } from './collection-detail-store.service'
         PageSectionComponent,
         PluralizePipe,
         SkeletonComponent,
-        TmdbRatingComponent,
+        RatingComponent,
     ],
     providers: [CollectionDetailStoreService],
     templateUrl: './collection-detail-page.component.html',

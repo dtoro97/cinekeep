@@ -2,196 +2,186 @@
     <div class="page-container">
         @if (personDetail.person.state === 'success') {
             @let person = personDetail.person.data;
-            <section class="profile-hero">
-                <div class="profile-hero__inner inner-container">
-                    <app-image
-                        class="portrait aspect-poster"
-                        [src]="person.profile_path"
-                        type="person"
-                        [alt]="person.name ?? ''"
-                    />
+            <section class="person-hero inner-container" aria-labelledby="person-name">
+                <app-image
+                    class="person-hero__portrait"
+                    [src]="person.profile_path"
+                    type="person"
+                    [alt]="person.name ?? ''"
+                />
 
-                    <div class="profile-hero__main">
-                        <div class="profile-hero__heading">
-                            <span class="text-hero-meta">
-                                {{ person.known_for_department }}
-                            </span>
-                            <h1 class="profile-hero__title text-hero-title">
-                                {{ person.name }}
-                            </h1>
-                        </div>
+                <div class="person-hero__main">
+                    <h1 id="person-name" class="person-hero__name text-hero-title">{{ person.name }}</h1>
 
-                        <div class="biography u-flex-column u-items-start u-gap-3">
-                            @if (personDetail.biography; as biography) {
-                                <p
-                                    class="biography__copy text-hero-summary"
-                                    [class.biography__copy--collapsed]="!biography.isExpanded"
-                                >
-                                    {{ biography.text }}
-                                </p>
-
-                                @if (biography.isCollapsible) {
-                                    <button
-                                        class="biography__toggle text-body-sm"
-                                        type="button"
-                                        (click)="toggleBiography()"
-                                    >
-                                        {{ biography.toggleLabel }}
-                                    </button>
-                                }
-                            } @else {
-                                <p class="text-meta">No biography available for this person.</p>
-                            }
-                        </div>
-                    </div>
-
-                    <aside class="profile-facts" aria-label="Profile details">
-                        <dl class="profile-facts__list">
-                            @if (person.birthday) {
-                                <div class="profile-facts__item">
-                                    <dt class="profile-facts__label text-card-meta">Born</dt>
-                                    <dd class="profile-facts__value text-body-sm">
-                                        {{ person.birthday | date }}
-                                        @if (!person.deathday) {
-                                            <span class="text-caption">age {{ person.birthday | age }}</span>
-                                        }
-                                    </dd>
-                                </div>
-                            }
-
-                            @if (person.deathday) {
-                                <div class="profile-facts__item">
-                                    <dt class="profile-facts__label text-card-meta">Died</dt>
-                                    <dd class="profile-facts__value text-body-sm">
-                                        {{ person.deathday | date }}
-                                        @if (person.birthday) {
-                                            <span class="text-caption">
-                                                age {{ person.birthday | age: person.deathday }}
-                                            </span>
-                                        }
-                                    </dd>
-                                </div>
-                            }
-
-                            @if (person.place_of_birth) {
-                                <div class="profile-facts__item">
-                                    <dt class="profile-facts__label text-card-meta">Birthplace</dt>
-                                    <dd class="profile-facts__value text-body-sm">{{ person.place_of_birth }}</dd>
-                                </div>
-                            }
-                        </dl>
-
-                        @if (personDetail.externalLinks; as externalLinks) {
-                            <div class="profile-facts__profiles">
-                                <span class="text-card-meta">Profiles</span>
-                                <app-external-links [externalLinks]="externalLinks" />
-                            </div>
+                    <p class="person-hero__meta text-body">
+                        @if (person.known_for_department) {
+                            <span>{{ person.known_for_department }}</span>
                         }
-                    </aside>
+                        @if (person.birthday) {
+                            @if (person.deathday) {
+                                <span>{{ person.birthday | date: 'y' }}–{{ person.deathday | date: 'y' }}</span>
+                            } @else {
+                                <span
+                                    >Born {{ person.birthday | date: 'y' }} (age
+                                    {{ person.birthday | age }})</span
+                                >
+                            }
+                        }
+                    </p>
+
+                    @if (personDetail.biography; as biography) {
+                        @if (biography.showFull) {
+                            <div class="person-hero__bio text-hero-summary" [innerHTML]="biography.fullHtml"></div>
+                        } @else {
+                            <p
+                                class="person-hero__bio person-hero__bio--collapsed text-hero-summary"
+                                [innerHTML]="biography.previewHtml"
+                            ></p>
+                        }
+
+                        @if (biography.isCollapsible) {
+                            <button class="person-hero__toggle" type="button" (click)="toggleBiography()">
+                                {{ biography.toggleLabel }}
+                            </button>
+                        }
+                    } @else {
+                        <p class="person-hero__bio person-hero__bio--empty text-hero-summary">
+                            No biography available for this person.
+                        </p>
+                    }
                 </div>
             </section>
         } @else if (personDetail.person.state === 'loading') {
-            <section class="profile-hero">
-                <div class="profile-hero__inner inner-container" aria-hidden="true">
-                    <app-skeleton class="portrait portrait--skeleton aspect-poster" />
+            <section class="person-hero inner-container" aria-hidden="true">
+                <app-skeleton class="person-hero__portrait person-hero__portrait--skeleton" />
 
-                    <div class="profile-hero__main">
-                        <div class="profile-hero__heading">
-                            <app-skeleton class="profile-hero__eyebrow-skeleton" />
-                            <app-skeleton class="profile-hero__title-skeleton" />
-                        </div>
-
-                        <div class="biography u-flex-column u-items-start u-gap-3">
-                            <app-skeleton class="biography__line-skeleton biography__line-skeleton--wide" />
-                            <app-skeleton class="biography__line-skeleton" />
-                            <app-skeleton class="biography__line-skeleton biography__line-skeleton--short" />
-                        </div>
-                    </div>
-
-                    <aside class="profile-facts">
-                        <dl class="profile-facts__list">
-                            <div class="profile-facts__item">
-                                <app-skeleton class="profile-facts__label-skeleton" />
-                                <app-skeleton class="profile-facts__value-skeleton" />
-                            </div>
-                            <div class="profile-facts__item">
-                                <app-skeleton class="profile-facts__label-skeleton" />
-                                <app-skeleton
-                                    class="profile-facts__value-skeleton profile-facts__value-skeleton--wide"
-                                />
-                            </div>
-                        </dl>
-
-                        <div class="profile-facts__profiles" aria-hidden="true">
-                            <app-skeleton class="profile-facts__label-skeleton" />
-                            <div class="u-flex u-items-center u-gap-2">
-                                <app-skeleton class="profile-facts__icon-skeleton" />
-                                <app-skeleton class="profile-facts__icon-skeleton" />
-                                <app-skeleton class="profile-facts__icon-skeleton" />
-                            </div>
-                        </div>
-                    </aside>
+                <div class="person-hero__main">
+                    <app-skeleton class="person-hero__name-skeleton" />
+                    <app-skeleton class="person-hero__meta-skeleton" />
+                    <app-skeleton class="person-hero__bio-skeleton" />
                 </div>
             </section>
         }
 
-        <div class="page-sections">
-            @if (personDetail.showKnownFor) {
-                <app-page-section subtitle="Known For">
-                    <app-media-carousel-panel [state]="personDetail.knownFor"></app-media-carousel-panel>
-                </app-page-section>
-            }
+        <div class="person-body">
+            <div class="person-main">
+                @if (personDetail.showKnownFor) {
+                    <app-page-section subtitle="Known for">
+                        <ul class="known-for">
+                            @if (personDetail.knownFor.state === 'success') {
+                                @for (item of personDetail.knownFor.data; track item.mediaType + '-' + item.id) {
+                                    <li><app-card [item]="item" [showRating]="false" /></li>
+                                }
+                            } @else {
+                                @for (i of 6 | repeat; track i) {
+                                    <li><app-card-skeleton /></li>
+                                }
+                            }
+                        </ul>
+                    </app-page-section>
+                }
 
-            @if (personDetail.showPhotos) {
-                <app-page-section subtitle="Photos">
-                    <ng-container section-controls>
-                        @if (personDetail.showPhotosLink) {
-                            <a class="browse-link text-body-sm" [routerLink]="personDetail.photosLink">
-                                Browse all photos ({{ personDetail.photoCount }})
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </a>
-                        }
-                    </ng-container>
-                    <app-photos-preview
-                        [state]="personDetail.photos"
-                        [totalCount]="personDetail.photoCount"
-                        mode="person"
-                        (photoClick)="openPhotoViewer($event)"
-                        (moreClick)="openPhotosPage()"
+                <app-page-section subtitle="Filmography">
+                    @if (personDetail.filmography.state === 'success') {
+                        <span section-controls class="text-meta">{{ personDetail.filmography.data.totalLabel }}</span>
+                    }
+
+                    <app-person-filmography
+                        [filmography]="personDetail.filmography"
+                        (departmentChange)="setDepartment($event)"
+                        (mediaTypeChange)="setMediaType($event)"
+                        (expandToggle)="toggleFilmography()"
                     />
                 </app-page-section>
-            }
+            </div>
 
-            <app-page-section panel subtitle="Filmography">
-                <app-person-credits
-                    [filmography]="personDetail.filmography"
-                    [filters]="personDetail.creditFilters"
-                    (mediaTypeChange)="setCreditMediaType($event)"
-                    (sortByChange)="setCreditSortBy($event)"
-                    (sortDirectionToggle)="toggleCreditSortDirection()"
-                    (sectionToggle)="toggleCreditSection($event)"
-                    (resetFilters)="resetCreditFilters()"
-                />
-            </app-page-section>
+            @if (personDetail.person.state === 'success') {
+                @let person = personDetail.person.data;
+                <aside class="person-rail" aria-label="Details">
+                    <section class="rail-section" aria-labelledby="person-details-title">
+                        <h2 id="person-details-title" class="rail-section__title text-title">Details</h2>
 
-            @if (personDetail.aliases; as aliases) {
-                <app-page-section subtitle="Personal Details">
-                    <dl class="info-grid" aria-label="Personal details">
-                        <div class="info-grid__item">
-                            <dt class="info-grid__label text-card-meta">{{ aliases.label }}</dt>
-                            <dd class="info-grid__value">
-                                <ul class="info-grid__value-list u-list-none">
-                                    @for (alias of aliases.visible; track alias) {
-                                        <li class="text-body-strong">{{ alias }}</li>
-                                    }
-                                    @if (aliases.hiddenCount) {
-                                        <li class="text-caption">+{{ aliases.hiddenCount }} more</li>
-                                    }
-                                </ul>
-                            </dd>
-                        </div>
-                    </dl>
-                </app-page-section>
+                        <dl class="facts">
+                            @if (person.birthday) {
+                                <div class="facts__row">
+                                    <dt>Born</dt>
+                                    <dd>{{ person.birthday | date }}</dd>
+                                </div>
+                            }
+                            @if (person.deathday) {
+                                <div class="facts__row">
+                                    <dt>Died</dt>
+                                    <dd>
+                                        {{ person.deathday | date }}
+                                        @if (person.birthday) {
+                                            (age {{ person.birthday | age: person.deathday }})
+                                        }
+                                    </dd>
+                                </div>
+                            }
+                            @if (person.place_of_birth) {
+                                <div class="facts__row">
+                                    <dt>Birthplace</dt>
+                                    <dd>{{ person.place_of_birth }}</dd>
+                                </div>
+                            }
+                            @if (personDetail.aliasesText; as aliasesText) {
+                                <div class="facts__row">
+                                    <dt>Also known as</dt>
+                                    <dd>{{ aliasesText }}</dd>
+                                </div>
+                            }
+                        </dl>
+                    </section>
+
+                    @if (personDetail.showPhotosSkeleton) {
+                        <section class="rail-section" aria-hidden="true">
+                            <h2 class="rail-section__title text-title">Photos</h2>
+                            <ul class="photo-grid">
+                                @for (i of 6 | repeat; track i) {
+                                    <li><app-skeleton class="photo-grid__skeleton" /></li>
+                                }
+                            </ul>
+                        </section>
+                    } @else if (personDetail.showPhotos) {
+                        <section class="rail-section" aria-labelledby="person-photos-title">
+                            <div class="rail-section__header">
+                                <h2 id="person-photos-title" class="rail-section__title text-title">Photos</h2>
+                                <a class="rail-section__link" [routerLink]="personDetail.photosLink">
+                                    All {{ personDetail.photoCountLabel }}
+                                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                                </a>
+                            </div>
+
+                            <ul class="photo-grid">
+                                @for (tile of personDetail.photoPreview; track tile.image.file_path) {
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="photo-grid__item"
+                                            [attr.aria-label]="tile.ariaLabel"
+                                            (click)="openPhotoViewer(tile.index)"
+                                        >
+                                            <app-image
+                                                class="photo-grid__image"
+                                                [src]="tile.image.file_path"
+                                                params="w185"
+                                                alt=""
+                                            />
+                                        </button>
+                                    </li>
+                                }
+                            </ul>
+                        </section>
+                    }
+
+                    @if (personDetail.externalLinks; as externalLinks) {
+                        <section class="rail-section" aria-labelledby="person-elsewhere-title">
+                            <h2 id="person-elsewhere-title" class="rail-section__title text-title">Elsewhere</h2>
+                            <app-external-links [externalLinks]="externalLinks" />
+                        </section>
+                    }
+                </aside>
             }
         </div>
     </div>

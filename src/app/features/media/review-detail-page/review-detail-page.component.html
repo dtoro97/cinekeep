@@ -72,8 +72,7 @@
                                     <span class="text-subtitle">{{ item.author }}</span>
                                     @if (item.score) {
                                         <span class="more-reviews__score">
-                                            <span class="text-rating-sm">{{ item.score | number: '1.0-1' }}</span>
-                                            <span class="text-caption">/10</span>
+                                            <app-rating [value]="item.score" />
                                         </span>
                                     }
                                 </span>

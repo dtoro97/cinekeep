@@ -38,7 +38,7 @@
 }
 
 // Text buttons are already white, so hover shows a soft surface instead of a colour change.
-.mat-mdc-button.text-button:not(:disabled):is(:hover, :focus-visible, :active) {
+.mat-mdc-button.text-button:not(:disabled):is(:hover, :active) {
     color: var(--text-hover);
     background: var(--control-subtle-surface-hover);
 }
@@ -64,11 +64,6 @@
 
 .mat-mdc-button-persistent-ripple::before {
     transition: opacity var(--motion-base) !important;
-}
-
-.mat-mdc-button-base:focus-visible {
-    outline: auto;
-    outline-offset: 2px;
 }
 
 // Outlined buttons are the neutral secondary action; gold stays with the one filled primary.

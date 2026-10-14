@@ -1,8 +1,0 @@
-.person-list {
-    display: flex;
-    flex-direction: column;
-
-    > * + * {
-        border-block-start: 1px solid var(--row-divider);
-    }
-}

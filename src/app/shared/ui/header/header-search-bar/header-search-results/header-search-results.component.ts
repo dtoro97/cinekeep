@@ -31,12 +31,15 @@ export class HeaderSearchResultsComponent implements OnChanges {
     @Output() readonly optionSelected = new EventEmitter<void>();
     @Output() readonly retry = new EventEmitter<void>();
     @Output() readonly widen = new EventEmitter<void>();
+    @Output() readonly clearRecent = new EventEmitter<void>();
 
     readonly skeletonRowCount = 5;
 
     listPanel: Extract<HeaderSearchPanel, { readonly kind: 'recent' | 'results' }> | null = null;
+    isRecent = false;
 
     ngOnChanges(): void {
         this.listPanel = this.panel.kind === 'recent' || this.panel.kind === 'results' ? this.panel : null;
+        this.isRecent = this.panel.kind === 'recent';
     }
 }

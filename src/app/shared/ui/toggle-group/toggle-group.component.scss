@@ -1,47 +1,69 @@
+@use 'breakpoints' as *;
 @use 'mixins' as *;
 
+:host {
+    display: block;
+    min-width: 0;
+    align-self: flex-start;
+}
+
 .toggle-group {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
-    gap: var(--space-2);
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--surface-panel-soft);
 }
 
 .toggle-group__button {
-    min-height: var(--control-height-sm);
-    border: 1px solid var(--control-subtle-border);
-    border-radius: var(--control-radius);
-    background: var(--control-subtle-surface);
-    color: var(--control-subtle-text);
-    padding: var(--space-1) var(--space-4);
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    min-height: var(--control-height-md);
+    padding: 0 var(--space-4);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: var(--weight-medium);
     cursor: pointer;
-    box-shadow: none;
     transition: var(--control-transition);
-    @include surface-hover-subtle();
-}
 
-.toggle-group__button--active {
-    background: var(--control-subtle-surface-active);
-    color: var(--control-subtle-text-active);
-    border-color: var(--color-border-subtle);
-    box-shadow: var(--control-subtle-shadow-active);
-}
-
-@include hover-capable {
-    .toggle-group__button--active:hover {
-        background: var(--control-subtle-surface-active);
-        color: var(--control-subtle-text-active);
+    @include hover-capable {
+        &:hover {
+            color: var(--text-primary);
+        }
     }
 }
 
+.toggle-group__button--active {
+    background: var(--surface-raised);
+    color: var(--text-primary);
+}
+
+.toggle-group__count {
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+}
+
 .toggle-group--chips {
+    display: flex;
     gap: var(--space-1-5);
+    padding: 0;
+    border: 0;
+    background: transparent;
 
     .toggle-group__button {
         min-height: 1.875rem;
         padding: 0 var(--space-3);
-        border-color: transparent;
+        border: 1px solid transparent;
         border-radius: var(--radius-pill);
+        background: var(--control-subtle-surface);
+        color: var(--control-subtle-text);
         font-size: var(--text-xs);
+        @include surface-hover-subtle();
     }
 
     .toggle-group__button--active,
@@ -50,5 +72,19 @@
         background: var(--surface-raised);
         color: var(--text-primary);
         box-shadow: none;
+    }
+}
+
+@include mobile() {
+    .toggle-group:not(.toggle-group--chips) {
+        flex-wrap: nowrap;
+        max-width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        .toggle-group__button {
+            flex: none;
+            padding-inline: var(--space-3);
+        }
     }
 }

@@ -36,7 +36,6 @@ export * from './empty-state/empty-state.component';
 export * from './photos-browser-skeleton/photos-browser-skeleton.component';
 export * from './media-carousel-panel/media-carousel-panel.component';
 export * from './user-avatar/user-avatar.component';
-export * from './tmdb-rating/tmdb-rating.component';
 export * from './library-toggle/library-toggle.component';
 export * from './signin-dialog/signin-dialog.component';
 export * from './signin-dialog/signin-dialog.service';

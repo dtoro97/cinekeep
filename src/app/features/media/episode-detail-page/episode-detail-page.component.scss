@@ -20,7 +20,7 @@
 
     &__body {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr);
         align-items: end;
         gap: var(--space-12);
         padding-top: var(--space-12);
@@ -32,7 +32,6 @@
         align-items: flex-start;
         gap: var(--space-4);
         max-width: 46rem;
-        text-shadow: var(--shadow-text-hero);
     }
 
     &__eyebrow {
@@ -42,6 +41,10 @@
 
     &__meta {
         @include meta-list();
+
+        app-rating {
+            --rating-font-size: var(--text-md);
+        }
     }
 
     &__overview {
@@ -51,11 +54,6 @@
         &--empty {
             color: var(--text-muted);
         }
-    }
-
-    &__rating {
-        padding-left: var(--space-8);
-        border-left: 1px solid var(--row-divider);
     }
 
     &__line {
@@ -245,12 +243,6 @@
         padding-top: var(--space-6);
     }
 
-    .episode-hero {
-        &__rating {
-            padding-left: 0;
-            border-left: 0;
-        }
-    }
 
     .episode-body {
         grid-template-columns: minmax(0, 1fr);

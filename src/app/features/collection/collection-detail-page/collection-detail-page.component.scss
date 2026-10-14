@@ -1,4 +1,5 @@
 @use 'breakpoints' as *;
+@use 'mixins' as *;
 
 :host {
     --collection-detail-poster-width: 200px;
@@ -15,7 +16,6 @@
     align-items: end;
     gap: var(--space-8);
     width: 100%;
-    text-shadow: var(--shadow-text-hero);
 }
 
 .collection-hero__main,
@@ -180,5 +180,13 @@
     .overview,
     .overview-skeleton {
         max-width: 100%;
+    }
+}
+
+.collection-hero__meta {
+    @include meta-list();
+
+    app-rating {
+        --rating-font-size: var(--text-md);
     }
 }

@@ -34,12 +34,7 @@
             </p>
             <p class="text-card-meta">Try a shorter title or check the spelling.</p>
             @if (panel.canWiden) {
-                <button
-                    class="search-state__action"
-                    matButton="outlined"
-                    type="button"
-                    (click)="widen.emit()"
-                >
+                <button class="search-state__action" matButton="outlined" type="button" (click)="widen.emit()">
                     Search all types
                 </button>
             }
@@ -50,12 +45,7 @@
         <div class="search-state">
             <p class="search-state__title text-card-title">Search isn't responding.</p>
             <p class="text-card-meta">Check your connection, then try again.</p>
-            <button
-                class="search-state__action"
-                matButton="outlined"
-                type="button"
-                (click)="retry.emit()"
-            >
+            <button class="search-state__action" matButton="outlined" type="button" (click)="retry.emit()">
                 Try again
             </button>
         </div>
@@ -64,7 +54,7 @@
 
 @if (listPanel; as listPanel) {
     <div class="search-panel" role="listbox" [id]="listboxId" [attr.aria-label]="listPanel.label">
-        <div class="search-panel__layout" [class.search-panel__layout--single]="listPanel.kind === 'recent'">
+        <div class="search-panel__layout" [class.search-panel__layout--single]="isRecent">
             @if (listPanel.kind === 'results') {
                 @let topHit = listPanel.topHit;
                 <a
@@ -102,9 +92,14 @@
             <div class="search-panel__list">
                 @for (group of listPanel.groups; track group.label) {
                     <div class="search-panel__group" role="group" [attr.aria-label]="group.label">
-                        @if (group.showLabel) {
-                            <span class="search-panel__label text-overline" aria-hidden="true">{{ group.label }}</span>
-                        }
+                        <div class="search-panel__label-row">
+                            <span class="search-panel__label" aria-hidden="true">{{ group.label }}</span>
+                            @if (isRecent) {
+                                <button class="search-panel__clear" type="button" (click)="clearRecent.emit()">
+                                    Clear
+                                </button>
+                            }
+                        </div>
 
                         @for (option of group.options; track option.optionId) {
                             <a
@@ -126,14 +121,12 @@
                                 />
                                 <span class="search-option__copy">
                                     <!-- prettier-ignore -->
-                                    <span class="search-option__title text-body-sm">@for (segment of option.titleSegments; track segment.key) {@if (segment.match) {<mark class="search-option__match">{{ segment.text }}</mark>} @else {<span>{{ segment.text }}</span>}}</span>
-                                    <span class="search-option__meta text-card-meta">
-                                        <span class="search-option__meta-text">{{ option.compactMeta }}</span>
-                                        @if (option.rating) {
-                                            <app-rating class="search-option__rating" [value]="option.rating" />
-                                        }
-                                    </span>
+                                    <span class="search-option__title">@for (segment of option.titleSegments; track segment.key) {@if (segment.match) {<mark class="search-option__match">{{ segment.text }}</mark>} @else {<span>{{ segment.text }}</span>}}</span>
+                                    <span class="search-option__meta text-card-meta">{{ option.compactMeta }}</span>
                                 </span>
+                                @if (option.rating) {
+                                    <app-rating class="search-option__rating" [value]="option.rating" />
+                                }
                             </a>
                         }
                     </div>
@@ -155,7 +148,7 @@
                 (click)="optionSelected.emit()"
             >
                 <span class="search-see-all__label"
-                    >See all results for <q>{{ seeAll.query }}</q></span
+                    >{{ seeAll.label }} for <q>{{ seeAll.query }}</q></span
                 >
                 <mat-icon class="search-see-all__icon" aria-hidden="true">arrow_forward</mat-icon>
             </a>

@@ -2,205 +2,259 @@
 @use 'mixins' as *;
 
 :host {
-    --person-photo-size: 208px;
+    --person-portrait-width: 15rem;
 }
 
-.profile-hero {
-    background: var(--surface-page);
-}
-
-.profile-hero__inner {
+// A plain hero: the portrait is the only image, so no backdrop sits behind the name.
+.person-hero {
     display: grid;
-    grid-template-columns: var(--person-photo-size) minmax(0, 1fr) minmax(14rem, 18rem);
+    grid-template-columns: var(--person-portrait-width) minmax(0, 1fr);
     align-items: start;
-    gap: var(--space-8);
-    padding-top: var(--space-12);
-    padding-bottom: var(--space-8);
-}
+    gap: var(--space-12);
+    padding-top: var(--space-16);
+    padding-bottom: var(--space-12);
+    border-bottom: 1px solid var(--row-divider);
 
-.profile-hero__main,
-.profile-hero__heading,
-.profile-facts,
-.profile-facts__item,
-.profile-facts__profiles,
-.biography {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-}
+    &__portrait {
+        width: var(--person-portrait-width);
+        aspect-ratio: var(--poster-ratio);
+        overflow: hidden;
+        border-radius: var(--radius-media);
+        background: var(--surface-panel);
+        box-shadow: var(--shadow-lg);
+        --image-radius: var(--radius-media);
 
-.profile-hero__main {
-    gap: var(--space-5);
-}
-
-.profile-hero__heading {
-    gap: var(--space-2);
-}
-
-.profile-hero__eyebrow-skeleton {
-    width: min(10rem, 40%);
-    height: 0.875rem;
-}
-
-.profile-hero__title-skeleton {
-    width: min(24rem, 100%);
-    height: 3.5rem;
-}
-
-.profile-hero__title {
-    max-width: min(18ch, 560px);
-    font-size: var(--text-4xl);
-    text-wrap: balance;
-}
-
-.portrait {
-    flex-shrink: 0;
-    width: var(--person-photo-size);
-    overflow: hidden;
-    border: 1px solid var(--color-border-subtle);
-    border-radius: var(--radius-lg);
-    background: var(--surface-panel);
-
-    &--skeleton {
-        --skeleton-height: auto;
-        --skeleton-radius: var(--radius-lg);
+        &--skeleton {
+            --skeleton-height: auto;
+            --skeleton-radius: var(--radius-media);
+        }
     }
-}
 
-.biography {
-    align-items: flex-start;
-    gap: var(--space-3);
+    &__main {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-4);
+        min-width: 0;
+    }
 
-    &__copy {
-        max-width: 68ch;
+    &__meta {
+        color: var(--text-secondary);
+        @include meta-list(var(--space-3));
+    }
+
+    &__name {
+        margin: 0;
+        max-width: 16ch;
+    }
+
+    &__bio {
+        max-width: 66ch;
+        margin: 0;
 
         &--collapsed {
             @include line-clamp(4);
         }
+
+        // Paragraphs and italics come from the biography's Markdown, so they need deep selectors.
+        ::ng-deep p {
+            margin: 0;
+        }
+
+        ::ng-deep p + p {
+            margin-top: var(--space-3);
+        }
+
+        &--empty {
+            color: var(--text-muted);
+        }
     }
 
     &__toggle {
-        border: 0;
         padding: 0;
+        border: 0;
         background: transparent;
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        text-decoration: underline;
+        text-underline-offset: 3px;
         cursor: pointer;
         @include text-link();
     }
 
-    &__line-skeleton {
-        width: min(54rem, 100%);
-        height: 1rem;
+    &__meta-skeleton {
+        width: min(24rem, 80%);
+        --skeleton-height: 1.1rem;
+    }
 
-        &--wide {
-            width: min(58rem, 100%);
+    &__name-skeleton {
+        width: min(30rem, 90%);
+        --skeleton-height: 5rem;
+    }
+
+    &__bio-skeleton {
+        width: min(40rem, 100%);
+        --skeleton-height: 6rem;
+    }
+}
+
+// Credits on the left, reference facts and photos on the right, as on the title page.
+.person-body {
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+    align-items: start;
+    gap: var(--space-16);
+    width: 100%;
+    max-width: var(--layout-content-max-width);
+    margin: 0 auto;
+    padding: var(--space-16) var(--space-6) var(--space-20);
+}
+
+.person-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+    min-width: 0;
+}
+
+.person-rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+    min-width: 0;
+}
+
+.known-for {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rail-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+
+    &__header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-4);
+    }
+
+    &__title {
+        margin: 0 0 var(--space-1);
+    }
+
+    &__link {
+        @include section-link();
+    }
+}
+
+.facts {
+    margin: 0;
+
+    &__row {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding-block: var(--space-3);
+        border-top: 1px solid var(--row-divider);
+
+        dt {
+            color: var(--text-muted);
+            font-size: var(--text-sm);
+            font-weight: var(--weight-medium);
         }
 
-        &--short {
-            width: min(34rem, 72%);
+        dd {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: var(--text-sm);
+            text-align: end;
         }
     }
 }
 
-.profile-facts {
-    gap: var(--space-5);
-    padding-left: var(--space-5);
-    border-left: 1px solid var(--color-border-subtle);
-}
-
-.profile-facts__list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    margin: 0;
-}
-
-.profile-facts__item {
-    gap: var(--space-1);
-}
-
-.profile-facts__label,
-.profile-facts__value {
-    margin: 0;
-}
-
-.profile-facts__value {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-}
-
-.profile-facts__profiles {
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-2);
-}
+    margin: 0;
+    padding: 0;
+    list-style: none;
 
-.profile-facts__label-skeleton {
-    width: 4rem;
-    height: 0.875rem;
-}
-
-.profile-facts__value-skeleton {
-    width: 7rem;
-    height: 1rem;
-
-    &--wide {
-        width: 11rem;
+    &__item {
+        display: block;
+        width: 100%;
+        aspect-ratio: var(--poster-ratio);
+        padding: 0;
+        overflow: hidden;
+        border: 0;
+        border-radius: var(--radius-media);
+        background: var(--surface-panel);
+        @include media-hover();
     }
-}
 
-.profile-facts__icon-skeleton {
-    width: 2.25rem;
-    height: 2.25rem;
-    --skeleton-radius: var(--radius-full);
-}
+    &__image {
+        width: 100%;
+        height: 100%;
+        --image-radius: 0;
+    }
 
-.browse-link {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    @include text-link();
+    &__skeleton {
+        width: 100%;
+        aspect-ratio: var(--poster-ratio);
+        --skeleton-height: 100%;
+        --skeleton-radius: var(--radius-media);
+    }
 }
 
 @include tablet() {
-    .profile-hero__inner {
-        grid-template-columns: var(--person-photo-size) minmax(0, 1fr);
+    .person-body {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-16);
     }
 
-    .profile-facts {
-        grid-column: 2;
-        width: min(100%, 24rem);
-        padding-top: var(--space-5);
-        padding-left: 0;
-        border-top: 1px solid var(--color-border-subtle);
-        border-left: 0;
+    .known-for {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .photo-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 }
 
 @include mobile() {
     :host {
-        --person-photo-size: 120px;
+        --person-portrait-width: 7.5rem;
     }
 
-    .profile-hero__inner {
-        grid-template-columns: 1fr;
+    .person-hero {
+        align-items: start;
         gap: var(--space-5);
-        padding-top: var(--space-6);
-        padding-bottom: var(--space-6);
+        padding-top: var(--space-8);
+        padding-bottom: var(--space-8);
     }
 
-    .profile-hero__main {
+    .person-body {
+        padding: var(--space-12) var(--space-4) var(--space-16);
+    }
+
+    .person-main {
+        gap: var(--space-16);
+    }
+
+    .known-for {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: var(--space-4);
     }
 
-    .profile-hero__title-skeleton {
-        height: 2.75rem;
-    }
-
-    .profile-hero__title {
-        font-size: var(--text-3xl);
-    }
-
-    .profile-facts {
-        grid-column: auto;
-        width: auto;
+    .photo-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }

@@ -1,23 +1,17 @@
 <header class="header">
     <nav aria-label="Primary">
         <div class="header__inner inner-container">
-            <a class="header__brand" routerLink="/" aria-label="CineKeep home">
-                <img class="header__brand-icon" src="assets/brand-mark.svg" alt="" aria-hidden="true" />
-                <span class="header__brand-text" aria-hidden="true">
-                    <span>Cine</span>
-                    <span class="header__brand-text-accent">Keep</span>
-                </span>
-            </a>
+            <a class="header__brand text-display-sm" routerLink="/">CineKeep</a>
 
-            <app-header-browse-menu />
+            <app-header-browse-menu class="header__browse" />
 
             <div class="header__search">
                 <app-header-search-bar />
             </div>
 
             <div class="header__actions">
+                <app-header-locale-region-menu class="header__locale" />
                 <app-header-account-menu />
-                <app-header-locale-region-menu />
             </div>
         </div>
     </nav>

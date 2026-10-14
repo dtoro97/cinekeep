@@ -18,6 +18,12 @@
 
                             @if (episodeDetail.hasMeta) {
                                 <p class="episode-hero__meta text-hero-meta">
+                                    @if (episodeDetail.tmdbRating) {
+                                        <app-rating [value]="episodeDetail.tmdbRating" />
+                                        @if (episode.vote_count) {
+                                            <span>{{ episode.vote_count | voteCount }} votes</span>
+                                        }
+                                    }
                                     @if (episode.air_date) {
                                         <span>{{ episode.air_date | date: 'MMMM d, y' }}</span>
                                     }
@@ -34,16 +40,6 @@
                                 {{ episodeDetail.overviewText }}
                             </p>
                         </div>
-
-                        @if (episodeDetail.tmdbRating) {
-                            <aside class="episode-hero__rating" aria-label="Rating">
-                                <app-tmdb-rating
-                                    prominent
-                                    [value]="episodeDetail.tmdbRating"
-                                    [voteCount]="episode.vote_count"
-                                />
-                            </aside>
-                        }
                     } @else {
                         <div class="episode-hero__text" aria-hidden="true">
                             <app-skeleton class="episode-hero__line episode-hero__line--meta" />
@@ -141,7 +137,7 @@
                 @if (episodeDetail.canRateEpisode) {
                     <aside class="episode-rail" aria-label="Your rating">
                         <section class="episode-library" aria-labelledby="episode-library-title">
-                            <h2 id="episode-library-title" class="episode-rail__title text-display-sm">
+                            <h2 id="episode-library-title" class="episode-rail__title text-title">
                                 In your library
                             </h2>
                             <app-user-rating

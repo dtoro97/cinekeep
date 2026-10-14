@@ -70,6 +70,19 @@
     color: var(--text-muted);
 }
 
+// A role with no date or rating (a person's known-for titles) sits right under the title.
+.media-card__content--role-only {
+    grid-template-rows: auto auto;
+
+    .media-card__title {
+        min-height: 0;
+    }
+
+    .media-card__role {
+        grid-row: 2;
+    }
+}
+
 // Projected `[card-actions]` float over the poster; on hover devices they appear with hover or focus.
 .media-card__actions {
     position: absolute;

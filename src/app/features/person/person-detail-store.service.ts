@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { ComponentStore } from '@ngrx/component-store';
+import { marked } from 'marked';
 import { catchError, distinctUntilChanged, EMPTY, filter, map, Observable, of, switchMap, tap } from 'rxjs';
 
 import type {
@@ -16,16 +17,13 @@ import { PersonRestControllerService } from '../../api';
 import {
     buildExternalLinks,
     CardItem,
-    compareValues,
     isDefined,
     LocaleStoreService,
-    MEDIA_TYPE_LABEL,
     MEDIA_TYPE_OPTION,
     MediaType,
     RemoteData,
     remoteSuccess,
     SelectOption,
-    SortDirection,
     toEpisodeLabel,
     toRating,
     ViewerImage,
@@ -42,7 +40,6 @@ export interface PersonCredit {
     title: string;
     mediaType: MediaType;
     releaseDate: string | null;
-    year: string;
     rating: number | null;
     voteCount: number;
     posterPath: string | null;
@@ -50,180 +47,187 @@ export interface PersonCredit {
     roleLabel: string;
     episodeCount: number;
     episodeLabel: string | null;
-    mediaTypeLabel: string;
 }
 
 export type PersonCreditMediaFilter = 'all' | MediaType;
-export type PersonCreditSortBy = 'year' | 'rating' | 'title';
-export type PersonCreditSectionKey = 'acting' | 'production';
 
-export interface PersonCreditFilters {
-    mediaType: PersonCreditMediaFilter;
-    sortBy: PersonCreditSortBy;
-    sortDirection: SortDirection;
-}
-
-export interface PersonCreditSection {
-    key: PersonCreditSectionKey;
-    title: string;
-    roleHeading: string;
-    totalCount: number;
-    hasToggle: boolean;
-    toggleLabel: string;
+export interface PersonCreditYear {
+    label: string;
+    isUpcoming: boolean;
     credits: PersonCredit[];
 }
 
 export interface PersonFilmography {
-    totalCount: number;
-    hasActiveFilters: boolean;
-    emptyTitle: string;
-    emptyText: string;
+    totalLabel: string;
+    departmentOptions: Array<SelectOption<string>>;
+    selectedDepartment: string;
+    showDepartments: boolean;
     mediaOptions: Array<SelectOption<PersonCreditMediaFilter>>;
-    sections: PersonCreditSection[];
+    selectedMediaType: PersonCreditMediaFilter;
+    showMediaTypes: boolean;
+    years: PersonCreditYear[];
+    hasCredits: boolean;
+    hasToggle: boolean;
+    toggleLabel: string;
 }
 
-interface PersonCredits {
-    acting: PersonCredit[];
-    production: PersonCredit[];
+interface PersonCreditDepartment {
+    name: string;
+    credits: PersonCredit[];
 }
 
-type ExpandedCreditSections = Record<PersonCreditSectionKey, boolean>;
+interface PersonBiography {
+    previewHtml: string;
+    fullHtml: string;
+    isCollapsible: boolean;
+}
 
 interface PersonDetailState {
     person: RemoteData<PersonDetail>;
+    biography: PersonBiography | null;
     photos: RemoteData<ViewerImage[]>;
-    credits: RemoteData<PersonCredits>;
-    creditFilters: PersonCreditFilters;
-    expandedCreditSections: ExpandedCreditSections;
+    departments: RemoteData<PersonCreditDepartment[]>;
+    selectedDepartment: string | null;
+    mediaType: PersonCreditMediaFilter;
+    isFilmographyExpanded: boolean;
     isBiographyExpanded: boolean;
 }
 
 const PERSON_APPENDED_RESOURCES = 'external_ids,images,tagged_images';
-const KNOWN_FOR_COUNT = 12;
+const ACTING_DEPARTMENT = 'Acting';
+const KNOWN_FOR_COUNT = 6;
 const KNOWN_FOR_SEO_TITLE_COUNT = 3;
-const CREDIT_PREVIEW_COUNT = 10;
+const FILMOGRAPHY_PREVIEW_COUNT = 20;
+const PHOTO_PREVIEW_COUNT = 6;
 const BIOGRAPHY_PREVIEW_LENGTH = 300;
 const ALIAS_PREVIEW_COUNT = 3;
-
-const DEFAULT_CREDIT_FILTERS: PersonCreditFilters = {
-    mediaType: 'all',
-    sortBy: 'year',
-    sortDirection: 'desc',
-};
-
-const COLLAPSED_CREDIT_SECTIONS: ExpandedCreditSections = {
-    acting: false,
-    production: false,
-};
-
-const CREDIT_SECTIONS: ReadonlyArray<Pick<PersonCreditSection, 'key' | 'title' | 'roleHeading'>> = [
-    { key: 'acting', title: 'Acting', roleHeading: 'Role' },
-    { key: 'production', title: 'Production', roleHeading: 'Job' },
-];
+const UPCOMING_LABEL = 'Upcoming';
 
 const PHOTO_TYPE_RANK: Record<string, number> = { profile: 0, tagged: 1 };
 
 const INITIAL_STATE: PersonDetailState = {
     person: { state: 'notAsked' },
+    biography: null,
     photos: { state: 'notAsked' },
-    credits: { state: 'notAsked' },
-    creditFilters: DEFAULT_CREDIT_FILTERS,
-    expandedCreditSections: COLLAPSED_CREDIT_SECTIONS,
+    departments: { state: 'notAsked' },
+    selectedDepartment: null,
+    mediaType: 'all',
+    isFilmographyExpanded: false,
     isBiographyExpanded: false,
 };
 
 @Injectable()
 export class PersonDetailStoreService extends ComponentStore<PersonDetailState> {
     readonly personDetail$ = this.select(
-        ({ person, photos, credits, creditFilters, expandedCreditSections, isBiographyExpanded }) => {
+        ({
+            person,
+            biography,
+            photos,
+            departments,
+            selectedDepartment,
+            mediaType,
+            isFilmographyExpanded,
+            isBiographyExpanded,
+        }) => {
             const loadedPerson = person.state === 'success' ? person.data : null;
-            const biography = loadedPerson?.biography;
             const aliases = loadedPerson?.also_known_as ?? [];
             const photoCount = photos.state === 'success' ? photos.data.length : 0;
             const photosLink = loadedPerson ? ['/name', loadedPerson.id ?? '', 'photos'] : null;
-            const knownFor: RemoteData<CardItem[]> =
-                loadedPerson && credits.state === 'success'
-                    ? remoteSuccess(
-                          [
-                              ...(loadedPerson.known_for_department === 'Acting'
-                                  ? credits.data.acting
-                                  : credits.data.production),
-                          ]
-                              .sort((left, right) => right.voteCount - left.voteCount)
-                              .slice(0, KNOWN_FOR_COUNT)
-                              .map((credit) => ({
-                                  id: credit.id,
-                                  mediaType: credit.mediaType,
-                                  title: credit.title,
-                                  imagePath: credit.posterPath,
-                                  backdropPath: credit.backdropPath,
-                                  rating: credit.rating,
-                                  date: credit.releaseDate ?? '',
-                                  overview: '',
-                                  role: credit.roleLabel || undefined,
-                              })),
-                      )
-                    : { state: 'loading' };
+            const loadedDepartments = departments.state === 'success' ? departments.data : null;
+            const activeDepartment = loadedDepartments
+                ? (loadedDepartments.find(({ name }) => name === selectedDepartment) ??
+                  findKnownForDepartment(loadedDepartments, loadedPerson))
+                : undefined;
+
+            const knownFor: RemoteData<CardItem[]> = loadedDepartments
+                ? remoteSuccess(
+                      [...(findKnownForDepartment(loadedDepartments, loadedPerson)?.credits ?? [])]
+                          .sort((left, right) => right.voteCount - left.voteCount)
+                          .slice(0, KNOWN_FOR_COUNT)
+                          .map((credit) => ({
+                              id: credit.id,
+                              mediaType: credit.mediaType,
+                              title: credit.title,
+                              imagePath: credit.posterPath,
+                              backdropPath: credit.backdropPath,
+                              rating: credit.rating,
+                              date: '',
+                              overview: '',
+                              role: credit.roleLabel || undefined,
+                          })),
+                  )
+                : { state: 'loading' };
 
             let filmography: RemoteData<PersonFilmography> = { state: 'loading' };
-            if (credits.state === 'success') {
-                const sections = CREDIT_SECTIONS.map((section): PersonCreditSection => {
-                    const isExpanded = expandedCreditSections[section.key];
-                    const matching = credits.data[section.key]
-                        .filter(
-                            (credit) => creditFilters.mediaType === 'all' || credit.mediaType === creditFilters.mediaType,
-                        )
-                        .sort((left, right) => compareCredits(left, right, creditFilters));
-                    const visible = isExpanded ? matching : matching.slice(0, CREDIT_PREVIEW_COUNT);
-
-                    return {
-                        ...section,
-                        totalCount: matching.length,
-                        hasToggle: isExpanded || visible.length < matching.length,
-                        toggleLabel: isExpanded ? 'Show less' : 'Show all',
-                        credits: visible,
-                    };
-                });
-                const hasActiveFilters =
-                    creditFilters.mediaType !== DEFAULT_CREDIT_FILTERS.mediaType ||
-                    creditFilters.sortBy !== DEFAULT_CREDIT_FILTERS.sortBy ||
-                    creditFilters.sortDirection !== DEFAULT_CREDIT_FILTERS.sortDirection;
+            if (loadedDepartments) {
+                const departmentCredits = activeDepartment?.credits ?? [];
+                const hasMediaTypes =
+                    departmentCredits.some((credit) => credit.mediaType === 'movie') &&
+                    departmentCredits.some((credit) => credit.mediaType === 'tv');
+                const activeMediaType = hasMediaTypes ? mediaType : 'all';
+                const matching = departmentCredits.filter(
+                    (credit) => activeMediaType === 'all' || credit.mediaType === activeMediaType,
+                );
+                const visible = isFilmographyExpanded ? matching : matching.slice(0, FILMOGRAPHY_PREVIEW_COUNT);
+                const today = new Date().toISOString().slice(0, 10);
+                const years = visible.reduce<PersonCreditYear[]>((groups, credit) => {
+                    const label =
+                        !credit.releaseDate || credit.releaseDate > today
+                            ? UPCOMING_LABEL
+                            : credit.releaseDate.slice(0, 4);
+                    const last = groups.at(-1);
+                    if (last?.label === label) {
+                        last.credits.push(credit);
+                    } else {
+                        groups.push({ label, isUpcoming: label === UPCOMING_LABEL, credits: [credit] });
+                    }
+                    return groups;
+                }, []);
+                const totalCount = loadedDepartments.reduce((total, { credits }) => total + credits.length, 0);
 
                 filmography = remoteSuccess({
-                    totalCount: sections.reduce((total, section) => total + section.totalCount, 0),
-                    hasActiveFilters,
-                    emptyTitle: hasActiveFilters
-                        ? 'No filmography matches these filters'
-                        : 'No filmography available yet',
-                    emptyText: hasActiveFilters
-                        ? 'Try resetting the filters to bring back more titles.'
-                        : 'We do not have any movie or TV series credits to show right now.',
+                    totalLabel: `${totalCount} ${totalCount === 1 ? 'credit' : 'credits'}`,
+                    departmentOptions: loadedDepartments.map(({ name, credits }) => ({
+                        label: `${name} (${credits.length})`,
+                        value: name,
+                    })),
+                    selectedDepartment: activeDepartment?.name ?? '',
+                    showDepartments: loadedDepartments.length > 1,
                     mediaOptions: [
-                        { label: 'All media', value: 'all' },
-                        ...(hasMediaType(credits.data, 'movie') ? [MEDIA_TYPE_OPTION.movie] : []),
-                        ...(hasMediaType(credits.data, 'tv') ? [MEDIA_TYPE_OPTION.tv] : []),
+                        { label: 'All', value: 'all' },
+                        MEDIA_TYPE_OPTION.movie,
+                        { label: 'TV', value: 'tv' },
                     ],
-                    sections: sections.filter((section) => section.totalCount > 0),
+                    selectedMediaType: activeMediaType,
+                    showMediaTypes: hasMediaTypes,
+                    years,
+                    hasCredits: years.length > 0,
+                    hasToggle: matching.length > FILMOGRAPHY_PREVIEW_COUNT,
+                    toggleLabel: isFilmographyExpanded
+                        ? 'Show less'
+                        : `Show all ${matching.length} ${activeDepartment?.name.toLocaleLowerCase() ?? ''} credits`,
                 });
             }
 
             return {
                 person,
                 personName: loadedPerson?.name ?? '',
+                profilePath: loadedPerson?.profile_path ?? null,
                 biography: biography
                     ? {
-                          text: biography,
-                          isCollapsible: biography.length > BIOGRAPHY_PREVIEW_LENGTH,
+                          ...biography,
                           isExpanded: isBiographyExpanded,
+                          showFull: isBiographyExpanded || !biography.isCollapsible,
                           toggleLabel: isBiographyExpanded ? 'Show less' : 'Read more',
                       }
                     : null,
-                aliases: aliases.length
-                    ? {
-                          label: aliases.length === 1 ? 'Alternative name' : 'Alternative names',
-                          visible: aliases.slice(0, ALIAS_PREVIEW_COUNT),
-                          hiddenCount: Math.max(aliases.length - ALIAS_PREVIEW_COUNT, 0),
-                      }
+                aliasesText: aliases.length
+                    ? [
+                          aliases.slice(0, ALIAS_PREVIEW_COUNT).join(', '),
+                          aliases.length > ALIAS_PREVIEW_COUNT ? `+${aliases.length - ALIAS_PREVIEW_COUNT} more` : '',
+                      ]
+                          .filter(Boolean)
+                          .join(' ')
                     : null,
                 externalLinks: loadedPerson
                     ? buildExternalLinks({
@@ -236,12 +240,24 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
                 showKnownFor:
                     knownFor.state === 'loading' || (knownFor.state === 'success' && knownFor.data.length > 0),
                 photos,
+                photoPreview:
+                    photos.state === 'success'
+                        ? photos.data.slice(0, PHOTO_PREVIEW_COUNT).map((image, index) => ({
+                              image,
+                              index,
+                              ariaLabel: `Open photo ${index + 1} of ${photoCount}`,
+                          }))
+                        : [],
                 photoCount,
-                showPhotos: photos.state === 'loading' || photoCount > 0,
-                showPhotosLink: isDefined(photosLink) && photoCount > 0,
+                photoCountLabel: `${photoCount} ${photoCount === 1 ? 'photo' : 'photos'}`,
+                photosSubtitle:
+                    loadedPerson && photos.state === 'success'
+                        ? `${loadedPerson.name} · ${photoCount} ${photoCount === 1 ? 'photo' : 'photos'}`
+                        : null,
+                showPhotosSkeleton: photos.state === 'loading',
+                showPhotos: photoCount > 0,
                 photosLink,
                 filmography,
-                creditFilters,
             };
         },
     );
@@ -280,12 +296,12 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
     }
 
     getPerson$(personId: number): Observable<unknown> {
-        const { person, photos, credits } = this.get();
+        const { person, photos, departments } = this.get();
         if (
             person.state === 'success' &&
             person.data.id === personId &&
             photos.state === 'success' &&
-            credits.state === 'success'
+            departments.state === 'success'
         ) {
             return EMPTY;
         }
@@ -294,7 +310,7 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
             ...INITIAL_STATE,
             person: { state: 'loading' },
             photos: { state: 'loading' },
-            credits: { state: 'loading' },
+            departments: { state: 'loading' },
         });
 
         return this.personRestControllerService
@@ -303,9 +319,10 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
                 map((person) => person as PersonDetail),
                 tap((person) => {
                     const language = this.localeStoreService.language();
-                    const profiles = (person.images?.profiles ?? []).map(
-                        (image): ViewerImage => ({ ...image, photoType: 'profile' }),
-                    );
+                    const profiles = (person.images?.profiles ?? []).map((image): ViewerImage => ({
+                        ...image,
+                        photoType: 'profile',
+                    }));
                     const tagged = (person.tagged_images?.results ?? [])
                         // English and language-neutral (`null`) images suit every locale.
                         .filter(({ iso_639_1 }) => iso_639_1 === null || iso_639_1 === 'en' || iso_639_1 === language)
@@ -328,8 +345,28 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
                         PHOTO_TYPE_RANK[image.photoType ?? ''] ?? Object.keys(PHOTO_TYPE_RANK).length;
                     const resolution = (image: ViewerImage): number => (image.width ?? 0) * (image.height ?? 0);
 
+                    // TMDb biographies are Markdown: blank lines between paragraphs, `*Title*` for films.
+                    const paragraphs = (person.biography ?? '')
+                        .split(/\n\s*\n/)
+                        .map((paragraph) => paragraph.trim())
+                        .filter(Boolean);
+                    const parseMarkdown = (markdown: string, inline: boolean): string => {
+                        const rendered = inline
+                            ? marked.parseInline(markdown, { breaks: true, gfm: true })
+                            : marked.parse(markdown, { breaks: true, gfm: true });
+                        return typeof rendered === 'string' ? rendered : markdown;
+                    };
+
                     this.patchState({
                         person: remoteSuccess(person),
+                        biography: paragraphs.length
+                            ? {
+                                  previewHtml: parseMarkdown(paragraphs[0], true),
+                                  fullHtml: parseMarkdown(paragraphs.join('\n\n'), false),
+                                  isCollapsible:
+                                      paragraphs.length > 1 || paragraphs[0].length > BIOGRAPHY_PREVIEW_LENGTH,
+                              }
+                            : null,
                         photos: remoteSuccess(
                             [...profiles, ...tagged].sort(
                                 (left, right) =>
@@ -348,16 +385,32 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
                         catchError(() => of<PersonCombinedCredits>({ cast: [], crew: [] })),
                     ),
                 ),
-                tap(({ cast, crew }) =>
+                tap(({ cast, crew }) => {
+                    const crewByDepartment = (crew ?? []).reduce<Record<string, PersonCombinedCrewCredit[]>>(
+                        (groups, credit) => {
+                            const department = credit.department || 'Crew';
+                            return { ...groups, [department]: [...(groups[department] ?? []), credit] };
+                        },
+                        {},
+                    );
+                    const crewDepartments = Object.entries(crewByDepartment)
+                        .map(([name, credits]) => ({
+                            name,
+                            credits: mergeCreditsByTitle(credits.map((credit) => toPersonCredit(credit, credit.job))),
+                        }))
+                        .sort((left, right) => right.credits.length - left.credits.length);
+                    const acting = mergeCreditsByTitle(
+                        (cast ?? []).map((credit) => toPersonCredit(credit, credit.character)),
+                    );
+
                     this.patchState({
-                        credits: remoteSuccess({
-                            acting: mergeCreditsByTitle(
-                                (cast ?? []).map((credit) => toPersonCredit(credit, credit.character)),
+                        departments: remoteSuccess(
+                            [{ name: ACTING_DEPARTMENT, credits: acting }, ...crewDepartments].filter(
+                                ({ credits }) => credits.length > 0,
                             ),
-                            production: mergeCreditsByTitle((crew ?? []).map((credit) => toPersonCredit(credit, credit.job))),
-                        }),
-                    }),
-                ),
+                        ),
+                    });
+                }),
                 // A person that cannot be loaded has no page to show.
                 catchError(() => {
                     this.router.navigate(['not-found']);
@@ -370,75 +423,24 @@ export class PersonDetailStoreService extends ComponentStore<PersonDetailState> 
         this.patchState((state) => ({ isBiographyExpanded: !state.isBiographyExpanded }));
     }
 
-    setCreditMediaType(mediaType: PersonCreditMediaFilter): void {
-        this.patchState(({ credits, creditFilters }) => ({
-            creditFilters: {
-                ...creditFilters,
-                mediaType:
-                    mediaType === 'all' || (credits.state === 'success' && hasMediaType(credits.data, mediaType))
-                        ? mediaType
-                        : 'all',
-            },
-        }));
+    setDepartment(selectedDepartment: string): void {
+        this.patchState({ selectedDepartment, mediaType: 'all', isFilmographyExpanded: false });
     }
 
-    setCreditSortBy(sortBy: PersonCreditSortBy): void {
-        this.patchState((state) => ({ creditFilters: { ...state.creditFilters, sortBy } }));
+    setMediaType(mediaType: PersonCreditMediaFilter): void {
+        this.patchState({ mediaType, isFilmographyExpanded: false });
     }
 
-    toggleCreditSortDirection(): void {
-        this.patchState((state) => ({
-            creditFilters: {
-                ...state.creditFilters,
-                sortDirection: state.creditFilters.sortDirection === 'desc' ? 'asc' : 'desc',
-            },
-        }));
-    }
-
-    toggleCreditSection(section: PersonCreditSectionKey): void {
-        this.patchState((state) => ({
-            expandedCreditSections: {
-                ...state.expandedCreditSections,
-                [section]: !state.expandedCreditSections[section],
-            },
-        }));
-    }
-
-    resetCreditFilters(): void {
-        this.patchState({
-            creditFilters: DEFAULT_CREDIT_FILTERS,
-            expandedCreditSections: COLLAPSED_CREDIT_SECTIONS,
-        });
+    toggleFilmography(): void {
+        this.patchState((state) => ({ isFilmographyExpanded: !state.isFilmographyExpanded }));
     }
 }
 
-function hasMediaType(credits: PersonCredits, mediaType: MediaType): boolean {
-    return [...credits.acting, ...credits.production].some((credit) => credit.mediaType === mediaType);
-}
-
-function compareCredits(
-    left: PersonCredit,
-    right: PersonCredit,
-    { sortBy, sortDirection }: Pick<PersonCreditFilters, 'sortBy' | 'sortDirection'>,
-): number {
-    const toSortValue = (credit: PersonCredit): string | number | null =>
-        sortBy === 'title' ? credit.title : sortBy === 'rating' ? credit.rating : credit.releaseDate;
-    const leftValue = toSortValue(left);
-    const rightValue = toSortValue(right);
-
-    if (leftValue === null || rightValue === null) {
-        if (leftValue === rightValue) {
-            return left.title.localeCompare(right.title);
-        }
-        return leftValue === null ? 1 : -1;
-    }
-
-    const result =
-        compareValues(leftValue, rightValue) ||
-        (sortBy === 'rating' ? left.voteCount - right.voteCount : 0) ||
-        left.title.localeCompare(right.title);
-
-    return sortDirection === 'desc' ? -result : result;
+function findKnownForDepartment(
+    departments: PersonCreditDepartment[],
+    person: PersonDetail | null,
+): PersonCreditDepartment | undefined {
+    return departments.find(({ name }) => name === person?.known_for_department) ?? departments[0];
 }
 
 function mergeCreditsByTitle(credits: Array<PersonCredit | null>): PersonCredit[] {
@@ -455,7 +457,6 @@ function mergeCreditsByTitle(credits: Array<PersonCredit | null>): PersonCredit[
                 ? {
                       ...existing,
                       releaseDate: existing.releaseDate ?? incoming.releaseDate,
-                      year: existing.releaseDate ? existing.year : incoming.year,
                       rating: existing.voteCount >= incoming.voteCount ? existing.rating : incoming.rating,
                       voteCount: Math.max(existing.voteCount, incoming.voteCount),
                       posterPath: existing.posterPath ?? incoming.posterPath,
@@ -468,7 +469,17 @@ function mergeCreditsByTitle(credits: Array<PersonCredit | null>): PersonCredit[
         );
     }
 
-    return [...creditsByTitle.values()].sort((left, right) => compareCredits(left, right, DEFAULT_CREDIT_FILTERS));
+    // Upcoming and undated credits first, then newest to oldest.
+    return [...creditsByTitle.values()].sort((left, right) => {
+        if (!left.releaseDate || !right.releaseDate) {
+            if (left.releaseDate === right.releaseDate) {
+                return left.title.localeCompare(right.title);
+            }
+            return left.releaseDate ? 1 : -1;
+        }
+
+        return right.releaseDate.localeCompare(left.releaseDate) || left.title.localeCompare(right.title);
+    });
 }
 
 function toPersonCredit(
@@ -483,15 +494,13 @@ function toPersonCredit(
     // TMDb leaves the media type out on some credits; only TV credits carry a first air date.
     const mediaType: MediaType =
         credit.media_type === 'tv' || (!credit.media_type && credit.first_air_date) ? 'tv' : 'movie';
-    const releaseDate = credit.release_date || credit.first_air_date || null;
     const episodeCount = mediaType === 'tv' ? (credit.episode_count ?? 0) : 0;
 
     return {
         id: credit.id,
         title,
         mediaType,
-        releaseDate,
-        year: releaseDate?.slice(0, 4) || 'Unknown',
+        releaseDate: credit.release_date || credit.first_air_date || null,
         rating: toRating(credit.vote_average),
         voteCount: credit.vote_count ?? 0,
         posterPath: credit.poster_path ?? null,
@@ -499,7 +508,6 @@ function toPersonCredit(
         roleLabel: mergeRoles('', role),
         episodeCount,
         episodeLabel: toEpisodeLabel(episodeCount),
-        mediaTypeLabel: MEDIA_TYPE_LABEL[mediaType],
     };
 }
 

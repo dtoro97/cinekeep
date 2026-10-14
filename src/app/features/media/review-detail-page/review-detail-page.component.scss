@@ -117,11 +117,7 @@
     &__score {
         display: inline-flex;
         align-items: baseline;
-        gap: 2px;
-
-        .text-rating-sm {
-            font-size: var(--text-2xl);
-        }
+        gap: var(--space-1);
     }
 
     &__excerpt {

@@ -150,7 +150,7 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
 
             return {
                 episode,
-                hasMeta: !!(episode?.air_date || episode?.runtime),
+                hasMeta: !!(tmdbRating || episode?.air_date || episode?.runtime),
                 isOverviewEmpty: !episode?.overview,
                 overviewText: episode?.overview || 'No overview available.',
                 tmdbRating,

@@ -1,0 +1,116 @@
+@use 'mixins' as *;
+@use 'breakpoints' as *;
+
+:host {
+    display: flex;
+    flex-direction: column;
+}
+
+.filmography {
+    &__toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        margin-bottom: var(--space-4);
+    }
+
+    &__toolbar-skeleton {
+        width: min(26rem, 100%);
+        --skeleton-height: var(--control-height-sm);
+        --skeleton-radius: var(--control-radius);
+    }
+
+    &__years {
+        border-bottom: 1px solid var(--row-divider);
+    }
+
+    // Release years are the structure: a large faded numeral beside that year's credits.
+    &__year {
+        display: grid;
+        grid-template-columns: 7rem minmax(0, 1fr);
+        gap: var(--space-6);
+        border-top: 1px solid var(--row-divider);
+    }
+
+    &__year-label {
+        margin: 0;
+        padding-top: var(--space-4);
+
+        &--word {
+            padding-top: var(--space-5);
+            font-size: var(--text-2xl);
+        }
+    }
+
+    &__year-skeleton {
+        width: 4rem;
+        margin-top: var(--space-4);
+        --skeleton-height: 1.75rem;
+    }
+
+    &__rows {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li + li {
+            border-top: 1px solid var(--row-divider);
+        }
+    }
+
+    &__toggle {
+        align-self: flex-start;
+        margin-top: var(--space-6);
+    }
+
+    &__empty {
+        margin: 0;
+        padding-block: var(--space-6);
+        border-top: 1px solid var(--row-divider);
+        color: var(--text-muted);
+    }
+}
+
+.credit-row {
+    @include list-row('.credit-row__thumb', '.credit-row__title');
+    grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+    align-items: center;
+    margin-inline: calc(var(--space-2) * -1);
+    border-radius: var(--radius-sm);
+
+    &__thumb {
+        width: 2.75rem;
+        aspect-ratio: var(--poster-ratio);
+        background: var(--surface-panel);
+        @include media-frame();
+    }
+
+    &__text {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        min-width: 0;
+    }
+
+    &__meta {
+        @include meta-list();
+    }
+
+    &__rating {
+        white-space: nowrap;
+    }
+
+    &__line-skeleton {
+        width: min(18rem, 100%);
+        --skeleton-height: 1rem;
+    }
+}
+
+@include mobile() {
+    .filmography__year {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+}

@@ -2,7 +2,7 @@
 @use 'mixins' as *;
 
 :host {
-    --header-search-bar-height: var(--control-height-md);
+    --header-search-bar-height: var(--space-10);
 
     display: flex;
     width: 100%;
@@ -25,25 +25,8 @@
         align-items: center;
         min-width: 0;
         height: var(--header-search-bar-height);
-        background: var(--control-surface);
-        border: 1px solid var(--control-border);
-        border-radius: var(--control-radius);
-        transition:
-            background-color var(--motion-fast),
-            border-color var(--motion-fast),
-            box-shadow var(--motion-fast);
-
-        @include hover-capable {
-            &:hover {
-                background: var(--control-surface-hover);
-            }
-        }
-
-        &:focus-within {
-            background: var(--control-surface);
-            border-color: var(--control-focus-border);
-            box-shadow: 0 0 0 3px var(--control-focus-ring-outer);
-        }
+        background: var(--surface-panel-soft);
+        border-radius: var(--radius-sm);
     }
 
     &__filter-field {
@@ -58,7 +41,7 @@
             inset-block: var(--space-2);
             inset-inline-end: 0;
             width: 1px;
-            background: var(--color-border-subtle);
+            background: var(--border-overlay-soft);
         }
     }
 
@@ -86,6 +69,7 @@
         border: 0;
         outline: none;
         background: transparent;
+        padding-inline: var(--space-1);
         color: var(--text-primary);
         font-size: var(--text-sm);
 
@@ -104,7 +88,7 @@
         margin-inline-end: var(--space-1);
         padding: 0;
         border: 0;
-        border-radius: var(--radius-full);
+        border-radius: var(--radius-sm);
         background: transparent;
         color: var(--text-muted);
         cursor: pointer;
@@ -121,12 +105,6 @@
                 background: var(--overlay-item-hover);
                 color: var(--text-primary);
             }
-        }
-
-        &:focus-visible {
-            outline: 2px solid var(--control-focus-ring-inner);
-            outline-offset: -2px;
-            color: var(--text-primary);
         }
     }
 
@@ -152,16 +130,24 @@
         opacity: 0;
     }
 
-    &__cancel {
+    &__back {
         display: none;
         flex-shrink: 0;
-        padding: var(--space-2) 0;
+        align-items: center;
+        justify-content: center;
+        width: var(--space-10);
+        height: var(--space-10);
+        padding: 0;
         border: 0;
+        border-radius: var(--radius-sm);
         background: none;
-        color: var(--text-secondary);
-        font-size: var(--text-sm);
-        font-weight: var(--weight-medium);
+        color: var(--text-primary);
+        font-size: var(--text-lg);
         cursor: pointer;
+    }
+
+    &__scope-row {
+        display: none;
     }
 
     &__dropdown {
@@ -178,6 +164,12 @@
         border-radius: var(--overlay-radius);
         box-shadow: var(--overlay-shadow);
         animation: header-search-panel-in var(--motion-fast) both;
+
+        // Results get room for the top hit beside the list; recent items keep the field's width.
+        &--wide {
+            inset-inline-end: auto;
+            width: min(52.5rem, calc(100vw - var(--space-12)));
+        }
     }
 
     &__status {
@@ -239,15 +231,28 @@
 
         &__top {
             flex-shrink: 0;
-            padding-block-end: var(--space-2);
+            gap: var(--space-2);
+            padding-block-end: var(--space-3);
         }
 
-        &__cancel {
+        &__back {
             display: inline-flex;
         }
 
-        &__filter-field {
-            max-width: 5.5rem;
+        // On phones the scope is a row of buttons under the field instead of a select.
+        &__filter-field,
+        &__search-icon {
+            display: none;
+        }
+
+        &__input {
+            padding-inline: var(--space-3);
+        }
+
+        &__scope-row {
+            display: block;
+            flex-shrink: 0;
+            padding-block-end: var(--space-3);
         }
 
         &__shortcut {
@@ -266,6 +271,10 @@
             background: var(--surface-page);
             box-shadow: none;
             animation: none;
+
+            &--wide {
+                width: auto;
+            }
         }
 
         &__toggle-button {

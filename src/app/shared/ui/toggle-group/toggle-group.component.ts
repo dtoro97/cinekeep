@@ -13,19 +13,21 @@ export class ToggleGroupComponent<T> implements OnChanges {
     @Input() selectedValue: T | null = null;
     @Input() selectedValues: readonly T[] = [];
     @Input() multiple = false;
+    @Input() ariaLabel: string | null = null;
     @Input() variant: 'default' | 'chips' = 'default';
     @Output() readonly selected = new EventEmitter<T>();
     @Output() readonly selectedValuesChange = new EventEmitter<T[]>();
 
     hasOptions = false;
     showChips = false;
-    viewOptions: Array<SelectOption<T> & { readonly isSelected: boolean }> = [];
+    viewOptions: Array<SelectOption<T> & { readonly isSelected: boolean; readonly hasCount: boolean }> = [];
 
     ngOnChanges(): void {
         this.hasOptions = this.options.length > 0;
         this.showChips = this.variant === 'chips';
         this.viewOptions = this.options.map((option) => ({
             ...option,
+            hasCount: option.count !== undefined && option.count !== '',
             isSelected: this.multiple
                 ? this.selectedValues.includes(option.value)
                 : this.selectedValue === option.value,

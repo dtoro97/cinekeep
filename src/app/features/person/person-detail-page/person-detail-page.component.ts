@@ -1,33 +1,28 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { filter, map, take } from 'rxjs';
 
 import {
     AgePipe,
+    CardComponent,
+    CardSkeletonComponent,
     ExternalLinksComponent,
     ImageComponent,
     isDefined,
-    MediaCarouselPanelComponent,
     PageSectionComponent,
-    PhotosPreviewComponent,
     PhotoViewerDialogService,
     RecentlyViewedItem,
     RecentlyViewedStoreService,
+    RepeatPipe,
     SeoService,
     SkeletonComponent,
     toPersonCardItem,
 } from '../../../shared';
-import { PersonCreditsComponent } from '../person-credits/person-credits.component';
-import {
-    PersonCreditMediaFilter,
-    PersonCreditSectionKey,
-    PersonCreditSortBy,
-    PersonDetail,
-    PersonDetailStoreService,
-} from '../person-detail-store.service';
+import { PersonCreditMediaFilter, PersonDetail, PersonDetailStoreService } from '../person-detail-store.service';
 import { toPersonSeoMetadata } from '../person-seo';
+import { PersonFilmographyComponent } from './person-filmography/person-filmography.component';
 
 @Component({
     selector: 'app-person-detail-page',
@@ -36,12 +31,13 @@ import { toPersonSeoMetadata } from '../person-seo';
         DatePipe,
         RouterLink,
         AgePipe,
+        CardComponent,
+        CardSkeletonComponent,
         ExternalLinksComponent,
         ImageComponent,
-        MediaCarouselPanelComponent,
         PageSectionComponent,
-        PersonCreditsComponent,
-        PhotosPreviewComponent,
+        PersonFilmographyComponent,
+        RepeatPipe,
         SkeletonComponent,
     ],
     templateUrl: './person-detail-page.component.html',
@@ -54,7 +50,6 @@ export class PersonDetailPageComponent {
     constructor(
         private store: PersonDetailStoreService,
         private readonly photoViewerDialogService: PhotoViewerDialogService,
-        private router: Router,
         seoService: SeoService,
         recentlyViewedStoreService: RecentlyViewedStoreService,
     ) {
@@ -79,36 +74,20 @@ export class PersonDetailPageComponent {
         });
     }
 
-    openPhotosPage(): void {
-        this.personDetail$.pipe(take(1)).subscribe(({ photosLink }) => {
-            if (photosLink) {
-                this.router.navigate(photosLink);
-            }
-        });
-    }
-
     toggleBiography(): void {
         this.store.toggleBiography();
     }
 
-    setCreditMediaType(mediaType: PersonCreditMediaFilter): void {
-        this.store.setCreditMediaType(mediaType);
+    setDepartment(department: string): void {
+        this.store.setDepartment(department);
     }
 
-    setCreditSortBy(sortBy: PersonCreditSortBy): void {
-        this.store.setCreditSortBy(sortBy);
+    setMediaType(mediaType: PersonCreditMediaFilter): void {
+        this.store.setMediaType(mediaType);
     }
 
-    toggleCreditSortDirection(): void {
-        this.store.toggleCreditSortDirection();
-    }
-
-    toggleCreditSection(section: PersonCreditSectionKey): void {
-        this.store.toggleCreditSection(section);
-    }
-
-    resetCreditFilters(): void {
-        this.store.resetCreditFilters();
+    toggleFilmography(): void {
+        this.store.toggleFilmography();
     }
 }
 

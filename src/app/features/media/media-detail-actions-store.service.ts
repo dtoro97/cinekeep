@@ -78,20 +78,15 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
         const resource = toActiveActions(state);
         const { watchlistState, favoriteState, memberLists } = resource;
         const rating = toUserRatingDisplay(resource, state.target !== null);
-        const isInWatchlist = watchlistState.state === 'success' && watchlistState.data;
         const isFavorite = favoriteState.state === 'success' && favoriteState.data;
         const pending = watchlistState.state === 'loading' || favoriteState.state === 'loading';
         const lists = remoteData(memberLists, []);
 
         return {
             rating,
-            isInWatchlist,
             isFavorite,
-            isInLibrary: isInWatchlist || isFavorite || rating.currentRating !== null,
             pending,
             isListButtonDisabled: pending || state.isListDialogPending,
-            watchlistLabel: isInWatchlist ? 'On your watchlist' : 'Not on your watchlist',
-            watchlistActionLabel: isInWatchlist ? 'Remove' : 'Add to watchlist',
             favoriteLabel: isFavorite ? 'A favourite' : 'Not a favourite',
             favoriteActionLabel: isFavorite ? 'Remove' : 'Add',
             lists,

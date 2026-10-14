@@ -49,8 +49,8 @@
     cursor: pointer;
 }
 
-.snackbar__link:is(:focus-visible, :active),
-.snackbar__dismiss:is(:focus-visible, :active) {
+.snackbar__link:active,
+.snackbar__dismiss:active {
     color: var(--snackbar-action-color);
     text-decoration-color: currentColor;
 }

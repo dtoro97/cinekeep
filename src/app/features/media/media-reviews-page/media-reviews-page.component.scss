@@ -31,16 +31,11 @@
         display: flex;
         align-items: baseline;
         gap: var(--space-2);
-
-        .text-rating {
-            font-size: 4rem;
-            line-height: 1;
-        }
     }
 
     &__skeleton {
         width: 10rem;
-        --skeleton-height: 4rem;
+        --skeleton-height: var(--text-4xl);
     }
 }
 

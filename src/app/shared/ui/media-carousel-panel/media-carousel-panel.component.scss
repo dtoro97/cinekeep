@@ -25,7 +25,8 @@
 }
 
 .media-carousel-panel--backdrop .media-carousel-panel__skeleton-media {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: var(--backdrop-ratio);
+    border-radius: var(--radius-media);
 }
 
 .media-carousel-panel__skeleton-fill {
@@ -34,4 +35,21 @@
     width: 100%;
     height: 100%;
     --skeleton-radius: 0;
+}
+
+.media-carousel-panel__skeleton-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+}
+
+.media-carousel-panel__skeleton-title {
+    width: 85%;
+    --skeleton-height: calc(var(--text-md) * 1.25 * 2);
+}
+
+.media-carousel-panel__skeleton-meta {
+    width: 45%;
+    --skeleton-height: calc(var(--text-sm) * 1.35);
 }

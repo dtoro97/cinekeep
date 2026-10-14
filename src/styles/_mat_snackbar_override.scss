@@ -56,7 +56,7 @@
             opacity: 0;
         }
 
-        &:is(:hover, :focus-visible, :active) {
+        &:is(:hover, :active) {
             background: transparent;
             color: var(--snackbar-action-color);
             text-decoration-line: underline;

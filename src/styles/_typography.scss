@@ -167,12 +167,6 @@
     color: var(--color-yours);
 }
 
-.text-rating-sm {
-    @extend %text-figure;
-    font-size: var(--text-3xl);
-    color: var(--color-rating);
-}
-
 /// Rank and episode numbers leading a list row.
 .text-numeral {
     @extend %text-figure;

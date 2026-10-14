@@ -107,7 +107,6 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
         this.videoStore.videosState$,
         this.reviewsStore.reviewPageState$,
         this.actionsStore.userRating$,
-        this.actionsStore.library$,
         (
             { target, recommendations, similar, keywords, releaseInfo, watchProviders, collection },
             detailsState,
@@ -117,7 +116,6 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
             videos,
             reviewPage,
             userRating,
-            library,
         ) => {
             const media = detailsState.state === 'success' ? detailsState.data : null;
             const isMovie = media?.mediaType === 'movie';
@@ -159,7 +157,6 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
                 0,
                 PHOTO_STRIP_COUNT,
             );
-            const hiddenPhotoCount = photos.length - stripPhotos.length + 1;
 
             const reviews = remoteData(reviewPage, null);
             const reviewTotal = reviews?.total_results ?? 0;
@@ -194,8 +191,6 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
                 keyCredits: hasRemoteData(credits) ? keyCredits : [],
                 hasKeyCredits: hasRemoteData(credits) && keyCredits.length > 0,
                 hasGenres: !!media?.genres.length,
-                // Until the title is in your library the watchlist is the page's gold action; then the trailer is.
-                isTrailerPrimary: library.isInLibrary,
                 externalLinks,
                 showCertificationSkeleton: certification.state === 'loading',
                 certification: remoteData(certification, null),
@@ -232,16 +227,11 @@ export class MediaDetailStoreService extends ComponentStore<MediaDetailState> {
                 showVideosSkeleton: videos.state === 'loading',
                 showPhotosSkeleton: images.state === 'loading',
                 leadVideo: remoteData(videoItems, [])[0] ?? null,
-                photoStrip: stripPhotos.map(({ image, index }, position) => {
-                    const isLast = position === stripPhotos.length - 1 && photos.length > PHOTO_STRIP_COUNT;
-
-                    return {
-                        image,
-                        index,
-                        moreLabel: isLast ? `+${hiddenPhotoCount}` : null,
-                        ariaLabel: isLast ? `See all ${photos.length} photos` : `Open photo ${index + 1}`,
-                    };
-                }),
+                photoStrip: stripPhotos.map(({ image, index }) => ({
+                    image,
+                    index,
+                    ariaLabel: `Open photo ${index + 1}`,
+                })),
                 videos: videoList.length ? { state: videoItems, totalCount: videoList.length } : null,
                 photos: photos.length
                     ? {

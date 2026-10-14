@@ -1,5 +1,5 @@
 <a class="backdrop-card" [routerLink]="routeCommands" [attr.aria-label]="item.title">
-    <div class="backdrop-card__media">
+    <div class="backdrop-card__frame">
         <app-image
             class="backdrop-card__image"
             [src]="item.backdropPath ?? item.imagePath"
@@ -10,9 +10,9 @@
     </div>
 
     <div class="backdrop-card__content">
-        <span class="backdrop-card__title text-subtitle">{{ item.title }}</span>
+        <span class="backdrop-card__title text-card-title">{{ item.title }}</span>
 
-        <div class="backdrop-card__meta text-caption">
+        <div class="backdrop-card__meta text-card-meta">
             @if (rating; as rating) {
                 <app-rating [value]="rating" />
             }

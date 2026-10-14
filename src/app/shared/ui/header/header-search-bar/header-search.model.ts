@@ -1,17 +1,12 @@
 import type { MediaOrPersonType, RouteCommands } from '../../../types';
 import type { ImageType } from '../../image/image.component';
-
-export interface HeaderSearchTitleSegment {
-    readonly key: 'full' | 'before' | 'match' | 'after';
-    readonly text: string;
-    readonly match: boolean;
-}
+import type { TitleSegment } from '../../../utils/title-segments';
 
 export interface HeaderSearchOption {
     readonly optionId: string;
     readonly kind: MediaOrPersonType;
     readonly title: string;
-    readonly titleSegments: readonly HeaderSearchTitleSegment[];
+    readonly titleSegments: readonly TitleSegment[];
     readonly thumb: string | null;
     readonly imageType: ImageType;
     /** "2021 · Movie" for titles, the department for people. */
@@ -24,16 +19,22 @@ export interface HeaderSearchOption {
     readonly routeCommands: RouteCommands;
 }
 
+export interface HeaderSearchResults {
+    readonly options: readonly HeaderSearchOption[];
+    /** Every match TMDb has for the query, not just the first page shown in the panel. */
+    readonly totalResults: number;
+}
+
 export interface HeaderSearchGroup {
     readonly label: string;
-    /** Result groups are separated by a rule; only the recent list needs a visible label. */
-    readonly showLabel: boolean;
     readonly options: readonly HeaderSearchOption[];
 }
 
 export interface HeaderSearchSeeAll {
     readonly optionId: string;
     readonly query: string;
+    /** "See all 585 results", or "See all results" when TMDb gave no total. */
+    readonly label: string;
     readonly queryParams: Readonly<Record<string, string>>;
 }
 

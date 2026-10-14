@@ -69,11 +69,6 @@
             color: var(--text-primary);
         }
     }
-
-    &:focus-visible {
-        outline: 2px solid var(--control-focus-ring-inner);
-        outline-offset: 2px;
-    }
 }
 
 .discover-filter-panel__more-icon {

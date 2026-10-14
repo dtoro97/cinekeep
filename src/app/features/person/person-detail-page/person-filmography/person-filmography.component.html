@@ -1,0 +1,89 @@
+@if (filmography.state === 'loading') {
+    <div class="filmography__toolbar" aria-hidden="true">
+        <app-skeleton class="filmography__toolbar-skeleton" />
+    </div>
+    <div class="filmography__years" aria-hidden="true">
+        @for (year of 3 | repeat; track year) {
+            <div class="filmography__year">
+                <app-skeleton class="filmography__year-skeleton" />
+                <div>
+                    @for (row of 2 | repeat; track row) {
+                        <div class="credit-row">
+                            <app-skeleton class="credit-row__thumb" />
+                            <app-skeleton class="credit-row__line-skeleton" />
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+} @else if (filmography.state === 'success') {
+    @let data = filmography.data;
+    <div class="filmography__toolbar">
+        @if (data.showDepartments) {
+            <app-toggle-group
+                [options]="data.departmentOptions"
+                [selectedValue]="data.selectedDepartment"
+                (selected)="departmentChange.emit($event)"
+            />
+        }
+        @if (data.showMediaTypes) {
+            <app-toggle-group
+                [options]="data.mediaOptions"
+                [selectedValue]="data.selectedMediaType"
+                (selected)="mediaTypeChange.emit($event)"
+            />
+        }
+    </div>
+
+    @if (data.hasCredits) {
+        <div class="filmography__years">
+            @for (year of data.years; track year.label) {
+                <section class="filmography__year" [attr.aria-label]="year.label">
+                    <h3
+                        class="filmography__year-label text-numeral"
+                        [class.filmography__year-label--word]="year.isUpcoming"
+                    >
+                        {{ year.label }}
+                    </h3>
+                    <ul class="filmography__rows">
+                        @for (credit of year.credits; track credit.mediaType + '-' + credit.id) {
+                            <li>
+                                <a class="credit-row" [routerLink]="['/title', credit.id, credit.mediaType]">
+                                    <app-image
+                                        class="credit-row__thumb"
+                                        [src]="credit.posterPath"
+                                        params="w92"
+                                        alt=""
+                                    />
+                                    <span class="credit-row__text">
+                                        <span class="credit-row__title text-card-title">{{ credit.title }}</span>
+                                        <span class="credit-row__meta text-meta">
+                                            @if (credit.roleLabel) {
+                                                <span>{{ credit.roleLabel }}</span>
+                                            }
+                                            @if (credit.episodeLabel) {
+                                                <span>{{ credit.episodeLabel }}</span>
+                                            }
+                                        </span>
+                                    </span>
+                                    @if (credit.rating) {
+                                        <app-rating class="credit-row__rating" [value]="credit.rating" />
+                                    }
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+        </div>
+
+        @if (data.hasToggle) {
+            <button matButton="outlined" class="filmography__toggle" type="button" (click)="expandToggle.emit()">
+                {{ data.toggleLabel }}
+            </button>
+        }
+    } @else {
+        <p class="filmography__empty text-body">No movie or TV credits to show yet.</p>
+    }
+}

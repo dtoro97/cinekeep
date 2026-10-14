@@ -50,10 +50,6 @@
         background: var(--control-surface-hover);
     }
 
-    &.mat-focused .mat-mdc-text-field-wrapper {
-        border-color: var(--control-focus-border);
-    }
-
     .mat-mdc-form-field-flex {
         height: 100%;
         align-items: center;

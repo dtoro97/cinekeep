@@ -1,59 +1,66 @@
 @let menuOpen = menuOpen$ | async;
 
 <button
-    class="browse-menu__button text-meta"
+    class="browse-menu__button"
     type="button"
+    [class.browse-menu__button--open]="menuOpen"
     [attr.aria-expanded]="menuOpen"
     [attr.aria-controls]="menuOpen ? 'browse-menu-panel' : null"
     (click)="toggleMenu()"
 >
-    <mat-icon class="browse-menu__button-icon">menu</mat-icon>
-    <span>Browse</span>
+    <span class="browse-menu__label">Browse</span>
+    <i class="browse-menu__chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
+    <i
+        class="browse-menu__phone-icon fa-solid"
+        [class.fa-bars]="!menuOpen"
+        [class.fa-xmark]="menuOpen"
+        aria-hidden="true"
+    ></i>
 </button>
 
 @if (menuOpen) {
+    <div class="browse-menu__scrim" aria-hidden="true" (click)="closeMenu()"></div>
+
     <nav id="browse-menu-panel" class="browse-menu__panel" aria-label="Browse">
         <div class="browse-menu__inner inner-container">
-            <div class="browse-menu__groups">
-                @for (group of browseGroups; track group.id) {
-                    <section class="browse-menu__group" attr.aria-labelledby="browse-menu-{{ group.id }}">
-                        <h2 class="browse-menu__group-title text-title" id="browse-menu-{{ group.id }}">
-                            <mat-icon class="browse-menu__group-icon">{{ group.icon }}</mat-icon>
-                            <span>{{ group.title }}</span>
-                        </h2>
+            @for (group of browseGroups; track group.id) {
+                <section class="browse-menu__group" attr.aria-labelledby="browse-menu-{{ group.id }}">
+                    <h2 class="browse-menu__group-title text-display-sm" id="browse-menu-{{ group.id }}">
+                        {{ group.title }}
+                    </h2>
 
-                        <ul class="browse-menu__links u-list-none">
-                            @for (link of group.links; track link.routerLink) {
-                                <li>
-                                    <a
-                                        class="browse-menu__link"
-                                        [routerLink]="link.routerLink"
-                                        routerLinkActive="browse-menu__link--active"
-                                        [routerLinkActiveOptions]="exactMatch"
-                                        ariaCurrentWhenActive="page"
-                                        (click)="closeMenu()"
-                                    >
-                                        <span class="text-body-sm browse-menu__link-label">{{ link.label }}</span>
-                                    </a>
-                                </li>
-                            }
-                        </ul>
-                    </section>
-                }
-            </div>
+                    <ul class="browse-menu__links">
+                        @for (link of group.links; track link.routerLink) {
+                            <li>
+                                <a
+                                    class="browse-menu__link"
+                                    [routerLink]="link.routerLink"
+                                    routerLinkActive="browse-menu__link--active"
+                                    [routerLinkActiveOptions]="exactMatch"
+                                    ariaCurrentWhenActive="page"
+                                    (click)="closeMenu()"
+                                    >{{ link.label }}</a
+                                >
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
 
-            <div class="browse-menu__actions">
-                <a
-                    class="browse-menu__action text-body-sm"
-                    routerLink="/discover"
-                    routerLinkActive="browse-menu__action--active"
-                    [routerLinkActiveOptions]="exactMatch"
-                    ariaCurrentWhenActive="page"
-                    (click)="closeMenu()"
-                >
-                    <i class="browse-menu__action-icon fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                    <span>Explore by filters</span>
+            <section class="browse-menu__discover" aria-labelledby="browse-menu-discover">
+                <h2 class="browse-menu__group-title text-display-sm" id="browse-menu-discover">Discover</h2>
+                <p class="browse-menu__discover-copy text-body-sm">
+                    Filter the whole catalogue by genre, year and score.
+                </p>
+                <a class="browse-menu__discover-link" routerLink="/discover" (click)="closeMenu()">
+                    Explore by filters
+                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                 </a>
+            </section>
+
+            <div class="browse-menu__locale">
+                <span class="text-body-sm">Language and region</span>
+                <app-header-locale-region-menu />
             </div>
         </div>
     </nav>

@@ -23,6 +23,10 @@
                             <h1 class="text-hero-title">{{ season.name }}</h1>
 
                             <p class="season-hero__meta text-hero-meta">
+                                @if (season.voteAverage) {
+                                    <app-rating [value]="season.voteAverage" />
+                                    <span>season average</span>
+                                }
                                 @if (seasonDetail.lastAirDate; as lastAirDate) {
                                     <span
                                         >{{ seasonDetail.firstAirDate | date: 'MMM d' }} –
@@ -41,13 +45,6 @@
                                 <p class="season-hero__overview text-hero-summary">{{ season.overview }}</p>
                             }
                         </div>
-
-                        @if (season.voteAverage) {
-                            <aside class="season-hero__ratings" aria-label="Ratings">
-                                <app-tmdb-rating prominent [value]="season.voteAverage" />
-                                <span class="text-meta">Season average</span>
-                            </aside>
-                        }
                     </div>
                 } @else {
                     <div class="season-hero__body" aria-hidden="true">

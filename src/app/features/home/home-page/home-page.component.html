@@ -30,8 +30,8 @@
         <div class="page-sections sections">
             @if (home.showLibrary) {
                 <app-page-section title="Your library">
-                    <a section-controls class="section-link text-body-sm" routerLink="/me">
-                        <span>Open your library</span>
+                    <a section-controls class="section-link" routerLink="/me">
+                        Open your library
                         <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                     </a>
                     <app-home-library [library]="home.library" />
@@ -53,8 +53,8 @@
             }
 
             <app-page-section [title]="home.streamingTitle">
-                <a section-controls class="section-link text-body-sm" [routerLink]="home.streamingLink">
-                    <span>{{ home.streamingLinkLabel }}</span>
+                <a section-controls class="section-link" [routerLink]="home.streamingLink">
+                    {{ home.streamingLinkLabel }}
                     <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                 </a>
 
@@ -75,8 +75,8 @@
 
             <div class="band">
                 <app-page-section title="Airing today">
-                    <a section-controls class="section-link text-body-sm" routerLink="/tv/airing-today">
-                        <span>All of today's episodes</span>
+                    <a section-controls class="section-link" routerLink="/tv/airing-today">
+                        All of today's episodes
                         <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                     </a>
                     <app-home-airing-tonight
@@ -88,8 +88,8 @@
                 </app-page-section>
 
                 <app-page-section title="In theatres soon">
-                    <a section-controls class="section-link text-body-sm" routerLink="/movies/upcoming">
-                        <span>All upcoming movies</span>
+                    <a section-controls class="section-link" routerLink="/movies/upcoming">
+                        All upcoming movies
                         <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                     </a>
                     <app-home-opening-soon
