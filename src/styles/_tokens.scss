@@ -1,38 +1,46 @@
 :root {
-    // ---- Primitive ramps (OKLCH, one warm hue family) ----
-    // Ink: surfaces, evenly spaced in perceived lightness.
-    --ink-0: oklch(0.15 0.005 75);
-    --ink-1: oklch(0.18 0.007 75);
-    --ink-2: oklch(0.21 0.008 75);
-    --ink-3: oklch(0.245 0.01 75);
-    --ink-4: oklch(0.28 0.012 75);
-    --ink-5: oklch(0.31 0.015 75);
-    --ink-shadow: oklch(0.08 0.008 75);
+    // ---- Primitive ramps (DESIGN.md, "The Festival Programme") ----
+    // Ink: the near-black ground and the surfaces raised on it.
+    --ink-0: #0e0f11;
+    --ink-1: #131417;
+    --ink-2: #17191c;
+    --ink-3: #1b1d21;
+    --ink-4: #24272c;
+    --ink-5: #2a2d31;
+    --ink-6: #2f3237;
+    --ink-7: #3a3e44;
+    --ink-shadow: #050506;
 
     // Paper: text on ink.
-    --paper-0: oklch(0.95 0.012 78);
-    --paper-1: oklch(0.79 0.024 76);
-    --paper-2: oklch(0.63 0.026 74);
-    --paper-3: oklch(0.49 0.022 74);
+    --paper-0: #f1f1ee;
+    --paper-1: #c9cbce;
+    --paper-2: #9a9ea4;
+    --paper-3: #6b6f75;
+    --paper-placeholder: #7d8187;
+    --paper-hover: #ffffff;
 
-    // Gold: the only accent. `vivid` is reserved for rating stars.
-    --gold-300: oklch(0.85 0.075 85);
-    --gold-400: oklch(0.8 0.082 84);
-    --gold-500: oklch(0.74 0.085 81);
-    --gold-600: oklch(0.64 0.078 80);
-    --gold-vivid: oklch(0.79 0.12 85);
+    // Gold: the only accent, and it always means yours.
+    --gold-300: #dcc69d;
+    --gold-400: #d3b784;
+    --gold-500: #c7a66e;
+    --gold-600: #b08f58;
+    --gold-ink: #1a1408;
 
-    // Status hues, pulled toward the warm palette instead of stock UI-kit red/green.
-    --red-300: oklch(0.79 0.11 38);
-    --red-500: oklch(0.68 0.15 35);
-    --red-900: oklch(0.26 0.05 35);
+    // Status hues.
+    --red-300: #ffb4a4;
+    --red-500: #ff8a73;
+    --red-700: #5a2b22;
+    --red-900: #3a1f1a;
     --green-300: oklch(0.79 0.1 145);
     --green-500: oklch(0.62 0.11 148);
     --green-900: oklch(0.27 0.045 148);
 
-    --font-body: "IBM Plex Sans", system-ui, sans-serif;
-    --font-display: "Newsreader", "IBM Plex Sans", system-ui, sans-serif;
-    --font-brand: var(--font-display);
+    // One family in three widths: regular for titles and UI, Semi Condensed for data, Extra Condensed for figures.
+    --font-body: "Sofia Sans", system-ui, sans-serif;
+    --font-display: var(--font-body);
+    --font-data: "Sofia Sans Semi Condensed", "Sofia Sans", system-ui, sans-serif;
+    --font-figure: "Sofia Sans Extra Condensed", "Sofia Sans", system-ui, sans-serif;
+    --font-brand: var(--font-body);
 
     --text-2xs: 0.75rem;
     --text-xs: 0.8125rem;
@@ -45,18 +53,38 @@
     --text-4xl: 2.5rem;
     --text-5xl: clamp(2.5rem, 1.55rem + 3.4vw, 4rem);
 
+    // Role sizes from DESIGN.md.
+    --text-display: clamp(3rem, 2.2rem + 2.6vw, 4.5rem);
+    --text-spotlight: clamp(2.75rem, 2rem + 2.4vw, 4rem);
+    --text-page-title: clamp(2.5rem, 1.9rem + 2vw, 3.5rem);
+    --text-section: 1.875rem;
+    --text-side-heading: 1.375rem;
+    --text-card-title: 1rem;
+    --text-body: 1.0625rem;
+    --text-control: 0.9375rem;
+    --text-technical: 1.0625rem;
+    --text-meta: 0.9375rem;
+    --text-figure-xl: 4.5rem;
+    --text-figure-lg: 3rem;
+    --text-figure-md: 2.125rem;
+    --text-figure-sm: 1.375rem;
+
     --weight-regular: 400;
     --weight-medium: 500;
     --weight-semibold: 600;
     --weight-bold: 700;
+    --weight-extrabold: 800;
+    --weight-black: 900;
 
     --lh-tight: 1.2;
     --lh-normal: 1.45;
-    --lh-relaxed: 1.6;
+    --lh-relaxed: 1.5;
+    --lh-display: 0.92;
 
-    --tracking-tighter: -0.028em;
-    --tracking-tight: -0.014em;
-    --tracking-wide: 0.06em;
+    --tracking-display: -0.035em;
+    --tracking-tighter: -0.03em;
+    --tracking-tight: -0.02em;
+    --tracking-wide: 0.04em;
     --tracking-widest: 0.14em;
 
     --space-1: 0.25rem;
@@ -68,34 +96,48 @@
     --space-6: 1.5rem;
     --space-8: 2rem;
     --space-10: 2.5rem;
+    --space-7: 1.75rem;
     --space-12: 3rem;
+    --space-14: 3.5rem;
+    --space-18: 4.5rem;
     --space-20: 5rem;
 
     --layout-content-max-width: 1440px;
     /** Row lists use the full content width, aligned with the header; row text caps its own measure. */
     --layout-list-max-width: var(--layout-content-max-width);
+    --layout-gutter: 2.5rem;
+    --layout-gutter-compact: 1rem;
+    --layout-body-measure: 42.5rem;
+    --section-gap: var(--space-14);
+    --header-height: 3.75rem;
+    --subnav-height: 2.75rem;
+    --header-control-height: 2.5rem;
+    --backdrop-fade-height: 5.625rem;
+    // Shared by the home spotlight and catalogue heroes so their backdrops start at the same height.
+    --hero-content-min-height: 32rem;
 
-    --control-height-sm: 2.125rem;
-    --control-height-md: 2.375rem;
-    --control-height-lg: 2.5rem;
+    --control-height-sm: 2.25rem;
+    --control-height-md: 2.75rem;
+    --control-height-lg: 2.75rem;
     --control-radius: var(--radius-md);
     --control-transition:
         background-color var(--motion-fast), color var(--motion-fast), opacity var(--motion-fast),
         box-shadow var(--motion-fast);
 
     --control-surface: var(--ink-2);
-    --control-surface-hover: var(--ink-3);
-    --control-border: var(--color-border-subtle);
+    --control-surface-hover: var(--ink-4);
+    --control-border: var(--color-border);
+    --field-border: var(--ink-7);
     --control-text: var(--text-secondary);
     --control-text-hover: var(--text-primary);
     --control-focus-border: var(--color-brand);
     --control-focus-ring-inner: color-mix(in oklch, var(--gold-500) 24%, transparent);
     --control-focus-ring-outer: color-mix(in oklch, var(--gold-500) 14%, transparent);
 
-    --control-subtle-surface: color-mix(in oklch, var(--ink-1) 86%, transparent);
-    --control-subtle-surface-hover: var(--ink-2);
-    --control-subtle-surface-active: var(--ink-3);
-    --control-subtle-border: var(--color-border-subtle);
+    --control-subtle-surface: var(--ink-2);
+    --control-subtle-surface-hover: var(--ink-4);
+    --control-subtle-surface-active: var(--ink-4);
+    --control-subtle-border: var(--color-border);
     --control-subtle-text: var(--text-muted);
     --control-subtle-text-hover: var(--text-primary);
     --control-subtle-text-active: var(--text-primary);
@@ -104,7 +146,7 @@
     --control-accent-surface: var(--color-brand);
     --control-accent-surface-hover: var(--color-brand-hover);
     --control-accent-border: var(--color-brand);
-    --control-accent-text: var(--surface-page);
+    --control-accent-text: var(--gold-ink);
     --control-accent-ripple: color-mix(in oklch, var(--paper-0) 15%, transparent);
 
     --slide-toggle-track-width: 2.5rem;
@@ -135,31 +177,26 @@
     --badge-outline-text: var(--color-brand);
     --badge-outline-border: var(--border-brand-soft);
 
+    --radius-meter: 1px;
+    --radius-media: 3px;
     --radius-sm: 0.25rem;
     --radius-md: 0.375rem;
     --radius-lg: 0.5rem;
-    --radius-xl: 0.75rem;
+    --radius-xl: 0.625rem;
     --radius-pill: 999px;
     --radius-full: 50%;
 
-    --shadow-sm:
-        0 1px 2px color-mix(in oklch, var(--ink-shadow) 30%, transparent),
-        0 2px 6px color-mix(in oklch, var(--ink-shadow) 20%, transparent);
-    --shadow-md:
-        0 2px 4px color-mix(in oklch, var(--ink-shadow) 32%, transparent),
-        0 10px 24px color-mix(in oklch, var(--ink-shadow) 30%, transparent);
-    --shadow-lg:
-        0 4px 10px color-mix(in oklch, var(--ink-shadow) 36%, transparent),
-        0 18px 40px color-mix(in oklch, var(--ink-shadow) 34%, transparent);
-    --shadow-xl:
-        0 8px 20px color-mix(in oklch, var(--ink-shadow) 40%, transparent),
-        0 28px 64px color-mix(in oklch, var(--ink-shadow) 40%, transparent);
-    --shadow-dialog: var(--shadow-xl);
+    // Flat by default; shadows only for objects over other things.
+    --shadow-sm: 0 2px 6px color-mix(in oklch, var(--ink-shadow) 35%, transparent);
+    --shadow-md: 0 8px 20px color-mix(in oklch, var(--ink-shadow) 45%, transparent);
+    --shadow-lg: 0 18px 36px color-mix(in oklch, var(--ink-shadow) 60%, transparent);
+    --shadow-xl: 0 24px 60px color-mix(in oklch, var(--ink-shadow) 60%, transparent);
+    --shadow-dialog: 0 30px 80px color-mix(in oklch, var(--ink-shadow) 65%, transparent);
 
     // Floating layers (menus, selects, dialogs, snackbars, tooltips) share one recipe so
     // they read as sitting above the page, not as cards glued onto it.
     --overlay-surface: var(--surface-overlay);
-    --overlay-border: var(--color-border-subtle);
+    --overlay-border: var(--ink-6);
     --overlay-radius: var(--radius-lg);
     --overlay-shadow: var(--shadow-lg);
     --overlay-item-hover: color-mix(in oklch, var(--paper-0) 7%, transparent);
@@ -177,13 +214,16 @@
     --color-brand-hover: var(--gold-400);
     --color-brand-active: var(--gold-600);
     --color-brand-light: var(--gold-300);
-    --color-rating: var(--gold-vivid);
+    --color-on-brand: var(--gold-ink);
+    // Community scores are never gold; gold is only what's yours.
+    --color-rating: var(--text-primary);
+    --color-yours: var(--color-brand);
 
     --surface-page: var(--ink-0);
     --surface-panel-soft: var(--ink-1);
     --surface-panel: var(--ink-2);
-    --surface-raised: var(--ink-3);
-    --surface-overlay: var(--ink-4);
+    --surface-raised: var(--ink-4);
+    --surface-overlay: var(--ink-3);
     --surface-scrim: color-mix(in oklch, var(--ink-0) 90%, transparent);
     --surface-backdrop: color-mix(in oklch, var(--ink-shadow) 55%, transparent);
     --surface-brand-soft: color-mix(in oklch, var(--gold-500) 10%, transparent);
@@ -205,15 +245,20 @@
     --text-secondary: var(--paper-1);
     --text-muted: var(--paper-2);
     --text-disabled: var(--paper-3);
-    --text-accent: var(--color-brand-light);
+    --text-placeholder: var(--paper-placeholder);
+    // Links and hovered titles brighten to white; colour is kept for what's yours.
+    --text-accent: var(--paper-hover);
 
     --color-danger-text: var(--red-500);
     --color-danger-light: var(--red-300);
+    --surface-loss: var(--red-900);
+    --border-loss: var(--red-700);
+    --text-loss: var(--red-300);
     --color-success-light: var(--green-300);
 
-    --interactive-media-hover-filter: brightness(1.1) saturate(1.06);
-    --hover-lift: -2px;
-    --media-hover-scale: 1.04;
+    --interactive-media-hover-filter: brightness(1.06);
+    --hover-lift: -3px;
+    --media-hover-scale: 1;
     --control-disabled-opacity: 0.6;
 
     --skeleton-base: color-mix(in oklch, var(--paper-0) 5.5%, transparent);
@@ -232,6 +277,7 @@
     --media-square-lg: 56px;
     --round-media-sm: 2.25rem;
     --round-media-md: 2.5rem;
+    --rank-width: 2.125rem;
 
     // List rows (media, people, episodes, charts); `-compact` values apply on mobile.
     --row-padding: var(--space-4) var(--space-2);
@@ -244,6 +290,9 @@
     --row-thumb-poster-compact: 4rem;
     --row-thumb-still: 13rem;
     --row-thumb-still-compact: 7.5rem;
+
+    // The only scrim on a backdrop: a short fade into the ground at its bottom edge.
+    --gradient-backdrop-fade: linear-gradient(to bottom, transparent, var(--surface-page));
 
     --gradient-overlay-bottom: linear-gradient(
         to top,

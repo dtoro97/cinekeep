@@ -1,0 +1,92 @@
+@use 'breakpoints' as *;
+@use 'mixins' as *;
+
+:host {
+    display: block;
+}
+
+// Text sits over the bottom-left of the backdrop; the hero's padding and minimum height match the title page's.
+.spotlight {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    max-width: 40rem;
+    min-height: var(--hero-content-min-height);
+}
+
+.spotlight__label {
+    color: var(--text-secondary);
+}
+
+.spotlight__title-link {
+    @include text-link();
+}
+
+.spotlight__facts {
+    @include meta-list();
+}
+
+.spotlight__score {
+    color: var(--text-primary);
+    font-weight: var(--weight-extrabold);
+}
+
+.spotlight__overview {
+    @include line-clamp(3);
+}
+
+.spotlight__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+}
+
+.spotlight-skeleton {
+    display: flex;
+    align-items: flex-end;
+    min-height: calc(var(--space-20) + var(--hero-content-min-height) + var(--space-8));
+}
+
+.spotlight-skeleton__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding-bottom: var(--space-8);
+}
+
+.spotlight-skeleton__line {
+    --skeleton-radius: var(--radius-sm);
+
+    &--label {
+        width: 9rem;
+        --skeleton-height: 1rem;
+    }
+
+    &--title {
+        width: min(32rem, 80%);
+        --skeleton-height: 3.5rem;
+    }
+
+    &--facts {
+        width: 14rem;
+        --skeleton-height: 1.125rem;
+    }
+
+    &--overview {
+        width: min(36rem, 90%);
+        --skeleton-height: 4.5rem;
+    }
+}
+
+@include mobile() {
+    .spotlight {
+        max-width: 100%;
+        min-height: 0;
+    }
+
+    .spotlight-skeleton {
+        min-height: 22.5rem;
+    }
+}

@@ -49,3 +49,27 @@
         color: var(--text-primary);
     }
 }
+
+// Comes after the base rules so the accent fill and its ink win over the neutral hover and active states.
+.library-toggle.library-toggle--primary {
+    background: var(--control-accent-surface);
+    color: var(--control-accent-text);
+    border-color: var(--control-accent-border);
+    --mat-button-outlined-label-text-color: var(--control-accent-text);
+    --mat-button-outlined-outline-color: var(--control-accent-border);
+    --mat-button-outlined-hover-label-text-color: var(--control-accent-text);
+    --mat-button-outlined-hover-outline-color: var(--control-accent-border);
+
+    &:not(:disabled):hover {
+        background: var(--control-accent-surface-hover);
+    }
+
+    &:focus:not(:disabled),
+    &:active:not(:disabled) {
+        color: var(--control-accent-text);
+    }
+
+    &:active:not(:disabled) {
+        background: var(--color-brand-active);
+    }
+}

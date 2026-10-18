@@ -11,39 +11,40 @@
             [matMenuTriggerRestoreFocus]="false"
             [disabled]="account.isBusy"
             attr.aria-label="Open account menu for {{ account.displayName }}"
+            (menuOpened)="loadCounts()"
         >
             <app-user-avatar class="account-menu__avatar" [name]="account.avatarName" size="sm" />
             <mat-icon class="account-menu__chevron" aria-hidden="true">expand_more</mat-icon>
         </button>
 
-        <mat-menu #accountMenu="matMenu" xPosition="before">
+        <mat-menu #accountMenu="matMenu" xPosition="before" class="menu-panel--wide">
             <div class="account-menu__panel">
                 <a class="account-menu__identity" mat-menu-item routerLink="/me">
                     <span class="account-menu__identity-row">
-                        <app-user-avatar [name]="account.avatarName" size="sm" />
+                        <app-user-avatar class="account-menu__identity-avatar" [name]="account.avatarName" size="sm" />
                         <span class="account-menu__identity-copy">
-                            <span class="account-menu__identity-name text-body-sm u-truncate">
-                                {{ account.displayName }}
-                            </span>
-                            <span class="text-caption">View profile</span>
+                            <span class="account-menu__identity-name u-truncate">{{ account.displayName }}</span>
+                            <span class="account-menu__identity-link">View profile</span>
                         </span>
                     </span>
                 </a>
 
-                <mat-divider class="account-menu__divider" />
+                <div class="account-menu__separator" role="separator"></div>
 
-                <div class="account-menu__items" aria-label="Account routes">
-                    @for (route of accountRoutes; track route.route) {
-                        <a class="account-menu__item" mat-menu-item [routerLink]="route.route">
-                            <mat-icon class="account-menu__item-icon" aria-hidden="true">
-                                {{ route.icon }}
-                            </mat-icon>
-                            <span>{{ route.label }}</span>
+                <nav aria-label="Library">
+                    @for (item of account.libraryItems; track item.route) {
+                        <a class="account-menu__item" mat-menu-item [routerLink]="item.route">
+                            <span class="account-menu__item-row">
+                                <span>{{ item.label }}</span>
+                                @if (item.count !== null) {
+                                    <span class="account-menu__count">{{ item.count }}</span>
+                                }
+                            </span>
                         </a>
                     }
-                </div>
+                </nav>
 
-                <mat-divider class="account-menu__divider" />
+                <div class="account-menu__separator" role="separator"></div>
 
                 <button
                     class="account-menu__item"
@@ -52,21 +53,19 @@
                     [disabled]="account.isBusy"
                     (click)="signOut()"
                 >
-                    <mat-icon class="account-menu__item-icon" aria-hidden="true">logout</mat-icon>
-                    <span>Sign out</span>
+                    Sign out
                 </button>
             </div>
         </mat-menu>
     } @else {
         <button
-            class="account-menu__signin text-meta"
+            class="account-menu__signin"
             type="button"
             [disabled]="account.isBusy"
             [attr.aria-busy]="account.isBusy"
             (click)="startLogin()"
         >
-            <mat-icon class="account-menu__signin-icon" aria-hidden="true">login</mat-icon>
-            <span class="account-menu__signin-label">Sign in</span>
+            <span>Sign in</span>
         </button>
     }
 }

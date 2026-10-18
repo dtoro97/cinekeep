@@ -4,7 +4,7 @@
 :host {
     --detail-hero-poster-width: 200px;
     --detail-hero-side-width: 18rem;
-    --detail-hero-shell-min-height: 23rem;
+    --detail-hero-shell-min-height: var(--hero-content-min-height);
     --detail-hero-poster-column-height: calc(300px + var(--space-4) + 2rem);
     --poster-mobile-width: 110px;
     --poster-mobile-height: 165px;

@@ -2,68 +2,49 @@
     <div class="footer__inner inner-container">
         <app-recently-viewed class="footer__recently-viewed" />
 
-        <div class="footer__content">
-            <section class="footer__about" aria-label="About CineKeep">
-                <a class="footer__home" routerLink="/" aria-label="CineKeep home">
-                    <img class="footer__brand-icon" src="assets/brand-mark.svg" alt="" aria-hidden="true" />
-                    <span class="footer__brand-text" aria-hidden="true">
-                        <span>Cine</span>
-                        <span class="footer__brand-text-accent">Keep</span>
-                    </span>
-                </a>
-
-                <p class="footer__summary text-caption">
-                    Discover movies, TV series, people, trailers, reviews, and streaming options.
-                </p>
-
-                <p class="footer__notice text-caption">
-                    This website uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by
-                    TMDB.
-                </p>
-
-                <p class="footer__notice text-caption">
-                    CineKeep stores your language and region preferences in first-party cookies so server-rendered pages
-                    can use your selected locale. These cookies are not used for advertising or tracking.
-                </p>
-            </section>
-
-            <div class="footer__meta">
-                <nav class="footer__nav" aria-label="Footer">
-                    <a class="footer__link text-caption" routerLink="/discover">Discover</a>
-                    <a class="footer__link text-caption" routerLink="/search">Search</a>
-                    <a class="footer__link text-caption" routerLink="/watch/streaming">Streaming</a>
+        <div class="footer__bar">
+            <p class="footer__credit">
+                <a class="footer__brand" routerLink="/">CineKeep</a>
+                <span class="footer__data text-caption">
+                    Data from
                     <a
-                        class="footer__link text-caption"
-                        href="https://github.com/dtoro97/cinekeep"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Source code
-                    </a>
-                    <a
-                        class="footer__link text-caption"
-                        href="https://github.com/dtoro97/cinekeep/issues"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Report a bug
-                    </a>
-                </nav>
-
-                <div class="footer__provider">
-                    <span class="footer__provider-label text-caption">Data by</span>
-                    <a
-                        class="footer__provider-link"
+                        class="footer__provider"
                         href="https://www.themoviedb.org/"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
                         <img src="assets/tmdb-icon.svg" class="footer__logo" alt="TMDB" />
                     </a>
-                </div>
-            </div>
+                    · Not endorsed or certified by TMDB.
+                </span>
+            </p>
+
+            <nav class="footer__nav" aria-label="Footer">
+                <a class="footer__link text-caption" routerLink="/discover">Discover</a>
+                <a class="footer__link text-caption" routerLink="/search">Search</a>
+                <a class="footer__link text-caption" routerLink="/watch/streaming">Streaming</a>
+                <a
+                    class="footer__link text-caption"
+                    href="https://github.com/dtoro97/cinekeep"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Source code
+                </a>
+                <a
+                    class="footer__link text-caption"
+                    href="https://github.com/dtoro97/cinekeep/issues"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Report a bug
+                </a>
+            </nav>
         </div>
 
-        <p class="footer__copyright text-overline">&copy; 2025-2026 D&aacute;vid T&ouml;r&#337;</p>
+        <p class="footer__fine-print text-caption">
+            &copy; 2025–2026 D&aacute;vid T&ouml;r&#337; · Your language and region are kept in first-party cookies so
+            pages render in your locale; they are not used for advertising or tracking.
+        </p>
     </div>
 </footer>

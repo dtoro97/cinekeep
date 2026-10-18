@@ -1,53 +1,87 @@
 @use 'breakpoints' as *;
+@use 'mixins' as *;
+
+// The bar sticks to the top; the sub-navigation row below it scrolls away with the page.
+:host {
+    display: contents;
+}
 
 .header {
     position: sticky;
     top: 0;
     z-index: var(--z-overlay);
     width: 100%;
-    background-color: var(--surface-panel);
-    border-bottom: 1px solid var(--color-border-subtle);
+    background-color: var(--surface-page);
+    border-bottom: 1px solid var(--color-border);
 
-    &__inner {
+    &__bar {
         display: flex;
         align-items: center;
-        gap: var(--space-3);
-        height: calc(var(--space-12) + var(--space-3));
+        gap: var(--space-6);
+        min-height: var(--header-height);
     }
 
     &__brand {
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
         flex-shrink: 0;
-        color: var(--text-primary);
-        text-decoration: none;
-    }
-
-    &__brand-icon {
-        inline-size: var(--space-8);
-        block-size: var(--space-8);
-        flex-shrink: 0;
-    }
-
-    &__brand-text {
-        display: inline-flex;
-        font-family: var(--font-brand);
-        font-size: var(--text-xl);
-        font-weight: var(--weight-semibold);
+        font-family: var(--font-display);
+        font-size: var(--text-2xl);
+        font-weight: var(--weight-black);
+        letter-spacing: var(--tracking-tight);
         line-height: 1;
-        letter-spacing: 0;
+        color: var(--text-primary);
     }
 
-    &__brand-text-accent {
-        color: var(--color-brand);
+    &__tabs {
+        display: flex;
+        align-self: stretch;
+        align-items: stretch;
+        flex-shrink: 0;
+        gap: var(--space-1);
+        margin-inline: calc(var(--space-3) * -1) 0;
+    }
+
+    &__tab {
+        display: inline-flex;
+        align-items: center;
+        padding: var(--space-1) var(--space-3) 0;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        background: none;
+        color: var(--text-muted);
+        font: inherit;
+        font-size: var(--text-control);
+        font-weight: var(--weight-semibold);
+        white-space: nowrap;
+        cursor: pointer;
+        transition:
+            color var(--motion-base),
+            border-color var(--motion-base);
+
+        @include hover-capable {
+            &:hover {
+                color: var(--text-primary);
+            }
+        }
+
+        &--active {
+            border-bottom-color: var(--text-primary);
+            color: var(--text-primary);
+        }
+    }
+
+    &__divider {
+        align-self: center;
+        width: 1px;
+        height: 1.25rem;
+        margin-inline: var(--space-2);
+        background: var(--color-border);
     }
 
     &__search {
         display: flex;
         flex: 1;
         justify-content: flex-end;
-        min-width: 0;
+        min-width: 12rem;
     }
 
     &__actions {
@@ -55,14 +89,81 @@
         align-items: center;
         gap: var(--space-2);
         flex-shrink: 0;
-        min-width: 0;
+    }
+}
+
+// A section's own pages, on the ground under the header; the current one is underlined in white.
+.subnav {
+    border-bottom: 1px solid var(--color-border);
+
+    &__inner {
+        display: flex;
+        gap: var(--space-1);
+        min-height: var(--subnav-height);
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    &__link {
+        display: inline-flex;
+        align-items: center;
+        padding: var(--space-1) var(--space-3) 0;
+        border-bottom: 3px solid transparent;
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-meta);
+        font-weight: var(--weight-semibold);
+        white-space: nowrap;
+        transition:
+            color var(--motion-base),
+            border-color var(--motion-base);
+
+        &:first-child {
+            margin-inline-start: calc(var(--space-3) * -1);
+        }
+
+        @include hover-capable {
+            &:hover {
+                color: var(--text-primary);
+            }
+        }
+
+        &--active {
+            border-bottom-color: var(--text-primary);
+            color: var(--text-primary);
+            font-weight: var(--weight-bold);
+        }
+    }
+}
+
+// Below tablet width the section tabs move to their own scrolling row.
+@include tablet() {
+    .header {
+        &__bar {
+            flex-wrap: wrap;
+            column-gap: var(--space-4);
+            row-gap: 0;
+            padding-top: var(--space-2);
+        }
+
+        &__tabs {
+            order: 3;
+            width: 100%;
+            min-height: var(--subnav-height);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
     }
 }
 
 @include mobile() {
     .header {
-        &__brand-text {
-            display: none;
+        &__brand {
+            font-size: var(--text-xl);
+        }
+
+        &__search {
+            min-width: 0;
         }
 
         &__actions {

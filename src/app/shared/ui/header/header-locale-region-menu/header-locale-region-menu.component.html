@@ -1,6 +1,6 @@
 @if (localeRegion$ | async; as localeRegion) {
     <button
-        class="locale-region-menu__trigger text-caption"
+        class="locale-region-menu__trigger"
         type="button"
         [matMenuTriggerFor]="localeRegionMenu"
         [matMenuTriggerRestoreFocus]="false"
@@ -15,80 +15,73 @@
         </span>
     </button>
 
-    <mat-menu #localeRegionMenu="matMenu" xPosition="before">
+    <mat-menu #localeRegionMenu="matMenu" xPosition="before" class="menu-panel--wide">
         <div class="locale-region-menu__panel" (click)="$event.stopPropagation()">
             <div class="locale-region-menu__field">
-                <span class="locale-region-menu__label text-label">Language</span>
-                <mat-form-field class="locale-region-menu__select-field" appearance="outline" subscriptSizing="dynamic">
-                    <mat-select
-                        aria-label="Language"
-                        [value]="localeRegion.language"
-                        (selectionChange)="setLanguage($event.value)"
-                    >
-                        <mat-option>
-                            <ngx-mat-select-search
-                                placeholderLabel="Search languages"
-                                noEntriesFoundLabel="No matching languages"
-                                [ngModel]="localeRegion.languageFilter"
-                                (ngModelChange)="updateLanguageFilter($event)"
-                            />
-                        </mat-option>
-                        @if (localeRegion.showFeaturedLanguages) {
-                            <mat-optgroup label="Popular">
-                                @for (option of localeRegion.featuredLanguageOptions; track option.value) {
-                                    <mat-option [value]="option.value">
-                                        {{ option.label }}
-                                    </mat-option>
-                                }
-                            </mat-optgroup>
-                        }
-                        @if (localeRegion.showEmptyLanguages) {
-                            <mat-option disabled>{{ localeRegion.languageEmptyLabel }}</mat-option>
-                        }
-                        @for (option of localeRegion.languageOptions; track option.value) {
-                            <mat-option [value]="option.value">
-                                {{ option.label }}
-                            </mat-option>
-                        }
-                    </mat-select>
-                </mat-form-field>
+                <span id="locale-language-label" class="locale-region-menu__heading">Title and overview language</span>
+                <mat-select
+                    class="locale-region-menu__select"
+                    aria-labelledby="locale-language-label"
+                    [value]="localeRegion.language"
+                    (selectionChange)="setLanguage($event.value)"
+                >
+                    <mat-option>
+                        <ngx-mat-select-search
+                            placeholderLabel="Search languages"
+                            noEntriesFoundLabel="No matching languages"
+                            [ngModel]="localeRegion.languageFilter"
+                            (ngModelChange)="updateLanguageFilter($event)"
+                        />
+                    </mat-option>
+                    @if (localeRegion.showFeaturedLanguages) {
+                        <mat-optgroup label="Popular">
+                            @for (option of localeRegion.featuredLanguageOptions; track option.value) {
+                                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                            }
+                        </mat-optgroup>
+                    }
+                    @if (localeRegion.showEmptyLanguages) {
+                        <mat-option disabled>{{ localeRegion.languageEmptyLabel }}</mat-option>
+                    }
+                    @for (option of localeRegion.languageOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                </mat-select>
             </div>
 
+            <div class="locale-region-menu__separator" role="separator"></div>
+
             <div class="locale-region-menu__field">
-                <span class="locale-region-menu__label text-label">Region</span>
-                <mat-form-field class="locale-region-menu__select-field" appearance="outline" subscriptSizing="dynamic">
-                    <mat-select
-                        aria-label="Region"
-                        [value]="localeRegion.region"
-                        (selectionChange)="setRegion($event.value)"
-                    >
-                        <mat-option>
-                            <ngx-mat-select-search
-                                placeholderLabel="Search regions"
-                                noEntriesFoundLabel="No matching regions"
-                                [ngModel]="localeRegion.regionFilter"
-                                (ngModelChange)="updateRegionFilter($event)"
-                            />
-                        </mat-option>
-                        @if (localeRegion.showFeaturedRegions) {
-                            <mat-optgroup label="Popular">
-                                @for (option of localeRegion.featuredRegionOptions; track option.value) {
-                                    <mat-option [value]="option.value">
-                                        {{ option.label }}
-                                    </mat-option>
-                                }
-                            </mat-optgroup>
-                        }
-                        @if (localeRegion.showEmptyRegions) {
-                            <mat-option disabled>{{ localeRegion.regionEmptyLabel }}</mat-option>
-                        }
-                        @for (option of localeRegion.regionOptions; track option.value) {
-                            <mat-option [value]="option.value">
-                                {{ option.label }}
-                            </mat-option>
-                        }
-                    </mat-select>
-                </mat-form-field>
+                <span id="locale-region-label" class="locale-region-menu__heading">Region</span>
+                <span class="locale-region-menu__hint">Used for release dates and where to watch</span>
+                <mat-select
+                    class="locale-region-menu__select"
+                    aria-labelledby="locale-region-label"
+                    [value]="localeRegion.region"
+                    (selectionChange)="setRegion($event.value)"
+                >
+                    <mat-option>
+                        <ngx-mat-select-search
+                            placeholderLabel="Search regions"
+                            noEntriesFoundLabel="No matching regions"
+                            [ngModel]="localeRegion.regionFilter"
+                            (ngModelChange)="updateRegionFilter($event)"
+                        />
+                    </mat-option>
+                    @if (localeRegion.showFeaturedRegions) {
+                        <mat-optgroup label="Popular">
+                            @for (option of localeRegion.featuredRegionOptions; track option.value) {
+                                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                            }
+                        </mat-optgroup>
+                    }
+                    @if (localeRegion.showEmptyRegions) {
+                        <mat-option disabled>{{ localeRegion.regionEmptyLabel }}</mat-option>
+                    }
+                    @for (option of localeRegion.regionOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                </mat-select>
             </div>
         </div>
     </mat-menu>

@@ -1,42 +1,44 @@
-import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { AsyncPipe, DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { distinctUntilChanged, map } from 'rxjs';
 
 import {
+    CardComponent,
+    CardSkeletonComponent,
     EmptyStateComponent,
     ImageComponent,
-    MediaCarouselPanelComponent,
+    ImagePipe,
+    LibraryToggleComponent,
     MediaType,
-    PageSectionComponent,
-    RatingComponent,
+    PersonCardComponent,
     RepeatPipe,
     SeoService,
+    SigninDialogService,
     SkeletonComponent,
     ToggleGroupComponent,
     toSeoImage,
 } from '../../../shared';
-import { HeroSpotlightComponent } from '../hero-spotlight/hero-spotlight.component';
 import { HOME_SEO_DESCRIPTION } from '../home-seo';
+import { HomeSpotlightComponent } from './home-spotlight/home-spotlight.component';
 import { HomeStoreService } from './home-store.service';
-import { HomeTopPicksComponent } from './home-top-picks/home-top-picks.component';
-import { PersonCarouselPanelComponent } from './person-carousel-panel/person-carousel-panel.component';
 
 @Component({
     selector: 'app-home-page',
     imports: [
         AsyncPipe,
+        CardComponent,
+        CardSkeletonComponent,
+        DatePipe,
         EmptyStateComponent,
-        HeroSpotlightComponent,
-        HomeTopPicksComponent,
+        HomeSpotlightComponent,
         ImageComponent,
+        ImagePipe,
+        LibraryToggleComponent,
         MatButtonModule,
-        MediaCarouselPanelComponent,
-        PageSectionComponent,
-        PersonCarouselPanelComponent,
-        RatingComponent,
+        PersonCardComponent,
         RepeatPipe,
         RouterLink,
         SkeletonComponent,
@@ -52,6 +54,8 @@ export class HomePageComponent {
 
     constructor(
         private store: HomeStoreService,
+        private signinDialogService: SigninDialogService,
+        private destroyRef: DestroyRef,
         seoService: SeoService,
     ) {
         store.load$().pipe(takeUntilDestroyed()).subscribe();
@@ -76,5 +80,9 @@ export class HomePageComponent {
 
     setPopularMediaType(value: MediaType): void {
         this.store.setPopularMediaType(value);
+    }
+
+    signIn(): void {
+        this.signinDialogService.open$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     }
 }

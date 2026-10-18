@@ -105,12 +105,12 @@ export const toHeaderSearchPanel = (source: HeaderSearchPanelSource): HeaderSear
                     ? [
                           {
                               label: 'Titles',
-                              showLabel: false,
+                              showLabel: true,
                               options: rest.filter((option) => option.kind !== 'person').slice(0, MAX_TITLE_OPTIONS),
                           },
                           {
                               label: 'People',
-                              showLabel: false,
+                              showLabel: true,
                               options: rest.filter((option) => option.kind === 'person').slice(0, MAX_PEOPLE_OPTIONS),
                           },
                       ]

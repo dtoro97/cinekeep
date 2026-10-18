@@ -1,164 +1,297 @@
 @if (home$ | async; as home) {
-    <main class="page-container">
-        @if (home.spotlight; as spotlight) {
-            <app-hero-spotlight badge="Trending now" [spotlight]="spotlight">
-                @if (home.spotlightTrailerUrl; as trailerUrl) {
-                    <a matButton="filled" [href]="trailerUrl" target="_blank" rel="noopener noreferrer">
-                        <i class="fa-solid fa-play" aria-hidden="true"></i>
-                        Play trailer
-                    </a>
-                } @else {
-                    <a matButton="filled" [routerLink]="['/title', spotlight.id, spotlight.mediaType]">
-                        Cast, photos & reviews
-                    </a>
-                }
-            </app-hero-spotlight>
-        } @else if (home.showSpotlightSkeleton) {
-            <app-hero-spotlight badge="Trending now" [loading]="true" />
-        }
+    <main class="page-container home">
+        <app-home-spotlight
+            [loading]="home.showSpotlightSkeleton"
+            [spotlight]="home.spotlight"
+            [trailerUrl]="home.spotlightTrailerUrl"
+        />
 
-        <div class="page-sections sections">
-            <app-page-section title="Trending today">
-                <app-media-carousel-panel
-                    variant="backdrop"
-                    [state]="home.trendingToday"
-                    [showRating]="true"
-                    [showDate]="true"
-                />
-            </app-page-section>
+        <div class="inner-container home__blocks">
+            @if (home.showLibrary) {
+                <section class="home-block" aria-labelledby="library-heading">
+                    <header class="home-block__head">
+                        <h2 id="library-heading" class="home-block__title text-headline">Library</h2>
+                        <a class="home-block__more text-control" routerLink="/me">Your profile ›</a>
+                    </header>
 
-            <app-page-section title="Popular right now">
-                <app-toggle-group
-                    section-controls
-                    [options]="home.popularMediaTypeOptions"
-                    [selectedValue]="home.popularMediaType"
-                    (selected)="setPopularMediaType($event)"
-                />
-                <app-home-top-picks [loading]="home.isPopularLoading" [items]="home.topPicks" />
-            </app-page-section>
-
-            <app-page-section title="Airing today">
-                <a section-controls class="section-link text-body-sm" routerLink="/tv/airing-today">
-                    <span>Browse today's episodes</span>
-                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                </a>
-
-                @if (home.showAiringSkeleton) {
-                    <div class="tonight-grid" aria-hidden="true">
-                        @for (slot of home.airingSkeletonCount | repeat; track slot) {
-                            <div class="tonight-row tonight-row--loading">
-                                <app-skeleton class="tonight-poster" />
-                                <div class="tonight-content tonight-content--loading">
-                                    <app-skeleton class="tonight-skeleton-title" />
-                                    <app-skeleton class="tonight-skeleton-meta" />
-                                </div>
+                    <div class="library">
+                        <div>
+                            <div class="home-subhead">
+                                <h3 class="text-display-sm">From your watchlist</h3>
+                                <a class="home-subhead__more text-control" routerLink="/me/watchlists">Watchlist ›</a>
                             </div>
+
+                            @if (home.showWatchlistEmpty) {
+                                <p class="text-body">
+                                    Nothing on your watchlist yet. Use + Watchlist on any title to keep it here.
+                                </p>
+                            } @else {
+                                <div class="library__wall">
+                                    @for (item of home.watchlist; track item.mediaType + item.id) {
+                                        <app-card [item]="item" imageParams="w342" />
+                                    }
+                                    @for (slot of (home.showWatchlistSkeleton ? home.watchlistSkeletonCount : 0) | repeat; track slot) {
+                                        <app-card-skeleton />
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <div>
+                            <div class="home-subhead">
+                                <h3 class="text-display-sm">Recently rated</h3>
+                                <a class="home-subhead__more text-control" routerLink="/me/ratings">Ratings ›</a>
+                            </div>
+
+                            @if (home.showRatingsEmpty) {
+                                <p class="text-body">You haven't rated anything yet.</p>
+                            } @else {
+                                <ul class="rated">
+                                    @for (rating of home.recentRatings; track rating.item.mediaType + rating.item.id) {
+                                        <li>
+                                            <a class="rated__row" [routerLink]="['/title', rating.item.id, rating.item.mediaType]">
+                                                <app-image class="rated__thumb" [src]="rating.item.imagePath" [alt]="rating.item.title" params="w92" />
+                                                <span class="rated__text">
+                                                    <span class="rated__title text-card-title">{{ rating.item.title }}</span>
+                                                    <span class="rated__meta text-card-meta">
+                                                        @if (rating.item.date) {
+                                                            <span>{{ rating.item.date | date: 'yyyy' }}</span>
+                                                        }
+                                                        @if (rating.ratedAt) {
+                                                            <span>rated {{ rating.ratedAt | date: 'd MMM' }}</span>
+                                                        }
+                                                    </span>
+                                                </span>
+                                                <b class="rated__score" attr.aria-label="Your score {{ rating.score }}">{{ rating.score }}</b>
+                                            </a>
+                                        </li>
+                                    }
+                                    @for (slot of (home.showRatingsSkeleton ? home.ratingsSkeletonCount : 0) | repeat; track slot) {
+                                        <li class="rated__row" aria-hidden="true">
+                                            <app-skeleton class="rated__thumb" />
+                                            <app-skeleton class="rated__line" />
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    </div>
+                </section>
+            }
+
+            <section class="home-block" aria-labelledby="popular-heading">
+                <header class="home-block__head">
+                    <h2 id="popular-heading" class="home-block__title text-headline">Popular this week</h2>
+                    <app-toggle-group
+                        class="home-block__switch"
+                        [options]="home.popularMediaTypeOptions"
+                        [selectedValue]="home.popularMediaType"
+                        (selected)="setPopularMediaType($event)"
+                    />
+                    <a class="home-block__more text-control" [routerLink]="home.popularLink">{{ home.popularLinkLabel }} ›</a>
+                </header>
+
+                <div class="poster-wall">
+                    @if (home.showPopularSkeleton) {
+                        @for (slot of home.popularSkeletonCount | repeat; track slot) {
+                            <app-card-skeleton />
+                        }
+                    } @else {
+                        @for (entry of home.popularItems; track entry.item.id) {
+                            <app-card [item]="entry.item" [rank]="entry.rank" imageParams="w342">
+                                <app-library-toggle
+                                    card-actions
+                                    flag="watchlist"
+                                    [media]="entry.item"
+                                    [iconOnly]="true"
+                                    appearance="overlay"
+                                    [libraryState]="entry.libraryState"
+                                />
+                            </app-card>
+                        }
+                    }
+                </div>
+            </section>
+
+            <section class="home-block" aria-labelledby="week-heading">
+                <header class="home-block__head">
+                    <h2 id="week-heading" class="home-block__title text-headline">This week</h2>
+                    <span class="home-block__count text-meta">In cinemas and on TV, the next seven days</span>
+                    <a class="home-block__more text-control" routerLink="/movies/upcoming">Upcoming movies ›</a>
+                    <a class="home-block__more home-block__more--next text-control" routerLink="/tv/on-the-air">On the air ›</a>
+                </header>
+
+                @if (home.showWeekSkeleton) {
+                    <div class="week week--loading" aria-hidden="true">
+                        @for (slot of 3 | repeat; track slot) {
+                            <app-skeleton class="week__skeleton-row" />
                         }
                     </div>
-                } @else if (home.showAiringEmpty) {
-                    <div class="tonight-empty">
-                        <app-empty-state
-                            iconClass="fa-solid fa-tv"
-                            iconStyle="plain"
-                            text="No TV series are listed as airing today."
-                        />
-                    </div>
+                } @else if (home.showWeekEmpty) {
+                    <app-empty-state
+                        iconClass="fa-regular fa-calendar"
+                        iconStyle="plain"
+                        text="No cinema releases or new episodes are listed for this week."
+                    />
                 } @else {
-                    <div class="tonight-grid">
-                        @for (item of home.airingPreview; track item.id) {
-                            <a
-                                class="tonight-row"
-                                [routerLink]="['/title', item.id, item.mediaType]"
-                                [attr.aria-label]="item.title"
-                            >
-                                <app-image class="tonight-poster" type="media" [src]="item.thumb" [alt]="item.title" />
-
-                                <div class="tonight-content">
-                                    <span class="tonight-title text-card-title">{{ item.title }}</span>
-
-                                    <span class="tonight-meta text-caption">
-                                        @if (item.date) {
-                                            <span>{{ item.date }}</span>
+                    <table class="week">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-overline">Day</th>
+                                <th scope="col" class="text-overline">In cinemas</th>
+                                <th scope="col" class="text-overline">New episodes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (day of home.weekDays; track day.isoDate) {
+                                <tr>
+                                    <th scope="row" class="week__day">
+                                        <span class="week__date">{{ day.isoDate | date: 'EEE d MMM' }}</span>
+                                        @if (day.relativeLabel || day.filmCountLabel) {
+                                            <span class="week__note text-meta">{{ day.relativeLabel ?? day.filmCountLabel }}</span>
                                         }
-                                        @if (item.rating) {
-                                            <app-rating [value]="item.rating" />
+                                    </th>
+                                    <td>
+                                        @if (day.films.length) {
+                                            <div class="week__items">
+                                                @for (film of day.films; track film.id) {
+                                                    <a class="week-item" [routerLink]="['/title', film.id, film.mediaType]">
+                                                        <app-image class="week-item__thumb" [src]="film.imagePath" [alt]="film.title" params="w92" />
+                                                        <span class="week-item__text">
+                                                            <span class="week-item__title">{{ film.title }}</span>
+                                                        </span>
+                                                    </a>
+                                                }
+                                                @if (day.moreFilmsLabel) {
+                                                    <a class="week__more text-control" routerLink="/movies/upcoming">{{ day.moreFilmsLabel }} ›</a>
+                                                }
+                                            </div>
+                                        } @else {
+                                            <span class="week__none text-meta">No releases</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (day.episodes.length) {
+                                            <div class="week__items">
+                                                @for (episode of day.episodes; track episode.id) {
+                                                    <a class="week-item" [routerLink]="['/title', episode.id, 'tv']">
+                                                        <app-image class="week-item__thumb" [src]="episode.posterPath" [alt]="episode.title" params="w92" />
+                                                        <span class="week-item__text">
+                                                            <span class="week-item__title">{{ episode.title }}</span>
+                                                            <span class="week-item__meta text-caption">
+                                                                {{ episode.episodeCode }}@if (episode.network) { · {{ episode.network }}}
+                                                            </span>
+                                                        </span>
+                                                    </a>
+                                                }
+                                            </div>
+                                        } @else {
+                                            <span class="week__none text-meta">No new episodes</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </section>
+
+            <section class="home-block" aria-labelledby="watch-heading">
+                <header class="home-block__head">
+                    <h2 id="watch-heading" class="home-block__title text-headline">Watch</h2>
+                </header>
+
+                <div class="watch">
+                    <div>
+                        <div class="home-subhead">
+                            <h3 class="text-display-sm">Latest trailers</h3>
+                            <a class="home-subhead__more text-control" routerLink="/trailers">All trailers ›</a>
+                        </div>
+
+                        <div class="trailers">
+                            @for (trailer of home.trailers; track trailer.id) {
+                                <a class="trailer" [href]="trailer.href" target="_blank" rel="noopener noreferrer" [attr.aria-label]="trailer.openLabel">
+                                    <span class="trailer__still">
+                                        <img [src]="trailer.thumbnailUrl" [alt]="trailer.alt" loading="lazy" />
+                                        <span class="trailer__play" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+                                    </span>
+                                    <span class="trailer__title text-card-title">{{ trailer.mediaTitle }}</span>
+                                    <span class="trailer__meta text-card-meta">
+                                        <span>{{ trailer.title }}</span>
+                                        @if (trailer.publishedAt) {
+                                            <span>{{ trailer.publishedAt | date: 'd MMM y' }}</span>
                                         }
                                     </span>
-                                </div>
-                            </a>
-                        }
-                    </div>
-                }
-            </app-page-section>
-
-            <app-page-section title="Popular people">
-                <a section-controls class="section-link text-body-sm" routerLink="/people/popular">
-                    <span>Browse popular people</span>
-                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                </a>
-                <app-person-carousel-panel [state]="home.popularPeople" />
-            </app-page-section>
-
-            <app-page-section title="New on streaming">
-                @if (home.showStreamingSkeleton) {
-                    <div class="streaming-card streaming-card--loading" aria-hidden="true">
-                        <span class="streaming-card__preview">
-                            @for (slot of home.streamingSkeletonCount | repeat; track slot) {
-                                <app-skeleton class="streaming-card__poster-skeleton" />
+                                </a>
                             }
-                        </span>
-
-                        <span class="streaming-card__copy">
-                            <app-skeleton class="streaming-card__line streaming-card__line--title" />
-                            <app-skeleton class="streaming-card__line streaming-card__line--body" />
-                            <app-skeleton class="streaming-card__line streaming-card__line--cta" />
-                        </span>
-                    </div>
-                } @else if (home.showStreamingEmpty) {
-                    <div class="streaming-empty">
-                        <app-empty-state
-                            iconClass="fa-solid fa-film"
-                            iconStyle="plain"
-                            text="No streaming arrivals matched this month."
-                        />
-                    </div>
-                } @else {
-                    <a class="streaming-card" [routerLink]="home.streamingLink">
-                        <span class="streaming-card__preview" aria-hidden="true">
-                            @for (item of home.streamingArrivals; track item.id) {
-                                <app-image
-                                    class="streaming-card__image"
-                                    type="media"
-                                    [src]="item.imagePath"
-                                    [alt]="item.title"
-                                />
+                            @for (slot of (home.showTrailersSkeleton ? home.trailerSkeletonCount : 0) | repeat; track slot) {
+                                <app-skeleton class="trailer__still trailer__still--loading" aria-hidden="true" />
                             }
-                        </span>
+                        </div>
+                    </div>
 
-                        <span class="streaming-card__copy">
-                            <span class="streaming-card__title text-title">{{ home.streamingTitle }}</span>
-                            <span class="streaming-card__description text-body-sm">
-                                Popular TV series premieres and returning seasons from major streaming services.
-                            </span>
-                            <span class="streaming-card__cta text-card-meta">{{ home.streamingCtaLabel }}</span>
-                        </span>
-                    </a>
-                }
-            </app-page-section>
+                    <div>
+                        <div class="home-subhead">
+                            <h3 class="text-display-sm">Streaming</h3>
+                            <a class="home-subhead__more text-control" routerLink="/watch/streaming">Streaming guide ›</a>
+                        </div>
 
-            <app-page-section title="Opening soon" subtitle="In theatres over the next two weeks.">
-                <a section-controls class="section-link text-body-sm" routerLink="/movies/upcoming">
-                    <span>Browse upcoming movies</span>
-                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                </a>
-                <app-media-carousel-panel
-                    variant="backdrop"
-                    dateFormat="dayMonth"
-                    [state]="home.openingSoon"
-                    [showRating]="false"
-                    [showDate]="true"
-                />
-            </app-page-section>
+                        <ul class="services">
+                            @for (provider of home.providers; track provider.id) {
+                                <li>
+                                    <a class="service" [routerLink]="['/watch', 'streaming', 'provider', provider.id]">
+                                        <span class="service__logo">
+                                            @if (provider.logoPath) {
+                                                <img [src]="provider.logoPath | imgSrc: 'w92'" alt="" />
+                                            }
+                                        </span>
+                                        <span class="service__name">{{ provider.name }}</span>
+                                        <span class="service__go text-meta" aria-hidden="true">›</span>
+                                    </a>
+                                </li>
+                            }
+                            @if (home.showProvidersSkeleton) {
+                                @for (slot of 3 | repeat; track slot) {
+                                    <li class="service" aria-hidden="true"><app-skeleton class="service__line" /></li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="home-block" aria-labelledby="people-heading">
+                <header class="home-block__head">
+                    <h2 id="people-heading" class="home-block__title text-headline">People</h2>
+                    <span class="home-block__count text-meta">Popular this week</span>
+                    <a class="home-block__more text-control" routerLink="/people/popular">All popular people ›</a>
+                </header>
+
+                <ul class="people">
+                    @for (person of home.people; track person.id) {
+                        <li><app-person-card [person]="person" /></li>
+                    }
+                    @for (slot of (home.showPeopleSkeleton ? home.peopleSkeletonCount : 0) | repeat; track slot) {
+                        <li><app-person-card [loading]="true" /></li>
+                    }
+                </ul>
+            </section>
+
+            @if (home.showLibraryInvite) {
+                <section class="home-block" aria-labelledby="invite-heading">
+                    <header class="home-block__head">
+                        <h2 id="invite-heading" class="home-block__title text-headline">Library</h2>
+                    </header>
+
+                    <div class="invite">
+                        <p class="invite__text text-body">
+                            Sign in to keep a watchlist, rate films and episodes, and build your own lists. Everything you
+                            keep shows on every poster across CineKeep.
+                        </p>
+                        <button matButton="outlined" type="button" (click)="signIn()">Sign in</button>
+                    </div>
+                </section>
+            }
         </div>
     </main>
 }
