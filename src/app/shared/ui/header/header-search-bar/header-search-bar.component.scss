@@ -2,7 +2,7 @@
 @use 'mixins' as *;
 
 :host {
-    --header-search-bar-height: var(--control-height-md);
+    --header-search-bar-height: 2.5rem;
 
     display: flex;
     width: 100%;
@@ -39,10 +39,10 @@
             }
         }
 
+        // The input inside sets `outline: none`, so the field box shows focus with its border instead.
         &:focus-within {
             background: var(--control-surface);
-            border-color: var(--control-focus-border);
-            box-shadow: 0 0 0 3px var(--control-focus-ring-outer);
+            border-color: var(--field-border);
         }
     }
 
@@ -87,10 +87,10 @@
         outline: none;
         background: transparent;
         color: var(--text-primary);
-        font-size: var(--text-sm);
+        font-size: var(--text-md);
 
         &::placeholder {
-            color: var(--text-muted);
+            color: var(--text-placeholder);
         }
     }
 
@@ -123,11 +123,6 @@
             }
         }
 
-        &:focus-visible {
-            outline: 2px solid var(--control-focus-ring-inner);
-            outline-offset: -2px;
-            color: var(--text-primary);
-        }
     }
 
     &__shortcut {
@@ -211,10 +206,6 @@
             opacity: 0;
         }
     }
-}
-
-@include hover-capable {
-    // Touch devices have no `/` key to press.
 }
 
 @media (hover: none) {

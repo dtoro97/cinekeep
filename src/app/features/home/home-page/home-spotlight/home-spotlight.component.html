@@ -1,0 +1,47 @@
+@if (loading) {
+    <div class="spotlight-skeleton" aria-hidden="true">
+        <div class="spotlight-skeleton__content inner-container">
+            <app-skeleton class="spotlight-skeleton__line spotlight-skeleton__line--label" />
+            <app-skeleton class="spotlight-skeleton__line spotlight-skeleton__line--title" />
+            <app-skeleton class="spotlight-skeleton__line spotlight-skeleton__line--facts" />
+            <app-skeleton class="spotlight-skeleton__line spotlight-skeleton__line--overview" />
+        </div>
+    </div>
+} @else if (spotlight) {
+    <app-hero-surface variant="integrated" [backdropPath]="spotlight.backdropPath" [alt]="spotlight.title">
+        <section class="spotlight" aria-labelledby="spotlight-title">
+            <p class="text-hero-meta spotlight__label">Trending today</p>
+
+            <a class="spotlight__title-link" [routerLink]="['/title', spotlight.id, spotlight.mediaType]">
+                <h1 id="spotlight-title" class="text-spotlight-title">{{ spotlight.title }}</h1>
+            </a>
+
+            <p class="spotlight__facts text-hero-meta">
+                @if (spotlight.rating) {
+                    <b class="spotlight__score">{{ spotlight.rating | number: '1.1-1' }}</b>
+                }
+                <span>{{ spotlight.mediaTypeLabel }}</span>
+                @if (spotlight.year) {
+                    <span>{{ spotlight.year }}</span>
+                }
+            </p>
+
+            @if (spotlight.overview) {
+                <p class="spotlight__overview text-hero-summary">{{ spotlight.overview }}</p>
+            }
+
+            <div class="spotlight__actions">
+                <app-library-toggle flag="watchlist" [media]="spotlight" [primary]="true" />
+
+                @if (trailerUrl) {
+                    <a matButton="outlined" [href]="trailerUrl" target="_blank" rel="noopener noreferrer">
+                        <i class="fa-solid fa-play" aria-hidden="true"></i>
+                        Trailer
+                    </a>
+                }
+
+                <a matButton="outlined" [routerLink]="['/title', spotlight.id, spotlight.mediaType]">Details</a>
+            </div>
+        </section>
+    </app-hero-surface>
+}

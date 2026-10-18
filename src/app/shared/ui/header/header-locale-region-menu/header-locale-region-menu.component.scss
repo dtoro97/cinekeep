@@ -14,12 +14,14 @@
         justify-content: center;
         gap: var(--space-2);
         min-width: 0;
-        height: var(--control-height-sm);
+        height: var(--header-control-height);
         padding: 0 var(--space-2);
         border: 0;
         border-radius: var(--control-radius);
         background: transparent;
         color: var(--text-secondary);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-bold);
         transition: var(--control-transition);
         cursor: pointer;
 
@@ -29,24 +31,18 @@
                 color: var(--text-primary);
             }
         }
-
-        &:focus-visible {
-            outline: 2px solid var(--control-focus-ring-inner);
-            outline-offset: 2px;
-        }
     }
 
     &__trigger-icon {
         @include icon-size(1.125rem);
         flex-shrink: 0;
-        color: var(--color-brand);
+        color: var(--text-muted);
     }
 
     &__trigger-value {
         display: inline-flex;
         align-items: center;
         gap: var(--space-1-5);
-        color: var(--text-secondary);
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
     }
@@ -65,35 +61,52 @@
     }
 
     &__panel {
-        display: grid;
-        width: 17rem;
+        width: 20rem;
         max-width: calc(100vw - var(--space-6));
-        gap: var(--space-3);
-        padding: var(--space-3);
+        padding: var(--space-2) 0;
     }
 
     &__field {
         display: grid;
-        gap: var(--space-1);
-        min-width: 0;
+        gap: var(--space-1-5);
+        padding: var(--space-2) var(--space-4);
     }
 
-    &__label {
+    &__heading {
         color: var(--text-secondary);
+        font-family: var(--font-data);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-bold);
     }
 
-    &__select-field {
+    &__hint {
+        margin-top: calc(var(--space-1) * -1);
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+    }
+
+    // Material's own select style is inline-block, which leaves the value at the top of the taller field.
+    &__select {
+        display: flex;
+        align-items: center;
         width: 100%;
-        --mat-form-field-container-height: var(--control-height-md);
+        min-height: var(--control-height-md);
+        margin-top: var(--space-1);
+        font-size: var(--text-control);
+        font-weight: var(--weight-semibold);
+    }
+
+    &__separator {
+        height: 1px;
+        margin: var(--space-1-5) 0;
+        background: var(--overlay-border);
     }
 }
 
 @include mobile() {
     .locale-region-menu {
-        &__trigger {
-            padding-inline: var(--space-2);
-        }
-
         &__trigger-icon {
             display: none;
         }

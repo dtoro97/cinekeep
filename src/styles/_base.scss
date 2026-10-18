@@ -75,17 +75,21 @@ h6 {
 
 h1 {
     font-size: var(--text-3xl);
-    font-weight: var(--weight-bold);
+    font-weight: var(--weight-black);
 }
 
 h2 {
     font-size: var(--text-2xl);
-    font-weight: var(--weight-bold);
+    font-weight: var(--weight-extrabold);
 }
 
 h3 {
     font-size: var(--text-xl);
-    font-weight: var(--weight-semibold);
+    font-weight: var(--weight-bold);
+}
+
+::placeholder {
+    color: var(--text-placeholder);
 }
 
 small {

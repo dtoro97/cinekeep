@@ -4,24 +4,30 @@
             <app-image class="media-card__image" [src]="item.imagePath" [alt]="item.title" [params]="imageParams" />
         </div>
 
-        <div class="media-card__content">
-            <span class="media-card__title text-card-title">{{ item.title }}</span>
-
-            @if (showMetadata) {
-                <span class="media-card__meta text-card-meta">
-                    @if (item.date) {
-                        <span>{{ item.date | date: datePattern }}</span>
-                    }
-
-                    @if (rating; as rating) {
-                        <app-rating [value]="rating" />
-                    }
-                </span>
+        <div class="media-card__body" [class.media-card__body--ranked]="rank">
+            @if (rank) {
+                <span class="media-card__rank text-numeral" aria-hidden="true">{{ rank }}</span>
             }
 
-            @if (item.role) {
-                <span class="media-card__role text-card-meta u-truncate">{{ item.role }}</span>
-            }
+            <div class="media-card__content">
+                <span class="media-card__title text-card-title">{{ item.title }}</span>
+
+                @if (showMetadata) {
+                    <span class="media-card__meta text-card-meta">
+                        @if (item.date) {
+                            <span>{{ item.date | date: datePattern }}</span>
+                        }
+
+                        @if (rating; as rating) {
+                            <app-rating [value]="rating" />
+                        }
+                    </span>
+                }
+
+                @if (item.role) {
+                    <span class="media-card__role text-card-meta u-truncate">{{ item.role }}</span>
+                }
+            </div>
         </div>
     </a>
 

@@ -15,7 +15,7 @@
         align-items: center;
         justify-content: center;
         min-width: 0;
-        height: var(--control-height-sm);
+        height: var(--header-control-height);
         border: 0;
         border-radius: var(--control-radius);
         background: transparent;
@@ -28,11 +28,6 @@
                 background: var(--control-subtle-surface-hover);
                 color: var(--text-primary);
             }
-        }
-
-        &:focus-visible {
-            outline: 2px solid var(--control-focus-ring-inner);
-            outline-offset: 2px;
         }
 
         &:disabled {
@@ -48,20 +43,20 @@
         @include hover-capable {
             &:hover:not(:disabled) {
                 background: transparent;
-                color: var(--text-accent);
-
-                .account-menu__avatar {
-                    --user-avatar-border: var(--border-brand-soft);
-                    --user-avatar-surface: var(--control-subtle-surface-hover);
-                    --user-avatar-text: var(--text-accent);
-                }
+                color: var(--text-primary);
             }
         }
     }
 
+    // A plain default button: raised surface, hairline border.
     &__signin {
         gap: var(--space-2);
-        padding: 0 var(--space-3);
+        padding: 0 var(--space-4);
+        border: 1px solid var(--control-border);
+        background: var(--control-surface);
+        color: var(--text-primary);
+        font-size: var(--text-control);
+        font-weight: var(--weight-bold);
         white-space: nowrap;
     }
 
@@ -71,11 +66,12 @@
         color: var(--text-muted);
     }
 
+    // Your avatar is yours, so it carries the accent.
     &__avatar {
-        --round-media-sm: var(--control-height-sm);
-        --user-avatar-border: var(--color-border);
-        --user-avatar-surface: var(--control-subtle-surface-active);
-        --user-avatar-text: var(--text-primary);
+        --round-media-sm: var(--header-control-height);
+        --user-avatar-border: transparent;
+        --user-avatar-surface: var(--color-yours);
+        --user-avatar-text: var(--color-on-brand);
     }
 
     &__chevron {
@@ -84,25 +80,22 @@
         color: currentColor;
     }
 
-    &__signin-icon,
     &__placeholder-icon,
     &__item-icon {
         @include icon-size(1.125rem);
         flex-shrink: 0;
     }
 
-    &__signin-icon {
-        color: var(--color-brand);
-    }
-
     &__panel {
-        min-width: 16rem;
-        padding: var(--space-1) 0;
+        min-width: 18.75rem;
+        padding: var(--space-1-5) 0;
     }
 
+    // You, then your library with its totals, then sign out; no icons.
     &__identity {
-        padding: var(--space-3);
-        color: var(--text-primary);
+        --mat-menu-item-label-text-color: var(--text-primary);
+
+        padding: var(--space-3) var(--space-4);
     }
 
     &__identity-row {
@@ -110,6 +103,13 @@
         align-items: center;
         gap: var(--space-3);
         min-width: 0;
+    }
+
+    &__identity-avatar {
+        --round-media-sm: var(--control-height-md);
+        --user-avatar-border: transparent;
+        --user-avatar-surface: var(--color-yours);
+        --user-avatar-text: var(--color-on-brand);
     }
 
     &__identity-copy {
@@ -121,47 +121,58 @@
 
     &__identity-name {
         color: var(--text-primary);
+        font-size: var(--text-body);
+        font-weight: var(--weight-extrabold);
+        line-height: 1.1;
     }
 
-    &__items {
-        padding-block: var(--space-1);
+    &__identity-link {
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
     }
 
     &__item {
-        --mat-menu-item-label-text-color: var(--text-secondary);
-        --mat-menu-item-icon-color: var(--text-muted);
-        --account-menu-icon-color: var(--text-muted);
+        --mat-menu-item-label-text-color: var(--text-primary);
+        --mat-menu-item-label-text-size: var(--text-control);
+        --mat-menu-item-label-text-weight: var(--weight-semibold);
 
-        display: flex;
-        align-items: center;
-        gap: var(--space-3);
-        color: var(--text-secondary);
-        line-height: 1;
+        min-height: 2.5rem;
+        padding-inline: var(--space-4);
 
         @include hover-capable {
             &:hover:not(:disabled) {
                 --mat-menu-item-label-text-color: var(--text-primary);
-                --mat-menu-item-icon-color: var(--text-accent);
-                --account-menu-icon-color: var(--text-accent);
-
-                color: var(--text-primary);
             }
         }
     }
 
-    &__item-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-inline-end: var(--space-1);
-        color: var(--account-menu-icon-color);
-        line-height: 1;
+    // Material wraps the label in its own span; it has to fill the row for the count to sit at the end.
+    &__item ::ng-deep .mat-mdc-menu-item-text {
+        flex: 1;
     }
 
-    &__divider {
-        --mat-menu-divider-color: var(--color-border);
+    &__item-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        width: 100%;
+    }
 
-        margin: 0 var(--space-3);
+    &__count {
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-meta);
+        font-weight: var(--weight-semibold);
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__separator {
+        height: 1px;
+        margin: var(--space-1-5) 0;
+        background: var(--overlay-border);
     }
 }
 
@@ -171,8 +182,8 @@
             padding: 0 var(--space-1) 0 0;
         }
 
-        &__signin-label {
-            display: none;
+        &__signin {
+            padding: 0 var(--space-3);
         }
     }
 }

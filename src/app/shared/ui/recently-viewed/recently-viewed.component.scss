@@ -3,23 +3,22 @@
 .recently-viewed {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-4);
     text-align: left;
 
     &__header {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
+        align-items: baseline;
         gap: var(--space-3);
-        padding-bottom: var(--space-3);
-        border-bottom: 1px solid var(--color-border);
     }
 
     &__clear {
+        margin-left: auto;
+        min-height: var(--control-height-md);
         padding: 0;
         border: 0;
         background: transparent;
         cursor: pointer;
-        @include text-link();
+        @include text-link(var(--text-muted));
     }
 }

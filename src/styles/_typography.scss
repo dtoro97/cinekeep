@@ -1,71 +1,86 @@
+// Text roles from DESIGN.md: Sofia Sans for titles and UI, Semi Condensed for data, Extra Condensed for figures.
+
 .text-subtitle {
     font-size: var(--text-md);
-    font-weight: var(--weight-semibold);
+    font-weight: var(--weight-bold);
     color: var(--text-primary);
 }
 
+/// Sub-pages, browse, search and library pages.
 .text-display {
     font-family: var(--font-display);
-    font-size: var(--text-4xl);
-    font-weight: var(--weight-semibold);
-    line-height: 1.05;
-    letter-spacing: var(--tracking-tight);
+    font-size: var(--text-page-title);
+    font-weight: var(--weight-black);
+    line-height: 0.95;
+    letter-spacing: var(--tracking-tighter);
     color: var(--text-primary);
 }
 
+/// The title of a catalogue page or the home spotlight.
 .text-hero-title {
     font-family: var(--font-display);
-    font-size: var(--text-5xl);
-    font-weight: var(--weight-semibold);
-    line-height: 0.98;
-    letter-spacing: var(--tracking-tighter);
+    font-size: var(--text-display);
+    font-weight: var(--weight-black);
+    line-height: 0.9;
+    letter-spacing: var(--tracking-display);
+    color: var(--text-primary);
+    text-wrap: balance;
+}
+
+/// The home spotlight's title, a step below a catalogue page's.
+.text-spotlight-title {
+    font-family: var(--font-display);
+    font-size: var(--text-spotlight);
+    font-weight: var(--weight-black);
+    line-height: var(--lh-display);
+    letter-spacing: var(--tracking-display);
     color: var(--text-primary);
     text-wrap: balance;
 }
 
 .text-hero-meta {
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
+    font-family: var(--font-data);
+    font-size: var(--text-meta);
+    font-weight: var(--weight-semibold);
     line-height: 1.35;
-    letter-spacing: 0;
     color: var(--text-muted);
 }
 
 .text-hero-summary {
-    font-size: var(--text-md);
+    font-size: var(--text-body);
     font-weight: var(--weight-regular);
     line-height: var(--lh-relaxed);
-    letter-spacing: 0;
     color: var(--text-secondary);
 }
 
+/// Section headings in the main column.
 .text-headline {
     font-family: var(--font-display);
-    font-size: var(--text-3xl);
-    font-weight: var(--weight-semibold);
-    line-height: 1.1;
+    font-size: var(--text-section);
+    font-weight: var(--weight-extrabold);
+    line-height: 1.05;
     letter-spacing: var(--tracking-tight);
     color: var(--text-primary);
 }
 
+/// Sidebar groups and sub-heads.
 .text-display-sm {
     font-family: var(--font-display);
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-semibold);
+    font-size: var(--text-side-heading);
+    font-weight: var(--weight-extrabold);
     line-height: 1.15;
-    letter-spacing: var(--tracking-tight);
     color: var(--text-primary);
 }
 
 .text-title {
     font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
+    font-weight: var(--weight-bold);
     line-height: 1.25;
-    letter-spacing: var(--tracking-tight);
     color: var(--text-primary);
 }
 
 .text-section-label {
+    font-family: var(--font-data);
     font-size: var(--text-sm);
     font-weight: var(--weight-semibold);
     line-height: 1.2;
@@ -75,107 +90,127 @@
 }
 
 .text-card-title {
-    font-size: var(--text-sm);
-    font-weight: var(--weight-semibold);
-    line-height: 1.25;
-    letter-spacing: 0;
+    font-size: var(--text-card-title);
+    font-weight: var(--weight-bold);
+    line-height: 1.2;
     color: var(--text-primary);
 }
 
 .text-card-meta {
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
+    font-family: var(--font-data);
+    font-size: var(--text-meta);
+    font-weight: var(--weight-semibold);
     line-height: 1.35;
-    letter-spacing: 0;
     color: var(--text-muted);
 }
 
 .text-body {
-    font-size: var(--text-md);
+    font-size: var(--text-body);
     font-weight: var(--weight-regular);
     line-height: var(--lh-relaxed);
     color: var(--text-secondary);
 }
 
 .text-body-strong {
-    font-size: var(--text-md);
+    font-size: var(--text-body);
     font-weight: var(--weight-regular);
     line-height: var(--lh-relaxed);
     color: var(--text-primary);
 }
 
 .text-body-sm {
-    font-size: var(--text-sm);
+    font-size: var(--text-md);
     font-weight: var(--weight-regular);
     line-height: var(--lh-normal);
     color: var(--text-secondary);
 }
 
+/// Years, roles, counts and dates.
 .text-meta {
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
+    font-family: var(--font-data);
+    font-size: var(--text-meta);
+    font-weight: var(--weight-semibold);
     line-height: 1.4;
-    letter-spacing: 0;
     color: var(--text-muted);
 }
 
+/// The technical block and sidebar rows.
+.text-technical {
+    font-family: var(--font-data);
+    font-size: var(--text-technical);
+    font-weight: var(--weight-semibold);
+    line-height: 1.35;
+    color: var(--text-primary);
+}
+
+.text-control {
+    font-size: var(--text-control);
+    font-weight: var(--weight-bold);
+    line-height: 1.2;
+}
+
 .text-caption {
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
+    font-family: var(--font-data);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
     line-height: 1.4;
-    letter-spacing: 0;
     color: var(--text-muted);
 }
 
 .text-caption-strong {
-    font-size: var(--text-xs);
-    font-weight: var(--weight-semibold);
+    font-family: var(--font-data);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
     line-height: 1.4;
-    letter-spacing: 0;
     color: var(--text-secondary);
 }
 
 .text-label {
     font-size: var(--text-xs);
-    font-weight: var(--weight-semibold);
+    font-weight: var(--weight-bold);
     line-height: 1.2;
-    letter-spacing: 0;
     color: var(--text-secondary);
 }
 
-// Display-serif numbers: scores, review averages and list ranks share one figure style.
-%text-figure {
-    font-family: var(--font-display);
+.text-overline {
+    font-family: var(--font-data);
+    font-size: var(--text-xs);
     font-weight: var(--weight-semibold);
+    line-height: 1.2;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+// Every number shown as a figure (score, rank, count, year) uses Extra Condensed.
+%text-figure {
+    font-family: var(--font-figure);
+    font-weight: var(--weight-extrabold);
     line-height: 1;
-    letter-spacing: var(--tracking-tight);
     font-variant-numeric: tabular-nums;
 }
 
 .text-rating {
     @extend %text-figure;
-    font-size: var(--text-4xl);
+    font-size: var(--text-figure-xl);
     color: var(--color-rating);
 }
 
 .text-rating-sm {
     @extend %text-figure;
-    font-size: var(--text-3xl);
+    font-size: var(--text-figure-md);
     color: var(--color-rating);
 }
 
 /// Rank and episode numbers leading a list row.
 .text-numeral {
     @extend %text-figure;
-    font-size: var(--text-3xl);
-    color: var(--text-disabled);
+    font-size: var(--text-figure-md);
+    color: var(--text-muted);
 }
 
-.text-overline {
-    font-size: var(--text-2xs);
-    font-weight: var(--weight-semibold);
-    line-height: 1.2;
-    letter-spacing: var(--tracking-widest);
-    text-transform: uppercase;
-    color: var(--text-muted);
+.text-figure {
+    @extend %text-figure;
+    font-size: var(--text-figure-sm);
+    color: var(--text-primary);
 }

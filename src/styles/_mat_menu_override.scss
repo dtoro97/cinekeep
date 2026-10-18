@@ -39,3 +39,8 @@
         border-top-color: var(--overlay-border);
     }
 }
+
+// Header menus are wider than Material's 280px cap; without this their content scrolls sideways.
+.mat-mdc-menu-panel.menu-panel--wide {
+    max-width: none;
+}

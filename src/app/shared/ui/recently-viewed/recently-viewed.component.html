@@ -2,14 +2,13 @@
     @if (recentlyViewed.hasItems) {
         <section class="recently-viewed" aria-labelledby="recently-viewed-title">
             <div class="recently-viewed__header">
-                <h2 id="recently-viewed-title" class="recently-viewed__title text-section-label">Recently viewed</h2>
+                <h2 id="recently-viewed-title" class="recently-viewed__title text-display-sm">Recently viewed</h2>
+                <span class="recently-viewed__count text-meta">{{ recentlyViewed.items.length }}</span>
 
-                <button class="recently-viewed__clear text-body-sm" type="button" (click)="clearAll()">
-                    Clear all
-                </button>
+                <button class="recently-viewed__clear text-control" type="button" (click)="clearAll()">Clear all</button>
             </div>
 
-            <app-carousel ariaLabel="Recently viewed titles and people" [columns]="6" [items]="recentlyViewed.items">
+            <app-carousel ariaLabel="Recently viewed titles and people" [columns]="8" [items]="recentlyViewed.items">
                 <ng-template let-item>
                     @if (item.kind === 'person') {
                         <app-person-card [person]="item" />

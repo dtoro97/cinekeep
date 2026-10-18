@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 
 import type { MediaStateResponse } from '../../../api-cinekeep';
 import type { LibraryFlag, RemoteData } from '../../types';
-import { IconButtonComponent } from '../icon-button/icon-button.component';
+import { IconButtonAppearance, IconButtonComponent } from '../icon-button/icon-button.component';
 import { LibraryToggleMedia, LibraryToggleStoreService } from './library-toggle-store.service';
 
 @Component({
@@ -20,6 +20,10 @@ export class LibraryToggleComponent implements OnChanges {
     @Input({ required: true }) flag!: LibraryFlag;
     @Input({ required: true }) media!: LibraryToggleMedia;
     @Input() iconOnly = false;
+    // `overlay` gives the icon-only button its own plate for sitting on a poster.
+    @Input() appearance: IconButtonAppearance = 'plain';
+    // Fills the button with the accent until the title is yours; for the one primary action on a page.
+    @Input() primary = false;
     @Input() libraryState: RemoteData<MediaStateResponse> | null = null;
 
     readonly libraryToggle$ = this.libraryToggleStoreService.libraryToggle$;

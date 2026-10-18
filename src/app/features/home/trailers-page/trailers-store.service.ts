@@ -15,34 +15,22 @@ import {
     tap,
 } from 'rxjs';
 
-import {
-    MovieRestControllerService,
-    TrendingRestControllerService,
-    TvSeasonRestControllerService,
-    TvSeriesRestControllerService,
-    Video,
-} from '../../../api';
+import { TrendingRestControllerService } from '../../../api';
 import { PAGE_SIZE } from '../../../constants';
 import {
     CardItem,
     getISODate,
-    isDefined,
     isMediaResult,
-    pickBestYoutubeTrailer,
     RemoteData,
     remoteData,
     remoteSuccess,
     SelectOption,
     TmdbDiscoverService,
     toCardItem,
-    toVideoCardItem,
-    VideoCardItem,
 } from '../../../shared';
-import { SpotlightItem, toSpotlightItem } from '../hero-spotlight/hero-spotlight.component';
+import { TrailerCardsService, TrailerVideoCardItem } from '../trailer-cards.service';
 
 export type TrailerFeedType = 'trending' | 'new';
-
-type TrailerVideoCardItem = VideoCardItem & { readonly spotlight: SpotlightItem };
 
 interface TrailerFeed {
     readonly trailers: RemoteData<TrailerVideoCardItem[]>;
@@ -63,7 +51,6 @@ const FEED_OPTIONS: SelectOption<TrailerFeedType>[] = [
 ];
 
 const TRAILER_CONTENT_REGION = 'US';
-const TRAILER_VIDEO_LANGUAGE = 'en';
 // Titles a feed draws from; "show more" works through them a page at a time.
 const TRAILER_SEED_COUNT = 60;
 // "New" covers titles released within this many days either side of today.
@@ -120,7 +107,7 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
                     loadsFeed
                         ? this.seeds$(feedType).pipe(
                               switchMap((seeds) =>
-                                  this.videoCards$(seeds.slice(0, PAGE_SIZE)).pipe(
+                                  this.trailerCardsService.videoCards$(seeds.slice(0, PAGE_SIZE)).pipe(
                                       tap((trailers) =>
                                           this.patchFeed(feedType, {
                                               trailers: remoteSuccess(trailers),
@@ -133,7 +120,7 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
                         : EMPTY,
                     loadsFeatured
                         ? this.seeds$('trending').pipe(
-                              switchMap((seeds) => this.videoCards$(seeds.slice(0, 1))),
+                              switchMap((seeds) => this.trailerCardsService.videoCards$(seeds.slice(0, 1))),
                               tap(([trailer]) => this.patchState({ featured: remoteSuccess(trailer ?? null) })),
                           )
                         : EMPTY,
@@ -145,10 +132,8 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
     constructor(
         private router: Router,
         private tmdbDiscoverService: TmdbDiscoverService,
-        private movieRestControllerService: MovieRestControllerService,
         private trendingRestControllerService: TrendingRestControllerService,
-        private tvSeasonRestControllerService: TvSeasonRestControllerService,
-        private tvSeriesRestControllerService: TvSeriesRestControllerService,
+        private trailerCardsService: TrailerCardsService,
         activatedRoute: ActivatedRoute,
     ) {
         super(INITIAL_STATE);
@@ -177,7 +162,7 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
 
         this.patchFeed(feedType, { trailers: { state: 'loading-more', data: loaded } });
 
-        return this.videoCards$(pendingSeeds.slice(0, PAGE_SIZE)).pipe(
+        return this.trailerCardsService.videoCards$(pendingSeeds.slice(0, PAGE_SIZE)).pipe(
             tap((items) =>
                 this.patchFeed(feedType, {
                     trailers: remoteSuccess([...loaded, ...items]),
@@ -235,72 +220,6 @@ export class TrailersStoreService extends ComponentStore<TrailersState> {
             // A feed that fails to load shows no trailers.
             catchError(() => of([])),
         );
-    }
-
-    // One card per title that has a YouTube trailer; titles without one are left out.
-    private videoCards$(seeds: readonly CardItem[]): Observable<TrailerVideoCardItem[]> {
-        // forkJoin of nothing never emits, which would leave the feed loading.
-        if (seeds.length === 0) {
-            return of([]);
-        }
-
-        return forkJoin(
-            seeds.map((seed) => {
-                const seriesVideos$ = this.tvSeriesRestControllerService
-                    .tvSeriesVideos({ seriesId: seed.id })
-                    .pipe(map(({ results }) => results ?? []));
-                const videos$: Observable<Video[]> =
-                    seed.mediaType === 'movie'
-                        ? this.movieRestControllerService
-                              .movieVideos({ movieId: seed.id })
-                              .pipe(map(({ results }) => results ?? []))
-                        : this.tvSeriesRestControllerService.tvSeriesDetails({ seriesId: seed.id }).pipe(
-                              map(({ seasons }) =>
-                                  Math.max(0, ...(seasons ?? []).map(({ season_number }) => season_number ?? 0)),
-                              ),
-                              // Without season details the series' own videos are used.
-                              catchError(() => of(0)),
-                              switchMap((seasonNumber) =>
-                                  seasonNumber > 0
-                                      ? this.tvSeasonRestControllerService
-                                            .tvSeasonVideos({ seriesId: seed.id, seasonNumber })
-                                            .pipe(
-                                                map(({ results }) =>
-                                                    pickBestYoutubeTrailer(
-                                                        (results ?? []).filter(
-                                                            (video) => video.iso_639_1 === TRAILER_VIDEO_LANGUAGE,
-                                                        ),
-                                                    ),
-                                                ),
-                                                // The newest season's trailer is preferred, not required.
-                                                catchError(() => of(null)),
-                                            )
-                                      : of(null),
-                              ),
-                              switchMap((seasonTrailer) => (seasonTrailer ? of([seasonTrailer]) : seriesVideos$)),
-                          );
-
-                return videos$.pipe(
-                    // A title whose videos fail to load simply gets no card.
-                    catchError(() => of<Video[]>([])),
-                    map((videos) => {
-                        const video = pickBestYoutubeTrailer(videos, TRAILER_VIDEO_LANGUAGE);
-                        const card = video && toVideoCardItem(video, seed);
-
-                        if (!card) {
-                            return null;
-                        }
-
-                        return {
-                            ...card,
-                            mediaTitle: seed.title,
-                            mediaLink: ['/title', seed.id, seed.mediaType],
-                            spotlight: toSpotlightItem(seed),
-                        };
-                    }),
-                );
-            }),
-        ).pipe(map((cards) => cards.filter(isDefined)));
     }
 
     private patchFeed(feedType: TrailerFeedType, patch: Partial<TrailerFeed>): void {

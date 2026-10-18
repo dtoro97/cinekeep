@@ -26,6 +26,7 @@ export class CardComponent implements OnChanges {
     @Input() dateFormat: CardDateFormat = 'year';
     @Input() imageParams?: string;
     @Input() showRating = true;
+    @Input() rank: number | null = null;
 
     routeCommands: RouteCommands = [];
     datePattern = CARD_DATE_PATTERNS.year;

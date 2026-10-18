@@ -38,7 +38,7 @@
 
     &__label {
         display: block;
-        padding: var(--space-3) var(--space-4) var(--space-2);
+        padding: var(--space-3) var(--space-4) var(--space-1-5);
     }
 
     &__line {
@@ -93,12 +93,9 @@
     &__thumb {
         width: var(--search-top-thumb-width);
         aspect-ratio: var(--poster-ratio);
-        box-shadow: var(--shadow-sm);
-    }
-
-    &--person &__thumb {
-        aspect-ratio: 1;
-        border-radius: var(--radius-full);
+        overflow: hidden;
+        border-radius: var(--radius-media);
+        --image-radius: var(--radius-media);
     }
 
     &__copy {
@@ -167,11 +164,9 @@
     &__thumb {
         width: var(--search-thumb-width);
         aspect-ratio: var(--poster-ratio);
-    }
-
-    &--person &__thumb {
-        aspect-ratio: 1;
-        border-radius: var(--radius-full);
+        overflow: hidden;
+        border-radius: var(--radius-media);
+        --image-radius: var(--radius-media);
     }
 
     &__copy {

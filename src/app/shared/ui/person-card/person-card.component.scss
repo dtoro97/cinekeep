@@ -2,18 +2,18 @@
 @use 'mixins' as *;
 
 :host {
-    --person-card-photo-size: 190px;
     display: block;
+    min-width: 0;
 }
 
 .person-card {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: var(--space-1);
     width: 100%;
     height: 100%;
-    text-align: center;
+    color: inherit;
+    text-align: left;
 }
 
 a.person-card {
@@ -25,24 +25,24 @@ a.person-card {
     );
 }
 
+// Portraits share the poster shape: 2:3, square-ish corners, no frame.
 .person-card__photo {
     width: 100%;
-    max-width: var(--person-card-photo-size);
-    aspect-ratio: 1 / 1;
+    aspect-ratio: var(--poster-ratio);
     overflow: hidden;
-    border-radius: var(--radius-full);
-    border: 1px solid var(--color-border-subtle);
-    --image-radius: var(--radius-full);
+    border-radius: var(--radius-media);
+    background: var(--surface-panel);
+    --image-radius: var(--radius-media);
 }
 
 .person-card__photo-fill {
     height: 100%;
     --skeleton-height: 100%;
-    --skeleton-radius: var(--radius-full);
+    --skeleton-radius: var(--radius-media);
 }
 
 .person-card__name {
-    margin-top: var(--space-1);
+    margin-top: var(--space-1-5);
     @include line-clamp(2);
 }
 
@@ -61,10 +61,6 @@ a.person-card {
 }
 
 @include mobile() {
-    :host {
-        --person-card-photo-size: 120px;
-    }
-
     .person-card {
         gap: 0;
     }

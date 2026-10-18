@@ -26,7 +26,7 @@ export interface HeaderSearchOption {
 
 export interface HeaderSearchGroup {
     readonly label: string;
-    // Result groups are separated by a rule; only the recent list needs a visible label.
+    // Mixed results label their Titles and People groups; a single-type search shows one unlabelled group.
     readonly showLabel: boolean;
     readonly options: readonly HeaderSearchOption[];
 }

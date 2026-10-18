@@ -1,24 +1,65 @@
-<header class="header">
-    <nav aria-label="Primary">
-        <div class="header__inner inner-container">
-            <a class="header__brand" routerLink="/" aria-label="CineKeep home">
-                <img class="header__brand-icon" src="assets/brand-mark.svg" alt="" aria-hidden="true" />
-                <span class="header__brand-text" aria-hidden="true">
-                    <span>Cine</span>
-                    <span class="header__brand-text-accent">Keep</span>
-                </span>
-            </a>
+@if (header$ | async; as header) {
+    <header class="header">
+        <div class="header__bar inner-container">
+            <a class="header__brand" routerLink="/">CineKeep</a>
 
-            <app-header-browse-menu />
+            <nav class="header__tabs" aria-label="Sections">
+                @for (tab of header.tabs; track tab.section) {
+                    @if (tab.opensSignIn) {
+                        <button class="header__tab" type="button" (click)="signIn()">{{ tab.label }}</button>
+                    } @else {
+                        <a
+                            class="header__tab"
+                            [class.header__tab--active]="tab.isActive"
+                            [attr.aria-current]="tab.isActive ? 'page' : null"
+                            [routerLink]="tab.routerLink"
+                        >
+                            {{ tab.label }}
+                        </a>
+                    }
+                }
+
+                <span class="header__divider" aria-hidden="true"></span>
+
+                @for (tab of header.watchTabs; track tab.section) {
+                    <a
+                        class="header__tab"
+                        [class.header__tab--active]="tab.isActive"
+                        [attr.aria-current]="tab.isActive ? 'page' : null"
+                        [routerLink]="tab.routerLink"
+                    >
+                        {{ tab.label }}
+                    </a>
+                }
+            </nav>
 
             <div class="header__search">
                 <app-header-search-bar />
             </div>
 
             <div class="header__actions">
-                <app-header-account-menu />
                 <app-header-locale-region-menu />
+                <app-header-account-menu />
             </div>
         </div>
-    </nav>
-</header>
+    </header>
+
+    @if (header.showSubNav) {
+        <nav class="subnav" [attr.aria-label]="header.subNavLabel">
+            <div class="subnav__inner inner-container">
+                @for (link of header.subNavLinks; track link.label) {
+                    <a
+                        class="subnav__link"
+                        [routerLink]="link.routerLink"
+                        [queryParams]="link.queryParams"
+                        routerLinkActive="subnav__link--active"
+                        [routerLinkActiveOptions]="header.subNavMatch"
+                        ariaCurrentWhenActive="page"
+                    >
+                        {{ link.label }}
+                    </a>
+                }
+            </div>
+        </nav>
+    }
+}

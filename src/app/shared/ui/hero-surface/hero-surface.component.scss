@@ -128,7 +128,7 @@
         width: 100%;
         max-width: var(--layout-content-max-width);
         margin: 0 auto;
-        padding: 0 var(--space-6);
+        padding: 0 var(--layout-gutter);
     }
 
     &--detail &__container {
@@ -161,7 +161,7 @@
 @include mobile() {
     .hero-surface {
         &__container {
-            padding-inline: var(--space-4);
+            padding-inline: var(--layout-gutter-compact);
         }
 
         &--compact &__container {
