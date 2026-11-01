@@ -1,77 +1,112 @@
 <div class="page-container">
     @if (castCrew$ | async; as castCrew) {
-        <app-sub-page-header
-            [backdropPath]="castCrew.media?.backdropPath"
-            [parentTitle]="castCrew.media?.title"
-            [backLink]="['../']"
-            pageTitle="Cast & Crew"
-            [loading]="castCrew.isMediaLoading"
-        />
+        <div class="catalogue-sub-page inner-container">
+            <app-catalogue-sub-header
+                pageTitle="Cast & crew"
+                [parentTitle]="castCrew.media?.title"
+                [parentDetail]="castCrew.media?.year"
+                [backLink]="['../']"
+                [imagePath]="castCrew.media?.posterPath"
+                [loading]="!castCrew.media"
+            />
 
-        <main class="page-main cast-page">
             @if (castCrew.isEmpty) {
-                <app-empty-state
-                    class="cast-page__empty"
-                    iconClass="fa-solid fa-users"
-                    iconStyle="plain"
-                    text="No cast or crew information is available for this title."
-                />
+                <div class="catalogue-sub-page__body">
+                    <app-empty-state
+                        iconClass="fa-solid fa-users"
+                        iconStyle="plain"
+                        text="No cast or crew information is available for this title."
+                    />
+                </div>
             } @else {
-                <app-browse-toolbar class="cast-page__toolbar">
-                    @if (castCrew.showLoading) {
-                        <app-skeleton start class="cast-page__toggle-skeleton" />
-                    } @else {
-                        <app-toggle-group
-                            start
-                            [options]="castCrew.sectionOptions"
-                            [selectedValue]="castCrew.section"
-                            (selected)="setSection($event)"
-                        />
-                    }
+                <div class="cast-index catalogue-tabs">
+                    <div class="catalogue-tabs__end">
+                        <label class="cast-filter">
+                            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                            <span class="u-visually-hidden">Filter cast and crew by name or role</span>
+                            <input
+                                class="cast-filter__input"
+                                type="search"
+                                autocomplete="off"
+                                placeholder="Filter by name or role"
+                                [value]="castCrew.query"
+                                (input)="setQuery($event)"
+                            />
+                        </label>
+                    </div>
+                </div>
 
-                    <mat-form-field end class="cast-page__filter" appearance="outline" subscriptSizing="dynamic">
-                        <mat-icon matPrefix aria-hidden="true">search</mat-icon>
-                        <input
-                            matInput
-                            type="search"
-                            autocomplete="off"
-                            placeholder="Filter by name or role"
-                            aria-label="Filter cast and crew by name or role"
-                            [value]="castCrew.query"
-                            (input)="setQuery($event)"
-                        />
-                    </mat-form-field>
-                </app-browse-toolbar>
-
-                @if (castCrew.showDepartments) {
-                    <nav class="cast-page__departments" aria-label="Crew departments">
-                        <app-toggle-group
-                            variant="chips"
-                            [options]="castCrew.departmentOptions"
-                            [selectedValue]="castCrew.department"
-                            (selected)="setDepartment($event)"
-                        />
-                    </nav>
-                }
-
-                @if (castCrew.noMatchesText; as noMatchesText) {
-                    <div class="cast-page__no-matches">
-                        <app-empty-state
-                            iconClass="fa-solid fa-magnifying-glass"
-                            iconStyle="plain"
-                            [text]="noMatchesText"
-                        />
-                        <button matButton class="text-button" type="button" (click)="clearQuery()">Clear filter</button>
+                @if (castCrew.showLoading) {
+                    <ul class="cast-list cast-list--loading" aria-hidden="true">
+                        @for (slot of 12 | repeat; track slot) {
+                            <li class="person-row">
+                                <app-skeleton class="person-row__photo" />
+                                <span class="person-row__text">
+                                    <app-skeleton class="person-row__line person-row__line--name" />
+                                    <app-skeleton class="person-row__line" />
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                } @else if (castCrew.noMatchesText; as noMatchesText) {
+                    <div class="cast-no-matches">
+                        <app-empty-state iconClass="fa-solid fa-magnifying-glass" iconStyle="plain" [text]="noMatchesText" />
+                        <button matButton="outlined" type="button" (click)="clearQuery()">Clear filter</button>
                     </div>
                 } @else {
-                    <app-cast-crew-grid
-                        [cast]="castCrew.cast"
-                        [departments]="castCrew.departments"
-                        [showCast]="castCrew.showCast"
-                        [loading]="castCrew.showLoading"
-                    />
+                    <div class="cast-columns">
+                        @if (castCrew.showCast) {
+                            <section id="cast" class="cast-section" aria-labelledby="cast-heading">
+                                <h2 id="cast-heading" class="cast-section__heading text-headline">
+                                    Cast <span class="cast-section__note">{{ castCrew.cast.length }} people, in billing order</span>
+                                </h2>
+                                <ul class="cast-list">
+                                    @for (person of castCrew.cast; track person.key) {
+                                        <li>
+                                            <a class="person-row" [routerLink]="['/name', person.id]">
+                                                <app-image class="person-row__photo" [src]="person.profilePath" alt="" type="person" [name]="person.name" params="w185" />
+                                                <span class="person-row__text">
+                                                    <span class="person-row__name">{{ person.name }}</span>
+                                                    @if (person.role || person.episodeLabel) {
+                                                        <span class="person-row__role">
+                                                            {{ person.role }}@if (person.role && person.episodeLabel) { · }{{ person.episodeLabel }}
+                                                        </span>
+                                                    }
+                                                </span>
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </section>
+                        }
+
+                        @if (castCrew.showCrew) {
+                            <section id="crew" class="cast-section crew" aria-labelledby="crew-heading">
+                                <h2 id="crew-heading" class="cast-section__heading text-headline">
+                                    Crew <span class="cast-section__note">{{ castCrew.crewCount }} people</span>
+                                </h2>
+                                @for (department of castCrew.departments; track department.id) {
+                                    <section class="crew__department" [attr.aria-labelledby]="department.id">
+                                        <h3 class="crew__department-name" [id]="department.id">{{ department.name }}</h3>
+                                        <ul class="crew__people">
+                                            @for (person of department.people; track person.key) {
+                                                <li>
+                                                    <a class="crew__person" [routerLink]="['/name', person.id]">
+                                                        <span class="crew__name">{{ person.name }}</span>
+                                                        <span class="crew__job">
+                                                            {{ person.role }}@if (person.episodeLabel) { · {{ person.episodeLabel }}}
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </section>
+                                }
+                            </section>
+                        }
+                    </div>
                 }
             }
-        </main>
+        </div>
     }
 </div>

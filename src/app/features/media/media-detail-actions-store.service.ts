@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { ComponentStore } from '@ngrx/component-store';
-import { Observable, catchError, forkJoin, map, of, switchMap, tap, throwError } from 'rxjs';
+import { EMPTY, Observable, catchError, forkJoin, map, merge, of, switchMap, tap, throwError } from 'rxjs';
 
 import {
     MediaStateResponse,
@@ -35,9 +35,16 @@ export interface MediaUserListSummary {
     readonly posterPath: string | null;
 }
 
+export interface MediaListMembership {
+    readonly id: number;
+    readonly name: string;
+}
+
 interface MediaActionResource extends UserRatingState {
     readonly watchlistState: RemoteData<boolean>;
     readonly favoriteState: RemoteData<boolean>;
+    readonly ratedAt: string | null;
+    readonly memberLists: RemoteData<MediaListMembership[]>;
 }
 
 interface MediaActionsState {
@@ -52,6 +59,8 @@ const EMPTY_ACTION_RESOURCE: MediaActionResource = {
     ratingPending: false,
     watchlistState: { state: 'notAsked' },
     favoriteState: { state: 'notAsked' },
+    ratedAt: null,
+    memberLists: { state: 'notAsked' },
 };
 
 const INITIAL_STATE: MediaActionsState = {
@@ -69,7 +78,8 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
         this.state$,
         this.userSessionStore.authSession$,
         (state, { isAuthenticated }) => {
-            const { watchlistState, favoriteState } = toActiveActions(state);
+            const { watchlistState, favoriteState, ratedAt, memberLists } = toActiveActions(state);
+            const lists = memberLists.state === 'success' ? memberLists.data : [];
             const isInWatchlist = watchlistState.state === 'success' && watchlistState.data;
             const isFavorite = favoriteState.state === 'success' && favoriteState.data;
             const pending = watchlistState.state === 'loading' || favoriteState.state === 'loading';
@@ -80,7 +90,10 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
                 pending,
                 isListButtonDisabled: pending || state.isListDialogPending,
                 watchlistLabel: isInWatchlist ? 'On watchlist' : 'Add to watchlist',
-                favoriteActionLabel: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+                listButtonLabel: lists.length ? `In ${lists.length} ${lists.length === 1 ? 'list' : 'lists'}` : 'Add to list',
+                memberLists: lists,
+                ratedAt,
+                favoriteActionLabel: isFavorite ? 'Remove from favourites' : 'Add to favourites',
                 isAuthenticated,
             };
         },
@@ -111,6 +124,8 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
                     ratingPending: false,
                     watchlistState: { state: 'loading' },
                     favoriteState: { state: 'loading' },
+                    ratedAt: null,
+                    memberLists: { state: 'notAsked' },
                 },
             },
         }));
@@ -128,6 +143,8 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
                             ),
                             watchlistState: remoteSuccess(!!mediaState?.inWatchlist),
                             favoriteState: remoteSuccess(!!mediaState?.favorite),
+                            ratedAt: null,
+                            memberLists: { state: 'notAsked' },
                         }),
                     ),
                     // Unknown actions show as not set, so the buttons stay usable.
@@ -139,6 +156,14 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
                         });
                         return of(null);
                     }),
+                    switchMap((mediaState) =>
+                        isAuthenticated
+                            ? merge(
+                                  typeof mediaState?.rating === 'number' ? this.loadRatedAt$(target) : EMPTY,
+                                  this.loadMemberLists$(target),
+                              )
+                            : EMPTY,
+                    ),
                 ),
             ),
         );
@@ -149,7 +174,7 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
             this.mediaRatingService.rateMedia$(target.id, target.type, value, this.loadedSnapshot(target)),
             normalizeRatingValue(value),
             (patch) => this.patchActionResource(target, patch),
-        );
+        ).pipe(tap(() => this.patchActionResource(target, { ratedAt: new Date().toISOString() })));
     }
 
     deleteUserRating$(target: MediaTarget): Observable<unknown> {
@@ -157,7 +182,7 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
             this.ratingControllerService.deleteRating({ mediaType: target.type, tmdbId: target.id }),
             null,
             (patch) => this.patchActionResource(target, patch),
-        );
+        ).pipe(tap(() => this.patchActionResource(target, { ratedAt: null })));
     }
 
     toggleLibraryFlag$(flag: LibraryFlag): Observable<unknown> {
@@ -194,17 +219,65 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
             return throwError(() => new Error('No media action context is available.'));
         }
 
-        return this.userLibraryService.addToList$(listId, target.id, target.type, this.loadedSnapshot(target));
+        return this.userLibraryService
+            .addToList$(listId, target.id, target.type, this.loadedSnapshot(target))
+            .pipe(tap(() => this.reloadMemberLists(target)));
     }
 
     // The user's lists, each flagged with whether it already contains the title.
     getUserLists$(): Observable<MediaUserListSummary[]> {
         const target = this.get().target;
 
-        if (!target) {
-            return throwError(() => new Error('No media action context is available.'));
-        }
+        return target
+            ? this.fetchUserLists$(target)
+            : throwError(() => new Error('No media action context is available.'));
+    }
 
+    setListDialogPending(isListDialogPending: boolean): void {
+        this.patchState({ isListDialogPending });
+    }
+
+    private readonly reloadMemberLists = this.effect<MediaTarget>((target$) =>
+        target$.pipe(switchMap((target) => this.loadMemberLists$(target))),
+    );
+
+    private loadRatedAt$(target: MediaTarget): Observable<unknown> {
+        return this.ratingControllerService.getRating({ mediaType: target.type, tmdbId: target.id }).pipe(
+            tap((rating) => this.patchActionResource(target, { ratedAt: rating.updatedAt ?? rating.ratedAt ?? null })),
+            // The date is a detail beside the score; without it the score still shows.
+            catchError(() => EMPTY),
+        );
+    }
+
+    // Asks which lists hold the title first; the list names are fetched only when some do.
+    private loadMemberLists$(target: MediaTarget): Observable<unknown> {
+        this.patchActionResource(target, { memberLists: { state: 'loading' } });
+
+        return this.userListControllerService.getMembership({ mediaType: target.type, tmdbId: target.id }).pipe(
+            switchMap((response) => {
+                const listIds = new Set(response.listIds ?? []);
+
+                return listIds.size
+                    ? this.userListControllerService.getLists({ page: 0, size: BACKEND_MAX_PAGE_SIZE }).pipe(
+                          map((page) =>
+                              (page.content ?? []).flatMap((list) => {
+                                  const name = list.name?.trim();
+                                  return list.id && name && listIds.has(list.id) ? [{ id: list.id, name }] : [];
+                              }),
+                          ),
+                      )
+                    : of([]);
+            }),
+            tap((lists) => this.patchActionResource(target, { memberLists: remoteSuccess(lists) })),
+            // Without membership the lists row is left out; adding to a list still works.
+            catchError((error: unknown) => {
+                this.patchActionResource(target, { memberLists: { state: 'failure', error } });
+                return EMPTY;
+            }),
+        );
+    }
+
+    private fetchUserLists$(target: MediaTarget): Observable<MediaUserListSummary[]> {
         return forkJoin({
             lists: this.userListControllerService.getLists({ page: 0, size: BACKEND_MAX_PAGE_SIZE }),
             memberListIds: this.userListControllerService
@@ -230,10 +303,6 @@ export class MediaDetailActionsStoreService extends ComponentStore<MediaActionsS
                     .filter(isDefined),
             ),
         );
-    }
-
-    setListDialogPending(isListDialogPending: boolean): void {
-        this.patchState({ isListDialogPending });
     }
 
     private loadedSnapshot(target: MediaTarget): SeriesSnapshotRequest | undefined {

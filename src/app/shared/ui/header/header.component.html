@@ -3,7 +3,7 @@
         <div class="header__bar inner-container">
             <a class="header__brand" routerLink="/">CineKeep</a>
 
-            <nav class="header__tabs" aria-label="Sections">
+            <nav class="header__tabs" [class.header__tabs--switchable]="header.showSubNav" aria-label="Sections">
                 @for (tab of header.tabs; track tab.section) {
                     @if (tab.opensSignIn) {
                         <button class="header__tab" type="button" (click)="signIn()">{{ tab.label }}</button>
@@ -47,6 +47,47 @@
     @if (header.showSubNav) {
         <nav class="subnav" [attr.aria-label]="header.subNavLabel">
             <div class="subnav__inner inner-container">
+                <button
+                    class="subnav__switcher"
+                    type="button"
+                    [matMenuTriggerFor]="sectionMenu"
+                    attr.aria-label="Section: {{ header.subNavLabel }}. Change section"
+                >
+                    {{ header.subNavLabel }}
+                    <mat-icon class="subnav__switcher-icon" aria-hidden="true">expand_more</mat-icon>
+                </button>
+
+                <mat-menu #sectionMenu="matMenu">
+                    @for (tab of header.tabs; track tab.section) {
+                        @if (tab.opensSignIn) {
+                            <button class="subnav__section" mat-menu-item type="button" (click)="signIn()">
+                                {{ tab.label }}
+                            </button>
+                        } @else {
+                            <a
+                                class="subnav__section"
+                                [class.subnav__section--active]="tab.isActive"
+                                mat-menu-item
+                                [attr.aria-current]="tab.isActive ? 'page' : null"
+                                [routerLink]="tab.routerLink"
+                            >
+                                <span class="subnav__section-row">
+                                    {{ tab.label }}
+                                    @if (tab.isActive) {
+                                        <mat-icon class="subnav__section-check" aria-hidden="true">check</mat-icon>
+                                    }
+                                </span>
+                            </a>
+                        }
+                    }
+
+                    <div class="subnav__section-separator" role="separator"></div>
+
+                    @for (tab of header.watchTabs; track tab.section) {
+                        <a class="subnav__section" mat-menu-item [routerLink]="tab.routerLink">{{ tab.label }}</a>
+                    }
+                </mat-menu>
+
                 @for (link of header.subNavLinks; track link.label) {
                     <a
                         class="subnav__link"

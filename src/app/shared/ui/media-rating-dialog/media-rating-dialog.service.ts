@@ -13,6 +13,9 @@ import {
 export interface MediaRatingDialogRequest {
     readonly title: string;
     readonly currentRating: number | null;
+    // Optional poster and "2024 · TMDb 8.1" line beside the title.
+    readonly imagePath?: string | null;
+    readonly meta?: string;
     readonly save: (value: number) => Observable<unknown>;
     readonly remove: () => Observable<unknown>;
 }
@@ -26,7 +29,7 @@ export class MediaRatingDialogService {
     ) {}
 
     // Opens the rating dialog and runs the chosen action; choosing to sign in opens the sign-in dialog.
-    open$({ title, currentRating, save, remove }: MediaRatingDialogRequest): Observable<unknown> {
+    open$({ title, currentRating, imagePath, meta, save, remove }: MediaRatingDialogRequest): Observable<unknown> {
         return this.dialog
             .open<MediaRatingDialogComponent, MediaRatingDialogData, MediaRatingDialogResult>(
                 MediaRatingDialogComponent,
@@ -34,6 +37,8 @@ export class MediaRatingDialogService {
                     data: {
                         title,
                         currentRating,
+                        imagePath: imagePath ?? null,
+                        meta: meta ?? '',
                         isAuthenticated: this.userSessionStore.isAuthenticated(),
                     },
                     maxWidth: '36rem',

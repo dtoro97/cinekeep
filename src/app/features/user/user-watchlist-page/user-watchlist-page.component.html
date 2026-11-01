@@ -1,71 +1,85 @@
 @if (watchlist$ | async; as watchlist) {
-    <app-sub-page-header parentTitle="Profile" backLink="/me" pageTitle="Watchlist" />
-
-    <main class="page-main page page-list-column">
-        <app-browse-toolbar>
-            <div start class="page__total">
+    <div class="page-container">
+        <div class="browse-page inner-container">
+            <header class="browse-head">
+                <h1 class="text-display">Watchlist</h1>
                 @if (watchlist.showTotal) {
-                    <span class="text-caption">{{ watchlist.totalLabel }}</span>
+                    <p class="browse-head__note">{{ watchlist.totalLabel }}</p>
                 }
-            </div>
+            </header>
 
-            <div end class="page__toolbar-actions">
+            <div class="browse-bar" role="toolbar" aria-label="Watchlist options">
                 <app-toggle-group
                     [options]="mediaTypeOptions"
                     [selectedValue]="watchlist.mediaType"
                     (selected)="setMediaType($event)"
                 />
 
-                <app-sort-button
-                    [options]="sortOptions"
-                    [selectedValue]="sortField"
-                    [direction]="watchlist.sortDirection"
-                    (directionToggle)="toggleSortDirection()"
-                />
+                <span class="browse-bar__end">
+                    <app-sort-button
+                        [options]="sortOptions"
+                        [selectedValue]="sortField"
+                        [direction]="watchlist.sortDirection"
+                        (directionToggle)="toggleSortDirection()"
+                    />
+                </span>
             </div>
-        </app-browse-toolbar>
 
-        @if (watchlist.showSkeleton) {
-            <div class="page__list" aria-hidden="true">
-                @for (placeholder of skeletonCount | repeat; track placeholder) {
-                    <app-media-list-item [loading]="true" />
+            @if (watchlist.showSkeleton) {
+                <div class="catalogue-wall catalogue-wall--paged library-wall" aria-hidden="true">
+                    @for (placeholder of skeletonCount | repeat; track placeholder) {
+                        <app-card-skeleton />
+                    }
+                </div>
+            } @else if (watchlist.hasItems) {
+                @for (group of watchlist.groups; track group.id) {
+                    <section class="library-group" [attr.aria-labelledby]="group.title ? group.id + '-heading' : null">
+                        @if (group.title) {
+                            <h2 [id]="group.id + '-heading'" class="library-group__heading">
+                                {{ group.title }}
+                                <span class="library-group__count">{{ group.entries.length }}</span>
+                            </h2>
+                        }
+
+                        <div class="catalogue-wall" [class.catalogue-wall--paged]="!group.title">
+                            @for (entry of group.entries; track entry.item.id) {
+                                <app-card [item]="entry.item" imageParams="w342" [dateFormat]="entry.dateFormat">
+                                    <app-icon-button
+                                        card-actions
+                                        appearance="overlay"
+                                        [selected]="true"
+                                        title="Remove from watchlist"
+                                        ariaLabel="Remove {{ entry.item.title }} from watchlist"
+                                        (buttonClick)="remove(entry.source)"
+                                    >
+                                        <i class="fa-solid fa-bookmark" aria-hidden="true"></i>
+                                    </app-icon-button>
+                                </app-card>
+                            }
+                        </div>
+                    </section>
                 }
-            </div>
-        } @else if (watchlist.hasItems) {
-            <div class="page__list">
-                @for (item of watchlist.items; track item.id) {
-                    <app-media-list-item [item]="item" [link]="['/title', item.id, item.mediaType]">
-                        <app-icon-button
-                            media-list-item-action
-                            [selected]="true"
-                            title="Remove from watchlist"
-                            ariaLabel="Remove {{ item.title }} from watchlist"
-                            (buttonClick)="remove(item)"
-                        >
-                            <i class="fa-solid fa-bookmark" aria-hidden="true"></i>
-                        </app-icon-button>
-                    </app-media-list-item>
-                }
-            </div>
-        } @else if (watchlist.showEmpty) {
-            <section class="page__empty">
+            } @else if (watchlist.showEmpty) {
                 <app-empty-state
-                    iconClass="fa-regular fa-bookmark"
-                    title="No watchlist titles"
-                    text="Movies and TV series you add to your watchlist will appear here."
-                />
-            </section>
-        }
+                    class="library-empty"
+                    iconStyle="posters"
+                    title="Your watchlist is empty"
+                    text="Use the bookmark on any poster, or + Watchlist on a title page, to keep it here for later."
+                >
+                    <a matButton="outlined" routerLink="/movies/popular">Browse popular movies</a>
+                </app-empty-state>
+            }
 
-        @if (watchlist.showPaginator) {
-            <mat-paginator
-                class="page__paginator"
-                [length]="watchlist.total"
-                [pageIndex]="watchlist.pageIndex"
-                [pageSize]="watchlist.pageSize"
-                [hidePageSize]="true"
-                (page)="changePage($event)"
-            />
-        }
-    </main>
+            @if (watchlist.showPaginator) {
+                <mat-paginator
+                    class="library-paginator"
+                    [length]="watchlist.total"
+                    [pageIndex]="watchlist.pageIndex"
+                    [pageSize]="watchlist.pageSize"
+                    [hidePageSize]="true"
+                    (page)="changePage($event)"
+                />
+            }
+        </div>
+    </div>
 }

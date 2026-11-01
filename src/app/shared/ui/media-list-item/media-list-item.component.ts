@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnChanges } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -6,16 +6,15 @@ import { MediaListItem } from '../../models';
 import type { RouteCommands } from '../../types';
 import { BadgeComponent } from '../badge/badge.component';
 import { ImageComponent } from '../image/image.component';
-import { RatingComponent } from '../rating/rating.component';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
 
-// A movie or TV row: poster, title with rating and badges, a meta line, overview and cast.
+// A movie or TV row: poster, title with badges, a meta line, overview and cast, the TMDb score on the right.
 // Project `[media-list-item-note]` under the overview and `[media-list-item-action]` at the end.
 @Component({
     selector: 'app-media-list-item',
     templateUrl: './media-list-item.component.html',
     styleUrl: './media-list-item.component.scss',
-    imports: [BadgeComponent, DatePipe, ImageComponent, RatingComponent, RouterLink, SkeletonComponent],
+    imports: [BadgeComponent, DatePipe, DecimalPipe, ImageComponent, RouterLink, SkeletonComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MediaListItemComponent implements OnChanges {
@@ -24,6 +23,8 @@ export class MediaListItemComponent implements OnChanges {
     @Input() link: RouteCommands | null = null;
     @Input() genreNames: readonly string[] = [];
     @Input() loading = false;
+    // The rating is the viewer's own (Ratings page): shown on the accent, out of 10.
+    @Input() isOwnRating = false;
     showMetadata = false;
     showCast = false;
 

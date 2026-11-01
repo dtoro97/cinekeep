@@ -6,18 +6,18 @@ import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 
 import {
+    CatalogueSubHeaderComponent,
     PhotosBrowserComponent,
     PhotosBrowserSelection,
     PhotosBrowserSkeletonComponent,
     PhotoViewerDialogService,
     SeoService,
-    SubPageHeaderComponent,
 } from '../../../shared';
 import { SeasonPhotosPageStoreService } from './season-photos-page-store.service';
 
 @Component({
     selector: 'app-season-photos-page',
-    imports: [AsyncPipe, PhotosBrowserComponent, PhotosBrowserSkeletonComponent, SubPageHeaderComponent],
+    imports: [AsyncPipe, CatalogueSubHeaderComponent, PhotosBrowserComponent, PhotosBrowserSkeletonComponent],
     providers: [SeasonPhotosPageStoreService],
     templateUrl: './season-photos-page.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,

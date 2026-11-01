@@ -85,19 +85,23 @@
     }
 }
 
+// A select set inside another field box: it fills its slot and leaves hover and focus to that box.
 .mat-mdc-form-field--borderless {
-    .mat-mdc-text-field-wrapper {
-        border-color: transparent !important;
-        box-shadow: none !important;
-    }
-
-    &:hover .mat-mdc-text-field-wrapper {
-        border-color: transparent !important;
-    }
-
+    .mat-mdc-text-field-wrapper,
+    &:hover .mat-mdc-text-field-wrapper,
     &.mat-focused .mat-mdc-text-field-wrapper {
-        border-color: transparent !important;
-        box-shadow: none !important;
+        height: 100%;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .mat-mdc-select-arrow {
+        transition: color var(--motion-fast);
+    }
+
+    &:hover .mat-mdc-select-arrow {
+        color: var(--text-primary);
     }
 }
 

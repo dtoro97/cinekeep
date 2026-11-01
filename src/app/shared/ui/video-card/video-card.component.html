@@ -17,30 +17,23 @@
 
     <div class="video-card__body">
         <p class="video-card__title text-subtitle">
-            {{ item.title }}
+            @if (item.mediaTitle && item.mediaLink) {
+                <a class="video-card__title-link" [routerLink]="item.mediaLink">{{ item.mediaTitle }}</a>
+            } @else {
+                {{ item.mediaTitle || item.title }}
+            }
         </p>
 
-        @if (item.typeLabel || item.mediaTitle || item.publishedAt) {
-            <p class="video-card__metadata text-caption">
-                @if (item.typeLabel) {
-                    <span>{{ item.typeLabel }}</span>
-                }
-                @if (item.mediaTitle) {
-                    @if (item.mediaLink) {
-                        <a [routerLink]="item.mediaLink">
-                            {{ item.mediaTitle }}
-                        </a>
-                    } @else {
-                        <span>{{ item.mediaTitle }}</span>
-                    }
-                }
-                @if (item.publishedAt) {
-                    <span>
-                        {{ item.publishedAt | date: 'mediumDate' }}
-                    </span>
-                }
-            </p>
-        }
+        <p class="video-card__metadata text-caption">
+            @if (item.mediaTitle) {
+                <span>{{ item.title }}</span>
+            } @else if (item.typeLabel) {
+                <span>{{ item.typeLabel }}</span>
+            }
+            @if (item.publishedAt) {
+                <span>{{ item.publishedAt | date: 'd MMM y' }}</span>
+            }
+        </p>
     </div>
 </article>
 

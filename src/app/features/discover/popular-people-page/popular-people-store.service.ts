@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { ComponentStore } from '@ngrx/component-store';
-import { catchError, distinctUntilChanged, EMPTY, map, switchMap, tap } from 'rxjs';
+import { catchError, EMPTY, Observable, tap } from 'rxjs';
 
 import { PersonListRestControllerService } from '../../../api';
 import { PAGE_SIZE } from '../../../constants';
 import {
     hasRemoteData,
-    parsePositiveIntegerParam,
     PersonCardItem,
     RemoteData,
     remoteData,
@@ -33,70 +31,58 @@ const INITIAL_STATE: PopularPeopleState = {
 export class PopularPeopleStoreService extends ComponentStore<PopularPeopleState> {
     readonly popularPeople$ = this.select(({ page, totalPages, totalResults, results }) => {
         const people = remoteData(results, []);
-        const hasResults = hasRemoteData(results);
-        const paginatorLength = totalPages <= 0 ? totalResults : Math.min(totalResults, totalPages * PAGE_SIZE);
 
         return {
-            people,
+            people: people.map((person, index) => ({ person, rank: index + 1 })),
             totalResults,
-            skeletonCount: results.state === 'loading' ? PAGE_SIZE : 0,
-            pageIndex: Math.max(page - 1, 0),
-            pageSize: PAGE_SIZE,
-            paginatorLength,
-            showResultCount: hasResults,
+            shownCount: people.length,
+            skeletonCount: results.state === 'loading' || results.state === 'loading-more' ? PAGE_SIZE : 0,
+            showCount: hasRemoteData(results) && totalResults > 0,
             showEmptyState: results.state === 'success' && people.length === 0,
-            showPaginator: hasResults && paginatorLength > PAGE_SIZE,
+            showMore: hasRemoteData(results) && page < totalPages,
+            isLoadingMore: results.state === 'loading-more',
         };
     });
 
-    private readonly loadPage = this.effect<number>((page$) =>
-        page$.pipe(
-            switchMap((page) => {
-                this.setState({ ...INITIAL_STATE, results: { state: 'loading' } });
-
-                return this.personListRestControllerService
-                    .personPopularList({ page })
-                    .pipe(
-                        tap((response) =>
-                            this.patchState({
-                                page: response.page ?? page,
-                                totalPages: response.total_pages ?? 0,
-                                totalResults: response.total_results ?? 0,
-                                results: remoteSuccess((response.results ?? []).map(toKnownForPersonCardItem)),
-                            }),
-                        ),
-                        // A failed page shows the empty state instead of an error.
-                        catchError(() => {
-                            this.patchState({ page, totalPages: page, results: remoteSuccess([]) });
-                            return EMPTY;
-                        }),
-                    );
-            }),
-        ),
-    );
-
-    constructor(
-        private activatedRoute: ActivatedRoute,
-        private router: Router,
-        private personListRestControllerService: PersonListRestControllerService,
-    ) {
+    constructor(private personListRestControllerService: PersonListRestControllerService) {
         super(INITIAL_STATE);
-
-        this.loadPage(
-            activatedRoute.queryParamMap.pipe(
-                map((params) => parsePositiveIntegerParam(params.get('page')) ?? 1),
-                distinctUntilChanged(),
-            ),
-        );
     }
 
-    setPage(pageIndex: number): void {
-        const page = Math.max(1, pageIndex + 1);
+    load$(): Observable<unknown> {
+        this.setState({ ...INITIAL_STATE, results: { state: 'loading' } });
 
-        this.router.navigate([], {
-            relativeTo: this.activatedRoute,
-            queryParams: { page: page === 1 ? null : page },
-            queryParamsHandling: 'merge',
-        });
+        return this.loadPage$(1);
+    }
+
+    loadMore$(): Observable<unknown> {
+        const { page, totalPages, results } = this.get();
+        if (results.state !== 'success' || page >= totalPages) {
+            return EMPTY;
+        }
+
+        this.patchState({ results: { state: 'loading-more', data: results.data } });
+
+        return this.loadPage$(page + 1);
+    }
+
+    private loadPage$(page: number): Observable<unknown> {
+        return this.personListRestControllerService.personPopularList({ page }).pipe(
+            tap((response) =>
+                this.patchState(({ results }) => ({
+                    page: response.page ?? page,
+                    totalPages: response.total_pages ?? 0,
+                    totalResults: response.total_results ?? 0,
+                    results: remoteSuccess([
+                        ...remoteData(results, []),
+                        ...(response.results ?? []).map(toKnownForPersonCardItem),
+                    ]),
+                })),
+            ),
+            // A failed first page shows the empty state; a failed later page keeps what is already shown.
+            catchError(() => {
+                this.patchState(({ results }) => ({ totalPages: page - 1, results: remoteSuccess(remoteData(results, [])) }));
+                return EMPTY;
+            }),
+        );
     }
 }

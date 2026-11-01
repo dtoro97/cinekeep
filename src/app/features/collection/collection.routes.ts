@@ -8,7 +8,7 @@ export const collectionRoutes: Routes = [
         component: CollectionDetailPageComponent,
         data: {
             seoDescription:
-                'Explore every movie in a collection, with release order, ratings, cast highlights, posters, and backdrops.',
+                'Every movie in a collection in release order, with ratings and cast.',
         },
     },
 ];

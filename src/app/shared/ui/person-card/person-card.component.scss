@@ -41,8 +41,28 @@ a.person-card {
     --skeleton-radius: var(--radius-media);
 }
 
-.person-card__name {
+.person-card__body {
     margin-top: var(--space-1-5);
+
+    &--ranked {
+        display: grid;
+        grid-template-columns: var(--rank-width) minmax(0, 1fr);
+        gap: var(--space-1);
+    }
+}
+
+.person-card__rank {
+    line-height: 0.9;
+}
+
+.person-card__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
+}
+
+.person-card__name {
     @include line-clamp(2);
 }
 
@@ -52,6 +72,7 @@ a.person-card {
 
 .person-card__name--skeleton {
     width: 70%;
+    margin-top: var(--space-1-5);
     --skeleton-height: 1lh;
 }
 

@@ -1,21 +1,31 @@
 @if (userListDetail$ | async; as userListDetail) {
-    <div class="detail page-container">
+    <div class="page-container">
         @if (userListDetail.header; as header) {
-            <app-sub-page-header
-                parentTitle="your lists"
-                [backLink]="backLink"
-                [backdropPath]="header.backdropPath"
-                [pageTitle]="header.name"
-                [subtitle]="header.subtitle"
-            />
+            <div class="browse-page inner-container">
+                <section class="list-hero" aria-labelledby="list-heading">
+                    <app-image class="list-hero__cover" [src]="header.backdropPath" params="w780" alt="" />
+                    <div class="list-hero__text">
+                        <a class="list-hero__back" [routerLink]="backLink">‹ Your lists</a>
+                        <h1 id="list-heading" class="list-hero__title text-hero-title">{{ header.name }}</h1>
+                        @if (header.description) {
+                            <p class="list-hero__description text-body">{{ header.description }}</p>
+                        }
+                        @if (header.subtitle) {
+                            <p class="list-hero__meta">{{ header.subtitle }}</p>
+                        }
+                    </div>
+                </section>
 
-            <main class="page-main detail__main page-list-column">
-                @if (header.description) {
-                    <p class="detail__description text-body">{{ header.description }}</p>
-                }
+                <div class="browse-bar" role="toolbar" aria-label="List actions">
+                    <app-sort-button
+                        [options]="sortFieldOptions"
+                        [selectedValue]="userListDetail.sort.field"
+                        [direction]="userListDetail.sort.direction"
+                        (sortChange)="setSortField($event)"
+                        (directionToggle)="toggleSortDirection()"
+                    />
 
-                <app-browse-toolbar class="detail__toolbar">
-                    <div start class="detail__actions" role="group" aria-label="List actions">
+                    <div class="browse-bar__end">
                         <button matButton="filled" type="button" (click)="addTitles(header)">
                             <i class="fa-solid fa-plus" aria-hidden="true"></i>
                             Add titles
@@ -46,16 +56,7 @@
                             </button>
                         </mat-menu>
                     </div>
-
-                    <app-sort-button
-                        end
-                        [options]="sortFieldOptions"
-                        [selectedValue]="userListDetail.sort.field"
-                        [direction]="userListDetail.sort.direction"
-                        (sortChange)="setSortField($event)"
-                        (directionToggle)="toggleSortDirection()"
-                    />
-                </app-browse-toolbar>
+                </div>
 
                 @if (userListDetail.showSkeleton) {
                     <div class="detail__items" aria-hidden="true">
@@ -165,17 +166,22 @@
                         (page)="changePage($event)"
                     />
                 }
-            </main>
+            </div>
         } @else {
-            <app-sub-page-header parentTitle="your lists" [backLink]="backLink" [loading]="true" />
-
-            <main class="page-main detail__main page-list-column">
+            <div class="browse-page inner-container">
+                <div class="list-hero" aria-hidden="true">
+                    <app-skeleton class="list-hero__cover" />
+                    <div class="list-hero__text">
+                        <app-skeleton class="catalogue__title-skeleton" />
+                        <app-skeleton class="catalogue__line-skeleton" />
+                    </div>
+                </div>
                 <div class="detail__items" aria-hidden="true">
                     @for (placeholder of skeletonCount | repeat; track placeholder) {
                         <app-media-list-item [loading]="true" />
                     }
                 </div>
-            </main>
+            </div>
         }
     </div>
 }

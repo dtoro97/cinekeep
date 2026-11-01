@@ -3,7 +3,6 @@ import { forkJoin, map, of, startWith, switchMap } from 'rxjs';
 
 import {
     CardItem,
-    getCurrentMonthName,
     hasRemoteData,
     remoteData,
     sortWatchProviders,
@@ -29,7 +28,6 @@ export class StreamingHubStoreService {
                       isFeatured: true,
                       previews: [] as readonly CardItem[],
                       title: getStreamingThisMonthTitle(),
-                      ctaLabel: `Browse ${getCurrentMonthName()} arrivals`,
                       baseQuery: toStreamingThisMonthQuery(tvProviders),
                   }
                 : null;

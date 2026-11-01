@@ -4,15 +4,24 @@
     <div class="image__placeholder" aria-hidden="true">
         @switch (type) {
             @case ('person') {
-                <svg class="image__placeholder-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="8.5" r="3.5" stroke="currentColor" stroke-width="1.5" />
-                    <path
-                        d="M4.5 21c0-4.142 3.358-7.5 7.5-7.5s7.5 3.358 7.5 7.5"
-                        stroke="currentColor"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                    />
-                </svg>
+                @if (initials) {
+                    <span class="image__initials">{{ initials }}</span>
+                } @else {
+                    <svg
+                        class="image__placeholder-icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <circle cx="12" cy="8.5" r="3.5" stroke="currentColor" stroke-width="1.5" />
+                        <path
+                            d="M4.5 21c0-4.142 3.358-7.5 7.5-7.5s7.5 3.358 7.5 7.5"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                }
             }
             @default {
                 <svg class="image__placeholder-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

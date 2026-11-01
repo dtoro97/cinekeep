@@ -35,6 +35,7 @@ export type MediaListDialogResult =
 export class MediaListDialogComponent {
     readonly options: readonly MediaListDialogOption[];
     readonly hasLists: boolean;
+    readonly presenceText: string;
 
     constructor(
         @Inject(MAT_DIALOG_DATA)
@@ -49,6 +50,10 @@ export class MediaListDialogComponent {
             label: list.itemPresent ? `${data.title} is already in ${list.name}` : `Add ${data.title} to ${list.name}`,
         }));
         this.hasLists = data.customLists.length > 0;
+        const presentCount = data.customLists.filter((list) => list.itemPresent).length;
+        this.presenceText = presentCount
+            ? `${data.title} is in ${presentCount} of your lists.`
+            : `Choose a list for ${data.title}.`;
     }
 
     selectList(listId: number): void {

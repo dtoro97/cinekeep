@@ -52,11 +52,11 @@ const LIBRARY_TOGGLE_COPY = {
     },
     favorite: {
         iconClass: 'fa-heart',
-        activeLabel: 'In favorites',
-        inactiveLabel: 'Add to favorites',
-        activeAriaLabel: (title: string) => `${title} is in your favorites`,
-        inactiveAriaLabel: (title: string) => `Add ${title} to favorites`,
-        errorMessage: 'Could not update your favorites.',
+        activeLabel: 'In favourites',
+        inactiveLabel: 'Add to favourites',
+        activeAriaLabel: (title: string) => `${title} is in your favourites`,
+        inactiveAriaLabel: (title: string) => `Add ${title} to favourites`,
+        errorMessage: 'Could not update your favourites.',
     },
 };
 

@@ -1,113 +1,168 @@
 <div class="page-container">
     @if (seasonDetail$ | async; as seasonDetail) {
-        <app-hero-surface [backdropPath]="seasonDetail.backdropPath" variant="integrated">
-            <div class="season-hero">
-                <a class="season-hero__back text-caption" [routerLink]="seasonDetail.overviewLink">
-                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                    @if (seasonDetail.mediaTitle; as title) {
-                        Back to {{ title }}
-                    } @else {
-                        Back
-                    }
-                </a>
+        <app-catalogue-backdrop [backdropPath]="seasonDetail.backdropPath" [alt]="seasonDetail.mediaTitle ?? ''" />
 
-                @if (seasonDetail.summary; as season) {
-                    <div class="season-hero__body">
-                        <app-image
-                            class="season-hero__poster"
-                            [src]="season.posterPath"
-                            [alt]="season.name"
-                            params="w342"
-                        />
+        <div class="catalogue inner-container" [class.catalogue--plain]="!seasonDetail.backdropPath">
+            @if (seasonDetail.summary; as season) {
+                <section class="catalogue__lead" aria-labelledby="season-heading">
+                    <app-image class="catalogue__poster" [src]="season.posterPath" [alt]="season.name" params="w342" />
 
-                        <div class="season-hero__text">
-                            @if (seasonDetail.mediaTitle; as title) {
-                                <p class="season-hero__series text-hero-meta">{{ title }}</p>
-                            }
-                            <h1 class="text-hero-title">{{ season.name }}</h1>
-
-                            <p class="season-hero__meta text-hero-meta">
-                                @if (season.airDate) {
-                                    <span>{{ season.airDate | date: "y" }}</span>
-                                }
-                                <span>{{ season.episodeCount }} episodes</span>
-                            </p>
-
-                            @if (season.overview) {
-                                <p class="season-hero__overview text-hero-summary">{{ season.overview }}</p>
-                            }
+                    @if (season.voteAverage) {
+                        <div class="catalogue__lead-score">
+                            <app-tmdb-rating prominent label="Season score" [value]="season.voteAverage" />
                         </div>
+                    }
 
-                        @if (season.voteAverage) {
-                            <aside class="season-hero__ratings" aria-label="Ratings">
-                                <app-tmdb-rating prominent [value]="season.voteAverage" />
-                            </aside>
+                    <div class="catalogue__body">
+                        <p class="catalogue__eyebrow">
+                            <a class="catalogue__back" [routerLink]="seasonDetail.overviewLink">‹ {{ seasonDetail.mediaTitle ?? 'Back' }}</a>
+                        </p>
+
+                        <h1 id="season-heading" class="text-hero-title">{{ season.name }}</h1>
+
+                        <dl class="catalogue-facts">
+                            @if (seasonDetail.year) {
+                                <div class="catalogue-facts__cell">
+                                    <dt class="catalogue-facts__label">Year</dt>
+                                    <dd>{{ seasonDetail.year }}</dd>
+                                </div>
+                            }
+                            <div class="catalogue-facts__cell">
+                                <dt class="catalogue-facts__label">Episodes</dt>
+                                <dd>{{ season.episodeCount }}</dd>
+                            </div>
+                            @if (seasonDetail.airedFrom; as airedFrom) {
+                                <div class="catalogue-facts__cell">
+                                    <dt class="catalogue-facts__label">Aired</dt>
+                                    <dd>
+                                        {{ airedFrom | date: 'd MMM y' }}@if (seasonDetail.airedTo; as airedTo) { – {{ airedTo | date: 'd MMM y' }}}
+                                    </dd>
+                                </div>
+                            }
+                        </dl>
+
+                        @if (season.overview) {
+                            <p class="catalogue__overview text-body">{{ season.overview }}</p>
                         }
                     </div>
-                } @else {
-                    <div class="season-hero__body" aria-hidden="true">
-                        <app-skeleton class="season-hero__poster" />
-                        <div class="season-hero__text">
-                            <app-skeleton class="season-hero__line season-hero__line--title" />
-                            <app-skeleton class="season-hero__line season-hero__line--meta" />
-                            <app-skeleton class="season-hero__line" />
-                        </div>
+                </section>
+            } @else {
+                <div class="catalogue__lead" aria-hidden="true">
+                    <app-skeleton class="catalogue__poster" />
+                    <div class="catalogue__body">
+                        <app-skeleton class="catalogue__line-skeleton" />
+                        <app-skeleton class="catalogue__title-skeleton" />
+                        <app-skeleton class="catalogue__facts-skeleton" />
+                    </div>
+                </div>
+            }
+
+            <aside class="catalogue__side" aria-label="Season score, your library and where to watch">
+                @if (seasonDetail.summary?.voteAverage; as score) {
+                    <div class="catalogue__side-score">
+                        <app-tmdb-rating prominent label="Season score" [value]="score" />
                     </div>
                 }
-            </div>
-        </app-hero-surface>
 
-        <main class="page-main season-detail">
-            <nav class="season-nav" aria-label="Seasons">
-                @if (seasonDetail.hasSeasonOptions) {
-                    <app-toggle-group
-                        variant="chips"
-                        [options]="seasonDetail.seasonOptions"
-                        [selectedValue]="seasonDetail.selectedSeason"
-                        (selected)="changeSeason($event)"
-                    />
-                } @else {
-                    <app-skeleton class="season-nav__skeleton" aria-hidden="true" />
+                <app-your-library
+                    [isAuthenticated]="seasonDetail.isAuthenticated"
+                    invite="to rate episodes as you watch them."
+                    (signIn)="signIn()"
+                >
+                    <p class="season-library">
+                        Rate each episode from its page.
+                        <a class="season-library__link" routerLink="/me/ratings">Your ratings ›</a>
+                    </p>
+                </app-your-library>
+
+                @if (seasonDetail.providers; as providers) {
+                    <app-where-to-watch [providers]="providers" mediaType="tv" />
                 }
-            </nav>
 
-            @if (seasonDetail.hasRatingBars) {
-                <app-page-section subtitle="Episode ratings">
-                    <app-season-ratings-strip [bars]="seasonDetail.ratingBars" />
-                </app-page-section>
-            }
+                @if (seasonDetail.videos.length) {
+                    <section class="catalogue-group" aria-labelledby="videos-heading">
+                        <h2 id="videos-heading" class="catalogue-group__title text-display-sm">Season videos</h2>
 
-            <app-page-section subtitle="Episodes">
-                <app-episode-list [state]="seasonDetail.episodes" />
-            </app-page-section>
+                        <ul class="season-videos">
+                            @for (video of seasonDetail.videos; track video.id) {
+                                <li>
+                                    <a
+                                        class="season-videos__link"
+                                        [href]="video.href"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        [attr.aria-label]="video.openLabel"
+                                    >
+                                        <span class="season-videos__title">{{ video.title }}</span>
+                                        <span class="season-videos__meta text-meta">
+                                            {{ video.typeLabel }}@if (video.publishedAt) { · {{ video.publishedAt | date: 'd MMM y' }}}
+                                        </span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </section>
+                }
+            </aside>
 
-            @if (seasonDetail.showPhotos) {
-                <app-page-section subtitle="Season Photos">
-                    @if (seasonDetail.photosLink; as photosLink) {
-                        <a
-                            section-controls
-                            class="section-link text-body-sm"
-                            [routerLink]="photosLink"
-                        >
-                            Browse all photos ({{ seasonDetail.imageCount }})
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                    }
-                    <app-photos-preview
-                        [state]="seasonDetail.images"
-                        [totalCount]="seasonDetail.imageCount"
-                        variant="compact"
-                        (photoClick)="openPhotoViewer($event, seasonDetail.imageList)"
-                        (moreClick)="openSeasonPhotos(seasonDetail.photosLink)"
-                    />
-                </app-page-section>
-            }
+            <div class="catalogue__main">
+                @if (seasonDetail.seasonTabs.length) {
+                    <nav class="season-tabs catalogue-tabs" aria-label="Seasons">
+                        @for (tab of seasonDetail.seasonTabs; track tab.seasonNumber) {
+                            <a
+                                class="catalogue-tabs__tab"
+                                [class.catalogue-tabs__tab--active]="tab.isActive"
+                                [attr.aria-current]="tab.isActive ? 'page' : null"
+                                [routerLink]="tab.routeCommands"
+                            >
+                                {{ tab.label }}
+                            </a>
+                        }
+                    </nav>
+                } @else {
+                    <app-skeleton class="season-tabs__skeleton" aria-hidden="true" />
+                }
 
-            @if (seasonDetail.showVideos) {
-                <app-page-section subtitle="Season Videos">
-                    <app-videos-grid [state]="seasonDetail.videos" />
-                </app-page-section>
-            }
-        </main>
+                <section class="catalogue-block" aria-labelledby="episodes-heading">
+                    <header class="catalogue-block__head">
+                        <h2 id="episodes-heading" class="text-headline">Episodes</h2>
+                    </header>
+                    <app-episode-list [state]="seasonDetail.episodes" />
+                </section>
+
+                @if (seasonDetail.showPosterSkeleton) {
+                    <section class="catalogue-block" aria-hidden="true">
+                        <div class="season-posters">
+                            @for (slot of seasonDetail.posterSkeletonCount | repeat; track slot) {
+                                <app-skeleton class="season-posters__poster" />
+                            }
+                        </div>
+                    </section>
+                } @else if (seasonDetail.posterPreview.length) {
+                    <section class="catalogue-block" aria-labelledby="photos-heading">
+                        <header class="catalogue-block__head">
+                            <h2 id="photos-heading" class="text-headline">Photos</h2>
+                            <span class="catalogue-block__count">{{ seasonDetail.imageCount }} posters</span>
+                            @if (seasonDetail.photosLink; as photosLink) {
+                                <a class="catalogue-block__more" [routerLink]="photosLink">All photos ›</a>
+                            }
+                        </header>
+
+                        <div class="season-posters">
+                            @for (image of seasonDetail.posterPreview; track image.file_path; let index = $index) {
+                                <button
+                                    class="season-posters__button"
+                                    type="button"
+                                    [attr.aria-label]="'Open poster ' + (index + 1)"
+                                    (click)="openPhotoViewer(index, seasonDetail.imageList)"
+                                >
+                                    <app-image class="season-posters__poster" [src]="image.file_path" params="w342" alt="" />
+                                </button>
+                            }
+                        </div>
+                    </section>
+                }
+            </div>
+        </div>
     }
 </div>

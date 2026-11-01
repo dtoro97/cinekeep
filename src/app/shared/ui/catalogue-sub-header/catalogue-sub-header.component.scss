@@ -1,0 +1,73 @@
+@use 'breakpoints' as *;
+@use 'mixins' as *;
+
+:host {
+    display: block;
+}
+
+// A sub-page of a title, season, episode or person: the parent's poster, a way back, the page title.
+.sub-header {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-6);
+    padding-top: var(--space-10);
+
+    &__thumb {
+        flex: none;
+        width: 4.5rem;
+        @include media-hover();
+    }
+
+    &__image {
+        display: block;
+        aspect-ratio: var(--poster-ratio);
+        --image-radius: var(--radius-media);
+        --skeleton-radius: var(--radius-media);
+    }
+
+    &__text {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1-5);
+        min-width: 0;
+    }
+
+    &__back {
+        font-family: var(--font-data);
+        font-size: var(--text-md);
+        font-weight: var(--weight-semibold);
+        @include text-link(var(--text-muted));
+    }
+
+    &__back-skeleton {
+        width: 12rem;
+        --skeleton-height: 1rem;
+    }
+
+    &__title {
+        font-size: var(--text-page-title);
+        font-weight: var(--weight-black);
+        line-height: 0.95;
+        letter-spacing: var(--tracking-tighter);
+    }
+
+    &__count {
+        margin-left: var(--space-1-5);
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-lg);
+        font-weight: var(--weight-semibold);
+        letter-spacing: 0;
+    }
+}
+
+@include mobile() {
+    .sub-header {
+        gap: var(--space-4);
+        padding-top: var(--space-6);
+
+        &__thumb {
+            width: 3.5rem;
+        }
+    }
+}

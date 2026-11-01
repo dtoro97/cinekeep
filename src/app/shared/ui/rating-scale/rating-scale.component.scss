@@ -1,0 +1,115 @@
+@use 'mixins' as *;
+
+:host {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.rating-scale {
+    &__score {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-2);
+    }
+
+    // Your score is yours, so it is gold.
+    &__figure {
+        color: var(--color-yours);
+        @include text-figure(var(--text-figure-lg));
+    }
+
+    &__out-of {
+        color: var(--text-muted);
+        font-weight: var(--weight-semibold);
+    }
+
+    &__note {
+        color: var(--text-muted);
+        font-size: var(--text-control);
+        font-weight: var(--weight-medium);
+    }
+
+    &__skeleton {
+        width: 8rem;
+        --skeleton-height: 3rem;
+    }
+
+    &__steps {
+        display: grid;
+        grid-template-columns: repeat(10, minmax(0, 1fr));
+        gap: var(--space-1);
+    }
+
+    &__step {
+        min-height: 2.25rem;
+        padding: 0;
+        border: 0;
+        border-radius: var(--radius-sm);
+        background: var(--surface-raised);
+        color: var(--text-secondary);
+        @include text-figure(var(--text-md), null);
+        cursor: pointer;
+        transition:
+            background-color var(--motion-fast),
+            color var(--motion-fast);
+
+        @include hover-capable {
+            &:not(:disabled):hover {
+                background: var(--control-surface-hover);
+                color: var(--text-primary);
+            }
+        }
+
+        &--selected,
+        &--selected:not(:disabled):hover {
+            background: var(--color-yours);
+            color: var(--color-on-brand);
+        }
+
+        &:disabled {
+            cursor: default;
+            opacity: var(--control-disabled-opacity);
+        }
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1) var(--space-4);
+    }
+
+    &__action {
+        min-height: var(--control-height-sm);
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--text-muted);
+        font: inherit;
+        font-size: var(--text-control);
+        font-weight: var(--weight-semibold);
+        cursor: pointer;
+        transition: color var(--motion-base);
+
+        @include hover-capable {
+            &:not(:disabled):hover {
+                color: var(--text-primary);
+            }
+        }
+
+        &--loss {
+            color: var(--color-danger-text);
+
+            @include hover-capable {
+                &:not(:disabled):hover {
+                    color: var(--color-danger-light);
+                }
+            }
+        }
+
+        &:disabled {
+            cursor: default;
+            opacity: var(--control-disabled-opacity);
+        }
+    }
+}

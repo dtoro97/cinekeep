@@ -2,6 +2,22 @@
     @if (loading) {
         <app-skeleton class="tmdb-rating__label-skeleton" aria-hidden="true" />
         <app-skeleton class="tmdb-rating__value-skeleton" aria-hidden="true" />
+    } @else if (prominent) {
+        <span class="u-visually-hidden">{{ label }}</span>
+
+        @if (value; as rating) {
+            <p class="tmdb-rating__headline">
+                <span class="tmdb-rating__value text-rating">{{ rating | number: '1.1-1' }}</span>
+                <span class="tmdb-rating__scale">
+                    / 10
+                    @if (voteCount; as count) {
+                        · {{ count | voteCount }} {{ voteUnit }}
+                    }
+                </span>
+            </p>
+        } @else {
+            <span class="tmdb-rating__empty text-meta">No ratings yet</span>
+        }
     } @else {
         <span class="tmdb-rating__label text-overline">{{ label }}</span>
 
@@ -10,9 +26,7 @@
                 <i class="tmdb-rating__icon fa-solid fa-star" aria-hidden="true"></i>
 
                 @if (value; as rating) {
-                    <span class="tmdb-rating__value" [class.text-rating]="prominent" [class.text-title]="!prominent">
-                        {{ rating | number: '1.1-1' }}
-                    </span>
+                    <span class="tmdb-rating__value text-title">{{ rating | number: '1.1-1' }}</span>
                     <span class="tmdb-rating__scale text-meta">/10</span>
                 } @else {
                     <span class="tmdb-rating__empty text-meta">No ratings yet</span>

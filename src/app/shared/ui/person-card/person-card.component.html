@@ -14,17 +14,26 @@
             [src]="person.imagePath"
             type="person"
             [alt]="person.name"
+            [name]="person.name"
             params="w185"
         />
 
-        <span class="person-card__name text-card-title">{{ person.name }}</span>
-
-        <span class="person-card__subtitle text-card-meta">
-            @if (person.subtitle) {
-                {{ person.subtitle }}
-            } @else {
-                unknown
+        <span class="person-card__body" [class.person-card__body--ranked]="rank">
+            @if (rank) {
+                <span class="person-card__rank text-numeral" aria-hidden="true">{{ rank }}</span>
             }
+
+            <span class="person-card__text">
+                <span class="person-card__name text-card-title">{{ person.name }}</span>
+
+                <span class="person-card__subtitle text-card-meta">
+                    @if (person.subtitle) {
+                        {{ person.subtitle }}
+                    } @else {
+                        unknown
+                    }
+                </span>
+            </span>
         </span>
     </a>
 }

@@ -1,19 +1,18 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 
 import { filter } from 'rxjs';
 
 import {
-    BrowseToolbarComponent,
+    CatalogueSubHeaderComponent,
     EmptyStateComponent,
     isDefined,
-    PluralizePipe,
     RepeatPipe,
     SeoService,
     SkeletonComponent,
     SortButtonComponent,
-    SubPageHeaderComponent,
     VideoCardComponent,
 } from '../../../shared';
 import { toMediaSectionSeoMetadata } from '../media-seo';
@@ -24,13 +23,13 @@ import { MediaVideosPageStoreService, VideoSortField } from './media-videos-page
     selector: 'app-media-videos-page',
     imports: [
         AsyncPipe,
-        BrowseToolbarComponent,
+        CatalogueSubHeaderComponent,
+        DatePipe,
         EmptyStateComponent,
-        PluralizePipe,
+        MatButtonModule,
         RepeatPipe,
         SkeletonComponent,
         SortButtonComponent,
-        SubPageHeaderComponent,
         VideoCardComponent,
     ],
     providers: [MediaVideosPageStoreService],
@@ -39,7 +38,7 @@ import { MediaVideosPageStoreService, VideoSortField } from './media-videos-page
     styleUrl: './media-videos-page.component.scss',
 })
 export class MediaVideosPageComponent {
-    readonly skeletonCount = 9;
+    readonly skeletonCount = 8;
     readonly mediaVideos$ = this.store.mediaVideos$;
 
     constructor(
@@ -60,5 +59,13 @@ export class MediaVideosPageComponent {
 
     toggleSortDirection(): void {
         this.store.toggleSortDirection();
+    }
+
+    setType(type: string | null): void {
+        this.store.setType(type);
+    }
+
+    showMore(): void {
+        this.store.showMore();
     }
 }

@@ -1,22 +1,23 @@
 import { AsyncPipe, ViewportScroller } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { RouterLink } from '@angular/router';
 
 import { catchError } from 'rxjs';
 
 import {
-    BrowseToolbarComponent,
+    CardComponent,
+    CardSkeletonComponent,
     EmptyStateComponent,
     IconButtonComponent,
     MEDIA_TYPE_OPTIONS,
-    MediaListItem,
-    MediaListItemComponent,
+    MediaKey,
     MediaType,
     RepeatPipe,
     SnackbarService,
     SortButtonComponent,
-    SubPageHeaderComponent,
     ToggleGroupComponent,
 } from '../../../shared';
 import { USER_ACCOUNT_SORT_FIELD, USER_ACCOUNT_SORT_OPTIONS } from '../user-list-sort-options';
@@ -26,26 +27,26 @@ import { UserWatchlistPageStoreService } from './user-watchlist-page-store.servi
     selector: 'app-user-watchlist-page',
     imports: [
         AsyncPipe,
-        BrowseToolbarComponent,
+        CardComponent,
+        CardSkeletonComponent,
         EmptyStateComponent,
         IconButtonComponent,
+        MatButtonModule,
         MatPaginatorModule,
-        MediaListItemComponent,
         RepeatPipe,
+        RouterLink,
         SortButtonComponent,
-        SubPageHeaderComponent,
         ToggleGroupComponent,
     ],
     providers: [UserWatchlistPageStoreService],
     templateUrl: './user-watchlist-page.component.html',
-    styleUrl: './user-watchlist-page.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserWatchlistPageComponent {
     readonly mediaTypeOptions = MEDIA_TYPE_OPTIONS;
     readonly sortOptions = USER_ACCOUNT_SORT_OPTIONS;
     readonly sortField = USER_ACCOUNT_SORT_FIELD;
-    readonly skeletonCount = 8;
+    readonly skeletonCount = 12;
     readonly watchlist$ = this.store.watchlist$;
 
     constructor(
@@ -95,7 +96,7 @@ export class UserWatchlistPageComponent {
             .subscribe();
     }
 
-    remove(item: MediaListItem): void {
+    remove(item: MediaKey): void {
         this.store
             .remove$(item)
             .pipe(

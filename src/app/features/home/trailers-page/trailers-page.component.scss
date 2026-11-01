@@ -1,28 +1,21 @@
 @use 'breakpoints' as *;
 
 .trailers {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-}
+    display: block;
+    padding-bottom: var(--space-12);
 
-.trailers__toolbar {
-    display: flex;
-    align-items: center;
-}
+    &__tabs {
+        margin-top: var(--space-10);
+    }
 
-.trailers__grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-5);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.trailers__more {
-    display: flex;
-    justify-content: center;
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--space-7) var(--space-5);
+        margin: var(--space-7) 0 0;
+        padding: 0;
+        list-style: none;
+    }
 }
 
 .thumb {
@@ -63,13 +56,22 @@
 
 @include content-md() {
     .trailers__grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@include tablet() {
+    .trailers__grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @include mobile() {
+    .trailers__tabs {
+        margin-top: var(--space-6);
+    }
+
     .trailers__grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-4);
+        gap: var(--space-5) var(--space-3);
     }
 }

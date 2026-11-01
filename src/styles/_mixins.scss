@@ -1,5 +1,14 @@
 @use 'breakpoints' as *;
 
+// A number set as a figure (score, rank, count, year): Extra Condensed at the given size.
+// The `.text-figure` roles use it too; pass `null` to keep the inherited line height.
+@mixin text-figure($size, $line-height: 1) {
+    font-family: var(--font-figure);
+    font-size: $size;
+    font-weight: var(--weight-extrabold);
+    line-height: $line-height;
+}
+
 @mixin line-clamp($lines: 2) {
     display: -webkit-box;
     -webkit-line-clamp: $lines;
@@ -14,7 +23,7 @@
     }
 }
 
-/// A link styled as text that takes the accent colour on hover and keyboard focus.
+/// A link styled as text that takes the accent colour on hover.
 @mixin text-link($color: var(--text-primary)) {
     color: $color;
     text-decoration: none;
@@ -24,10 +33,6 @@
         &:hover {
             color: var(--text-accent);
         }
-    }
-
-    &:focus-visible {
-        color: var(--text-accent);
     }
 }
 
@@ -97,14 +102,12 @@
             filter: var(--interactive-media-hover-filter);
         }
     }
-
-    &:focus-visible {
-        filter: var(--interactive-media-hover-filter);
-    }
 }
 
 @mixin -row-hover-state($media-selector, $title-selector) {
-    background: var(--control-subtle-surface-hover);
+    &::before {
+        background: var(--control-subtle-surface-hover);
+    }
 
     #{$title-selector} {
         color: var(--text-accent);
@@ -117,9 +120,21 @@
 
 /// Hover for clickable list rows (ranked charts, episode lists, account lists): a soft row tint,
 /// the title in the accent colour and the thumbnail brightened.
-/// Keyboard focus on the row, or on a link inside it, looks the same.
+/// The tint reaches past the row on both sides, so the content stays aligned with the headings
+/// above it and still has room inside the tint.
 @mixin row-hover($media-selector, $title-selector) {
-    transition: background-color var(--motion-base);
+    position: relative;
+    isolation: isolate;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0 calc(var(--row-hover-bleed) * -1);
+        z-index: -1;
+        border-radius: var(--radius-md);
+        pointer-events: none;
+        transition: background-color var(--motion-base);
+    }
 
     #{$media-selector} {
         transition: filter var(--motion-base);
@@ -133,11 +148,6 @@
         &:hover {
             @include -row-hover-state($media-selector, $title-selector);
         }
-    }
-
-    &:focus-visible,
-    &:has(:focus-visible) {
-        @include -row-hover-state($media-selector, $title-selector);
     }
 }
 
@@ -175,7 +185,6 @@
 
 /// Hover for clickable cards (posters, backdrops, people, lists, promos): the card lifts and
 /// deepens its shadow, the image brightens and gently zooms, the title takes the accent colour.
-/// Keyboard focus on the card, or on a link inside it, looks the same.
 ///
 /// $frame-selector: the element carrying the elevation; defaults to the card itself.
 /// $scale: zooms the media, so the media needs a clipping (`overflow: hidden`) parent.
@@ -214,11 +223,6 @@
         &:hover {
             @include -card-hover-state($media-selector, $title-selector, $frame-selector, $border-color, $background, $scale);
         }
-    }
-
-    &:focus-visible,
-    &:has(:focus-visible) {
-        @include -card-hover-state($media-selector, $title-selector, $frame-selector, $border-color, $background, $scale);
     }
 }
 

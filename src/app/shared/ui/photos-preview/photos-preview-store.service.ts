@@ -21,7 +21,6 @@ const MEDIA_PREVIEW_COUNT = 9;
 const PERSON_PREVIEW_COUNT = 7;
 const COMPACT_PREVIEW_COUNT = 4;
 const PERSON_PROFILE_COUNT = 3;
-const MAX_MORE_COUNT = 99;
 // Summed tile aspect ratios that fit two mosaic rows; row height scales with the
 // viewport, so a row holds roughly 6.3 units on any desktop width.
 const MOSAIC_ASPECT_BUDGET = 11;
@@ -77,7 +76,7 @@ export class PhotosPreviewStoreService extends ComponentStore<PhotosPreviewOptio
                 imageParams: image.aspect_ratio && image.aspect_ratio > 1.9 ? 'w780' : 'w500',
                 layoutAspectRatio: toPhotoLayoutAspectRatio(image, true),
                 hasMore: !!tileMoreCount,
-                moreLabel: tileMoreCount ? `+${Math.min(tileMoreCount, MAX_MORE_COUNT)}` : null,
+                moreLabel: tileMoreCount ? `+${tileMoreCount}` : null,
                 ariaLabel: tileMoreCount ? `Browse all photos, ${tileMoreCount} more` : `Open photo ${clickIndex + 1}`,
             };
         });

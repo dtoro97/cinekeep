@@ -1,0 +1,514 @@
+@use 'breakpoints' as *;
+@use 'mixins' as *;
+
+// Catalogue pages (title, season, episode, collection): a lead and main column on the left, a sticky
+// sidebar on the right. Shared here because every catalogue page repeats this structure.
+.catalogue {
+    --catalogue-poster-width: 200px;
+    --catalogue-poster-overlap: 140px;
+    --catalogue-sidebar-width: 340px;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--catalogue-sidebar-width);
+    grid-template-areas:
+        'lead side'
+        'main side';
+    align-items: start;
+    column-gap: var(--space-14);
+
+    // Without a backdrop there is nothing for the poster to overlap.
+    &--plain {
+        --catalogue-poster-overlap: 0px;
+    }
+
+    &__lead {
+        grid-area: lead;
+        display: grid;
+        grid-template-columns: var(--catalogue-poster-width) minmax(0, 1fr);
+        gap: var(--space-8);
+        min-width: 0;
+
+        // Episodes lead with their still as the backdrop, so they have no poster.
+        &--text-only {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    &__poster {
+        position: relative;
+        z-index: 1;
+        width: var(--catalogue-poster-width);
+        aspect-ratio: var(--poster-ratio);
+        margin-top: calc(var(--catalogue-poster-overlap) * -1);
+        box-shadow: var(--shadow-lg);
+        --image-radius: var(--radius-media);
+        --skeleton-radius: var(--radius-media);
+    }
+
+    // Phones only: the score sits beside the poster; wider, it heads the sidebar.
+    &__lead-score {
+        display: none;
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        padding-top: var(--space-5);
+    }
+
+    &__lead--text-only &__body {
+        padding-top: var(--space-2);
+    }
+
+    // The back link or series · season · episode line above the title.
+    &__eyebrow {
+        margin-bottom: var(--space-2);
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-md);
+        font-weight: var(--weight-semibold);
+    }
+
+    &__eyebrow-link {
+        font-weight: var(--weight-bold);
+        @include text-link(var(--text-primary));
+    }
+
+    &__back {
+        @include text-link(var(--text-muted));
+    }
+
+    &__credit {
+        margin-top: var(--space-3);
+        color: var(--text-muted);
+        font-size: var(--text-lg);
+        font-weight: var(--weight-medium);
+    }
+
+    &__credit-link {
+        font-weight: var(--weight-semibold);
+        @include text-link(var(--text-primary));
+    }
+
+    &__overview {
+        max-width: var(--layout-body-measure);
+        margin-top: var(--space-4);
+
+        &--empty {
+            color: var(--text-muted);
+        }
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin-top: var(--space-5);
+    }
+
+    &__side {
+        grid-area: side;
+        position: sticky;
+        top: calc(var(--header-height) + var(--space-6));
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-7);
+        min-width: 0;
+        padding-top: var(--space-6);
+    }
+
+    &__main {
+        grid-area: main;
+        min-width: 0;
+    }
+
+    &__title-skeleton {
+        width: min(28rem, 80%);
+        height: 4rem;
+    }
+
+    &__line-skeleton {
+        width: min(20rem, 60%);
+        margin-top: var(--space-4);
+        --skeleton-height: 1.1rem;
+    }
+
+    &__facts-skeleton {
+        width: min(32rem, 100%);
+        margin-top: var(--space-5);
+        --skeleton-height: 3.5rem;
+    }
+
+    &__overview-skeleton {
+        width: min(var(--layout-body-measure), 100%);
+        margin-top: var(--space-4);
+        --skeleton-height: 5rem;
+    }
+
+    &__action-skeleton {
+        width: 7.5rem;
+        height: var(--control-height-lg);
+        --skeleton-radius: var(--control-radius);
+    }
+}
+
+// The technical block: one type size, cells split by hairlines between two rules.
+.catalogue-facts {
+    display: flex;
+    flex-wrap: wrap;
+    margin: var(--space-5) 0 0;
+    border-block: 1px solid var(--color-border);
+    font-family: var(--font-data);
+    font-size: var(--text-technical);
+    font-weight: var(--weight-semibold);
+    line-height: 1.35;
+
+    &__cell {
+        padding: var(--space-3) var(--space-6) var(--space-3) 0;
+        margin-right: var(--space-6);
+        border-right: 1px solid var(--color-border);
+
+        &:last-child {
+            margin-right: 0;
+            border-right: 0;
+        }
+
+        dd {
+            margin: 0;
+        }
+    }
+
+    &__label {
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: var(--tracking-wide);
+    }
+
+    &__link {
+        @include text-link(var(--text-primary));
+    }
+
+    &__skeleton {
+        width: 3rem;
+        --skeleton-height: 1.2rem;
+    }
+}
+
+// A sidebar group: a side heading, then rows or chips.
+.catalogue-group {
+    &__title {
+        margin-bottom: var(--space-1-5);
+    }
+
+    &__credit {
+        display: block;
+        padding-top: var(--space-2);
+        border-top: 1px solid var(--color-border);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        @include text-link(var(--text-muted));
+    }
+
+    &__more {
+        display: inline-block;
+        margin-top: var(--space-3);
+        font-size: var(--text-control);
+        font-weight: var(--weight-bold);
+        @include text-link(var(--text-muted));
+    }
+}
+
+// Label and value rows, split by hairlines.
+.catalogue-rows {
+    margin: 0;
+
+    &__row {
+        display: grid;
+        grid-template-columns: 7rem minmax(0, 1fr);
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-2) 0;
+        border-top: 1px solid var(--color-border);
+        font-family: var(--font-data);
+        font-size: var(--text-md);
+        font-weight: var(--weight-semibold);
+
+        dd {
+            margin: 0;
+            min-width: 0;
+        }
+    }
+
+    &__label {
+        color: var(--text-muted);
+    }
+
+    &__link {
+        @include text-link(var(--text-primary));
+    }
+}
+
+.catalogue-providers {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+
+    &__link {
+        display: inline-flex;
+    }
+
+    &__logo {
+        width: 1.875rem;
+        height: 1.875rem;
+        --image-radius: var(--control-radius);
+        @include media-hover();
+    }
+
+    &__more {
+        @include text-link(var(--text-muted));
+    }
+}
+
+// A section of the main column: heading, optional count, a link to the full page on the right.
+.catalogue-block {
+    padding-top: var(--section-gap);
+    // Sections stop below the sticky header and the title page's section index when it jumps to them.
+    scroll-margin-top: calc(var(--header-height) + var(--space-14));
+
+    &__head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: var(--space-2) var(--space-3);
+        margin-bottom: var(--space-5);
+    }
+
+    &__count {
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-md);
+        font-weight: var(--weight-semibold);
+    }
+
+    &__more {
+        margin-left: auto;
+        font-size: var(--text-control);
+        font-weight: var(--weight-semibold);
+        white-space: nowrap;
+        @include text-link(var(--text-muted));
+    }
+}
+
+// A sub-page of a title, season, episode or person: the sub-header, then the page's own content.
+.catalogue-sub-page {
+    display: block;
+    padding-bottom: var(--space-12);
+
+    &__body {
+        margin-top: var(--space-7);
+    }
+}
+
+// A row of tabs on a hairline; the current one is underlined in white. Used for section indexes,
+// season tabs and photo types.
+.catalogue-tabs {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-left: calc(var(--space-3) * -1);
+    overflow-x: auto;
+    border-bottom: 1px solid var(--color-border);
+    scrollbar-width: none;
+
+    &__tab {
+        display: inline-flex;
+        align-items: baseline;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-3) var(--space-2);
+        border: 0;
+        border-bottom: 3px solid transparent;
+        background: none;
+        color: var(--text-muted);
+        font: inherit;
+        font-size: var(--text-md);
+        font-weight: var(--weight-bold);
+        white-space: nowrap;
+        cursor: pointer;
+        transition: color var(--motion-base);
+
+        @include hover-capable {
+            &:hover {
+                color: var(--text-primary);
+            }
+        }
+
+        &--active {
+            border-bottom-color: var(--text-primary);
+            color: var(--text-primary);
+        }
+    }
+
+    &__count {
+        font-family: var(--font-data);
+        font-size: var(--text-meta);
+        font-weight: var(--weight-semibold);
+    }
+
+    // Controls that share the row (a filter, a sort) sit at its end.
+    &__end {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-left: auto;
+        padding: var(--space-1) 0;
+    }
+}
+
+// The page's table of contents, sticky under the header.
+.catalogue-index {
+    position: sticky;
+    top: var(--header-height);
+    z-index: 2;
+    margin-top: var(--space-12);
+    background: var(--surface-page);
+}
+
+// Sidebar figures, two across; a wide one, or an odd one out at the end, spans both.
+.catalogue-figures {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid var(--color-border);
+
+    &__item {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: var(--space-1);
+        min-width: 0;
+        padding: var(--space-3) 0;
+        border-bottom: 1px solid var(--color-border);
+
+        &--wide,
+        &:last-child:nth-child(odd) {
+            grid-column: span 2;
+        }
+    }
+
+    &__figure {
+        margin: 0;
+        font-family: var(--font-figure);
+        font-size: var(--text-figure-lg);
+        font-weight: var(--weight-extrabold);
+        line-height: 1;
+    }
+
+    &__label {
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-meta);
+        font-weight: var(--weight-semibold);
+    }
+}
+
+.catalogue-wall {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-6) var(--space-4);
+}
+
+// A wall that holds a page of 20: every breakpoint uses a column count that divides it, so no row is left short.
+.catalogue-wall--paged {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@include content-md() {
+    .catalogue {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            'lead'
+            'side'
+            'main';
+
+        &__side {
+            position: static;
+            padding-top: var(--space-10);
+        }
+    }
+}
+
+@include tablet() {
+    .catalogue-wall {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@include mobile() {
+    .catalogue {
+        --catalogue-poster-width: 120px;
+        --catalogue-poster-overlap: 100px;
+
+        &--plain {
+            --catalogue-poster-overlap: 0px;
+        }
+
+        &__lead {
+            grid-template-columns: var(--catalogue-poster-width) minmax(0, 1fr);
+            grid-template-areas:
+                'poster score'
+                'body body';
+            gap: var(--space-4);
+
+            &--text-only {
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-areas:
+                    'body'
+                    'score';
+            }
+        }
+
+        &__poster {
+            grid-area: poster;
+        }
+
+        &__lead-score {
+            grid-area: score;
+            display: block;
+            align-self: end;
+        }
+
+        &__side-score {
+            display: none;
+        }
+
+        &__body {
+            grid-area: body;
+            padding-top: 0;
+        }
+    }
+
+    .catalogue-facts__cell {
+        padding-right: var(--space-4);
+        margin-right: var(--space-4);
+    }
+
+    // The section index scrolls away on phones, but the header still sticks.
+    .catalogue-block {
+        scroll-margin-top: calc(var(--header-height) + var(--space-4));
+    }
+
+    .catalogue-index {
+        position: static;
+    }
+
+    .catalogue-wall {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--space-5) var(--space-3);
+    }
+
+    .catalogue-wall--paged {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

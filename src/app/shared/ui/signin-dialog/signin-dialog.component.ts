@@ -12,6 +12,7 @@ import { SigninDialogStoreService, USERNAME_MAX_LENGTH } from './signin-dialog-s
 export interface SigninDialogData {
     readonly title?: string;
     readonly description?: string;
+    readonly mode?: 'signin' | 'register';
 }
 
 export type SigninDialogResult = 'signed-in' | undefined;

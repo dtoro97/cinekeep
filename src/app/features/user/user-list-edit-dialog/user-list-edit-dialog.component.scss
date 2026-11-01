@@ -55,6 +55,22 @@
         cursor: pointer;
     }
 
+    &__check {
+        position: absolute;
+        top: var(--space-1-5);
+        right: var(--space-1-5);
+        z-index: 1;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: var(--radius-sm);
+        background: var(--text-primary);
+        color: var(--surface-page);
+        font-size: var(--text-2xs);
+    }
+
     &__frame {
         position: relative;
         display: grid;
@@ -90,20 +106,20 @@
     }
 
     &__option:has(input:checked) {
+        // Chosen: a white ring set off from the frame, and a white check.
         .cover-picker__frame {
-            border-color: var(--color-brand);
-            box-shadow: 0 0 0 2px var(--color-brand);
+            box-shadow:
+                0 0 0 2px var(--overlay-surface),
+                0 0 0 4px var(--text-primary);
+        }
+
+        .cover-picker__check {
+            display: flex;
         }
 
         .cover-picker__name {
             color: var(--text-primary);
         }
-    }
-
-    &__option:has(input:focus-visible) .cover-picker__frame {
-        box-shadow:
-            0 0 0 2px var(--color-brand),
-            0 0 0 5px var(--control-focus-ring-outer);
     }
 
     &__empty {

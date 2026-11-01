@@ -9,7 +9,7 @@ export const personDetailRoutes: Routes = [
         component: PersonDetailWrapperComponent,
         data: {
             seoDescription:
-                'Explore a person profile with biography, movie and TV credits, known-for titles, and photos.',
+                'Biography, movie and TV credits, and photos.',
             seoType: 'profile',
         },
         children: [

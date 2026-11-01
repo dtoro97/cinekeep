@@ -27,6 +27,17 @@ export class ImageComponent {
     @Input() alt = '';
     @Input() params?: string;
 
+    // A person whose portrait is missing shows their initials instead of a silhouette.
+    @Input()
+    set name(name: string | null | undefined) {
+        const words = (name ?? '').trim().split(/\s+/).filter(Boolean);
+        this.initials = words.length
+            ? `${words[0][0]}${words.length > 1 ? words[words.length - 1][0] : ''}`.toUpperCase()
+            : '';
+    }
+
+    initials = '';
+
     onError(): void {
         this.showImage = false;
     }

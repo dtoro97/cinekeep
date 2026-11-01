@@ -1,82 +1,76 @@
-<div class="streaming-hub page-container">
+<div class="page-container">
     @if (streamingHub$ | async; as streamingHub) {
-        <header class="streaming-hub__hero">
-            <div class="inner-container streaming-hub__hero-inner">
-                <h1 class="text-display">Streaming Guide</h1>
-                <p class="streaming-hub__subtitle text-body-sm">{{ subtitle }}</p>
-            </div>
-        </header>
+        <div class="browse-page inner-container">
+            <header class="hub-head">
+                <h1 class="text-display">Streaming guide</h1>
+                <p class="hub-head__intro text-body">{{ subtitle }}</p>
+            </header>
 
-        <main class="inner-container streaming-hub__content">
             @if (streamingHub.providerCards.length) {
-                <section class="provider-section" aria-label="Popular streaming services">
-                    <div class="provider-rail">
+                <section class="hub-section" aria-labelledby="services-heading">
+                    <h2 id="services-heading" class="hub-section__heading text-headline">By service</h2>
+
+                    <ul class="services">
                         @for (card of streamingHub.providerCards; track card.slug) {
-                            <a class="provider-card" [routerLink]="card.routerLink">
-                                @if (card.providerLogoPath) {
-                                    <span class="provider-card__logo">
-                                        <img [src]="card.providerLogoPath | imgSrc: 'w92'" [alt]="card.providerName" />
+                            <li>
+                                <a class="service" [routerLink]="card.routerLink">
+                                    <span class="service__media">
+                                        @if (card.preview; as preview) {
+                                            <app-image
+                                                class="service__image"
+                                                [src]="preview.backdropPath"
+                                                params="w780"
+                                                alt=""
+                                            />
+                                        } @else {
+                                            <app-skeleton class="service__image" />
+                                        }
                                     </span>
-                                }
-
-                                <span class="provider-card__copy">
-                                    <span class="provider-card__label text-card-title">{{ card.providerName }}</span>
-                                    <span class="provider-card__meta text-card-meta">Airing TV series</span>
-                                </span>
-
-                                <span class="provider-card__media">
-                                    @if (card.preview?.backdropPath; as backdropPath) {
-                                        <img
-                                            class="provider-card__image"
-                                            [src]="backdropPath | imgSrc: 'w780'"
-                                            [alt]="card.preview?.title ?? card.providerName"
+                                    <span class="service__caption">
+                                        <app-image
+                                            class="service__logo"
+                                            [src]="card.providerLogoPath"
+                                            params="w92"
+                                            alt=""
                                         />
-                                    } @else {
-                                        <app-skeleton class="provider-card__skeleton" />
-                                    }
-                                </span>
-                            </a>
+                                        <span class="service__name">{{ card.providerName }}</span>
+                                        <span class="service__go" aria-hidden="true">›</span>
+                                    </span>
+                                </a>
+                            </li>
                         }
-                    </div>
+                    </ul>
                 </section>
             }
 
-            <section class="route-section" aria-labelledby="route-section-title">
-                <div class="route-section__header">
-                    <h2 id="route-section-title" class="text-headline">Browse streaming lists</h2>
-                    <p class="text-body-sm">Lists for premieres, quick watches, and lower-profile titles.</p>
-                </div>
+            <section class="hub-section" aria-labelledby="lists-heading">
+                <h2 id="lists-heading" class="hub-section__heading text-headline">Streaming lists</h2>
 
-                <div class="route-grid">
+                <ul class="lists">
                     @for (section of streamingHub.routeSections; track section.slug) {
-                        <a
-                            class="route-card"
-                            [class.route-card--featured]="section.isFeatured"
-                            [routerLink]="section.routerLink"
-                        >
-                            <span class="route-card__preview" aria-hidden="true">
-                                @for (preview of section.previews; track preview.mediaType + '-' + preview.id) {
-                                    <img
-                                        class="route-card__image"
-                                        [src]="preview.imagePath | imgSrc: 'w342'"
-                                        [alt]="preview.title"
-                                    />
-                                } @empty {
-                                    @for (slot of previewSlots | repeat; track slot) {
-                                        <app-skeleton class="route-card__poster" />
-                                    }
-                                }
-                            </span>
+                        <li>
+                            <a class="list-row" [routerLink]="section.routerLink">
+                                <span class="list-row__text">
+                                    <span class="list-row__title">{{ section.title }}</span>
+                                    <span class="list-row__description text-body">{{ section.description }}</span>
+                                </span>
 
-                            <span class="route-card__copy">
-                                <span class="route-card__title text-title">{{ section.title }}</span>
-                                <span class="route-card__description text-body-sm">{{ section.description }}</span>
-                                <span class="route-card__cta text-card-meta">{{ section.ctaLabel }}</span>
-                            </span>
-                        </a>
+                                <span class="list-row__strip" aria-hidden="true">
+                                    @for (preview of section.previews; track preview.mediaType + '-' + preview.id) {
+                                        <app-image class="list-row__poster" [src]="preview.imagePath" params="w185" alt="" />
+                                    } @empty {
+                                        @for (slot of previewSlots | repeat; track slot) {
+                                            <app-skeleton class="list-row__poster" />
+                                        }
+                                    }
+                                </span>
+
+                                <span class="list-row__cta">See all ›</span>
+                            </a>
+                        </li>
                     }
-                </div>
+                </ul>
             </section>
-        </main>
+        </div>
     }
 </div>

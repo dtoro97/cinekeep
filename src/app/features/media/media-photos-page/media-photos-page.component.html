@@ -1,18 +1,23 @@
 <div class="page-container">
     @if (mediaPhotos$ | async; as mediaPhotos) {
-        <app-sub-page-header
-            [backdropPath]="mediaPhotos.media?.backdropPath"
-            [parentTitle]="mediaPhotos.media?.title"
-            [backLink]="['../']"
-            pageTitle="Photos"
-        />
+        <div class="catalogue-sub-page inner-container">
+            <app-catalogue-sub-header
+                pageTitle="Photos"
+                [count]="mediaPhotos.images?.length || null"
+                [parentTitle]="mediaPhotos.media?.title"
+                [parentDetail]="mediaPhotos.media?.year"
+                [backLink]="['../']"
+                [imagePath]="mediaPhotos.media?.posterPath"
+                [loading]="!mediaPhotos.media"
+            />
 
-        <main class="page-main">
-            @if (mediaPhotos.images; as images) {
-                <app-photos-browser [images]="images" (photoSelect)="openPhotoViewer($event)" />
-            } @else if (mediaPhotos.showSkeleton) {
-                <app-photos-browser-skeleton />
-            }
-        </main>
+            <div class="catalogue-sub-page__body">
+                @if (mediaPhotos.images; as images) {
+                    <app-photos-browser [images]="images" (photoSelect)="openPhotoViewer($event)" />
+                } @else if (mediaPhotos.showSkeleton) {
+                    <app-photos-browser-skeleton />
+                }
+            </div>
+        </div>
     }
 </div>

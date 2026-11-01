@@ -1,30 +1,21 @@
-<section class="not-found" aria-labelledby="not-found-title">
-    <div class="not-found__layout">
-        <div class="not-found__content">
-            <div class="not-found__message">
-                <h1 id="not-found-title" class="text-display">Page not found</h1>
-                <p class="text-body">
-                    We could not find that page. The link may be outdated, or the title may have moved.
-                </p>
-            </div>
-
-            <div class="not-found__actions">
-                <a matButton="filled" [routerLink]="['/']">
-                    <i class="fa-solid fa-house" aria-hidden="true"></i>
-                    Home
-                </a>
-                <a matButton class="text-button" [routerLink]="['/discover']">
-                    <i class="fa-solid fa-compass" aria-hidden="true"></i>
-                    Browse titles
-                </a>
-            </div>
-
-            <nav class="not-found__links" aria-label="Suggested pages">
-                <a [routerLink]="['/movies']">Movies</a>
-                <a [routerLink]="['/tv']">TV shows</a>
-            </nav>
+<div class="page-container">
+    <div class="not-found inner-container" aria-labelledby="not-found-title">
+        <div class="not-found__message">
+            <p class="not-found__mark" aria-hidden="true">404</p>
+            <h1 id="not-found-title" class="not-found__title text-display">Page not found</h1>
+            <p class="not-found__text text-body">
+                The link may be broken, or the title may have been removed from TMDb. Try a search, or start from one
+                of these.
+            </p>
         </div>
 
-        <div class="not-found__mark" aria-hidden="true">404</div>
+        <nav class="not-found__links" aria-label="Suggested pages">
+            @for (link of links; track link.label) {
+                <a class="not-found__link" [routerLink]="link.route">
+                    {{ link.label }}
+                    <span class="not-found__section">{{ link.section }} ›</span>
+                </a>
+            }
+        </nav>
     </div>
-</section>
+</div>

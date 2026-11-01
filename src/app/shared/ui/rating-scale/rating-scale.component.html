@@ -1,0 +1,43 @@
+@if (loading) {
+    <app-skeleton class="rating-scale__skeleton" aria-hidden="true" />
+} @else if (currentRating !== null) {
+    <p class="rating-scale__score">
+        <b class="rating-scale__figure">{{ currentRating | number: '1.0-1' }}</b>
+        <span class="rating-scale__out-of">/ 10, your score</span>
+    </p>
+} @else {
+    <p class="rating-scale__note">{{ canRate ? unratedText : 'You can rate it once it is out.' }}</p>
+}
+
+@if (canRate) {
+    <div class="rating-scale__steps" role="group" aria-label="Your score out of 10">
+        @for (step of steps; track step) {
+            <button
+                class="rating-scale__step"
+                [class.rating-scale__step--selected]="step === currentRating"
+                type="button"
+                [attr.aria-pressed]="step === currentRating"
+                [disabled]="disabled"
+                (click)="rate(step)"
+            >
+                {{ step }}
+            </button>
+        }
+    </div>
+
+    <div class="rating-scale__actions">
+        <button class="rating-scale__action" type="button" [disabled]="disabled" (click)="openHalfPoints()">
+            Rate in half points
+        </button>
+        @if (currentRating !== null) {
+            <button
+                class="rating-scale__action rating-scale__action--loss"
+                type="button"
+                [disabled]="disabled"
+                (click)="remove()"
+            >
+                Remove rating
+            </button>
+        }
+    </div>
+}

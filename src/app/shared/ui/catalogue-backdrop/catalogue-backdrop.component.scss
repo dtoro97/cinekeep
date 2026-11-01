@@ -1,0 +1,47 @@
+@use 'breakpoints' as *;
+
+// The backdrop takes the content width, so its edges line up with the poster and text below it.
+:host {
+    display: block;
+    box-sizing: border-box;
+    max-width: var(--layout-content-max-width);
+    margin-inline: auto;
+    padding-inline: var(--layout-gutter);
+}
+
+.catalogue-backdrop {
+    position: relative;
+    height: var(--catalogue-backdrop-height, 26.875rem);
+
+    &--empty {
+        height: var(--space-20);
+    }
+
+    &__image {
+        width: 100%;
+        height: 100%;
+        --image-radius: 0;
+        --image-position: center 25%;
+    }
+
+    &__fade {
+        position: absolute;
+        inset: 0;
+        background:
+            var(--gradient-backdrop-fade-right), var(--gradient-backdrop-dim-left), var(--gradient-backdrop-dim-bottom);
+    }
+}
+
+@include mobile() {
+    :host {
+        padding-inline: var(--layout-gutter-compact);
+    }
+
+    .catalogue-backdrop {
+        height: 13.75rem;
+
+        &--empty {
+            height: var(--space-10);
+        }
+    }
+}

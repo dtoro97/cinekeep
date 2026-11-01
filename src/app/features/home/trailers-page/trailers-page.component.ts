@@ -8,7 +8,6 @@ import {
     RepeatPipe,
     SeoService,
     SkeletonComponent,
-    ToggleGroupComponent,
     VideoCardComponent,
     toSeoImage,
 } from '../../../shared';
@@ -24,7 +23,6 @@ import { TrailerFeedType, TrailersStoreService } from './trailers-store.service'
         MatButtonModule,
         RepeatPipe,
         SkeletonComponent,
-        ToggleGroupComponent,
         VideoCardComponent,
     ],
     providers: [TrailersStoreService],

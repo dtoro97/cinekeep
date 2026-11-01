@@ -22,6 +22,7 @@ import {
     EpisodeSnapshotRequest,
     IMAGE_LANGUAGE_FALLBACK,
     LocaleStoreService,
+    MediaRatingDialogRequest,
     MediaRatingService,
     RemoteData,
     SeoMetadata,
@@ -50,12 +51,6 @@ import { MediaStoreService } from './media-store.service';
 import { EpisodeTarget, isSameEpisodeTarget, toEpisodeTarget } from './media-target';
 import { UserRatingState, toUserRatingDisplay, writeUserRating$ } from './user-rating-state';
 
-export interface EpisodeRatingRequest {
-    readonly target: EpisodeTarget;
-    readonly title: string;
-    readonly currentRating: number | null;
-}
-
 interface EpisodeDetailState {
     readonly target: EpisodeTarget | null;
     readonly episode: RemoteData<TvEpisode | null>;
@@ -67,6 +62,10 @@ interface EpisodeDetailState {
 }
 
 const STILL_PREVIEW_COUNT = 12;
+// The episode page shows one row of stills; the rest are on its photos page.
+const STILL_ROW_COUNT = 3;
+// The sidebar's season list: the open episode and its neighbours.
+const SEASON_WINDOW_SIZE = 3;
 
 const INITIAL_STATE: EpisodeDetailState = {
     target: null,
@@ -83,7 +82,12 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
     readonly episodeDetail$ = this.select(
         this.state$,
         this.mediaStore.mediaDetails$,
-        ({ target, episode: episodeState, episodeImages, episodeVideos, seasonEpisodes, rating }, media) => {
+        this.userSessionStore.authSession$,
+        (
+            { target, episode: episodeState, episodeImages, episodeVideos, seasonEpisodes, rating },
+            media,
+            { isAuthenticated },
+        ) => {
             const episode = episodeState.state === 'success' ? episodeState.data : null;
             const isLoading = episodeState.state === 'loading';
             const guestStars = episode?.guest_stars ?? [];
@@ -106,13 +110,29 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
                       seasonEpisodes.state === 'success' ? seasonEpisodes.data : null,
                   )
                 : null;
-            const ratingRequest: EpisodeRatingRequest | null =
+            const ratingRequest: MediaRatingDialogRequest | null =
                 target && !userRating.disabled
-                    ? { target, title: episode?.name ?? 'this episode', currentRating: userRating.currentRating }
+                    ? {
+                          title: episode?.name ?? 'this episode',
+                          currentRating: userRating.currentRating,
+                          save: (value) => this.submitUserRating$(target, value),
+                          remove: () => this.deleteUserRating$(target),
+                      }
                     : null;
             const guestCast: RemoteData<CreditsSummary> = isLoading
                 ? { state: 'loading' }
                 : remoteSuccess(toGuestCast(guestStars));
+            const seasonList = seasonEpisodes.state === 'success' ? seasonEpisodes.data : [];
+            const currentIndex = seasonList.findIndex((item) => item.episode_number === target?.episodeNumber);
+            const windowStart = Math.max(
+                0,
+                Math.min(currentIndex - 1, seasonList.length - SEASON_WINDOW_SIZE),
+            );
+            const bestScore = Math.max(0, ...seasonList.map((item) => item.vote_average ?? 0));
+            const seasonEpisodeCount =
+                seasonList.length ||
+                media?.seasons?.find((season) => season.season_number === target?.seasonNumber)?.episode_count ||
+                null;
 
             return {
                 seriesTitle: media?.title ?? null,
@@ -142,6 +162,30 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
                 stillCount: stillList.length,
                 hasStills: stillList.length > 0,
                 showStills: stills.state !== 'success' || stillList.length > 0,
+                isAuthenticated,
+                directors: crewRows.find((row) => row.label === 'Directed by')?.people ?? [],
+                seasonEpisodeCount,
+                isSeasonBest:
+                    !!episode?.vote_average && seasonList.length > 1 && episode.vote_average === bestScore,
+                seasonWindow:
+                    target && currentIndex !== -1
+                        ? seasonList.slice(windowStart, windowStart + SEASON_WINDOW_SIZE).map((item) => ({
+                              episodeNumber: item.episode_number ?? 0,
+                              name: item.name ?? 'Untitled episode',
+                              airDate: item.air_date ?? null,
+                              score: toRating(item.vote_average),
+                              isCurrent: item.episode_number === target.episodeNumber,
+                              routeCommands: [
+                                  '/title',
+                                  target.seriesId,
+                                  'tv',
+                                  'episodes',
+                                  target.seasonNumber,
+                                  item.episode_number,
+                              ],
+                          }))
+                        : [],
+                stillRow: stillList.slice(0, STILL_ROW_COUNT),
                 seriesLink: target ? ['/title', target.seriesId, 'tv'] : null,
                 episodesLink: target ? ['/title', target.seriesId, 'tv', 'episodes', target.seasonNumber] : null,
                 seasonLabel: target ? toSeasonLabel(target.seasonNumber) : '',
@@ -182,12 +226,11 @@ export class EpisodeDetailStoreService extends ComponentStore<EpisodeDetailState
             const stills = toStills(episodeImages);
 
             return {
-                backdropPath: media?.backdropPath ?? null,
                 isHeaderLoading: !episode || !media,
-                pageTitle: episode?.name ? `${episode.name} Photos` : `${episodeCode} Photos`,
-                subtitle: media?.title
-                    ? `${formatTitleWithYear(media.title, media.year)} - ${episodeCode}`
-                    : episodeCode,
+                seriesTitle: media?.title ?? null,
+                posterPath: media?.posterPath ?? null,
+                episodeLabel: episode?.name ? `${episodeCode} ${episode.name}` : episodeCode,
+                episode,
                 backLink: target
                     ? ['/title', target.seriesId, 'tv', 'episodes', target.seasonNumber, target.episodeNumber]
                     : ['../'],

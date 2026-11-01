@@ -23,8 +23,12 @@ import { VideoCardComponent } from '../video-card/video-card.component';
     templateUrl: './videos-grid.component.html',
     styleUrl: './videos-grid.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        '[style.--videos-grid-columns]': 'gridCount',
+    },
 })
 export class VideosGridComponent {
     @Input() state: RemoteData<VideoCardItem[]> = { state: 'notAsked' };
-    readonly gridCount = 4;
+    // How many videos show, one row of them.
+    @Input() gridCount = 4;
 }

@@ -16,5 +16,6 @@ import { SpotlightItem } from '../../hero-spotlight/hero-spotlight.component';
 export class HomeSpotlightComponent {
     @Input() loading = false;
     @Input() spotlight: SpotlightItem | null = null;
+    @Input() label = '';
     @Input() trailerUrl: string | null = null;
 }

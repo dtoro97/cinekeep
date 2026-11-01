@@ -58,7 +58,7 @@ export class SigninDialogStoreService extends ComponentStore<SigninDialogState> 
         super({
             mode: 'signin',
             signinTitle: 'Sign in',
-            description: 'Sign in to keep a watchlist, save favorites, rate titles, and build lists.',
+            description: 'Sign in to keep a watchlist, save favourites, rate titles, and build lists.',
             request: { state: 'notAsked' },
             showEmailRequired: true,
             showEmailInvalid: false,
@@ -88,6 +88,10 @@ export class SigninDialogStoreService extends ComponentStore<SigninDialogState> 
             signinTitle: data?.title ?? 'Sign in',
             description: data?.description ?? this.get().description,
         });
+
+        if (data?.mode === 'register') {
+            this.toggleMode();
+        }
     }
 
     toggleMode(): void {
@@ -129,7 +133,10 @@ export class SigninDialogStoreService extends ComponentStore<SigninDialogState> 
                 tap((result) => this.patchState({ request: remoteSuccess(result) })),
                 // Authentication errors stay in the dialog so the user can correct the form and retry.
                 catchError((error: unknown) => {
-                    let message = 'Something went wrong. Please try again.';
+                    let message =
+                        mode === 'register'
+                            ? 'Could not create your account. Try again.'
+                            : 'Could not sign you in. Try again.';
 
                     if (error instanceof HttpErrorResponse) {
                         const detail: unknown = error.error?.detail ?? error.error?.message;
@@ -142,8 +149,6 @@ export class SigninDialogStoreService extends ComponentStore<SigninDialogState> 
                             message = detail.trim();
                         } else if (error.status === 0) {
                             message = 'Could not reach CineKeep. Check your connection and try again.';
-                        } else {
-                            message = mode === 'register' ? 'Could not create your account.' : 'Could not sign you in.';
                         }
                     }
 

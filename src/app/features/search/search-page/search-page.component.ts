@@ -10,10 +10,8 @@ import {
     MediaListComponent,
     MediaOrPersonFilterType,
     MediaOrPersonType,
-    PageSectionComponent,
     SEARCH_TYPE_OPTIONS,
     SeoService,
-    ToggleGroupComponent,
 } from '../../../shared';
 import { PersonListComponent } from './person-list/person-list.component';
 import { SearchStoreService } from './search-store.service';
@@ -25,9 +23,7 @@ import { SearchStoreService } from './search-store.service';
         MatButtonModule,
         EmptyStateComponent,
         MediaListComponent,
-        PageSectionComponent,
         PersonListComponent,
-        ToggleGroupComponent,
     ],
     providers: [SearchStoreService],
     templateUrl: './search-page.component.html',
@@ -63,7 +59,7 @@ export class SearchPageComponent {
 
         this.store.query$.pipe(takeUntilDestroyed()).subscribe((query) =>
             seoService.setPage({
-                title: query ? `Results for "${query}"` : 'Search',
+                title: query ? `Results for “${query}”` : 'Search',
                 description: query
                     ? `Search results for "${query}", including movies, TV series, actors, and creators.`
                     : 'Search movies, TV series, actors, creators, trailers, photos, and reviews across the catalogue.',
@@ -72,9 +68,8 @@ export class SearchPageComponent {
         );
     }
 
-    // The toggle group emits `unknown`, but only ever offers `typeOptions`.
-    setType(type: unknown): void {
-        this.store.setType(type as MediaOrPersonFilterType);
+    setType(type: MediaOrPersonFilterType): void {
+        this.store.setType(type);
     }
 
     loadMore(section: MediaOrPersonType): void {

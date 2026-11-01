@@ -1,61 +1,77 @@
 <div class="page-container">
     @if (mediaReviews$ | async; as mediaReviews) {
-        <app-sub-page-header
-            [backdropPath]="mediaReviews.media?.backdropPath"
-            [parentTitle]="mediaReviews.media?.title"
-            [backLink]="['../']"
-            pageTitle="Reviews"
-        />
+        <div class="catalogue-sub-page inner-container">
+            <app-catalogue-sub-header
+                pageTitle="Reviews"
+                [count]="mediaReviews.reviewCount || null"
+                [parentTitle]="mediaReviews.media?.title"
+                [parentDetail]="mediaReviews.media?.year"
+                [backLink]="['../']"
+                [imagePath]="mediaReviews.media?.posterPath"
+                [loading]="!mediaReviews.media"
+            />
 
-        <main class="page-main reviews-layout">
-            <aside class="reviews-summary" aria-label="Review summary">
-                <app-review-media-summary [media]="mediaReviews.media">
-                    @if (mediaReviews.showStats) {
-                        <dl class="reviews-summary__stats">
-                            <div class="reviews-summary__stat">
-                                <dt class="text-overline">Reviews</dt>
-                                <dd class="text-display-sm">{{ mediaReviews.reviewCount }}</dd>
-                            </div>
-
-                            @if (mediaReviews.averageRating) {
-                                <div class="reviews-summary__stat">
-                                    <dt class="text-overline">Reviewer average</dt>
-                                    <dd class="reviews-summary__average">
-                                        <span class="text-rating-sm">{{ mediaReviews.averageRating | number: '1.1-1' }}</span>
-                                        <span class="text-caption">/10 {{ mediaReviews.ratedCountLabel }}</span>
-                                    </dd>
-                                </div>
-                            }
-                        </dl>
-                    }
-                </app-review-media-summary>
-            </aside>
-
-            <section class="reviews-list" aria-label="Reviews">
-                @if (mediaReviews.showSkeleton) {
-                    <ng-container *ngTemplateOutlet="reviewSkeletonList; context: { count: skeletonCount }" />
-                } @else if (mediaReviews.hasReviews) {
-                    @for (item of mediaReviews.reviews; track item.review.id) {
-                        <app-review-card [review]="item.review" [reviewLink]="item.link" />
-                    }
-
-                    @if (mediaReviews.showLoadingMore) {
+            <div class="reviews-layout">
+                <section class="reviews-list" aria-label="Reviews">
+                    @if (mediaReviews.showSkeleton) {
                         <ng-container *ngTemplateOutlet="reviewSkeletonList; context: { count: skeletonCount }" />
-                    }
+                    } @else if (mediaReviews.hasReviews) {
+                        <ul class="reviews-list__items">
+                            @for (item of mediaReviews.reviews; track item.review.id) {
+                                <li class="reviews-list__item">
+                                    <app-review-card [review]="item.review" [reviewLink]="item.link" />
+                                </li>
+                            }
+                        </ul>
 
-                    @if (mediaReviews.hasMore) {
-                        <div class="reviews-list__more">
-                            <button mat-stroked-button type="button" (click)="loadMore()">Show more reviews</button>
-                        </div>
+                        @if (mediaReviews.showLoadingMore) {
+                            <ng-container *ngTemplateOutlet="reviewSkeletonList; context: { count: skeletonCount }" />
+                        }
+
+                        @if (mediaReviews.hasMore) {
+                            <div class="reviews-list__more">
+                                <span class="text-meta">{{ mediaReviews.shownLabel }}</span>
+                                <button matButton="outlined" type="button" (click)="loadMore()">Show more reviews</button>
+                            </div>
+                        }
+                    } @else if (mediaReviews.showEmpty) {
+                        <app-empty-state
+                            iconClass="fa-regular fa-comment-dots"
+                            text="No reviews have been posted for this title yet."
+                        />
                     }
-                } @else if (mediaReviews.showEmpty) {
-                    <app-empty-state
-                        iconClass="fa-regular fa-comment-dots"
-                        text="No reviews have been posted for this title yet."
-                    />
+                </section>
+
+                @if (mediaReviews.showStats) {
+                    <aside class="reviews-summary" aria-label="Review summary">
+                        @if (mediaReviews.averageRating) {
+                            <div class="reviews-summary__average">
+                                <p class="text-meta">Reviewer average</p>
+                                <p class="reviews-summary__score">
+                                    <b class="text-rating">{{ mediaReviews.averageRating | number: '1.1-1' }}</b>
+                                    <span class="text-meta">/ 10 {{ mediaReviews.ratedCountLabel }}</span>
+                                </p>
+                            </div>
+                        }
+
+                        <dl class="catalogue-rows">
+                            @if (mediaReviews.media; as media) {
+                                @if (media.voteAverage) {
+                                    <div class="catalogue-rows__row">
+                                        <dt class="catalogue-rows__label">TMDb score</dt>
+                                        <dd>{{ media.voteAverage | number: '1.1-1' }} from {{ media.voteCount | number }} votes</dd>
+                                    </div>
+                                }
+                            }
+                            <div class="catalogue-rows__row">
+                                <dt class="catalogue-rows__label">Reviews</dt>
+                                <dd>{{ mediaReviews.reviewCount }} written reviews</dd>
+                            </div>
+                        </dl>
+                    </aside>
                 }
-            </section>
-        </main>
+            </div>
+        </div>
     }
 </div>
 

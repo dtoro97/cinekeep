@@ -1,0 +1,27 @@
+@use 'breakpoints' as *;
+
+:host {
+    display: block;
+}
+
+.page-message {
+    padding-block: var(--space-20);
+
+    &__text {
+        max-width: 32.5rem;
+        margin-top: var(--space-3);
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        margin-top: var(--space-6);
+    }
+}
+
+@include tablet() {
+    .page-message {
+        padding-block: var(--space-12);
+    }
+}

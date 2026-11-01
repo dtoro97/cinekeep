@@ -1,4 +1,4 @@
-import { Observable, catchError, defer, filter, map, of, take, tap } from 'rxjs';
+import { EMPTY, Observable, catchError, defer, filter, map, of, take, tap } from 'rxjs';
 
 import type { RemoteData } from '../types';
 
@@ -51,6 +51,8 @@ export interface CachedResourceRequest<T> {
     readonly patch: (state: RemoteData<T>) => void;
     // Stored and emitted as a successful result when the request fails.
     readonly fallback: T;
+    // Errors it accepts are stored as `failure` instead of the fallback, so the page can offer a retry.
+    readonly isFailure?: (error: unknown) => boolean;
 }
 
 // Loads a resource at most once: a loaded resource is returned as is, a resource in flight
@@ -61,6 +63,7 @@ export const loadCachedResource$ = <T>({
     fetch,
     patch,
     fallback,
+    isFailure,
 }: CachedResourceRequest<T>): Observable<T> => {
     if (current.state === 'success') {
         return of(current.data);
@@ -74,7 +77,12 @@ export const loadCachedResource$ = <T>({
 
     return defer(fetch).pipe(
         tap((data) => patch(remoteSuccess(data))),
-        catchError(() => {
+        catchError((error: unknown) => {
+            if (isFailure?.(error)) {
+                patch({ state: 'failure', error });
+                return EMPTY;
+            }
+
             patch(remoteSuccess(fallback));
             return of(fallback);
         }),

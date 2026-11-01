@@ -46,8 +46,8 @@ interface TrailersState {
 }
 
 const FEED_OPTIONS: SelectOption<TrailerFeedType>[] = [
-    { label: 'Trending trailers', value: 'trending' },
-    { label: 'New trailers', value: 'new' },
+    { label: 'Trending', value: 'trending' },
+    { label: 'New', value: 'new' },
 ];
 
 const TRAILER_CONTENT_REGION = 'US';
@@ -55,6 +55,8 @@ const TRAILER_CONTENT_REGION = 'US';
 const TRAILER_SEED_COUNT = 60;
 // "New" covers titles released within this many days either side of today.
 const NEW_TRAILER_WINDOW_DAYS = 30;
+// The grid runs 4, 3 or 2 across, and each divides this, so a list that can still grow ends on a full row.
+const FULL_ROWS_UNIT = 12;
 
 const INITIAL_STATE: TrailersState = {
     feedType: 'trending',
@@ -69,16 +71,23 @@ const INITIAL_STATE: TrailersState = {
 export class TrailersStoreService extends ComponentStore<TrailersState> {
     readonly trailers$ = this.select(({ feedType, feeds, featured }) => {
         const { trailers, pendingSeeds } = feeds[feedType];
+        const loaded = remoteData(trailers, []);
+        const showMore = pendingSeeds.length > 0 || trailers.state === 'loading-more';
+        // The trailers held back here are still in the list and show once "Show more" adds to it.
+        const shownCount =
+            showMore && loaded.length >= FULL_ROWS_UNIT
+                ? Math.floor(loaded.length / FULL_ROWS_UNIT) * FULL_ROWS_UNIT
+                : loaded.length;
 
         return {
             feedType,
             feedOptions: FEED_OPTIONS,
             featured: remoteData(feeds.trending.trailers, [])[0] ?? remoteData(featured, null),
-            trailers: remoteData(trailers, []),
+            trailers: loaded.slice(0, shownCount),
             skeletonCount: trailers.state === 'loading' || trailers.state === 'loading-more' ? PAGE_SIZE : 0,
-            showMore: pendingSeeds.length > 0 || trailers.state === 'loading-more',
+            showMore,
             isLoadingMore: trailers.state === 'loading-more',
-            showMoreLabel: trailers.state === 'loading-more' ? 'Loading trailers' : 'Show more trailers',
+            showMoreLabel: trailers.state === 'loading-more' ? 'Loading trailers' : 'Show more',
         };
     });
 

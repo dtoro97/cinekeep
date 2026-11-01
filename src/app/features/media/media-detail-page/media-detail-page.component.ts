@@ -1,43 +1,43 @@
 import { AsyncPipe, DOCUMENT, DatePipe, DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, Inject, PLATFORM_ID } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule } from '@angular/material/chips';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { catchError, filter } from 'rxjs';
+import { filter, map } from 'rxjs';
 
 import {
-    BadgeComponent,
     buildYoutubeWatchUrl,
+    CardComponent,
+    CardSkeletonComponent,
+    CatalogueBackdropComponent,
     EpisodeListItemComponent,
     ExternalLinksComponent,
-    HeroSurfaceComponent,
     ImageComponent,
     isDefined,
-    MediaCarouselPanelComponent,
-    MediaRatingDialogService,
+    LibraryToggleComponent,
     MinutesToHoursPipe,
-    PageSectionComponent,
     PhotosPreviewComponent,
     PhotoViewerDialogService,
-    PluralizePipe,
+    RatingScaleComponent,
     RepeatPipe,
     RouteCommands,
+    scrollToSection,
     SeoService,
+    SigninDialogService,
     SkeletonComponent,
-    SnackbarService,
     TmdbRatingComponent,
     VideosGridComponent,
     ViewerImage,
+    watchActiveSectionId$,
+    YourLibraryComponent,
 } from '../../../shared';
 import { MediaCreditsSummaryComponent } from '../media-credits-summary/media-credits-summary.component';
-import { MediaDetailActionsStoreService } from '../media-detail-actions-store.service';
-import { MediaDetailStoreService, MediaRatingRequest } from '../media-detail-store.service';
+import { MediaDetailStoreService } from '../media-detail-store.service';
 import { toMediaSeoMetadata } from '../media-seo';
 import { MediaStoreService } from '../media-store.service';
 import { ReviewCardComponent } from '../review-card/review-card.component';
-import { UserRatingComponent } from '../user-rating/user-rating.component';
+import { WhereToWatchComponent } from '../where-to-watch/where-to-watch.component';
 import { KeywordsListComponent } from './keywords-list/keywords-list.component';
 import { MediaListActionsComponent } from './media-list-actions/media-list-actions.component';
 
@@ -45,30 +45,30 @@ import { MediaListActionsComponent } from './media-list-actions/media-list-actio
     selector: 'app-media-detail-page',
     imports: [
         AsyncPipe,
-        BadgeComponent,
+        CardComponent,
+        CardSkeletonComponent,
+        CatalogueBackdropComponent,
         DatePipe,
         DecimalPipe,
         EpisodeListItemComponent,
         ExternalLinksComponent,
-        HeroSurfaceComponent,
         ImageComponent,
         KeywordsListComponent,
+        LibraryToggleComponent,
         MatButtonModule,
-        MatChipsModule,
-        MediaCarouselPanelComponent,
         MediaCreditsSummaryComponent,
         MediaListActionsComponent,
         MinutesToHoursPipe,
-        PageSectionComponent,
         PhotosPreviewComponent,
-        PluralizePipe,
+        RatingScaleComponent,
         RepeatPipe,
         ReviewCardComponent,
         RouterLink,
         SkeletonComponent,
         TmdbRatingComponent,
-        UserRatingComponent,
         VideosGridComponent,
+        WhereToWatchComponent,
+        YourLibraryComponent,
     ],
     templateUrl: './media-detail-page.component.html',
     styleUrl: './media-detail-page.component.scss',
@@ -77,16 +77,21 @@ import { MediaListActionsComponent } from './media-list-actions/media-list-actio
 export class MediaDetailPageComponent {
     readonly mediaDetail$ = this.store.mediaDetail$;
 
+    readonly activeSectionId$ = watchActiveSectionId$(
+        this.document,
+        this.platformId,
+        this.mediaDetail$.pipe(map(({ sectionIndex }) => sectionIndex.map((section) => section.id))),
+    );
+
     constructor(
         private readonly store: MediaDetailStoreService,
-        private readonly actionsStore: MediaDetailActionsStoreService,
         private readonly activatedRoute: ActivatedRoute,
         private readonly destroyRef: DestroyRef,
         private readonly photoViewerDialogService: PhotoViewerDialogService,
-        private readonly mediaRatingDialogService: MediaRatingDialogService,
         private readonly router: Router,
-        private readonly snackbarService: SnackbarService,
+        private readonly signinDialogService: SigninDialogService,
         @Inject(DOCUMENT) private readonly document: Document,
+        @Inject(PLATFORM_ID) private readonly platformId: object,
         mediaStore: MediaStoreService,
         seoService: SeoService,
     ) {
@@ -105,31 +110,15 @@ export class MediaDetailPageComponent {
         this.router.navigate(['photos'], { relativeTo: this.activatedRoute });
     }
 
-    openTrailer(key: string): void {
-        this.document.defaultView?.open(buildYoutubeWatchUrl(key), '_blank', 'noopener,noreferrer');
+    scrollToSection(id: string): void {
+        scrollToSection(this.document, id);
     }
 
-    openUserRatingDialog(ratingRequest: MediaRatingRequest | null): void {
-        if (!ratingRequest) {
-            return;
-        }
+    signIn(): void {
+        this.signinDialogService.open$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    }
 
-        const { target, title, currentRating } = ratingRequest;
-
-        this.mediaRatingDialogService
-            .open$({
-                title,
-                currentRating,
-                save: (value) =>
-                    this.actionsStore
-                        .submitUserRating$(target, value)
-                        .pipe(catchError(() => this.snackbarService.showError$('Could not save your rating.'))),
-                remove: () =>
-                    this.actionsStore
-                        .deleteUserRating$(target)
-                        .pipe(catchError(() => this.snackbarService.showError$('Could not remove your rating.'))),
-            })
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe();
+    openTrailer(key: string): void {
+        this.document.defaultView?.open(buildYoutubeWatchUrl(key), '_blank', 'noopener,noreferrer');
     }
 }

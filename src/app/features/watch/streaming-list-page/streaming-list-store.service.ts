@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ComponentStore } from '@ngrx/component-store';
-import { catchError, combineLatest, distinctUntilChanged, EMPTY, map, Observable, switchMap, tap } from 'rxjs';
+import { catchError, combineLatest, distinctUntilChanged, EMPTY, map, Observable, of, switchMap, tap } from 'rxjs';
 
 import { PAGE_SIZE } from '../../../constants';
 import {
     DEFAULT_TMDB_DISCOVER_SORT_DIRECTION,
     DEFAULT_TMDB_DISCOVER_SORT_KEY,
+    GenreService,
     getTmdbDiscoverSortOptions,
     hasRemoteData,
     MEDIA_TYPE_OPTION,
@@ -17,12 +18,14 @@ import {
     RemoteData,
     remoteData,
     SORT_DIRECTIONS,
+    sortWatchProviders,
     SortDirection,
     STREAMING_THIS_MONTH_SLUG,
     StreamingBaseQuery,
     TMDB_DISCOVER_SORT_KEYS,
     TmdbDiscoverService,
     TmdbDiscoverSortKey,
+    toGenreNames,
     toLibraryState,
     toMediaListItem,
     toStreamingDiscoverQuery,
@@ -38,6 +41,9 @@ interface StreamingListContext {
     readonly description: string;
     readonly baseQuery: StreamingBaseQuery;
     readonly providerName?: string;
+    readonly providerLogoPath?: string | null;
+    // The region's main services other than this list's own, linked from the sidebar.
+    readonly otherServices: ReadonlyArray<{ readonly id: number; readonly name: string }>;
 }
 
 interface StreamingListRequest {
@@ -60,6 +66,8 @@ interface StreamingListState {
     readonly libraryStates: MediaStateLookup | null;
 }
 
+const OTHER_SERVICE_COUNT = 6;
+
 const RELEASE_DATE_FORMAT = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 
 const INITIAL_STATE: StreamingListState = {
@@ -77,8 +85,17 @@ const INITIAL_STATE: StreamingListState = {
 @Injectable()
 export class StreamingListStoreService extends ComponentStore<StreamingListState> {
     readonly streamingList$ = this.select(
-        ({ context, mediaType, sortKey, sortDirection, page, totalPages, totalResults, results, libraryStates }) => {
+        this.state$,
+        // Genres only fill the entries' meta line, which leaves them out without the names.
+        this.genreService.movieGenres$.pipe(catchError(() => of(new Map<number, string>()))),
+        this.genreService.tvGenres$.pipe(catchError(() => of(new Map<number, string>()))),
+        (
+            { context, mediaType, sortKey, sortDirection, page, totalPages, totalResults, results, libraryStates },
+            movieGenres,
+            tvGenres,
+        ) => {
             const items = remoteData(results, []);
+            const genreMap = mediaType === 'movie' ? movieGenres : tvGenres;
             const hasResults = results.state === 'success' || results.state === 'loading-more';
             const mediaTypeOptions = (context?.baseQuery.mediaTypes ?? []).map((type) => MEDIA_TYPE_OPTION[type]);
             const providerText = context?.providerName ? ` on ${context.providerName}` : '';
@@ -86,6 +103,12 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
             return {
                 title: context?.title ?? '',
                 description: context?.description ?? '',
+                providerLogoPath: context?.providerLogoPath ?? null,
+                otherServices: (context?.otherServices ?? []).map(({ id, name }) => ({
+                    id,
+                    name,
+                    routerLink: ['/watch', 'streaming', 'provider', id],
+                })),
                 mediaType,
                 mediaTypeOptions,
                 showMediaTypeToggle: mediaTypeOptions.length > 1,
@@ -94,12 +117,16 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
                 sortOptions: getTmdbDiscoverSortOptions(mediaType),
                 totalResults,
                 showResultCount: hasResults,
+                shownCount: items.length,
                 hasMore: hasResults && page < totalPages,
                 showEmptyState: results.state === 'success' && items.length === 0,
                 skeletonCount: results.state === 'loading' || results.state === 'loading-more' ? PAGE_SIZE : 0,
                 displayItems: items.map((item) => ({
                     item,
                     routerLink: ['/title', item.id, item.mediaType],
+                    metaText: [item.date.slice(0, 4), toGenreNames(item.genreIds, genreMap, 2).join(', ')]
+                        .filter(Boolean)
+                        .join(' · '),
                     availabilityText:
                         mediaType === 'tv'
                             ? context?.key === AIRING_TODAY_SLUG
@@ -146,6 +173,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
         private activatedRoute: ActivatedRoute,
         private router: Router,
         private tmdbDiscoverService: TmdbDiscoverService,
+        private genreService: GenreService,
         watchProviderStoreService: WatchProviderStoreService,
         userLibraryService: UserLibraryService,
     ) {
@@ -165,6 +193,10 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
                         movieProviders: [],
                         tvProviders: [],
                     });
+                    const services = sortWatchProviders([...movieProviders, ...tvProviders]);
+                    const mainServices = services
+                        .filter((service, index) => services.findIndex(({ id }) => id === service.id) === index)
+                        .slice(0, OTHER_SERVICE_COUNT + 1);
                     const section = STREAMING_EDITORIAL_SECTIONS.find(({ slug }) => slug === params.get('listSlug'));
                     const isThisMonthList = section?.slug === STREAMING_THIS_MONTH_SLUG;
                     const provider = [...movieProviders, ...tvProviders].find(
@@ -178,6 +210,10 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
                             title: `Streaming on ${provider.name}`,
                             description: `Popular movies and TV series available with ${provider.name} in your region.`,
                             providerName: provider.name,
+                            providerLogoPath: provider.logoPath,
+                            otherServices: mainServices
+                                .filter(({ id }) => id !== provider.id)
+                                .slice(0, OTHER_SERVICE_COUNT),
                             baseQuery: {
                                 mediaTypes: ['movie', 'tv'],
                                 providerIds: [provider.id],
@@ -191,6 +227,7 @@ export class StreamingListStoreService extends ComponentStore<StreamingListState
                             key: section.slug,
                             title: isThisMonthList ? getStreamingThisMonthTitle() : section.title,
                             description: section.description,
+                            otherServices: mainServices.slice(0, OTHER_SERVICE_COUNT),
                             baseQuery: isThisMonthList
                                 ? toStreamingThisMonthQuery(tvProviders)
                                 : section.baseQuery,

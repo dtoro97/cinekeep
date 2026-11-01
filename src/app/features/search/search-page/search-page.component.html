@@ -1,65 +1,75 @@
-<div class="search-page page-container">
+<div class="page-container">
     @if (searchResults$ | async; as searchResults) {
-        <div class="search-header inner-container">
-            <div class="header-row">
-                <h1 class="text-headline">{{ searchResults.pageTitle }}</h1>
-            </div>
-            @if (searchResults.hasQuery) {
-                <app-toggle-group
-                    [options]="typeOptions"
-                    [selectedValue]="searchResults.type"
-                    (selected)="setType($event)"
-                />
-            }
-        </div>
+        <div class="browse-page inner-container">
+            <header class="browse-head">
+                <h1 class="text-display">{{ searchResults.pageTitle }}</h1>
+            </header>
 
-        <div class="results inner-container page-list-column">
-            @if (!searchResults.hasQuery) {
-                <div class="empty-panel">
-                    <app-empty-state
-                        iconClass="fa-solid fa-magnifying-glass"
-                        title="Start a search"
-                        text="Use the search bar above to find movies, TV series, and people."
-                        iconStyle="plain"
-                    />
-                </div>
+            @if (searchResults.hasQuery) {
+                <nav class="catalogue-tabs search-tabs" aria-label="Result types">
+                    @for (option of typeOptions; track option.value) {
+                        <button
+                            class="catalogue-tabs__tab"
+                            [class.catalogue-tabs__tab--active]="option.value === searchResults.type"
+                            type="button"
+                            [attr.aria-current]="option.value === searchResults.type ? 'page' : null"
+                            (click)="setType(option.value)"
+                        >
+                            {{ option.label }}
+                        </button>
+                    }
+                </nav>
+            } @else {
+                <app-empty-state
+                    class="search-empty"
+                    iconClass="fa-solid fa-magnifying-glass"
+                    title="Start a search"
+                    text="Use the search field in the header to find movies, TV series and people."
+                    iconStyle="plain"
+                />
             }
 
             @for (section of searchResults.sections; track section.key) {
-                <app-page-section [subtitle]="section.title">
-                    <div>
-                        @if (section.key === 'person') {
-                            <app-person-list
-                                [state]="section.state"
-                                [skeletonCount]="searchResults.skeletonCount"
-                                [showIndex]="false"
-                            />
-                        } @else {
-                            <app-media-list
-                                [state]="section.state"
-                                [skeletonCount]="searchResults.skeletonCount"
-                                density="compact"
-                            />
-                        }
-                    </div>
-                    @if (section.hasMore) {
-                        <div class="search-section-footer">
-                            <button mat-stroked-button type="button" (click)="loadMore(section.key)">
-                                {{ section.moreLabel }}
+                <section class="catalogue-block" [attr.aria-labelledby]="'results-' + section.key">
+                    <header class="catalogue-block__head">
+                        <h2 [id]="'results-' + section.key" class="text-headline">{{ section.title }}</h2>
+                        @if (searchResults.isAllTypes && section.hasMore) {
+                            <button class="search-type-link" type="button" (click)="setType(section.key)">
+                                {{ section.typeLinkLabel }} ›
                             </button>
+                        }
+                    </header>
+
+                    @if (section.key === 'person') {
+                        <app-person-list
+                            [state]="section.state"
+                            [skeletonCount]="searchResults.skeletonCount"
+                            [showIndex]="false"
+                        />
+                    } @else {
+                        <app-media-list
+                            [state]="section.state"
+                            [skeletonCount]="searchResults.skeletonCount"
+                            density="compact"
+                        />
+                    }
+
+                    @if (!searchResults.isAllTypes && section.hasMore) {
+                        <div class="browse-more">
+                            <button matButton="outlined" type="button" (click)="loadMore(section.key)">Show more</button>
                         </div>
                     }
-                </app-page-section>
+                </section>
             }
 
             @if (searchResults.hasNoResults) {
-                <div class="empty-panel">
-                    <app-empty-state
-                        iconClass="fa-solid fa-magnifying-glass"
-                        title="No results found"
-                        text="Try a different search term."
-                    />
-                </div>
+                <app-empty-state
+                    class="search-empty"
+                    iconClass="fa-solid fa-magnifying-glass"
+                    iconStyle="plain"
+                    title="No results found"
+                    text="Try a shorter title or check the spelling."
+                />
             }
         </div>
     }

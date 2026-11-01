@@ -1,8 +1,9 @@
 @if (home$ | async; as home) {
-    <main class="page-container home">
+    <div class="page-container home">
         <app-home-spotlight
             [loading]="home.showSpotlightSkeleton"
             [spotlight]="home.spotlight"
+            [label]="home.spotlightLabel"
             [trailerUrl]="home.spotlightTrailerUrl"
         />
 
@@ -196,69 +197,63 @@
                 }
             </section>
 
-            <section class="home-block" aria-labelledby="watch-heading">
-                <header class="home-block__head">
-                    <h2 id="watch-heading" class="home-block__title text-headline">Watch</h2>
-                </header>
+            <div class="watch">
+                <section class="home-block" aria-labelledby="trailers-heading">
+                    <header class="home-block__head">
+                        <h2 id="trailers-heading" class="home-block__title text-headline">Latest trailers</h2>
+                        <a class="home-block__more text-control" routerLink="/trailers">All trailers ›</a>
+                    </header>
 
-                <div class="watch">
-                    <div>
-                        <div class="home-subhead">
-                            <h3 class="text-display-sm">Latest trailers</h3>
-                            <a class="home-subhead__more text-control" routerLink="/trailers">All trailers ›</a>
-                        </div>
+                    <div class="trailers">
+                        @for (trailer of home.trailers; track trailer.id) {
+                            <a class="trailer" [href]="trailer.href" target="_blank" rel="noopener noreferrer" [attr.aria-label]="trailer.openLabel">
+                                <span class="trailer__still">
+                                    <img [src]="trailer.thumbnailUrl" [alt]="trailer.alt" loading="lazy" />
+                                    <span class="trailer__play" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+                                </span>
+                                <span class="trailer__title text-card-title">{{ trailer.mediaTitle }}</span>
+                                <span class="trailer__meta text-card-meta">
+                                    <span>{{ trailer.title }}</span>
+                                    @if (trailer.publishedAt) {
+                                        <span>{{ trailer.publishedAt | date: 'd MMM y' }}</span>
+                                    }
+                                </span>
+                            </a>
+                        }
+                        @for (slot of (home.showTrailersSkeleton ? home.trailerSkeletonCount : 0) | repeat; track slot) {
+                            <app-skeleton class="trailer__still trailer__still--loading" aria-hidden="true" />
+                        }
+                    </div>
+                </section>
 
-                        <div class="trailers">
-                            @for (trailer of home.trailers; track trailer.id) {
-                                <a class="trailer" [href]="trailer.href" target="_blank" rel="noopener noreferrer" [attr.aria-label]="trailer.openLabel">
-                                    <span class="trailer__still">
-                                        <img [src]="trailer.thumbnailUrl" [alt]="trailer.alt" loading="lazy" />
-                                        <span class="trailer__play" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
-                                    </span>
-                                    <span class="trailer__title text-card-title">{{ trailer.mediaTitle }}</span>
-                                    <span class="trailer__meta text-card-meta">
-                                        <span>{{ trailer.title }}</span>
-                                        @if (trailer.publishedAt) {
-                                            <span>{{ trailer.publishedAt | date: 'd MMM y' }}</span>
+                <section class="home-block" aria-labelledby="streaming-heading">
+                    <header class="home-block__head">
+                        <h2 id="streaming-heading" class="home-block__title text-headline">Streaming</h2>
+                        <a class="home-block__more text-control" routerLink="/watch/streaming">Streaming guide ›</a>
+                    </header>
+
+                    <ul class="services">
+                        @for (provider of home.providers; track provider.id) {
+                            <li>
+                                <a class="service" [routerLink]="['/watch', 'streaming', 'provider', provider.id]">
+                                    <span class="service__logo">
+                                        @if (provider.logoPath) {
+                                            <img [src]="provider.logoPath | imgSrc: 'w92'" alt="" />
                                         }
                                     </span>
+                                    <span class="service__name">{{ provider.name }}</span>
+                                    <span class="service__go text-meta" aria-hidden="true">›</span>
                                 </a>
+                            </li>
+                        }
+                        @if (home.showProvidersSkeleton) {
+                            @for (slot of 5 | repeat; track slot) {
+                                <li class="service" aria-hidden="true"><app-skeleton class="service__line" /></li>
                             }
-                            @for (slot of (home.showTrailersSkeleton ? home.trailerSkeletonCount : 0) | repeat; track slot) {
-                                <app-skeleton class="trailer__still trailer__still--loading" aria-hidden="true" />
-                            }
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="home-subhead">
-                            <h3 class="text-display-sm">Streaming</h3>
-                            <a class="home-subhead__more text-control" routerLink="/watch/streaming">Streaming guide ›</a>
-                        </div>
-
-                        <ul class="services">
-                            @for (provider of home.providers; track provider.id) {
-                                <li>
-                                    <a class="service" [routerLink]="['/watch', 'streaming', 'provider', provider.id]">
-                                        <span class="service__logo">
-                                            @if (provider.logoPath) {
-                                                <img [src]="provider.logoPath | imgSrc: 'w92'" alt="" />
-                                            }
-                                        </span>
-                                        <span class="service__name">{{ provider.name }}</span>
-                                        <span class="service__go text-meta" aria-hidden="true">›</span>
-                                    </a>
-                                </li>
-                            }
-                            @if (home.showProvidersSkeleton) {
-                                @for (slot of 3 | repeat; track slot) {
-                                    <li class="service" aria-hidden="true"><app-skeleton class="service__line" /></li>
-                                }
-                            }
-                        </ul>
-                    </div>
-                </div>
-            </section>
+                        }
+                    </ul>
+                </section>
+            </div>
 
             <section class="home-block" aria-labelledby="people-heading">
                 <header class="home-block__head">
@@ -285,13 +280,12 @@
 
                     <div class="invite">
                         <p class="invite__text text-body">
-                            Sign in to keep a watchlist, rate films and episodes, and build your own lists. Everything you
-                            keep shows on every poster across CineKeep.
+                            Sign in to keep a watchlist, rate films and episodes, and build your own lists.
                         </p>
                         <button matButton="outlined" type="button" (click)="signIn()">Sign in</button>
                     </div>
                 </section>
             }
         </div>
-    </main>
+    </div>
 }

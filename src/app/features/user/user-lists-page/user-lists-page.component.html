@@ -1,22 +1,25 @@
 @if (userLists$ | async; as userLists) {
-    <app-sub-page-header parentTitle="Profile" backLink="/me" pageTitle="Lists" />
+    <div class="page-container">
+        <div class="browse-page inner-container">
+            <header class="browse-head">
+                <h1 class="text-display">Lists</h1>
+                @if (userLists.hasLists) {
+                    <p class="browse-head__note">{{ userLists.total | pluralize: 'list' }}</p>
+                }
+                <a class="browse-head__end" matButton="filled" routerLink="/me/lists/new">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    New list
+                </a>
+            </header>
 
-    <div class="page-main">
-        <div class="lists">
             @if (userLists.showSkeleton) {
-                <app-skeleton class="lists__summary-skeleton" />
-
-                <div class="lists__grid">
+                <div class="lists-grid">
                     @for (placeholder of skeletonCount | repeat; track placeholder) {
                         <app-user-list-card-skeleton />
                     }
                 </div>
             } @else if (userLists.hasLists) {
-                <p class="lists__summary text-caption">
-                    {{ userLists.total | pluralize: 'list' }}
-                </p>
-
-                <div class="lists__grid">
+                <div class="lists-grid">
                     @for (list of userLists.lists; track list.id) {
                         <app-user-list-card
                             [item]="list"
@@ -27,18 +30,18 @@
                     }
                 </div>
             } @else if (userLists.showEmpty) {
-                <div class="empty-panel">
-                    <app-empty-state
-                        iconClass="fa-solid fa-list"
-                        title="No lists yet"
-                        text="Create a list to start collecting movies and TV series."
-                    />
-                </div>
+                <app-empty-state
+                    class="library-empty"
+                    iconClass="fa-solid fa-list"
+                    iconStyle="plain"
+                    title="No lists yet"
+                    text="Make a list to start collecting movies and TV series."
+                />
             }
 
             @if (userLists.showPaginator) {
                 <mat-paginator
-                    class="lists__paginator"
+                    class="library-paginator"
                     [length]="userLists.total"
                     [pageIndex]="userLists.pageIndex"
                     [pageSize]="userLists.pageSize"

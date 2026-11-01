@@ -2,13 +2,11 @@ import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 import { Observable, distinctUntilChanged, switchMap } from 'rxjs';
 
-import { SelectOption, remoteData } from '../../../shared';
+import { remoteData } from '../../../shared';
 import { countCrewPeople, filterCreditPeople, toCastPeople, toCrewDepartments } from './cast-crew.mapper';
 import { MediaCreditsStoreService } from '../media-credits-store.service';
 import { MediaStoreService } from '../media-store.service';
 import { isSameMediaTarget } from '../media-target';
-
-export type CreditSection = 'cast' | 'crew';
 
 // A person in the cast or crew list: their character ("as Dom Cobb") or merged jobs as `role`.
 export interface CreditPerson {
@@ -31,17 +29,10 @@ export interface CreditDepartment {
 }
 
 interface MediaCastPageState {
-    readonly section: CreditSection;
-    readonly department: string;
     readonly query: string;
 }
 
-const ALL_DEPARTMENTS = 'all';
-const INITIAL_STATE: MediaCastPageState = {
-    section: 'cast',
-    department: ALL_DEPARTMENTS,
-    query: '',
-};
+const INITIAL_STATE: MediaCastPageState = { query: '' };
 
 @Injectable()
 export class MediaCastPageStoreService extends ComponentStore<MediaCastPageState> {
@@ -49,42 +40,29 @@ export class MediaCastPageStoreService extends ComponentStore<MediaCastPageState
         this.state$,
         this.mediaStoreService.mediaDetails$,
         this.mediaCreditsStoreService.creditsState$,
-        ({ section, query, department }, media, credits) => {
+        ({ query }, media, credits) => {
             const resource = remoteData(credits, { cast: [], crew: [] });
             const castPeople = toCastPeople(resource.cast);
             const departments = toCrewDepartments(resource.crew);
-            const crewCount = countCrewPeople(departments);
             const showLoading = credits.state === 'loading';
-            const activeSection: CreditSection = !castPeople.length ? 'crew' : !departments.length ? 'cast' : section;
             const normalizedQuery = query.trim().toLocaleLowerCase();
             const cast = filterCreditPeople(castPeople, normalizedQuery);
             const visibleDepartments = departments
-                .filter((item) => department === ALL_DEPARTMENTS || item.id === department)
                 .map((item) => ({ ...item, people: filterCreditPeople(item.people, normalizedQuery) }))
                 .filter((item) => item.people.length > 0);
-            const hasMatches = activeSection === 'cast' ? cast.length > 0 : visibleDepartments.length > 0;
 
             return {
                 media,
-                isMediaLoading: !media,
                 showLoading,
                 isEmpty: credits.state === 'success' && castPeople.length === 0 && departments.length === 0,
                 query,
-                showCast: activeSection === 'cast',
-                showDepartments: activeSection === 'crew' && departments.length > 1,
-                sectionOptions: [
-                    ...(castPeople.length ? [{ label: `Cast (${castPeople.length})`, value: 'cast' as const }] : []),
-                    ...(crewCount ? [{ label: `Crew (${crewCount})`, value: 'crew' as const }] : []),
-                ] satisfies SelectOption<CreditSection>[],
-                section: activeSection,
-                departmentOptions: [
-                    { label: 'All', value: ALL_DEPARTMENTS },
-                    ...departments.map((item) => ({ label: item.name, value: item.id })),
-                ],
-                department,
+                crewCount: countCrewPeople(departments),
                 cast,
                 departments: visibleDepartments,
-                noMatchesText: hasMatches || showLoading ? null : `No one matches “${query.trim()}”.`,
+                showCast: cast.length > 0,
+                showCrew: visibleDepartments.length > 0,
+                noMatchesText:
+                    showLoading || cast.length || visibleDepartments.length ? null : `No one matches “${query.trim()}”.`,
             };
         },
         { debounce: true },
@@ -101,19 +79,11 @@ export class MediaCastPageStoreService extends ComponentStore<MediaCastPageState
         return this.mediaStoreService.currentTarget$.pipe(
             distinctUntilChanged(isSameMediaTarget),
             switchMap((target) => {
-                // The filters start over for a new title.
+                // The filter starts over for a new title.
                 this.setState(INITIAL_STATE);
                 return this.mediaCreditsStoreService.load$(target);
             }),
         );
-    }
-
-    setSection(section: CreditSection): void {
-        this.patchState({ section });
-    }
-
-    setDepartment(department: string): void {
-        this.patchState({ department });
     }
 
     setQuery(query: string): void {

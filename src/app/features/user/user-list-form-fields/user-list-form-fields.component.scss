@@ -49,13 +49,7 @@
             border-color var(--motion-fast),
             box-shadow var(--motion-fast);
 
-        &:focus-visible {
-            border-bottom-color: var(--color-brand);
-            box-shadow: 0 1px 0 var(--color-brand);
-        }
-
-        &--invalid,
-        &--invalid:focus-visible {
+        &--invalid {
             border-bottom-color: var(--color-danger-light);
             box-shadow: 0 1px 0 var(--color-danger-light);
         }
@@ -77,9 +71,10 @@
         resize: vertical;
         transition: border-color var(--motion-fast);
 
-        &:focus-visible {
+        // A text input in its own field box: the neutral field border replaces the browser ring.
+        &:focus {
+            outline: none;
             border-color: var(--control-focus-border);
-            box-shadow: 0 0 0 3px var(--control-focus-ring-outer);
         }
     }
 

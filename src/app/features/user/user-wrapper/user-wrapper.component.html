@@ -1,0 +1,13 @@
+@if (authSession$ | async; as authSession) {
+    @if (authSession.isAuthenticated) {
+        <router-outlet />
+    } @else if (authSession.resolved) {
+        <app-page-message
+            title="Sign in to see your library"
+            text="Your watchlist, favourites, ratings and lists live here once you sign in."
+        >
+            <button matButton="filled" type="button" (click)="signIn()">Sign in</button>
+            <button matButton="outlined" type="button" (click)="createAccount()">Create account</button>
+        </app-page-message>
+    }
+}

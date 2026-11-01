@@ -131,7 +131,7 @@ export class HeaderAccountMenuStoreService extends ComponentStore<HeaderAccountM
             return this.confirmationDialogService
                 .confirm$({
                     title: 'Sign out?',
-                    message: 'You will need to sign in again to manage your watchlist, favorites, ratings, and lists.',
+                    message: 'You will need to sign in again to manage your watchlist, favourites, ratings, and lists.',
                     confirmLabel: 'Sign out',
                     tone: 'danger',
                 })

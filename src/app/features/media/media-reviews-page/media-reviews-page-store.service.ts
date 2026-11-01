@@ -33,6 +33,7 @@ export class MediaReviewsPageStoreService extends ComponentStore<Record<string, 
                 hasMore: (page?.page ?? 0) < (page?.total_pages ?? 0),
                 reviews: reviews.map((review) => ({ review, link: review.id ? [review.id] : null })),
                 reviewCount: page?.total_results || reviews.length,
+                shownLabel: `Showing ${reviews.length} of ${page?.total_results || reviews.length}`,
                 averageRating,
                 ratedCountLabel: `from ${pluralize(ratings.length, 'rating')}`,
             };

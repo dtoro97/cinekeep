@@ -1,35 +1,32 @@
-@use "mixins" as *;
-
-// Mirrors the cover-led list card.
+// Mirrors the list card: a 16:9 cover, then the name and meta line.
 .card {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    @include surface-panel(var(--surface-panel-soft));
 
     &__cover {
         display: block;
-        aspect-ratio: 16 / 7;
+        aspect-ratio: 16 / 9;
         --skeleton-height: 100%;
-        --skeleton-radius: 0;
+        --skeleton-radius: var(--radius-media);
     }
 
     &__body {
         display: flex;
         flex-direction: column;
         gap: var(--space-2);
-        padding: var(--space-3) var(--space-4) var(--space-4);
+        padding-top: var(--space-3);
     }
 
     &__line {
         --skeleton-height: 0.875rem;
 
-        &--meta {
-            width: 45%;
+        &--title {
+            width: 60%;
+            --skeleton-height: 1.375rem;
         }
 
-        &--body {
-            width: 80%;
+        &--meta {
+            width: 40%;
         }
     }
 }

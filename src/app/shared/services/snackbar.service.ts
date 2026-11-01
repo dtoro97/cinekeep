@@ -28,7 +28,6 @@ export class SnackbarService {
         this.matSnackBar.openFromComponent<SnackbarComponent, SnackbarData>(SnackbarComponent, {
             data: { message, link },
             duration: link ? LINK_DURATION_MS : DURATION_MS,
-            panelClass: 'snackbar-success',
         });
     }
 

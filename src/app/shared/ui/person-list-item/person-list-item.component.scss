@@ -2,16 +2,17 @@
 @use 'mixins' as *;
 
 :host {
-    --person-list-item-avatar-size: 4rem;
+    --person-list-item-avatar-size: 3rem;
 
     display: block;
 }
 
-// Same row language as the media list, with round portraits like the cast grid and person cards.
+// Same row language as the media list: a headshot, the name, then department and known-for titles.
 .person-list-item {
     grid-template-columns: var(--row-rank-width) var(--person-list-item-avatar-size) minmax(0, 1fr);
     @include list-row('.person-list-item__avatar', '.person-list-item__title');
     align-items: center;
+    padding-inline: 0;
 
     &:not(:has(.person-list-item__index)) {
         grid-template-columns: var(--person-list-item-avatar-size) minmax(0, 1fr);
@@ -27,10 +28,11 @@
         }
     }
 
+    // A 2:3 headshot, the same shape as posters.
     &__avatar {
         width: var(--person-list-item-avatar-size);
-        height: var(--person-list-item-avatar-size);
-        @include media-frame(var(--radius-full));
+        aspect-ratio: var(--poster-ratio);
+        @include media-frame(var(--radius-media));
     }
 
     &__content {

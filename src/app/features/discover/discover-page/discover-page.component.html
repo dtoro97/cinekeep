@@ -1,178 +1,292 @@
 @if (discover$ | async; as discover) {
-    <div class="discover-page page-container">
-        <main class="discover-page__content inner-container">
-            <ng-template #filterPanel let-showHeader="showHeader">
-                <app-discover-filter-panel
-                    [showHeader]="showHeader"
-                    [filters]="discover.filters"
-                    (filterChange)="updateFilter($event)"
-                    (resetFilters)="resetFilters()"
-                    (closePanel)="closeFilters()"
-                />
-            </ng-template>
-
-            <div class="discover-page__layout" [class.discover-page__layout--with-filters]="discover.showFilters">
-                @if (discover.showFilters) {
-                    <aside class="discover-page__filters" aria-label="Filters">
-                        <ng-container *ngTemplateOutlet="filterPanel; context: { showHeader: false }" />
-                    </aside>
+    <div class="page-container">
+        <div class="browse-page inner-container">
+            <header class="browse-head">
+                <h1 class="text-display">{{ discover.title }}</h1>
+                @if (discover.note) {
+                    <p class="browse-head__note">{{ discover.note }}</p>
                 }
 
-                <section class="discover-page__results" aria-label="Results">
-                    <header class="discover-page__header">
-                        <div class="discover-page__heading">
-                            <h1 class="text-display">{{ discover.title }}</h1>
-                            @if (discover.subtitle) {
-                                <p class="discover-page__subtitle text-body">{{ discover.subtitle }}</p>
-                            }
-                        </div>
+                @if (discover.showMediaTypeToggle) {
+                    <app-toggle-group
+                        class="browse-head__end"
+                        [options]="discover.mediaTypeOptions"
+                        [selectedValue]="discover.mediaType"
+                        (selected)="setMediaType($event)"
+                    />
+                }
+            </header>
 
-                        @if (discover.showMediaTypeToggle) {
-                            <app-toggle-group
-                                class="discover-page__mode"
-                                [options]="discover.mediaTypeOptions"
-                                [selectedValue]="discover.mediaType"
-                                (selected)="setMediaType($event)"
-                            />
+            <div class="browse-bar" role="toolbar" aria-label="Filters and view">
+                @for (button of discover.filterButtons; track button.group) {
+                    <button
+                        class="browse-select"
+                        type="button"
+                        cdkOverlayOrigin
+                        #origin="cdkOverlayOrigin"
+                        aria-haspopup="dialog"
+                        [attr.aria-expanded]="openFilter?.group === button.group"
+                        (click)="toggleFilter(button.group, button.label, origin)"
+                    >
+                        <span class="browse-select__label">{{ button.label }}</span>
+                        {{ button.value }}
+                        @if (button.group === 'more' && discover.filters.moreActiveCount) {
+                            <span class="browse-select__count">{{ discover.filters.moreActiveCount }}</span>
                         }
-                    </header>
+                        <i class="browse-select__chevron fa-solid fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                }
 
-                    <div class="discover-page__toolbar">
-                        <div class="discover-page__summary">
-                            @if (discover.showResultCount) {
-                                <span class="discover-page__result-count text-label">{{
-                                    discover.resultCountLabel
-                                }}</span>
-                            }
+                <span class="browse-bar__end">
+                    @if (discover.showSort) {
+                        <app-sort-button
+                            [options]="discover.sortOptions"
+                            [selectedValue]="discover.sortKey"
+                            [direction]="discover.sortDirection"
+                            (sortChange)="setSortKey($event)"
+                            (directionToggle)="toggleSortDirection()"
+                        />
+                    }
 
-                            @for (filter of discover.lockedFilters; track filter.id) {
-                                <span
-                                    class="discover-page__filter-chip discover-page__filter-chip--locked text-caption"
-                                >
-                                    <mat-icon aria-hidden="true">lock</mat-icon>
-                                    <span>{{ filter.label }}</span>
-                                </span>
-                            }
+                    @if (discover.viewOptions.length) {
+                        <app-toggle-group
+                            [options]="discover.viewOptions"
+                            [selectedValue]="discover.view"
+                            (selected)="setView($event)"
+                        />
+                    }
+                </span>
+            </div>
 
-                            @for (filter of discover.activeFilters; track filter.id) {
-                                <button
-                                    class="discover-page__filter-chip text-caption"
-                                    type="button"
-                                    attr.aria-label="Remove {{ filter.label }}"
-                                    (click)="clearFilter(filter)"
-                                >
-                                    <span>{{ filter.label }}</span>
-                                    <mat-icon aria-hidden="true">close</mat-icon>
-                                </button>
-                            }
-
-                            @if (discover.showReset) {
-                                <button
-                                    class="discover-page__reset text-caption"
-                                    type="button"
-                                    (click)="resetFilters()"
-                                >
-                                    Clear all
-                                </button>
-                            }
-                        </div>
-
-                        <div class="discover-page__toolbar-actions">
-                            @if (discover.showFilters) {
-                                <button
-                                    class="discover-page__filter-toggle button--subtle"
-                                    matButton="outlined"
-                                    type="button"
-                                    [attr.aria-expanded]="showMobileFilters"
-                                    (click)="openFilters()"
-                                >
-                                    <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-                                    <span>Filters</span>
-                                    @if (discover.filters.hasActiveFilters) {
-                                        <span class="discover-page__filter-count">{{
-                                            discover.filters.activeFilterCount
-                                        }}</span>
-                                    }
-                                </button>
-                            }
-
-                            @if (discover.showSort) {
-                                <app-sort-button
-                                    [options]="discover.sortOptions"
-                                    [selectedValue]="discover.sortKey"
-                                    [direction]="discover.sortDirection"
-                                    (sortChange)="setSortKey($event)"
-                                    (directionToggle)="toggleSortDirection()"
-                                />
-                            }
-                        </div>
+            @if (openFilter; as open) {
+                <ng-template
+                    cdkConnectedOverlay
+                    [cdkConnectedOverlayOrigin]="open.origin"
+                    [cdkConnectedOverlayOpen]="true"
+                    [cdkConnectedOverlayHasBackdrop]="true"
+                    cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+                    (backdropClick)="closeFilter()"
+                    (detach)="closeFilter()"
+                    (overlayKeydown)="closeFilterOnEscape($event)"
+                >
+                    <div
+                        class="browse-popover"
+                        [class.browse-popover--wide]="open.group === 'genres' || open.group === 'more'"
+                        role="dialog"
+                        [attr.aria-label]="open.label"
+                        cdkTrapFocus
+                        cdkTrapFocusAutoCapture
+                    >
+                        <app-discover-filter-panel
+                            [filters]="discover.filters"
+                            [group]="open.group"
+                            (filterChange)="updateFilter($event)"
+                        />
                     </div>
+                </ng-template>
+            }
 
-                    @if (discover.showEmptyState) {
-                        <div class="discover-page__empty">
-                            <app-empty-state
-                                iconClass="fa-solid fa-filter-circle-xmark"
-                                text="No titles matched these filters."
-                            />
-                        </div>
-                    } @else {
-                        <div class="discover-page__items">
-                            @for (entry of discover.displayItems; track entry.item.id) {
-                                <app-card [item]="entry.item" imageParams="w342">
-                                    <app-library-toggle
-                                        card-actions
-                                        flag="favorite"
-                                        [media]="entry.item"
-                                        [iconOnly]="true"
-                                        appearance="overlay"
-                                        [libraryState]="entry.libraryState"
-                                    />
-                                    <app-library-toggle
-                                        card-actions
-                                        flag="watchlist"
-                                        [media]="entry.item"
-                                        [iconOnly]="true"
-                                        appearance="overlay"
-                                        [libraryState]="entry.libraryState"
-                                    />
-                                </app-card>
+            @if (discover.showFilterSummary) {
+                <div class="browse-filters">
+                    <span>Filtering by</span>
+                    @for (filter of discover.activeFilters; track filter.id) {
+                        <button
+                            class="browse-chip"
+                            type="button"
+                            [attr.aria-label]="'Remove filter: ' + filter.label"
+                            (click)="clearFilter(filter)"
+                        >
+                            {{ filter.label }}
+                            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                        </button>
+                    }
+                    @if (discover.showReset) {
+                        <button class="browse-filters__reset" type="button" (click)="resetFilters()">Reset all</button>
+                    }
+                </div>
+            }
+
+            <div class="results">
+                @if (discover.showEmptyState) {
+                    <app-empty-state
+                        class="results__empty"
+                        iconClass="fa-solid fa-filter-circle-xmark"
+                        iconStyle="plain"
+                        text="No titles matched these filters."
+                    />
+                } @else {
+                    @switch (discover.view) {
+                        @case ('chart') {
+                            <ol class="chart">
+                                @for (entry of discover.entries; track entry.item.id) {
+                                    <li class="chart-row">
+                                        <span class="chart-row__rank">{{ entry.rank }}</span>
+                                        <a
+                                            class="chart-row__poster"
+                                            [routerLink]="['/title', entry.item.id, entry.item.mediaType]"
+                                            tabindex="-1"
+                                            aria-hidden="true"
+                                        >
+                                            <app-image [src]="entry.item.imagePath" params="w92" alt="" />
+                                        </a>
+                                        <span class="chart-row__text">
+                                            <a class="chart-row__title" [routerLink]="['/title', entry.item.id, entry.item.mediaType]">{{
+                                                entry.item.title
+                                            }}</a>
+                                            <span class="chart-row__year">{{ entry.year }}</span>
+                                        </span>
+                                        @if (entry.item.rating; as rating) {
+                                            <b class="chart-row__figure"><span class="u-visually-hidden">TMDb score </span>{{
+                                                rating | number: '1.1-1'
+                                            }}</b>
+                                        }
+                                    </li>
+                                }
+                                @for (slot of discover.skeletonCount | repeat; track slot) {
+                                    <li class="chart-row" aria-hidden="true">
+                                        <span></span>
+                                        <app-skeleton class="chart-row__poster" />
+                                        <app-skeleton class="chart-row__line" />
+                                    </li>
+                                }
+                            </ol>
+                        }
+
+                        @case ('entries') {
+                            <ol class="entries">
+                                @for (entry of discover.entries; track entry.item.id) {
+                                    <li class="entry">
+                                        <span class="entry__rank" aria-hidden="true">{{ entry.rank }}</span>
+                                        <a
+                                            class="entry__poster"
+                                            [routerLink]="['/title', entry.item.id, entry.item.mediaType]"
+                                            tabindex="-1"
+                                            aria-hidden="true"
+                                        >
+                                            <app-image [src]="entry.item.imagePath" params="w185" alt="" />
+                                        </a>
+                                        <div class="entry__text">
+                                            <h2 class="entry__title">
+                                                <a class="entry__link" [routerLink]="['/title', entry.item.id, entry.item.mediaType]">{{
+                                                    entry.item.title
+                                                }}</a>
+                                            </h2>
+                                            @if (entry.year || entry.genreText) {
+                                                <dl class="catalogue-facts entry__facts">
+                                                    @if (entry.year) {
+                                                        <div class="catalogue-facts__cell">
+                                                            <dt class="catalogue-facts__label">Year</dt>
+                                                            <dd>{{ entry.year }}</dd>
+                                                        </div>
+                                                    }
+                                                    @if (entry.genreText) {
+                                                        <div class="catalogue-facts__cell">
+                                                            <dt class="catalogue-facts__label">Genre</dt>
+                                                            <dd>{{ entry.genreText }}</dd>
+                                                        </div>
+                                                    }
+                                                </dl>
+                                            }
+                                            @if (entry.item.overview) {
+                                                <p class="entry__overview text-body">{{ entry.item.overview }}</p>
+                                            }
+                                        </div>
+                                        <div class="entry__score">
+                                            @if (entry.item.rating; as rating) {
+                                                <b class="entry__figure">{{ rating | number: '1.1-1' }}</b>
+                                                <span class="entry__out-of">/ 10 on TMDb</span>
+                                            } @else {
+                                                <span class="entry__out-of">Not rated yet</span>
+                                            }
+                                        </div>
+                                    </li>
+                                }
+                                @for (slot of discover.skeletonCount | repeat; track slot) {
+                                    <li class="entry" aria-hidden="true">
+                                        <span></span>
+                                        <app-skeleton class="entry__poster" />
+                                        <div class="entry__text">
+                                            <app-skeleton class="entry__line entry__line--title" />
+                                            <app-skeleton class="entry__line" />
+                                        </div>
+                                    </li>
+                                }
+                            </ol>
+                        }
+
+                        @case ('by-date') {
+                            <div class="days">
+                                @for (group of discover.dateGroups; track group.isoDate) {
+                                    <section
+                                        class="day"
+                                        [attr.data-span]="group.span"
+                                        [attr.aria-labelledby]="'day-' + group.isoDate"
+                                    >
+                                        <header class="day__date">
+                                            <h2 class="day__heading" [id]="'day-' + group.isoDate">
+                                                @if (group.isoDate) {
+                                                    {{ group.isoDate | date: 'EEE d MMM' }}
+                                                } @else {
+                                                    Date to come
+                                                }
+                                            </h2>
+                                            <span class="day__count">{{ group.countLabel }}</span>
+                                        </header>
+                                        @for (entry of group.entries; track entry.item.id) {
+                                            <app-card [item]="entry.item" imageParams="w342" [showRating]="false">
+                                                <app-library-toggle
+                                                    card-actions
+                                                    flag="watchlist"
+                                                    [media]="entry.item"
+                                                    [iconOnly]="true"
+                                                    appearance="overlay"
+                                                    [libraryState]="entry.libraryState"
+                                                />
+                                            </app-card>
+                                        }
+                                    </section>
+                                }
+                            </div>
+                            @if (discover.skeletonCount) {
+                                <div class="days days--loading" aria-hidden="true">
+                                    @for (slot of discover.skeletonCount | repeat; track slot) {
+                                        <app-card-skeleton />
+                                    }
+                                </div>
                             }
+                        }
 
-                            @for (slot of discover.skeletonCount | repeat; track slot) {
-                                <app-card-skeleton />
-                            }
-                        </div>
-
-                        @if (discover.showMore) {
-                            <div class="discover-page__more">
-                                <button
-                                    class="button--subtle"
-                                    matButton="outlined"
-                                    type="button"
-                                    [disabled]="discover.isLoadingMore"
-                                    (click)="loadMore()"
-                                >
-                                    Show more
-                                </button>
+                        @default {
+                            <div class="catalogue-wall catalogue-wall--paged">
+                                @for (entry of discover.entries; track entry.item.id) {
+                                    <app-card [item]="entry.item" imageParams="w342">
+                                        <app-library-toggle
+                                            card-actions
+                                            flag="watchlist"
+                                            [media]="entry.item"
+                                            [iconOnly]="true"
+                                            appearance="overlay"
+                                            [libraryState]="entry.libraryState"
+                                        />
+                                    </app-card>
+                                }
+                                @for (slot of discover.skeletonCount | repeat; track slot) {
+                                    <app-card-skeleton />
+                                }
                             </div>
                         }
                     }
-                </section>
+                }
             </div>
 
-            @if (showMobileFilters) {
-                <div class="discover-page__filter-overlay" aria-hidden="true" (click)="closeFilters()"></div>
-                <section
-                    class="discover-page__filter-drawer"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Filters"
-                    cdkTrapFocus
-                    cdkTrapFocusAutoCapture
-                >
-                    <ng-container *ngTemplateOutlet="filterPanel; context: { showHeader: true }" />
-                </section>
+            @if (discover.showMore) {
+                <div class="browse-more">
+                    <span>Showing {{ discover.shownCount | number }} of {{ discover.totalResults | number }}</span>
+                    <button matButton="outlined" type="button" [disabled]="discover.isLoadingMore" (click)="loadMore()">
+                        Show more
+                    </button>
+                </div>
             }
-        </main>
+        </div>
     </div>
 }

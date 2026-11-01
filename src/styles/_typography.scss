@@ -1,3 +1,5 @@
+@use 'mixins' as *;
+
 // Text roles from DESIGN.md: Sofia Sans for titles and UI, Semi Condensed for data, Extra Condensed for figures.
 
 .text-subtitle {
@@ -184,10 +186,30 @@
 
 // Every number shown as a figure (score, rank, count, year) uses Extra Condensed.
 %text-figure {
-    font-family: var(--font-figure);
-    font-weight: var(--weight-extrabold);
-    line-height: 1;
+    @include text-figure(null);
     font-variant-numeric: tabular-nums;
+}
+
+// Long-form text from elsewhere (a review's HTML) at reading size. Its paragraphs and links are
+// inserted as HTML, so the role is global rather than in the component that shows it.
+.text-prose {
+    color: var(--text-secondary);
+    font-size: var(--text-reading);
+    line-height: var(--lh-reading);
+    overflow-wrap: anywhere;
+
+    p + p,
+    ul,
+    ol,
+    blockquote {
+        margin-top: var(--space-5);
+    }
+
+    a {
+        color: var(--text-primary);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
 }
 
 .text-rating {

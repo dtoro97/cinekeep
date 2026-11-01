@@ -50,7 +50,7 @@ export class MediaListActionsComponent {
     toggleFavorite(isAuthenticated: boolean): void {
         (isAuthenticated ? this.actionsStore.toggleLibraryFlag$('favorite') : this.signinDialogService.open$())
             .pipe(
-                catchError(() => this.snackbarService.showError$('Could not update your favorites.')),
+                catchError(() => this.snackbarService.showError$('Could not update your favourites.')),
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();

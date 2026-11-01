@@ -1,31 +1,26 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { distinctUntilChanged, map, switchMap } from 'rxjs';
 
-import {
-    EmptyStateComponent,
-    RepeatPipe,
-    SeoService,
-    SkeletonComponent,
-    SubPageHeaderComponent,
-} from '../../../shared';
-import { ReviewCardComponent } from '../review-card/review-card.component';
-import { ReviewMediaSummaryComponent } from '../review-media-summary/review-media-summary.component';
+import { EmptyStateComponent, ImageComponent, RepeatPipe, SeoService, SkeletonComponent } from '../../../shared';
 import { ReviewDetailPageStoreService } from './review-detail-page-store.service';
 
 @Component({
     selector: 'app-review-detail-page',
     imports: [
         AsyncPipe,
+        DatePipe,
+        DecimalPipe,
         EmptyStateComponent,
+        ImageComponent,
+        MatButtonModule,
         RepeatPipe,
-        ReviewCardComponent,
-        ReviewMediaSummaryComponent,
+        RouterLink,
         SkeletonComponent,
-        SubPageHeaderComponent,
     ],
     providers: [ReviewDetailPageStoreService],
     templateUrl: './review-detail-page.component.html',
@@ -49,6 +44,8 @@ export class ReviewDetailPageComponent {
                 takeUntilDestroyed(),
             )
             .subscribe();
+
+        this.store.loadReviews$().pipe(takeUntilDestroyed()).subscribe();
 
         this.store.seoMetadata$.pipe(takeUntilDestroyed()).subscribe((metadata) => seoService.setPage(metadata));
     }

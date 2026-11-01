@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
+// Project an action (a button or link) to show it under the text.
 @Component({
     selector: 'app-empty-state',
     templateUrl: './empty-state.component.html',
@@ -7,8 +8,9 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EmptyStateComponent {
-    @Input({ required: true }) iconClass!: string;
+    // Ignored by the `posters` style, which draws empty poster outlines instead of an icon.
+    @Input() iconClass = '';
     @Input({ required: true }) text!: string;
     @Input() title?: string;
-    @Input() iconStyle: 'badge' | 'plain' = 'badge';
+    @Input() iconStyle: 'badge' | 'plain' | 'posters' = 'badge';
 }

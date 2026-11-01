@@ -45,7 +45,7 @@
     transition: color var(--motion-base);
 }
 
-.mat-mdc-button.text-button:not(:disabled):is(:hover, :focus-visible, :active) {
+.mat-mdc-button.text-button:not(:disabled):is(:hover, :active) {
     color: var(--text-accent);
 }
 
@@ -68,10 +68,27 @@
     --mat-button-filled-container-color: var(--color-brand-active);
 }
 
+// Light: the filled primary for an action that isn't about your library (Play trailer). It shares the
+// one-per-page limit with the gold primary.
+.mat-mdc-unelevated-button.button--light:not(:disabled) {
+    --mat-button-filled-container-color: var(--text-primary);
+    --mat-button-filled-label-text-color: var(--surface-page);
+    --mat-button-filled-state-layer-color: var(--surface-page);
+
+    &:hover {
+        --mat-button-filled-container-color: var(--text-secondary);
+    }
+
+    &:active {
+        --mat-button-filled-container-color: var(--text-secondary);
+    }
+}
+
 .mat-mdc-button-persistent-ripple::before {
     transition: opacity var(--motion-base) !important;
 }
 
+// Material sets `outline: none` on buttons; this only gives back the browser's default focus ring.
 .mat-mdc-button-base:focus-visible {
     outline: auto;
     outline-offset: 2px;

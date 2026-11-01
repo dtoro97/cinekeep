@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,11 +6,10 @@ import { RouterLink } from '@angular/router';
 import { filter } from 'rxjs';
 
 import {
-    BrowseToolbarComponent,
     buildTmdbImageUrl,
     EmptyStateComponent,
+    ImageComponent,
     LibraryToggleComponent,
-    MediaListItemComponent,
     PluralizePipe,
     RepeatPipe,
     SeoService,
@@ -24,12 +23,12 @@ import { StreamingListStoreService } from './streaming-list-store.service';
     selector: 'app-streaming-list-page',
     imports: [
         AsyncPipe,
+        DecimalPipe,
         MatButtonModule,
         RouterLink,
-        BrowseToolbarComponent,
         EmptyStateComponent,
+        ImageComponent,
         LibraryToggleComponent,
-        MediaListItemComponent,
         PluralizePipe,
         RepeatPipe,
         SkeletonComponent,

@@ -1,198 +1,205 @@
-@if (personDetail$ | async; as personDetail) {
-    <div class="page-container">
-        @if (personDetail.person.state === 'success') {
-            @let person = personDetail.person.data;
-            <section class="profile-hero">
-                <div class="profile-hero__inner inner-container">
+<div class="page-container">
+    @if (personDetail$ | async; as personDetail) {
+        <div class="catalogue catalogue--plain inner-container">
+            @if (personDetail.person.state === 'success') {
+                @let person = personDetail.person.data;
+                <section class="catalogue__lead person-lead" aria-labelledby="person-heading">
                     <app-image
-                        class="portrait aspect-poster"
+                        class="catalogue__poster person-lead__portrait"
                         [src]="person.profile_path"
                         type="person"
                         [alt]="person.name ?? ''"
+                        [name]="person.name"
+                        params="w342"
                     />
 
-                    <div class="profile-hero__main">
-                        <div class="profile-hero__heading">
-                            <span class="text-hero-meta">
-                                {{ person.known_for_department }}
-                            </span>
-                            <h1 class="profile-hero__title text-hero-title">
-                                {{ person.name }}
-                            </h1>
-                        </div>
+                    <div class="person-lead__heading">
+                        <h1 id="person-heading" class="person-lead__name text-hero-title">{{ person.name }}</h1>
 
-                        <div class="biography u-flex-column u-items-start u-gap-3">
-                            @if (personDetail.biography; as biography) {
-                                <p
-                                    class="biography__copy text-hero-summary"
-                                    [class.biography__copy--collapsed]="!biography.isExpanded"
-                                >
-                                    {{ biography.text }}
-                                </p>
-
-                                @if (biography.isCollapsible) {
-                                    <button
-                                        class="biography__toggle text-body-sm"
-                                        type="button"
-                                        (click)="toggleBiography()"
-                                    >
-                                        {{ biography.toggleLabel }}
-                                    </button>
+                        @if (person.known_for_department) {
+                            <p class="catalogue__credit">
+                                Known for <b class="person-lead__department">{{ person.known_for_department }}</b>
+                                @if (personDetail.knownForTitles.length) {
+                                    <span aria-hidden="true"> · </span>
+                                    @for (knownForTitle of personDetail.knownForTitles; track knownForTitle.key; let last = $last) {
+                                        <a class="catalogue__credit-link" [routerLink]="knownForTitle.routeCommands">{{ knownForTitle.title }}</a>@if (!last) {<span>, </span>}
+                                    }
                                 }
-                            } @else {
-                                <p class="text-meta">No biography available for this person.</p>
-                            }
-                        </div>
-                    </div>
-
-                    <aside class="profile-facts" aria-label="Profile details">
-                        <dl class="profile-facts__list">
-                            @if (person.birthday) {
-                                <div class="profile-facts__item">
-                                    <dt class="profile-facts__label text-card-meta">Born</dt>
-                                    <dd class="profile-facts__value text-body-sm">
-                                        {{ person.birthday | date }}
-                                        @if (!person.deathday) {
-                                            <span class="text-caption">age {{ person.birthday | age }}</span>
-                                        }
-                                    </dd>
-                                </div>
-                            }
-
-                            @if (person.deathday) {
-                                <div class="profile-facts__item">
-                                    <dt class="profile-facts__label text-card-meta">Died</dt>
-                                    <dd class="profile-facts__value text-body-sm">
-                                        {{ person.deathday | date }}
-                                        @if (person.birthday) {
-                                            <span class="text-caption">
-                                                age {{ person.birthday | age: person.deathday }}
-                                            </span>
-                                        }
-                                    </dd>
-                                </div>
-                            }
-
-                            @if (person.place_of_birth) {
-                                <div class="profile-facts__item">
-                                    <dt class="profile-facts__label text-card-meta">Birthplace</dt>
-                                    <dd class="profile-facts__value text-body-sm">{{ person.place_of_birth }}</dd>
-                                </div>
-                            }
-                        </dl>
-
-                        @if (personDetail.externalLinks; as externalLinks) {
-                            <div class="profile-facts__profiles">
-                                <span class="text-card-meta">Profiles</span>
-                                <app-external-links [externalLinks]="externalLinks" />
-                            </div>
+                            </p>
                         }
-                    </aside>
-                </div>
-            </section>
-        } @else if (personDetail.person.state === 'loading') {
-            <section class="profile-hero">
-                <div class="profile-hero__inner inner-container" aria-hidden="true">
-                    <app-skeleton class="portrait portrait--skeleton aspect-poster" />
-
-                    <div class="profile-hero__main">
-                        <div class="profile-hero__heading">
-                            <app-skeleton class="profile-hero__eyebrow-skeleton" />
-                            <app-skeleton class="profile-hero__title-skeleton" />
-                        </div>
-
-                        <div class="biography u-flex-column u-items-start u-gap-3">
-                            <app-skeleton class="biography__line-skeleton biography__line-skeleton--wide" />
-                            <app-skeleton class="biography__line-skeleton" />
-                            <app-skeleton class="biography__line-skeleton biography__line-skeleton--short" />
-                        </div>
                     </div>
 
-                    <aside class="profile-facts">
-                        <dl class="profile-facts__list">
-                            <div class="profile-facts__item">
-                                <app-skeleton class="profile-facts__label-skeleton" />
-                                <app-skeleton class="profile-facts__value-skeleton" />
-                            </div>
-                            <div class="profile-facts__item">
-                                <app-skeleton class="profile-facts__label-skeleton" />
-                                <app-skeleton
-                                    class="profile-facts__value-skeleton profile-facts__value-skeleton--wide"
-                                />
-                            </div>
-                        </dl>
+                    <div class="person-lead__biography">
+                        @if (personDetail.biography; as biography) {
+                            <p
+                                class="biography catalogue__overview text-body"
+                                [class.biography--collapsed]="!biography.isExpanded"
+                            >{{ biography.text }}</p>
 
-                        <div class="profile-facts__profiles" aria-hidden="true">
-                            <app-skeleton class="profile-facts__label-skeleton" />
-                            <div class="u-flex u-items-center u-gap-2">
-                                <app-skeleton class="profile-facts__icon-skeleton" />
-                                <app-skeleton class="profile-facts__icon-skeleton" />
-                                <app-skeleton class="profile-facts__icon-skeleton" />
-                            </div>
-                        </div>
-                    </aside>
+                            @if (biography.isCollapsible) {
+                                <button class="biography__toggle" type="button" (click)="toggleBiography()">
+                                    {{ biography.toggleLabel }}
+                                </button>
+                            }
+                        } @else {
+                            <p class="catalogue__overview catalogue__overview--empty text-body">
+                                We don't have a biography for {{ person.name }} yet.
+                            </p>
+                        }
+                    </div>
+                </section>
+            } @else {
+                <div class="catalogue__lead person-lead" aria-hidden="true">
+                    <app-skeleton class="catalogue__poster person-lead__portrait" />
+                    <div class="person-lead__heading">
+                        <app-skeleton class="catalogue__title-skeleton" />
+                        <app-skeleton class="catalogue__line-skeleton" />
+                    </div>
+                    <div class="person-lead__biography">
+                        <app-skeleton class="catalogue__overview-skeleton" />
+                    </div>
                 </div>
-            </section>
-        }
-
-        <div class="page-sections">
-            @if (personDetail.showKnownFor) {
-                <app-page-section subtitle="Known For">
-                    <app-media-carousel-panel [state]="personDetail.knownFor"></app-media-carousel-panel>
-                </app-page-section>
             }
 
-            @if (personDetail.showPhotos) {
-                <app-page-section subtitle="Photos">
-                    <ng-container section-controls>
-                        @if (personDetail.showPhotosLink) {
-                            <a class="browse-link text-body-sm" [routerLink]="personDetail.photosLink">
-                                Browse all photos ({{ personDetail.photoCount }})
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </a>
+            <aside class="catalogue__side person-side" aria-label="Personal details">
+                @if (personDetail.person.state === 'success') {
+                    @let person = personDetail.person.data;
+                    @if (personDetail.hasPersonalDetails) {
+                        <section class="catalogue-group" aria-labelledby="personal-heading">
+                            <h2 id="personal-heading" class="catalogue-group__title text-display-sm">Personal details</h2>
+
+                            <dl class="catalogue-rows">
+                                @if (person.birthday) {
+                                    <div class="catalogue-rows__row">
+                                        <dt class="catalogue-rows__label">Born</dt>
+                                        <dd>{{ person.birthday | date: 'd MMM y' }}</dd>
+                                    </div>
+                                }
+                                @if (person.deathday) {
+                                    <div class="catalogue-rows__row">
+                                        <dt class="catalogue-rows__label">Died</dt>
+                                        <dd>{{ person.deathday | date: 'd MMM y' }}</dd>
+                                    </div>
+                                }
+                                @if (person.birthday) {
+                                    <div class="catalogue-rows__row">
+                                        <dt class="catalogue-rows__label">{{ person.deathday ? 'Age at death' : 'Age' }}</dt>
+                                        <dd>{{ person.birthday | age: person.deathday }}</dd>
+                                    </div>
+                                }
+                                @if (person.place_of_birth) {
+                                    <div class="catalogue-rows__row">
+                                        <dt class="catalogue-rows__label">Birthplace</dt>
+                                        <dd>{{ person.place_of_birth }}</dd>
+                                    </div>
+                                }
+                                @if (personDetail.aliasesText; as aliasesText) {
+                                    <div class="catalogue-rows__row">
+                                        <dt class="catalogue-rows__label">Also known as</dt>
+                                        <dd>{{ aliasesText }}</dd>
+                                    </div>
+                                }
+                            </dl>
+                        </section>
+                    }
+
+                    @if (personDetail.externalLinks; as externalLinks) {
+                        <section class="catalogue-group" aria-labelledby="profiles-heading">
+                            <h2 id="profiles-heading" class="catalogue-group__title text-display-sm">Profiles</h2>
+                            <app-external-links [externalLinks]="externalLinks" />
+                        </section>
+                    }
+                } @else {
+                    <app-skeleton class="person-side__skeleton" aria-hidden="true" />
+                }
+            </aside>
+
+            <div class="catalogue__main">
+                @if (personDetail.sectionIndex.length) {
+                    @let activeSectionId = (activeSectionId$ | async) ?? personDetail.sectionIndex[0].id;
+                    <nav class="catalogue-index catalogue-tabs" aria-label="On this page">
+                        @for (section of personDetail.sectionIndex; track section.id) {
+                            <button
+                                class="catalogue-tabs__tab"
+                                [class.catalogue-tabs__tab--active]="section.id === activeSectionId"
+                                type="button"
+                                [attr.aria-current]="section.id === activeSectionId ? 'location' : null"
+                                (click)="scrollToSection(section.id)"
+                            >
+                                {{ section.label }}
+                                @if (section.count) {
+                                    <span class="catalogue-tabs__count">{{ section.count }}</span>
+                                }
+                            </button>
                         }
-                    </ng-container>
-                    <app-photos-preview
-                        [state]="personDetail.photos"
-                        [totalCount]="personDetail.photoCount"
-                        mode="person"
-                        (photoClick)="openPhotoViewer($event)"
-                        (moreClick)="openPhotosPage()"
+                    </nav>
+                }
+
+                @if (personDetail.showKnownForSkeleton) {
+                    <section class="catalogue-block" aria-hidden="true">
+                        <div class="catalogue-wall">
+                            @for (slot of personDetail.knownForSkeletonCount | repeat; track slot) {
+                                <app-card-skeleton />
+                            }
+                        </div>
+                    </section>
+                } @else if (personDetail.knownFor.length) {
+                    <section id="known-for" class="catalogue-block" aria-labelledby="known-for-heading">
+                        <header class="catalogue-block__head">
+                            <h2 id="known-for-heading" class="text-headline">Known for</h2>
+                        </header>
+
+                        <div class="catalogue-wall">
+                            @for (entry of personDetail.knownFor; track entry.item.mediaType + '-' + entry.item.id) {
+                                <app-card [item]="entry.item" imageParams="w342">
+                                    <app-library-toggle
+                                        card-actions
+                                        flag="watchlist"
+                                        [media]="entry.item"
+                                        [iconOnly]="true"
+                                        appearance="overlay"
+                                        [libraryState]="entry.libraryState"
+                                    />
+                                </app-card>
+                            }
+                        </div>
+                    </section>
+                }
+
+                <section id="filmography" class="catalogue-block" aria-labelledby="filmography-heading">
+                    <app-person-credits
+                        [filmography]="personDetail.filmography"
+                        [filters]="personDetail.creditFilters"
+                        (mediaTypeChange)="setCreditMediaType($event)"
+                        (sortByChange)="setCreditSortBy($event)"
+                        (sortDirectionToggle)="toggleCreditSortDirection()"
+                        (sectionToggle)="toggleCreditSection($event)"
+                        (resetFilters)="resetCreditFilters()"
                     />
-                </app-page-section>
-            }
+                </section>
 
-            <app-page-section panel subtitle="Filmography">
-                <app-person-credits
-                    [filmography]="personDetail.filmography"
-                    [filters]="personDetail.creditFilters"
-                    (mediaTypeChange)="setCreditMediaType($event)"
-                    (sortByChange)="setCreditSortBy($event)"
-                    (sortDirectionToggle)="toggleCreditSortDirection()"
-                    (sectionToggle)="toggleCreditSection($event)"
-                    (resetFilters)="resetCreditFilters()"
-                />
-            </app-page-section>
+                @if (personDetail.showPhotosSkeleton) {
+                    <section class="catalogue-block" aria-hidden="true">
+                        <app-photos-preview [state]="{ state: 'loading' }" mode="person" />
+                    </section>
+                } @else if (personDetail.photoCount) {
+                    <section id="photos" class="catalogue-block" aria-labelledby="photos-heading">
+                        <header class="catalogue-block__head">
+                            <h2 id="photos-heading" class="text-headline">Photos</h2>
+                            <span class="catalogue-block__count">{{ personDetail.photoCount }}</span>
+                            <a class="catalogue-block__more" [routerLink]="personDetail.photosLink">All photos ›</a>
+                        </header>
 
-            @if (personDetail.aliases; as aliases) {
-                <app-page-section subtitle="Personal Details">
-                    <dl class="info-grid" aria-label="Personal details">
-                        <div class="info-grid__item">
-                            <dt class="info-grid__label text-card-meta">{{ aliases.label }}</dt>
-                            <dd class="info-grid__value">
-                                <ul class="info-grid__value-list u-list-none">
-                                    @for (alias of aliases.visible; track alias) {
-                                        <li class="text-body-strong">{{ alias }}</li>
-                                    }
-                                    @if (aliases.hiddenCount) {
-                                        <li class="text-caption">+{{ aliases.hiddenCount }} more</li>
-                                    }
-                                </ul>
-                            </dd>
-                        </div>
-                    </dl>
-                </app-page-section>
-            }
+                        <app-photos-preview
+                            [state]="personDetail.photos"
+                            [totalCount]="personDetail.photoCount"
+                            mode="person"
+                            (photoClick)="openPhotoViewer($event)"
+                            (moreClick)="openPhotosPage()"
+                        />
+                    </section>
+                }
+            </div>
         </div>
-    </div>
-}
+    }
+</div>

@@ -1,27 +1,19 @@
 @use 'breakpoints' as *;
 @use 'mixins' as *;
 
-.back-link {
-    position: absolute;
-    top: var(--space-6);
-    left: var(--space-6);
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    color: var(--text-secondary);
-    @include text-link();
-}
-
 .hero {
     padding-block: var(--space-10) var(--space-10);
 
     &__content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
         max-width: 600px;
     }
 }
 
-.badge {
-    max-width: 36rem;
+.label {
+    color: var(--text-secondary);
 }
 
 .title {
@@ -65,10 +57,9 @@
         padding: 0 var(--space-6) var(--space-10);
     }
 
-    &__badge {
+    &__label {
         width: 90px;
-        height: var(--badge-height);
-        border-radius: var(--badge-radius);
+        --skeleton-height: 1rem;
     }
 
     &__title {

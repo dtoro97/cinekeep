@@ -41,9 +41,9 @@ export class UserListCreatePageStoreService extends ComponentStore<UserListCreat
 
         return {
             backLink: media?.returnUrl ?? '/me/lists',
-            backParentTitle: mediaTitle ?? 'your lists',
+            backParentTitle: mediaTitle ?? 'Your lists',
             subtitle: !media
-                ? 'Gather films and series around a mood, a theme or an occasion.'
+                ? 'Collect movies and TV series around a theme or an occasion.'
                 : `Name the list and ${mediaTitle ?? 'the selected title'} will be added after it is created.`,
             submitLabel: media
                 ? isSaving

@@ -28,12 +28,9 @@
         <div class="media-list-item__content">
             <div class="media-list-item__heading">
                 @if (link; as route) {
-                    <a class="media-list-item__title text-subtitle" [routerLink]="route">{{ currentItem.title }}</a>
+                    <a class="media-list-item__title" [routerLink]="route">{{ currentItem.title }}</a>
                 } @else {
-                    <span class="media-list-item__title text-subtitle">{{ currentItem.title }}</span>
-                }
-                @if (currentItem.rating) {
-                    <app-rating [value]="currentItem.rating" />
+                    <span class="media-list-item__title">{{ currentItem.title }}</span>
                 }
                 @if (currentItem.badges; as badges) {
                     @for (badge of badges; track badge.label) {
@@ -43,7 +40,7 @@
             </div>
 
             @if (showMetadata) {
-                <p class="media-list-item__meta text-card-meta">
+                <p class="media-list-item__meta">
                     @if (currentItem.date) {
                         <span>{{ currentItem.date | date: 'yyyy' }}</span>
                     }
@@ -54,12 +51,12 @@
             }
 
             @if (currentItem.overview) {
-                <p class="media-list-item__overview text-body-sm">{{ currentItem.overview }}</p>
+                <p class="media-list-item__overview text-body">{{ currentItem.overview }}</p>
             }
 
             @if (currentItem.castLinks; as castLinks) {
                 @if (showCast) {
-                    <p class="media-list-item__cast text-card-meta">
+                    <p class="media-list-item__cast">
                         <!-- prettier-ignore -->
                         @for (actor of castLinks; track actor.id; let last = $last) {
                             <a class="media-list-item__actor-link" [routerLink]="['/name', actor.id]">{{ actor.name }}</a>@if (!last) {<span>, </span>}
@@ -72,6 +69,21 @@
                 <ng-content select="[media-list-item-note]" />
             </div>
         </div>
+
+        @if (currentItem.rating; as rating) {
+            @if (isOwnRating) {
+                <span class="media-list-item__score media-list-item__score--yours" attr.aria-label="Your rating {{ rating }} out of 10">
+                    <b class="media-list-item__own">{{ rating }}</b>
+                    <span class="media-list-item__out-of" aria-hidden="true">/ 10</span>
+                </span>
+            } @else {
+                <b class="media-list-item__score"><span class="u-visually-hidden">TMDb score </span>{{
+                    rating | number: '1.1-1'
+                }}</b>
+            }
+        } @else {
+            <span class="media-list-item__score media-list-item__score--none">Not rated</span>
+        }
 
         <div class="media-list-item__extra">
             <ng-content select="[media-list-item-action]" />

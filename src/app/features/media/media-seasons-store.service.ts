@@ -55,7 +55,7 @@ interface MediaSeasonsState {
     readonly resourcesByKey: Readonly<Record<string, RemoteData<SeasonResources>>>;
 }
 
-const HIGHEST_RATED_BADGES: readonly MediaListItemBadge[] = [{ label: 'Highest rated', variant: 'outline' }];
+const HIGHEST_RATED_BADGES: readonly MediaListItemBadge[] = [{ label: 'Highest rated', variant: 'neutral' }];
 
 const LOADING_STATE: RemoteData<never> = { state: 'loading' };
 
@@ -78,7 +78,12 @@ export class MediaSeasonsStoreService extends ComponentStore<MediaSeasonsState> 
                 .filter((season): season is TvSeasonCompact & { season_number: number } =>
                     isDefined(season.season_number),
                 )
-                .sort((left, right) => left.season_number - right.season_number)
+                // Specials are season 0 on TMDb; they go after the numbered seasons.
+                .sort(
+                    (left, right) =>
+                        Number(left.season_number === 0) - Number(right.season_number === 0) ||
+                        left.season_number - right.season_number,
+                )
                 .map((season) => ({
                     label: toSeasonLabel(season.season_number, season.name),
                     value: season.season_number,

@@ -1,28 +1,38 @@
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
-import { distinctUntilChanged, EMPTY, map, switchMap } from 'rxjs';
+import { combineLatest, distinctUntilChanged, EMPTY, map, startWith, Subject, switchMap } from 'rxjs';
 
+import { PageErrorComponent } from '../../shared';
 import { PersonDetailStoreService } from './person-detail-store.service';
 
 @Component({
     selector: 'app-person-detail-wrapper',
-    imports: [RouterOutlet],
+    imports: [AsyncPipe, PageErrorComponent, RouterOutlet],
     providers: [PersonDetailStoreService],
-    template: '<router-outlet />',
+    templateUrl: './person-detail-wrapper.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PersonDetailWrapperComponent {
+    readonly showPageError$ = this.store.showPageError$;
+
+    private readonly retryRequests = new Subject<void>();
+
     constructor(
         private store: PersonDetailStoreService,
         private router: Router,
         activatedRoute: ActivatedRoute,
     ) {
-        activatedRoute.paramMap
-            .pipe(
+        combineLatest([
+            activatedRoute.paramMap.pipe(
                 map((paramMap) => Number(paramMap.get('personId'))),
                 distinctUntilChanged(),
-                switchMap((personId) => {
+            ),
+            this.retryRequests.pipe(startWith(undefined)),
+        ])
+            .pipe(
+                switchMap(([personId]) => {
                     if (!Number.isInteger(personId) || personId <= 0) {
                         this.router.navigate(['not-found']);
                         return EMPTY;
@@ -33,5 +43,9 @@ export class PersonDetailWrapperComponent {
                 takeUntilDestroyed(),
             )
             .subscribe();
+    }
+
+    retry(): void {
+        this.retryRequests.next();
     }
 }

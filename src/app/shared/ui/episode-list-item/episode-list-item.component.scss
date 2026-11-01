@@ -87,13 +87,18 @@
 .episode-list-item__actions {
     grid-area: actions;
     display: flex;
-    align-self: center;
+    align-self: start;
     align-items: center;
-    gap: var(--space-1);
+    gap: var(--space-3);
 
     &:empty {
         display: none;
     }
+}
+
+.episode-list-item__score {
+    @include text-figure(var(--text-figure-md));
+    font-variant-numeric: tabular-nums;
 }
 
 .episode-list-item__line {

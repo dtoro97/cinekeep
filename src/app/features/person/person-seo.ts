@@ -13,7 +13,7 @@ export const toPersonSeoMetadata = (
         page === 'photos'
             ? `Profile photos and portraits of ${person.name}.`
             : person.biography ||
-              `Explore ${person.name}'s biography, movie and TV credits, known-for titles, and photos.`;
+              `${person.name}: biography, movie and TV credits, and photos.`;
 
     return {
         title: page === 'photos' ? `${person.name} | Photos` : person.name,

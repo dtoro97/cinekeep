@@ -1,0 +1,220 @@
+@use 'breakpoints' as *;
+@use 'mixins' as *;
+
+// Browse, list and search pages: the display title with its count beside it, the content, then
+// "Showing 18 of 20,001" and Show more.
+.browse-page {
+    display: block;
+    padding-bottom: var(--space-12);
+}
+
+.browse-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-5);
+    padding-top: var(--space-10);
+
+    &__note {
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-lg);
+        font-weight: var(--weight-semibold);
+    }
+}
+
+// A head with a control on the right (a media type switch).
+.browse-head__end {
+    margin-left: auto;
+    align-self: center;
+}
+
+// The filter and view bar between two rules: filter buttons on the left, sort and view on the right.
+.browse-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-6);
+    padding: var(--space-2) 0;
+    border-block: 1px solid var(--color-border);
+
+    &__end {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin-left: auto;
+    }
+}
+
+// A filter button: its name in muted text, then the current value.
+.browse-select {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--control-height-lg);
+    padding: 0 var(--space-4);
+    border: 0;
+    border-radius: var(--control-radius);
+    background: var(--control-surface);
+    color: var(--text-primary);
+    font: inherit;
+    font-size: var(--text-control);
+    font-weight: var(--weight-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--motion-base);
+
+    @include hover-capable {
+        &:hover {
+            background: var(--control-surface-hover);
+        }
+    }
+
+    &[aria-expanded='true'] {
+        background: var(--control-surface-hover);
+    }
+
+    &__label {
+        color: var(--text-muted);
+    }
+
+    &__count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.25rem;
+        height: 1.25rem;
+        border-radius: var(--radius-sm);
+        background: var(--surface-raised);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-extrabold);
+    }
+
+    &__chevron {
+        color: var(--text-muted);
+        font-size: 0.625rem;
+    }
+}
+
+// The popover a filter button opens.
+.browse-popover {
+    width: min(22rem, calc(100vw - 2 * var(--layout-gutter-compact)));
+    max-height: min(32rem, 70vh);
+    margin-top: var(--space-2);
+    padding: var(--space-5);
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--overlay-radius);
+    background: var(--overlay-surface);
+    box-shadow: var(--shadow-xl);
+
+    &--wide {
+        width: min(34rem, calc(100vw - 2 * var(--layout-gutter-compact)));
+    }
+}
+
+// "Filtering by" and the active filters, each removable.
+.browse-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    padding-top: var(--space-4);
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    font-size: var(--text-meta);
+    font-weight: var(--weight-semibold);
+
+    &__reset {
+        margin-left: var(--space-1);
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--text-primary);
+        font: inherit;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        cursor: pointer;
+    }
+}
+
+.browse-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.25rem;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--control-radius);
+    background: var(--control-surface);
+    color: var(--text-secondary);
+    font: inherit;
+    font-family: var(--font-body);
+    cursor: pointer;
+
+    @include hover-capable {
+        &:hover {
+            color: var(--text-primary);
+        }
+    }
+
+    i {
+        font-size: 0.75rem;
+    }
+}
+
+.browse-more {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3) var(--space-5);
+    padding-top: var(--space-10);
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    font-size: var(--text-meta);
+    font-weight: var(--weight-semibold);
+}
+
+@include mobile() {
+    .browse-head {
+        padding-top: var(--space-7);
+    }
+}
+
+// Library pages: walls in groups ("Coming soon", "Ready to watch"), each led by a heading with its count.
+.library-group {
+    padding-top: var(--space-8);
+
+    &__heading {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-3);
+        margin-bottom: var(--space-4);
+        font-size: var(--text-2xl);
+        font-weight: var(--weight-extrabold);
+    }
+
+    &__count {
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-md);
+        font-weight: var(--weight-semibold);
+    }
+}
+
+.library-wall {
+    margin-top: var(--space-7);
+}
+
+.library-empty {
+    display: block;
+    padding-top: var(--space-12);
+}
+
+.library-paginator {
+    display: block;
+    padding-top: var(--space-8);
+}

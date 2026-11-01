@@ -5,13 +5,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 
 import {
+    CatalogueSubHeaderComponent,
     isDefined,
     PhotosBrowserComponent,
     PhotosBrowserSelection,
     PhotosBrowserSkeletonComponent,
     PhotoViewerDialogService,
     SeoService,
-    SubPageHeaderComponent,
 } from '../../../shared';
 import { toMediaSectionSeoMetadata } from '../media-seo';
 import { MediaStoreService } from '../media-store.service';
@@ -19,7 +19,7 @@ import { MediaPhotosPageStoreService } from './media-photos-page-store.service';
 
 @Component({
     selector: 'app-media-photos-page',
-    imports: [AsyncPipe, PhotosBrowserComponent, PhotosBrowserSkeletonComponent, SubPageHeaderComponent],
+    imports: [AsyncPipe, CatalogueSubHeaderComponent, PhotosBrowserComponent, PhotosBrowserSkeletonComponent],
     providers: [MediaPhotosPageStoreService],
     templateUrl: './media-photos-page.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,

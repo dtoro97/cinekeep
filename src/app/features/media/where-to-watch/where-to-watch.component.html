@@ -1,0 +1,40 @@
+<section class="catalogue-group" aria-labelledby="watch-heading">
+    <h2 id="watch-heading" class="catalogue-group__title text-display-sm">Where to watch</h2>
+
+    <dl class="catalogue-rows">
+        @if (providers) {
+            <div class="catalogue-rows__row">
+                <dt class="catalogue-rows__label">Stream</dt>
+                <dd class="catalogue-providers">
+                    @for (provider of providers.providers; track provider.provider_id) {
+                        <a
+                            class="catalogue-providers__link"
+                            [routerLink]="['/discover']"
+                            [queryParams]="{ type: mediaType, providers: provider.provider_id }"
+                        >
+                            <app-image
+                                class="catalogue-providers__logo"
+                                [src]="provider.logo_path ?? null"
+                                params="w92"
+                                [alt]="provider.provider_name ?? 'Watch provider'"
+                            />
+                        </a>
+                    }
+                    @if (providers.hiddenCount && providers.link) {
+                        <a class="catalogue-providers__more" [href]="providers.link" target="_blank" rel="noopener">
+                            +{{ providers.hiddenCount }}
+                        </a>
+                    }
+                </dd>
+            </div>
+        }
+
+        <ng-content />
+    </dl>
+
+    @if (providers?.link; as providersLink) {
+        <a class="catalogue-group__credit" [href]="providersLink" target="_blank" rel="noopener">
+            Streaming data by JustWatch
+        </a>
+    }
+</section>

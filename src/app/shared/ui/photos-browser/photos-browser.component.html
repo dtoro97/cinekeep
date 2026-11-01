@@ -1,29 +1,34 @@
 @if (photosBrowser$ | async; as photosBrowser) {
     <div class="photos-browser">
         @if (photosBrowser.hasImages) {
-            <app-browse-toolbar>
-                <div start class="photos-browser__toolbar-start">
-                    <span class="photos-browser__count text-meta">{{ photosBrowser.countLabel }}</span>
-                    @if (photosBrowser.showTypeFilter) {
-                        <app-toggle-group
-                            class="photos-browser__filters"
-                            [options]="photosBrowser.typeOptions"
-                            [multiple]="true"
-                            variant="chips"
-                            [selectedValues]="photosBrowser.selectedTypes"
-                            (selectedValuesChange)="setSelectedTypes($event)"
-                        />
+            <div class="catalogue-tabs" role="toolbar" aria-label="Photo options">
+                @if (photosBrowser.showTypeTabs) {
+                    @for (tab of photosBrowser.typeTabs; track tab.label) {
+                        <button
+                            class="catalogue-tabs__tab"
+                            [class.catalogue-tabs__tab--active]="tab.isActive"
+                            type="button"
+                            [attr.aria-pressed]="tab.isActive"
+                            (click)="setSelectedTypes(tab.value ? [tab.value] : [])"
+                        >
+                            {{ tab.label }}
+                            <span class="catalogue-tabs__count">{{ tab.count }}</span>
+                        </button>
                     }
+                } @else {
+                    <span class="photos-browser__count text-meta">{{ photosBrowser.countLabel }}</span>
+                }
+
+                <div class="catalogue-tabs__end">
+                    <app-sort-button
+                        [options]="sortOptions"
+                        [selectedValue]="photosBrowser.sortField"
+                        [direction]="photosBrowser.sortDirection"
+                        (sortChange)="setSortField($event)"
+                        (directionToggle)="toggleSortDirection()"
+                    />
                 </div>
-                <app-sort-button
-                    end
-                    [options]="sortOptions"
-                    [selectedValue]="photosBrowser.sortField"
-                    [direction]="photosBrowser.sortDirection"
-                    (sortChange)="setSortField($event)"
-                    (directionToggle)="toggleSortDirection()"
-                />
-            </app-browse-toolbar>
+            </div>
         }
 
         @if (photosBrowser.hasVisibleImages) {
@@ -52,7 +57,8 @@
 
             @if (photosBrowser.hasMore) {
                 <div class="photos-browser__more">
-                    <button mat-stroked-button type="button" (click)="showMore()">Show more photos</button>
+                    <span class="text-meta">{{ photosBrowser.shownLabel }}</span>
+                    <button matButton="outlined" type="button" (click)="showMore()">Show more photos</button>
                 </div>
             }
         } @else {

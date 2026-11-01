@@ -4,6 +4,5 @@ export * from './mappers';
 export * from './pipes';
 export * from './ui';
 export * from './utils';
-export * from './guards';
 export * from './interceptors';
 export * from './services';

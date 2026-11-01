@@ -2,36 +2,25 @@
 @use 'mixins' as *;
 
 :host {
-    --photos-browser-gap: var(--space-4);
+    --photos-browser-gap: var(--space-2);
     --photos-browser-row-height: 220px;
 }
 
 .photos-browser {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
-
-    &__toolbar-start {
-        display: flex;
-        flex: 1;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-3);
-        min-width: 0;
-    }
+    gap: var(--space-6);
 
     &__count {
+        padding: var(--space-3) 0 var(--space-2) var(--space-3);
         white-space: nowrap;
-    }
-
-    &__filters {
-        flex: 1;
-        min-width: 0;
     }
 
     &__more {
         display: flex;
+        align-items: center;
         justify-content: center;
+        gap: var(--space-4);
     }
 
     &__grid {
@@ -51,7 +40,7 @@
         min-width: 0;
         overflow: hidden;
         border: 0;
-        border-radius: var(--radius-lg);
+        border-radius: var(--radius-media);
         background: var(--surface-panel);
         padding: 0;
         cursor: pointer;
@@ -87,12 +76,8 @@
     }
 
     .photos-browser {
-        gap: var(--space-3);
+        gap: var(--space-4);
 
-        &__toolbar-start {
-            align-items: flex-start;
-            flex-direction: column;
-        }
         &__spacer {
             display: none;
         }

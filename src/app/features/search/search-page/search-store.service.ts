@@ -72,21 +72,21 @@ export class SearchStoreService extends ComponentStore<SearchState> {
                 {
                     key: 'movie' as const,
                     title: 'Movies',
-                    moreLabel: 'Show more movies',
+                    typeLinkLabel: 'More movies',
                     state: toMediaListEntryState(toSectionState(sections.movie), movieGenres),
                     hasMore: hasMoreResults(sections.movie),
                 },
                 {
                     key: 'tv' as const,
                     title: 'TV series',
-                    moreLabel: 'Show more TV series',
+                    typeLinkLabel: 'More TV series',
                     state: toMediaListEntryState(toSectionState(sections.tv), tvGenres),
                     hasMore: hasMoreResults(sections.tv),
                 },
                 {
                     key: 'person' as const,
                     title: 'People',
-                    moreLabel: 'Show more people',
+                    typeLinkLabel: 'More people',
                     state: toSectionState(sections.person),
                     hasMore: hasMoreResults(sections.person),
                 },
@@ -94,8 +94,9 @@ export class SearchStoreService extends ComponentStore<SearchState> {
 
             return {
                 type,
+                isAllTypes: type === 'all',
                 hasQuery,
-                pageTitle: hasQuery ? `Results for "${query}"` : 'Search',
+                pageTitle: hasQuery ? `Results for “${query}”` : 'Search',
                 skeletonCount: type === 'all' ? SMALL_LIST_COUNT : PAGE_SIZE,
                 sections: resultSections.filter(
                     ({ state }) =>

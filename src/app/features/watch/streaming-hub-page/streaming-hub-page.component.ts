@@ -3,15 +3,15 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 
-import { ImagePipe, RepeatPipe, SeoService, SkeletonComponent, toSeoImage } from '../../../shared';
+import { ImageComponent, RepeatPipe, SeoService, SkeletonComponent, toSeoImage } from '../../../shared';
 import { StreamingHubStoreService } from './streaming-hub-store.service';
 
 const STREAMING_HUB_SUBTITLE =
-    'Popular movies and TV series streaming now, grouped by provider, release timing, runtime, and mood.';
+    'Popular movies and TV series on streaming services in your region, by service and by list.';
 
 @Component({
     selector: 'app-streaming-hub-page',
-    imports: [AsyncPipe, ImagePipe, RouterLink, RepeatPipe, SkeletonComponent],
+    imports: [AsyncPipe, ImageComponent, RouterLink, RepeatPipe, SkeletonComponent],
     providers: [StreamingHubStoreService],
     templateUrl: './streaming-hub-page.component.html',
     styleUrl: './streaming-hub-page.component.scss',
@@ -28,7 +28,7 @@ export class StreamingHubPageComponent {
     ) {
         this.streamingHub$.pipe(takeUntilDestroyed()).subscribe(({ seoBackdropPath }) =>
             seoService.setPage({
-                title: 'Streaming Guide',
+                title: 'Streaming guide',
                 description: STREAMING_HUB_SUBTITLE,
                 ...toSeoImage(seoBackdropPath),
                 imageAlt: 'CineKeep streaming guide preview',

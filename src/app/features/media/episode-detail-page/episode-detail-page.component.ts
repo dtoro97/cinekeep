@@ -1,43 +1,50 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { catchError } from 'rxjs';
 
 import {
-    HeroSurfaceComponent,
+    CatalogueBackdropComponent,
+    ImageComponent,
+    MediaRatingDialogRequest,
     MediaRatingDialogService,
     MinutesToHoursPipe,
-    PageSectionComponent,
-    PhotosPreviewComponent,
     PhotoViewerDialogService,
+    RatingScaleComponent,
+    RepeatPipe,
     SeoService,
+    SigninDialogService,
     SkeletonComponent,
     SnackbarService,
     TmdbRatingComponent,
     VideosGridComponent,
     ViewerImage,
+    YourLibraryComponent,
 } from '../../../shared';
-import { EpisodeDetailStoreService, EpisodeRatingRequest } from '../episode-detail-store.service';
+import { EpisodeDetailStoreService } from '../episode-detail-store.service';
 import { MediaCreditsSummaryComponent } from '../media-credits-summary/media-credits-summary.component';
-import { UserRatingComponent } from '../user-rating/user-rating.component';
 
 @Component({
     selector: 'app-episode-detail-page',
     imports: [
         AsyncPipe,
+        CatalogueBackdropComponent,
         DatePipe,
-        HeroSurfaceComponent,
+        DecimalPipe,
+        ImageComponent,
+        MatButtonModule,
         MediaCreditsSummaryComponent,
         MinutesToHoursPipe,
-        PageSectionComponent,
-        PhotosPreviewComponent,
+        RatingScaleComponent,
+        RepeatPipe,
         RouterLink,
         SkeletonComponent,
         TmdbRatingComponent,
-        UserRatingComponent,
         VideosGridComponent,
+        YourLibraryComponent,
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './episode-detail-page.component.html',
@@ -48,12 +55,12 @@ export class EpisodeDetailPageComponent {
 
     constructor(
         private readonly store: EpisodeDetailStoreService,
-        private readonly activatedRoute: ActivatedRoute,
         private readonly destroyRef: DestroyRef,
         private readonly photoViewerDialogService: PhotoViewerDialogService,
         private readonly mediaRatingDialogService: MediaRatingDialogService,
-        private readonly router: Router,
+        private readonly signinDialogService: SigninDialogService,
         private readonly snackbarService: SnackbarService,
+        activatedRoute: ActivatedRoute,
         seoService: SeoService,
     ) {
         this.store.load$(activatedRoute.paramMap).pipe(takeUntilDestroyed()).subscribe();
@@ -65,31 +72,21 @@ export class EpisodeDetailPageComponent {
         this.photoViewerDialogService.open({ images, activeIndex: index });
     }
 
-    openPhotosPage(): void {
-        this.router.navigate(['photos'], { relativeTo: this.activatedRoute });
+    signIn(): void {
+        this.signinDialogService.open$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     }
 
-    openUserRatingDialog(ratingRequest: EpisodeRatingRequest | null): void {
+    openUserRatingDialog(ratingRequest: MediaRatingDialogRequest | null): void {
         if (!ratingRequest) {
             return;
         }
 
-        const { target, title, currentRating } = ratingRequest;
-
         this.mediaRatingDialogService
-            .open$({
-                title,
-                currentRating,
-                save: (value) =>
-                    this.store
-                        .submitUserRating$(target, value)
-                        .pipe(catchError(() => this.snackbarService.showError$('Could not save your rating.'))),
-                remove: () =>
-                    this.store
-                        .deleteUserRating$(target)
-                        .pipe(catchError(() => this.snackbarService.showError$('Could not remove your rating.'))),
-            })
-            .pipe(takeUntilDestroyed(this.destroyRef))
+            .open$(ratingRequest)
+            .pipe(
+                catchError(() => this.snackbarService.showError$('Could not update your rating.')),
+                takeUntilDestroyed(this.destroyRef),
+            )
             .subscribe();
     }
 }

@@ -6,7 +6,6 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { EMPTY, Observable, catchError, switchMap } from 'rxjs';
 
 import {
-    BrowseToolbarComponent,
     ConfirmationDialogService,
     EmptyStateComponent,
     EpisodeListItemComponent,
@@ -14,13 +13,12 @@ import {
     MEDIA_TYPE_OPTIONS,
     MediaListItem,
     MediaListItemComponent,
+    MediaRatingDialogRequest,
     MediaRatingDialogService,
     RepeatPipe,
     SelectOption,
     SnackbarService,
     SortButtonComponent,
-    SubPageHeaderComponent,
-    ToggleGroupComponent,
 } from '../../../shared';
 import { USER_ACCOUNT_SORT_FIELD, USER_ACCOUNT_SORT_OPTIONS } from '../user-list-sort-options';
 import {
@@ -33,7 +31,6 @@ import {
     selector: 'app-user-ratings-page',
     imports: [
         AsyncPipe,
-        BrowseToolbarComponent,
         EmptyStateComponent,
         EpisodeListItemComponent,
         IconButtonComponent,
@@ -41,8 +38,6 @@ import {
         MediaListItemComponent,
         RepeatPipe,
         SortButtonComponent,
-        SubPageHeaderComponent,
-        ToggleGroupComponent,
     ],
     providers: [UserRatingsPageStoreService],
     templateUrl: './user-ratings-page.component.html',
@@ -110,8 +105,7 @@ export class UserRatingsPageComponent {
 
     editTitleRating(item: MediaListItem): void {
         this.editRating(
-            item.title,
-            item.rating,
+            { title: item.title, currentRating: item.rating, imagePath: item.thumb, meta: item.date.slice(0, 4) },
             (value) => this.store.updateTitleRating$(item, value),
             () => this.store.removeTitleRating$(item),
         );
@@ -123,8 +117,7 @@ export class UserRatingsPageComponent {
 
     editEpisodeRating(episode: UserRatedEpisodeItem): void {
         this.editRating(
-            episode.title,
-            episode.rating,
+            { title: episode.title, currentRating: episode.rating },
             (value) => this.store.updateEpisodeRating$(episode, value),
             () => this.store.removeEpisodeRating$(episode),
         );
@@ -135,13 +128,12 @@ export class UserRatingsPageComponent {
     }
 
     private editRating(
-        title: string,
-        currentRating: number | null,
+        details: Pick<MediaRatingDialogRequest, 'title' | 'currentRating' | 'imagePath' | 'meta'>,
         save: (value: number) => Observable<unknown>,
         remove: () => Observable<unknown>,
     ): void {
         this.ratingDialog
-            .open$({ title, currentRating, save, remove: () => this.confirmRemoval$(title, remove) })
+            .open$({ ...details, save, remove: () => this.confirmRemoval$(details.title, remove) })
             .pipe(
                 catchError(() => this.snackbarService.showError$('Could not update your rating.')),
                 takeUntilDestroyed(this.destroyRef),
