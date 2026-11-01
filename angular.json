@@ -84,15 +84,6 @@
                                     "with": "src/environments/environment.development.ts"
                                 }
                             ]
-                        },
-                        "github-pages": {
-                            "outputPath": {
-                                "base": "dist/github-pages",
-                                "browser": ""
-                            },
-                            "server": false,
-                            "ssr": false,
-                            "outputMode": "static"
                         }
                     },
                     "defaultConfiguration": "production"
@@ -111,9 +102,6 @@
                 },
                 "extract-i18n": {
                     "builder": "@angular/build:extract-i18n"
-                },
-                "deploy": {
-                    "builder": "angular-cli-ghpages:deploy"
                 }
             }
         }
