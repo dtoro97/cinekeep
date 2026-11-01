@@ -53,11 +53,6 @@
     @include meta-list();
 }
 
-.backdrop-card:focus-visible {
-    border-color: var(--control-focus-border);
-    box-shadow: 0 0 0 3px var(--control-focus-ring-outer);
-}
-
 .backdrop-card {
     @include card-hover('.backdrop-card__image', '.backdrop-card__title', $border-color: var(--color-border));
 }

@@ -1,62 +1,29 @@
 @use 'breakpoints' as *;
 
-.popular-people {
-    &__header {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-3);
-        padding-block: var(--space-6) var(--space-4);
-    }
+.people-wall {
+    display: grid;
+    // A page holds 20 people, so each breakpoint uses a column count that divides it.
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--space-8) var(--space-5);
+    margin: var(--space-7) 0 0;
+    padding: 0;
+    list-style: none;
+}
 
-    &__subtitle {
-        max-width: 52rem;
-    }
+.people-empty {
+    display: block;
+    padding-top: var(--space-10);
+}
 
-    &__content {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-5);
-        padding-bottom: var(--space-10);
-    }
-
-    &__toolbar-start {
-        display: flex;
-        min-height: var(--control-height-sm);
-        align-items: center;
-    }
-
-    &__result-count {
-        color: var(--text-muted);
-    }
-
-    // Portraits, like the home "Popular people" row: faces carry this page, not rank.
-    &__grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
-        gap: var(--space-8) var(--space-5);
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-
-    &__empty {
-        border-radius: inherit;
-    }
-
-    &__paginator {
-        padding-top: var(--space-4);
+@include tablet() {
+    .people-wall {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 
 @include mobile() {
-    .popular-people {
-        &__header {
-            padding-block: var(--space-5) var(--space-3);
-        }
-
-        &__grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: var(--space-6) var(--space-3);
-        }
+    .people-wall {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-6) var(--space-3);
     }
 }

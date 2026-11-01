@@ -1,0 +1,6 @@
+<div class="catalogue-backdrop" [class.catalogue-backdrop--empty]="!backdropPath">
+    @if (backdropPath) {
+        <app-image class="catalogue-backdrop__image" [src]="backdropPath" params="w1280" [alt]="alt" />
+        <span class="catalogue-backdrop__fade" aria-hidden="true"></span>
+    }
+</div>

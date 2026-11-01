@@ -1,237 +1,283 @@
 @use 'breakpoints' as *;
 @use 'mixins' as *;
 
-.discover-page {
-    // The sidebar starts where it sticks, so its height always fits the viewport.
-    --discover-sticky-top: calc(var(--space-12) + var(--space-3) + var(--space-6));
+:host {
+    display: block;
+}
 
-    &__header {
+.results {
+    padding-top: var(--space-7);
+
+    &__empty {
+        display: block;
+        padding-top: var(--space-6);
+    }
+}
+
+// Top rated: a ranked chart in two columns, score bars on the right.
+.chart {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-12);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.chart-row {
+    display: grid;
+    grid-template-columns: 3.5rem 3.75rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-border);
+    @include row-hover('.chart-row__poster', '.chart-row__title');
+
+    &__rank {
+        color: var(--text-muted);
+        @include text-figure(var(--text-4xl));
+        text-align: right;
+    }
+
+    &__poster {
+        display: block;
+        width: 3.75rem;
+        aspect-ratio: var(--poster-ratio);
+        --image-radius: var(--radius-media);
+        --skeleton-radius: var(--radius-media);
+    }
+
+    &__text {
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        gap: var(--space-4);
+        gap: var(--space-1);
+        min-width: 0;
+    }
+
+    &__title {
+        font-size: var(--text-lg);
+        font-weight: var(--weight-bold);
+        line-height: 1.2;
+        @include text-link(var(--text-primary));
+    }
+
+    &__year {
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-meta);
+        font-weight: var(--weight-semibold);
+    }
+
+    &__figure {
+        @include text-figure(var(--text-figure-sm));
+    }
+
+    &__line {
+        grid-column: span 2;
+        width: 60%;
+        --skeleton-height: 1.1rem;
+    }
+}
+
+// Discover's entries: rank, poster, title with its facts and overview, the score on the right.
+.entries {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.entry {
+    display: grid;
+    grid-template-columns: 2.5rem 6.25rem minmax(0, 1fr) 9.5rem;
+    align-items: start;
+    gap: var(--space-6);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--color-border);
+    @include row-hover('.entry__poster', '.entry__link');
+
+    &__rank {
+        color: var(--text-muted);
+        @include text-figure(var(--text-4xl));
+        text-align: right;
+    }
+
+    &__poster {
+        display: block;
+        aspect-ratio: var(--poster-ratio);
+        --image-radius: var(--radius-media);
+        --skeleton-radius: var(--radius-media);
+    }
+
+    &__text {
+        min-width: 0;
+    }
+
+    &__title {
+        font-size: var(--text-section);
+        font-weight: var(--weight-extrabold);
+        line-height: 1.05;
+        letter-spacing: var(--tracking-tight);
+    }
+
+    &__link {
+        @include text-link(var(--text-primary));
+    }
+
+    &__facts {
+        display: inline-flex;
+        margin-top: var(--space-3);
+    }
+
+    &__overview {
+        max-width: var(--layout-body-measure);
+        margin-top: var(--space-3);
+        @include line-clamp(3);
+    }
+
+    &__score {
+        text-align: right;
+    }
+
+    &__figure {
+        display: block;
+        @include text-figure(var(--text-figure-lg));
+    }
+
+    &__out-of {
+        display: block;
+        margin-top: var(--space-1);
+        color: var(--text-muted);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+    }
+
+    &__line {
+        width: 60%;
+        margin-bottom: var(--space-3);
+        --skeleton-height: 1rem;
+
+        &--title {
+            width: 45%;
+            --skeleton-height: 1.75rem;
+        }
+    }
+}
+
+// Upcoming by release date: every day shares one poster grid, so a short day sits beside the next one instead of
+// leaving most of a row empty. A day spans one column per movie (`data-span`, up to a full row) and lays its
+// posters on those same columns.
+.days {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: var(--space-8) var(--space-4);
+
+    &--loading {
+        row-gap: var(--space-6);
+        margin-top: var(--space-8);
+    }
+}
+
+.day {
+    display: grid;
+    grid-template-columns: subgrid;
+    align-content: start;
+    row-gap: var(--space-5);
+
+    &__date {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: var(--space-2);
+        padding-top: var(--space-3);
+        border-top: 1px solid var(--color-border);
     }
 
     &__heading {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-2);
+        @include text-figure(var(--text-figure-sm));
+        text-transform: uppercase;
+        white-space: nowrap;
     }
 
-    &__subtitle {
-        max-width: 56rem;
-    }
-
-    &__content {
-        padding-block: var(--space-6) var(--space-10);
-    }
-
-    &__layout {
-        display: grid;
-        gap: var(--space-8);
-
-        &--with-filters {
-            grid-template-columns: 16rem minmax(0, 1fr);
-            align-items: start;
-        }
-    }
-
-    // Sticks beside the grid and scrolls on its own, so it never outgrows the results.
-    &__filters {
-        position: sticky;
-        inset-block-start: var(--discover-sticky-top);
-        max-height: calc(100dvh - var(--discover-sticky-top) - var(--space-4));
-        overflow-y: auto;
-        overscroll-behavior: contain;
-        padding-inline-end: var(--space-3);
-        scrollbar-width: thin;
-        scrollbar-color: var(--color-border) transparent;
-    }
-
-    &__results {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-5);
-        min-width: 0;
-    }
-
-    &__toolbar {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: var(--space-4);
-        min-height: var(--control-height-sm);
-    }
-
-    &__summary {
-        display: flex;
-        flex: 1;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-2);
-        min-width: 0;
-        min-height: var(--control-height-sm);
-    }
-
-    &__result-count {
-        margin-inline-end: var(--space-2);
-        color: var(--text-primary);
-    }
-
-    &__toolbar-actions {
-        display: flex;
-        flex-shrink: 0;
-        align-items: center;
-        gap: var(--space-2);
-    }
-
-    &__filter-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--space-1);
-        min-height: 1.625rem;
-        padding: 0 var(--space-2) 0 var(--space-3);
-        border: 1px solid var(--control-subtle-border);
-        border-radius: var(--radius-pill);
-        background: var(--control-subtle-surface);
-        color: var(--control-subtle-text);
-        cursor: pointer;
-        transition: var(--control-transition);
-        @include surface-hover-subtle();
-
-        mat-icon {
-            @include icon-size(0.875rem);
-        }
-
-        &--locked {
-            padding-inline-start: var(--space-2);
-            cursor: default;
-
-            &:hover {
-                background: var(--control-subtle-surface);
-                color: var(--control-subtle-text);
-            }
-        }
-    }
-
-    &__reset {
-        padding: 0 var(--space-1);
-        border: 0;
-        background: none;
+    &__count {
         color: var(--text-muted);
-        cursor: pointer;
-        @include text-link(var(--text-muted));
+        font-family: var(--font-data);
+        font-size: var(--text-meta);
+        font-weight: var(--weight-semibold);
     }
+}
 
-    &__filter-toggle {
-        display: none;
-        --mat-button-outlined-container-height: var(--control-height-sm);
-        --mat-button-outlined-label-text-size: var(--text-sm);
-
-        i {
-            margin-inline-end: var(--space-1);
-            @include icon-size(0.875rem);
-        }
-    }
-
-    &__filter-count {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 1.25rem;
-        height: 1.25rem;
-        margin-inline-start: var(--space-1);
-        padding-inline: var(--space-1);
-        border-radius: var(--radius-pill);
-        background: var(--control-subtle-surface-active);
-        color: var(--text-primary);
-        font-size: var(--text-2xs);
-    }
-
-    &__items {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        align-items: start;
-        gap: var(--space-6) var(--space-4);
-    }
-
-    &__more {
-        display: flex;
-        justify-content: center;
-        padding-block-start: var(--space-4);
-    }
-
-    &__filter-overlay,
-    &__filter-drawer {
-        display: none;
+@for $span from 1 through 8 {
+    .day[data-span='#{$span}'] {
+        grid-column: span $span;
     }
 }
 
 @include content-md() {
-    .discover-page__items {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+    .chart {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .days {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .day[data-span='7'],
+    .day[data-span='8'] {
+        grid-column: span 6;
     }
 }
 
 @include tablet() {
-    .discover-page {
-        &__items {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
+    .entry {
+        grid-template-columns: 5rem minmax(0, 1fr) auto;
 
-        &__layout--with-filters {
-            grid-template-columns: 1fr;
-        }
-
-        &__filters {
+        &__rank {
             display: none;
-        }
-
-        &__filter-toggle {
-            display: inline-flex;
-        }
-
-        &__filter-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: var(--z-overlay);
-            display: block;
-            background: var(--surface-backdrop);
-        }
-
-        &__filter-drawer {
-            position: fixed;
-            inset-block: 0;
-            inset-inline-end: 0;
-            z-index: var(--z-overlay);
-            display: block;
-            width: min(26rem, 100vw);
-            max-width: 100%;
-            overflow-y: auto;
-            padding: var(--space-4);
-            border-inline-start: 1px solid var(--color-border-subtle);
-            background: var(--surface-page);
         }
     }
 }
 
 @include mobile() {
-    .discover-page {
+    .chart-row {
+        grid-template-columns: 2.25rem 3.125rem minmax(0, 1fr) auto;
+        gap: var(--space-3);
 
-        &__toolbar {
-            flex-direction: column-reverse;
-            gap: var(--space-3);
+        &__rank {
+            font-size: var(--text-2xl);
         }
 
-        &__filter-drawer {
-            inset-inline: 0;
-            width: 100%;
-            border-inline-start: 0;
+        &__poster {
+            width: 3.125rem;
+        }
+    }
+
+    .entry {
+        grid-template-columns: 5rem minmax(0, 1fr);
+        gap: var(--space-3) var(--space-4);
+
+        &__title {
+            font-size: var(--text-xl);
         }
 
-        &__items {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: var(--space-4) var(--space-2);
+        &__score {
+            grid-column: 2;
+            text-align: left;
+        }
+
+        &__figure {
+            font-size: var(--text-figure-md);
+        }
+    }
+
+    .days {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--space-6) var(--space-3);
+    }
+
+    @for $span from 4 through 8 {
+        .day[data-span='#{$span}'] {
+            grid-column: span 3;
         }
     }
 }

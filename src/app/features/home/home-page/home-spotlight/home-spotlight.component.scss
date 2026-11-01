@@ -33,7 +33,7 @@
 }
 
 .spotlight__overview {
-    @include line-clamp(3);
+    @include line-clamp(2);
 }
 
 .spotlight__actions {
@@ -76,7 +76,7 @@
 
     &--overview {
         width: min(36rem, 90%);
-        --skeleton-height: 4.5rem;
+        --skeleton-height: 3rem;
     }
 }
 

@@ -20,6 +20,16 @@
 
         <ng-content />
 
+        <button
+            matButton="outlined"
+            type="button"
+            [disabled]="listActions.isListButtonDisabled"
+            attr.aria-label="Add {{ media.title }} to one of your lists"
+            (click)="openListsDialog(listActions.isAuthenticated)"
+        >
+            {{ listActions.listButtonLabel }}
+        </button>
+
         <app-icon-button
             class="action"
             [selected]="listActions.isFavorite"
@@ -34,16 +44,6 @@
                 class="icon fa-heart"
                 aria-hidden="true"
             ></i>
-        </app-icon-button>
-
-        <app-icon-button
-            class="action"
-            [disabled]="listActions.isListButtonDisabled"
-            ariaLabel="Add {{ media.title }} to one of your lists"
-            matTooltip="Add to one of your lists"
-            (buttonClick)="openListsDialog(listActions.isAuthenticated)"
-        >
-            <i class="icon fa-solid fa-list" aria-hidden="true"></i>
         </app-icon-button>
     </div>
 }

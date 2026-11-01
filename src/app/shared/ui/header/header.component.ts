@@ -1,6 +1,8 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { SigninDialogService } from '../signin-dialog/signin-dialog.service';
@@ -16,6 +18,8 @@ import { HeaderStoreService } from './header-store.service';
         HeaderAccountMenuComponent,
         HeaderLocaleRegionMenuComponent,
         HeaderSearchBarComponent,
+        MatIconModule,
+        MatMenuModule,
         RouterLink,
         RouterLinkActive,
     ],

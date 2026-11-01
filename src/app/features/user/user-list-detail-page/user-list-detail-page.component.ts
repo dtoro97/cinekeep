@@ -9,7 +9,7 @@ import {
     afterNextRender,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,16 +22,16 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { EMPTY, catchError, distinctUntilChanged, map, switchMap, tap } from 'rxjs';
 
 import {
-    BrowseToolbarComponent,
     ConfirmationDialogService,
     EmptyStateComponent,
     IconButtonComponent,
+    ImageComponent,
     MediaListItemComponent,
     RepeatPipe,
     SeoService,
+    SkeletonComponent,
     SnackbarService,
     SortButtonComponent,
-    SubPageHeaderComponent,
 } from '../../../shared';
 import { UserListEditDialogComponent } from '../user-list-edit-dialog/user-list-edit-dialog.component';
 import {
@@ -53,9 +53,9 @@ import {
     selector: 'app-user-list-detail-page',
     imports: [
         AsyncPipe,
-        BrowseToolbarComponent,
         EmptyStateComponent,
         IconButtonComponent,
+        ImageComponent,
         MatButtonModule,
         MatFormFieldModule,
         MatIconModule,
@@ -65,8 +65,9 @@ import {
         MatTooltipModule,
         MediaListItemComponent,
         RepeatPipe,
+        RouterLink,
+        SkeletonComponent,
         SortButtonComponent,
-        SubPageHeaderComponent,
     ],
     providers: [UserListDetailPageStoreService],
     templateUrl: './user-list-detail-page.component.html',

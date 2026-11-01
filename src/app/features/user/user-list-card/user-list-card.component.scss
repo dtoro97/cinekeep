@@ -1,16 +1,13 @@
 @use "breakpoints" as *;
 @use "mixins" as *;
 
-// Cover-led: the list's chosen still carries the card, its name set over it like a title card.
+// The list's chosen still, then its name, counts and description on the ground. No panel.
 .list-card {
     position: relative;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     color: inherit;
-    box-shadow: var(--shadow-sm);
-    @include surface-panel(var(--surface-panel-soft));
-    @include card-hover('.list-card__cover-image', '.list-card__title', $border-color: var(--color-border));
+    @include card-hover('.list-card__cover-image', '.list-card__title', $frame-selector: '.list-card__cover', $scale: false);
 
     &--preview {
         pointer-events: none;
@@ -26,18 +23,10 @@
 
     &__cover {
         position: relative;
-        display: flex;
-        align-items: flex-end;
-        aspect-ratio: 16 / 7;
+        aspect-ratio: 16 / 9;
         overflow: hidden;
-        background: var(--surface-raised);
-
-        &::after {
-            content: '';
-            @include absolute-fill;
-            background: var(--gradient-overlay-bottom);
-            pointer-events: none;
-        }
+        border-radius: var(--radius-media);
+        background: var(--surface-panel);
 
         &--poster {
             --image-position: center 22%;
@@ -58,29 +47,33 @@
         font-size: var(--text-3xl);
     }
 
-    &__title {
-        position: relative;
-        z-index: 1;
-        min-width: 0;
-        padding: var(--space-4);
-        text-shadow: var(--shadow-text-hero);
-        @include line-clamp(2);
-    }
-
     &__body {
         display: flex;
         flex-direction: column;
-        gap: var(--space-2);
-        padding: var(--space-3) var(--space-4) var(--space-4);
+        gap: var(--space-1);
+        padding-top: var(--space-3);
+    }
+
+    &__title {
+        min-width: 0;
+        font-size: var(--text-side-heading);
+        font-weight: var(--weight-extrabold);
+        line-height: 1.15;
+        @include line-clamp(2);
     }
 
     &__meta {
         display: flex;
         flex-wrap: wrap;
         gap: var(--space-1) var(--space-3);
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-meta);
+        font-weight: var(--weight-semibold);
     }
 
     &__description {
+        margin-top: var(--space-1);
         @include line-clamp(2);
     }
 
@@ -94,7 +87,6 @@
         transition: opacity var(--motion-base);
         @include overlay-action-surface();
     }
-
 }
 
 @include hover-capable {
@@ -108,22 +100,6 @@
         &:focus-within &__actions {
             opacity: 1;
             pointer-events: auto;
-        }
-
-        &:focus-within &__title {
-            color: var(--text-accent);
-        }
-    }
-}
-
-@include mobile() {
-    .list-card {
-        &__title {
-            padding: var(--space-3);
-        }
-
-        &__body {
-            padding: var(--space-3);
         }
     }
 }

@@ -28,6 +28,19 @@
         }
     }
 
+    // Library empty states: three empty poster outlines, the shape of what will fill the page.
+    &__posters {
+        display: grid;
+        grid-template-columns: repeat(3, 4rem);
+        gap: var(--space-2);
+    }
+
+    &__poster {
+        aspect-ratio: var(--poster-ratio);
+        border: 1px dashed var(--control-border);
+        border-radius: var(--radius-media);
+    }
+
     &__icon {
         font-size: 1.25rem;
         color: var(--text-muted);

@@ -15,7 +15,7 @@ export const watchRoutes: Routes = [
         title: 'Streaming Guide',
         data: {
             seoDescription:
-                'Find popular movies and TV series streaming now, by provider, release window, runtime, and mood.',
+                'Popular movies and TV series on streaming services in your region, by service and by list.',
         },
     },
     {
@@ -33,7 +33,7 @@ export const watchRoutes: Routes = [
         data: {
             streamingListKind: 'editorial',
             seoDescription:
-                'Browse curated streaming movies and TV series by theme, timing, and watchability.',
+                'A list of streaming movies and TV series, filtered by service, release date and runtime.',
         },
     },
 ];

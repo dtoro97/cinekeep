@@ -1,111 +1,87 @@
 @if (userProfile$ | async; as userProfile) {
-    <section class="profile page-main">
-        <aside class="profile__rail" aria-label="Profile summary">
-            <div class="profile__identity">
+    <div class="page-container">
+        <div class="browse-page inner-container">
+            <section class="identity" aria-labelledby="profile-heading">
                 <app-user-avatar [name]="userProfile.displayName" size="lg" />
-
-                <div class="profile__identity-copy">
-                    <h1 class="text-headline">
-                        {{ userProfile.displayName }}
-                    </h1>
-
-                    @if (userProfile.username; as username) {
-                        <p class="text-meta">@{{ username }}</p>
-                    }
-
-                    @if (userProfile.hasProfileMeta) {
-                        <p class="profile__meta text-caption">
-                            @for (item of userProfile.profileMeta; track item) {
-                                <span>{{ item }}</span>
-                            }
-                        </p>
+                <div class="identity__text">
+                    <h1 id="profile-heading" class="text-display">{{ userProfile.displayName }}</h1>
+                    @if (userProfile.metaLine) {
+                        <p class="identity__meta">{{ userProfile.metaLine }}</p>
                     }
                 </div>
-            </div>
+            </section>
 
-            <nav class="profile__nav" aria-label="Profile navigation">
+            <nav class="totals" aria-label="Library totals">
                 @for (stat of userProfile.stats; track stat.link) {
-                    <a class="profile__nav-link" [routerLink]="stat.link">
-                        <strong class="profile__stat-value text-headline">{{ stat.total }}</strong>
-                        <span class="text-overline">{{ stat.label }}</span>
+                    <a class="totals__item" [routerLink]="stat.link">
+                        <b class="totals__figure">{{ stat.total }}</b>
+                        <span class="totals__label">{{ stat.label }}</span>
                     </a>
                 }
             </nav>
-        </aside>
 
-        <main class="profile__main">
             @for (shelf of userProfile.shelves; track shelf.key) {
-                <section class="profile__section" [attr.aria-labelledby]="shelf.titleId">
-                    <header class="profile__section-header">
-                        <div class="profile__section-heading">
-                            <h2 [id]="shelf.titleId" class="text-section-label">{{ shelf.title }}</h2>
-                            <p class="profile__section-count text-caption">{{ shelf.countLabel }}</p>
-                        </div>
-
-                        <a class="profile__section-link text-body-sm" [routerLink]="shelf.link">
-                            {{ shelf.linkLabel }}
-                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                        </a>
+                <section class="catalogue-block" [attr.aria-labelledby]="shelf.titleId">
+                    <header class="catalogue-block__head">
+                        <h2 [id]="shelf.titleId" class="text-headline">{{ shelf.title }}</h2>
+                        <span class="catalogue-block__count">{{ shelf.countLabel }}</span>
+                        <a class="catalogue-block__more" [routerLink]="shelf.link">{{ shelf.linkLabel }} ›</a>
                     </header>
 
-                    @if (shelf.showEmpty) {
-                        <div class="profile__empty">
-                            <app-empty-state
-                                [iconClass]="shelf.emptyIconClass"
-                                iconStyle="plain"
-                                [title]="shelf.emptyTitle"
-                                [text]="shelf.emptyText"
-                            />
+                    @if (shelf.showSkeleton) {
+                        <div class="shelf" aria-hidden="true">
+                            @for (slot of shelf.skeletonCount | repeat; track slot) {
+                                <app-card-skeleton />
+                            }
                         </div>
-                    } @else {
-                        <app-media-carousel-panel
-                            [ariaLabel]="shelf.ariaLabel"
-                            [state]="shelf.items"
-                            [columns]="shelf.columns"
-                            [imageParams]="shelf.imageParams"
-                            [skeletonCount]="shelf.columns"
+                    } @else if (shelf.showEmpty) {
+                        <app-empty-state
+                            [iconClass]="shelf.emptyIconClass"
+                            iconStyle="plain"
+                            [title]="shelf.emptyTitle"
+                            [text]="shelf.emptyText"
                         />
+                    } @else {
+                        <div class="shelf">
+                            @for (item of shelf.items; track item.mediaType + '-' + item.id) {
+                                <app-card [item]="item" imageParams="w342" />
+                            }
+                        </div>
                     }
                 </section>
             }
 
-            <section class="profile__section" aria-labelledby="profile-lists-title">
-                <header class="profile__section-header">
-                    <div class="profile__section-heading">
-                        <h2 id="profile-lists-title" class="text-section-label">Lists</h2>
-                        <p class="profile__section-count text-caption">{{ userProfile.listCountLabel }}</p>
-                    </div>
-
-                    <a class="profile__section-link text-body-sm" routerLink="/me/lists">
-                        View lists
-                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                    </a>
+            <section class="catalogue-block" aria-labelledby="profile-lists-title">
+                <header class="catalogue-block__head">
+                    <h2 id="profile-lists-title" class="text-headline">Lists</h2>
+                    <span class="catalogue-block__count">{{ userProfile.listCountLabel }}</span>
+                    <a class="catalogue-block__more" routerLink="/me/lists">All lists ›</a>
                 </header>
 
                 @if (userProfile.showListSkeleton) {
-                    <div class="profile__list-grid">
+                    <div class="list-grid">
                         @for (placeholder of listSkeletonCount | repeat; track placeholder) {
                             <app-user-list-card-skeleton />
                         }
                     </div>
                 } @else if (userProfile.hasLists) {
-                    <div class="profile__list-grid">
+                    <div class="list-grid">
                         @for (list of userProfile.lists; track list.id) {
                             <app-user-list-card [item]="list" />
                         }
                     </div>
                 } @else if (userProfile.showListEmpty) {
-                    <div class="profile__empty">
+                    <div class="lists-empty">
                         <app-empty-state
                             iconClass="fa-solid fa-list"
                             iconStyle="plain"
-                            title="No custom lists"
-                            text="Custom lists will appear here."
+                            title="No lists yet"
+                            text="Lists you make will appear here."
                         />
-                        <a class="profile__empty-link" routerLink="/me/lists/new">Create list</a>
+                        <a matButton="outlined" routerLink="/me/lists/new">Create a list</a>
                     </div>
                 }
             </section>
-        </main>
-    </section>
+        </div>
+    </div>
 }

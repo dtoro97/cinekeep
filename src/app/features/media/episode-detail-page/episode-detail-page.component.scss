@@ -1,202 +1,110 @@
 @use 'breakpoints' as *;
 @use 'mixins' as *;
 
-.episode-hero {
+:host {
+    display: block;
+}
+
+.episode-score {
     display: flex;
     flex-direction: column;
-    gap: var(--space-6);
+    gap: var(--space-2);
 
-    &__back {
-        display: inline-flex;
-        align-self: flex-start;
-        align-items: center;
-        gap: var(--space-1);
-        @include text-link(var(--text-primary));
-
-        i {
-            font-size: var(--text-2xs);
-        }
-    }
-
-    &__text {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--space-3);
-        max-width: 46rem;
-        text-shadow: var(--shadow-text-hero);
-    }
-
-    &__eyebrow,
-    &__meta {
-        @include meta-list();
-    }
-
-    &__series {
-        @include text-link(var(--text-secondary));
-    }
-
-    &__line {
-        width: 18rem;
-
-        &--title {
-            width: min(28rem, 100%);
-            --skeleton-height: 3rem;
-        }
-
-        &--meta {
-            width: 12rem;
-        }
-    }
-}
-
-.episode-page {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-}
-
-.episode-intro {
-    display: grid;
-    grid-template-columns: minmax(0, 46rem) auto;
-    justify-content: space-between;
-    align-items: start;
-    gap: var(--space-8);
-
-    &__text {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-5);
-        min-width: 0;
-    }
-
-    &__overview--empty {
-        color: var(--text-muted);
-    }
-
-    &__ratings {
-        display: flex;
-        align-items: flex-start;
-        gap: var(--space-6);
-        padding-inline-start: var(--space-6);
-        border-inline-start: 1px solid var(--color-border-subtle);
-    }
-
-    &__line {
-        width: 100%;
-
-        &--short {
-            width: 60%;
-        }
-    }
-}
-
-.episode-crew {
-    display: grid;
-    grid-template-columns: max-content minmax(0, 1fr);
-    gap: var(--space-2) var(--space-6);
-    margin: 0;
-
-    &__row {
-        display: contents;
-    }
-
-    &__label {
-        padding-block-start: 0.125rem;
-        color: var(--text-muted);
-    }
-
-    &__names {
-        margin: 0;
+    &__note {
         color: var(--text-secondary);
-    }
-
-    &__link {
-        @include text-link(var(--text-primary));
+        font-family: var(--font-data);
+        font-size: var(--text-meta);
+        font-weight: var(--weight-semibold);
     }
 }
 
-// Previous / next episode, styled like the ends of a reel rather than as buttons.
-.episode-pager {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-4);
-    padding-block: var(--space-4);
-    border-block: 1px solid var(--color-border-subtle);
+// The open episode and its neighbours; the open one sits on a raised row.
+.season-window {
+    margin: 0;
+    padding: 0;
+    list-style: none;
 
-    &__link {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
-        min-width: 0;
-        padding: var(--space-2) var(--space-3);
-        border-radius: var(--radius-md);
-        color: inherit;
-        text-decoration: none;
-        transition: background-color var(--motion-fast);
+    &__episode {
+        display: grid;
+        grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-2) 0;
+        border-top: 1px solid var(--color-border);
+        color: var(--text-primary);
 
         @include hover-capable {
-            &:hover {
-                background: var(--control-subtle-surface-hover);
-
-                .episode-pager__title {
-                    color: var(--text-accent);
-                }
+            &:hover .season-window__name {
+                color: var(--text-accent);
             }
         }
 
-        &:focus-visible {
-            outline: 2px solid var(--control-focus-ring-inner);
-            outline-offset: 2px;
-        }
-
-        &--next {
-            align-items: flex-end;
-            text-align: end;
+        &--current {
+            margin-inline: calc(var(--space-3) * -1);
+            padding-inline: var(--space-3);
+            border-top-color: transparent;
+            border-radius: var(--radius-sm);
+            background: var(--control-surface);
         }
     }
 
-    &__direction {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--space-2);
+    &__number {
         color: var(--text-muted);
-
-        i {
-            font-size: var(--text-2xs);
-        }
+        @include text-figure(var(--text-figure-sm), null);
+        text-align: right;
     }
 
-    &__title {
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        transition: color var(--motion-fast);
+    &__episode--current &__number {
+        color: var(--text-primary);
+    }
+
+    &__text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    &__name {
+        font-weight: var(--weight-bold);
+        transition: color var(--motion-base);
+        @include line-clamp(1);
+    }
+
+    &__score {
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-weight: var(--weight-semibold);
+    }
+
+    &__episode--current &__score {
+        color: var(--text-primary);
+    }
+}
+
+.stills {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+
+    &__button {
+        display: block;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+        @include media-hover();
+    }
+
+    &__still {
+        display: block;
+        aspect-ratio: var(--backdrop-ratio);
+        --image-radius: var(--radius-media);
+        --skeleton-radius: var(--radius-media);
     }
 }
 
 @include mobile() {
-    .episode-page {
-        gap: var(--space-6);
-    }
-
-    .episode-intro {
+    .stills {
         grid-template-columns: minmax(0, 1fr);
-        gap: var(--space-5);
-
-        &__ratings {
-            grid-row: 1;
-            padding-inline-start: 0;
-            border-inline-start: 0;
-        }
-    }
-
-    .episode-crew {
-        column-gap: var(--space-4);
-    }
-
-    .episode-pager__link {
-        padding-inline: var(--space-1);
     }
 }

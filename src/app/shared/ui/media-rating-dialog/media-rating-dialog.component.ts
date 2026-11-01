@@ -6,10 +6,13 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatSliderModule } from '@angular/material/slider';
 
 import { normalizeRatingValue } from '../../utils/rating';
+import { ImageComponent } from '../image/image.component';
 
 export interface MediaRatingDialogData {
     title: string;
     currentRating: number | null;
+    imagePath: string | null;
+    meta: string;
     isAuthenticated: boolean;
 }
 
@@ -18,7 +21,7 @@ export type MediaRatingDialogResult =
 
 @Component({
     selector: 'app-media-rating-dialog',
-    imports: [DecimalPipe, FormsModule, MatButtonModule, MatDialogModule, MatSliderModule],
+    imports: [DecimalPipe, FormsModule, ImageComponent, MatButtonModule, MatDialogModule, MatSliderModule],
     templateUrl: './media-rating-dialog.component.html',
     styleUrl: './media-rating-dialog.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +29,8 @@ export type MediaRatingDialogResult =
 export class MediaRatingDialogComponent {
     value: number;
     readonly title: string;
+    readonly imagePath: string | null;
+    readonly meta: string;
     readonly isAuthenticated: boolean;
     readonly hasCurrentRating: boolean;
     readonly saveLabel: string;
@@ -37,6 +42,8 @@ export class MediaRatingDialogComponent {
     ) {
         this.value = data.currentRating ?? 7;
         this.title = data.title;
+        this.imagePath = data.imagePath;
+        this.meta = data.meta;
         this.isAuthenticated = data.isAuthenticated;
         this.hasCurrentRating = data.currentRating !== null;
         this.saveLabel = this.hasCurrentRating ? 'Update rating' : 'Save rating';

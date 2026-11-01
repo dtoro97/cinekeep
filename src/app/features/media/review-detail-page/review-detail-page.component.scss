@@ -1,71 +1,154 @@
 @use 'breakpoints' as *;
+@use 'mixins' as *;
 
-.review-detail-layout {
+// The review at reading width on the left, the title and other reviews in a sticky sidebar.
+.review-page {
     display: grid;
-    grid-template-columns: 13rem minmax(0, 46rem);
-    gap: var(--space-12);
+    grid-template-columns: minmax(0, 1fr) 21.25rem;
     align-items: start;
-
-    &__summary {
-        position: sticky;
-        inset-block-start: calc(var(--space-12) + var(--space-3) + var(--space-6));
-    }
+    gap: var(--space-14);
+    padding-top: var(--space-12);
+    padding-bottom: var(--space-12);
 
     &__body {
         min-width: 0;
     }
-}
 
-.review-detail-skeleton {
-    display: grid;
-    grid-template-columns: 4rem minmax(0, 1fr);
-    gap: var(--space-4);
-
-    &__score {
-        width: 2.5rem;
-        --skeleton-height: 1.875rem;
+    &__back {
+        font-family: var(--font-data);
+        font-size: var(--text-md);
+        font-weight: var(--weight-semibold);
+        @include text-link(var(--text-muted));
     }
 
-    &__body {
+    &__head {
+        display: flex;
+        align-items: center;
+        gap: var(--space-5);
+        margin-top: var(--space-5);
+    }
+
+    &__author {
+        font-size: var(--text-page-title);
+        font-weight: var(--weight-black);
+        line-height: 0.95;
+        letter-spacing: var(--tracking-tighter);
+        overflow-wrap: anywhere;
+    }
+
+    &__content {
+        max-width: var(--layout-body-measure);
+        margin-top: var(--space-6);
+    }
+
+    &__source {
+        margin-top: var(--space-8);
+    }
+
+    &__side {
+        position: sticky;
+        top: calc(var(--header-height) + var(--space-6));
         display: flex;
         flex-direction: column;
-        gap: var(--space-3);
+        gap: var(--space-6);
     }
 
-    &__line {
-        width: 100%;
+    &__title-skeleton {
+        width: min(24rem, 80%);
+        margin: var(--space-5) 0 var(--space-6);
+        --skeleton-height: 3.5rem;
+    }
 
-        &--byline {
-            width: 40%;
-            margin-block-end: var(--space-2);
-            --skeleton-height: 1.25rem;
-        }
-
-        &--short {
-            width: 60%;
-        }
+    &__line-skeleton {
+        margin-top: var(--space-3);
+        --skeleton-height: 1.1rem;
     }
 }
 
-@include tablet() {
-    .review-detail-layout {
-        grid-template-columns: 10rem minmax(0, 1fr);
-        gap: var(--space-8);
+.review-film {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-4);
+    color: inherit;
+    @include row-hover('.review-film__poster', '.review-film__title');
+
+    &__poster {
+        aspect-ratio: var(--poster-ratio);
+        --image-radius: var(--radius-media);
+    }
+
+    &__text {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        min-width: 0;
+    }
+
+    &__title {
+        font-size: var(--text-lg);
+        font-weight: var(--weight-extrabold);
+    }
+
+    &__score {
+        @include text-figure(var(--text-figure-md));
+    }
+}
+
+.more-reviews {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    &__link {
+        display: grid;
+        grid-template-columns: 3.25rem minmax(0, 1fr);
+        align-items: baseline;
+        gap: var(--space-3);
+        padding: var(--space-2) 0;
+        border-top: 1px solid var(--color-border);
+        color: var(--text-primary);
+
+        @include hover-capable {
+            &:hover .more-reviews__author {
+                color: var(--text-accent);
+            }
+        }
+    }
+
+    &__score {
+        @include text-figure(var(--text-figure-sm), null);
+    }
+
+    &__text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    &__author {
+        font-weight: var(--weight-bold);
+        transition: color var(--motion-base);
+        @include line-clamp(1);
+    }
+}
+
+@include content-md() {
+    .review-page {
+        grid-template-columns: minmax(0, 1fr);
+
+        &__side {
+            position: static;
+        }
     }
 }
 
 @include mobile() {
-    .review-detail-layout {
-        grid-template-columns: minmax(0, 1fr);
-        gap: var(--space-6);
+    .review-page {
+        padding-top: var(--space-6);
 
-        &__summary {
-            position: static;
+        &__content {
+            font-size: var(--text-body);
         }
-    }
-
-    .review-detail-skeleton {
-        grid-template-columns: 3rem minmax(0, 1fr);
-        gap: var(--space-3);
     }
 }

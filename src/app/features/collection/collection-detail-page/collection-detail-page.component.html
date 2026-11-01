@@ -1,110 +1,178 @@
-<div class="page-container">
-    @if (collectionDetail$ | async; as collectionDetail) {
-        <app-hero-surface
-            [backdropPath]="collectionDetail.heroBackdropPath"
-            [alt]="collectionDetail.heroAlt"
-            variant="integrated"
-        >
-            @if (collectionDetail.details; as collection) {
-                <div class="collection-hero">
-                    <app-image
-                        class="poster aspect-poster"
-                        [src]="collection.poster_path"
-                        type="media"
-                        [alt]="collectionDetail.posterAlt"
-                    />
+@if (collectionDetail$ | async; as collectionDetail) {
+    @if (collectionDetail.showPageError) {
+        <app-page-error title="Couldn't load this collection" (retry)="retry()" />
+    } @else {
+        <div class="page-container">
+            <app-catalogue-backdrop
+                class="collection-backdrop"
+                [backdropPath]="collectionDetail.backdropPath"
+                [alt]="collectionDetail.backdropAlt"
+            />
 
-                    <div class="collection-hero__main">
-                        <div class="collection-hero__heading">
-                            <p class="text-hero-meta">
-                                Collection
-                                @if (collectionDetail.timelineLabel; as timelineLabel) {
-                                    &#x2022; {{ timelineLabel }}
-                                }
-                            </p>
-                            <h1 class="hero-title text-hero-title">
-                                {{ collection.name }}
-                            </h1>
-                        </div>
+            <div class="catalogue inner-container" [class.catalogue--plain]="!collectionDetail.backdropPath">
+                @if (collectionDetail.details; as collection) {
+                    <section class="catalogue__lead" aria-labelledby="collection-heading">
+                        <app-image class="catalogue__poster" [src]="collection.poster_path" type="media" [alt]="collection.name ?? ''" params="w342" />
 
-                        @if (collection.overview; as overview) {
-                            <p class="overview text-hero-summary">
-                                {{ overview }}
-                            </p>
-                        } @else {
-                            <p class="text-meta">We don't have an overview for this collection yet.</p>
+                        @if (collectionDetail.averageRating; as rating) {
+                            <div class="catalogue__lead-score">
+                                <app-tmdb-rating prominent label="Average score" [value]="rating" />
+                            </div>
                         }
-                    </div>
 
-                    <aside class="collection-hero__side" aria-label="Collection facts">
-                        <div class="collection-facts">
+                        <div class="catalogue__body">
+                            <h1 id="collection-heading" class="text-hero-title">{{ collection.name }}</h1>
+                            <p class="collection-meta">{{ collectionDetail.metaLine }}</p>
+
+                            @if (collection.overview; as overview) {
+                                <p class="catalogue__overview text-body">{{ overview }}</p>
+                            } @else {
+                                <p class="catalogue__overview catalogue__overview--empty text-body">
+                                    We don't have an overview for this collection yet.
+                                </p>
+                            }
+
+                            @if (collectionDetail.partsCount) {
+                                <div class="catalogue__actions">
+                                    <button
+                                        [matButton]="collectionDetail.isAllOnWatchlist ? 'outlined' : 'filled'"
+                                        type="button"
+                                        [disabled]="collectionDetail.isAllOnWatchlist || collectionDetail.isAddingAll"
+                                        (click)="addAllToWatchlist(collectionDetail.isAuthenticated)"
+                                    >
+                                        <i
+                                            class="fa-bookmark"
+                                            [class.fa-solid]="collectionDetail.isAllOnWatchlist"
+                                            [class.fa-regular]="!collectionDetail.isAllOnWatchlist"
+                                            aria-hidden="true"
+                                        ></i>
+                                        {{ collectionDetail.addAllLabel }}
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                } @else {
+                    <div class="catalogue__lead" aria-hidden="true">
+                        <app-skeleton class="catalogue__poster" />
+                        <div class="catalogue__body">
+                            <app-skeleton class="catalogue__title-skeleton" />
+                            <app-skeleton class="catalogue__line-skeleton" />
+                            <app-skeleton class="catalogue__overview-skeleton" />
+                        </div>
+                    </div>
+                }
+
+                <aside class="catalogue__side" aria-label="Collection summary and your library">
+                    @if (collectionDetail.details) {
+                        <dl class="catalogue-figures">
                             @if (collectionDetail.averageRating; as rating) {
-                                <app-tmdb-rating prominent label="Average rating" [value]="rating" />
-                            }
-
-                            @if (collectionDetail.partsCount; as count) {
-                                <div class="collection-facts__item">
-                                    <span class="text-card-meta">Movies</span>
-                                    <span class="text-body-sm">
-                                        {{ count | pluralize: 'movie' : 'movies' }}
-                                    </span>
+                                <div class="catalogue-figures__item">
+                                    <dt class="catalogue-figures__label">Average score</dt>
+                                    <dd class="catalogue-figures__figure">{{ rating | number: '1.1-1' }}</dd>
                                 </div>
                             }
-
-                            @if (collectionDetail.timelineLabel; as timelineLabel) {
-                                <div class="collection-facts__item">
-                                    <span class="text-card-meta">Timeline</span>
-                                    <span class="text-body-sm">
-                                        {{ timelineLabel }}
-                                    </span>
+                            <div class="catalogue-figures__item">
+                                <dt class="catalogue-figures__label">Movies</dt>
+                                <dd class="catalogue-figures__figure">{{ collectionDetail.partsCount }}</dd>
+                            </div>
+                            @if (collectionDetail.timelineLabel; as timeline) {
+                                <div class="catalogue-figures__item catalogue-figures__item--wide">
+                                    <dt class="catalogue-figures__label">Timeline</dt>
+                                    <dd class="catalogue-figures__figure">{{ timeline }}</dd>
                                 </div>
                             }
-                        </div>
-                    </aside>
-                </div>
-            } @else {
-                <div class="collection-hero collection-hero--loading" aria-hidden="true">
-                    <app-skeleton class="poster poster--skeleton aspect-poster" />
+                        </dl>
 
-                    <div class="collection-hero__main">
-                        <app-skeleton class="hero-kicker-skeleton" />
-                        <app-skeleton class="hero-title-skeleton" />
-
-                        <div class="overview-skeleton">
-                            <app-skeleton class="overview-line" />
-                            <app-skeleton class="overview-line overview-line--wide" />
-                            <app-skeleton class="overview-line overview-line--medium" />
-                        </div>
-                    </div>
-
-                    <aside class="collection-hero__side">
-                        <div class="summary-skeleton-row">
-                            <app-skeleton class="summary-pill-skeleton" />
-                            <app-skeleton class="summary-pill-skeleton summary-pill-skeleton--wide" />
-                        </div>
-                    </aside>
-                </div>
-            }
-        </app-hero-surface>
-
-        <div class="page-sections">
-            @if (collectionDetail.showParts) {
-                <app-page-section subtitle="Movies">
-                    @if (collectionDetail.showPartsCount) {
-                        <span section-controls class="text-meta"> {{ collectionDetail.partsCount }} total </span>
+                        <app-your-library
+                            [isAuthenticated]="collectionDetail.isAuthenticated"
+                            [invite]="collectionDetail.libraryInvite"
+                            (signIn)="signIn()"
+                        >
+                            @if (collectionDetail.hasLibraryCounts) {
+                                <dl class="catalogue-rows">
+                                    <div class="catalogue-rows__row">
+                                        <dt class="catalogue-rows__label">Watchlist</dt>
+                                        <dd>{{ collectionDetail.watchlistCount }} of {{ collectionDetail.partsCount }}</dd>
+                                    </div>
+                                    <div class="catalogue-rows__row">
+                                        <dt class="catalogue-rows__label">Rated</dt>
+                                        <dd>{{ collectionDetail.ratedCount }} of {{ collectionDetail.partsCount }}</dd>
+                                    </div>
+                                </dl>
+                            } @else {
+                                <app-skeleton class="collection-library-skeleton" aria-hidden="true" />
+                            }
+                        </app-your-library>
                     } @else {
-                        <span section-controls>
-                            <app-skeleton class="section-count-skeleton" />
-                        </span>
+                        <app-skeleton class="collection-library-skeleton" aria-hidden="true" />
                     }
+                </aside>
 
-                    <app-media-list [state]="collectionDetail.parts" />
-                </app-page-section>
-            }
+                <div class="catalogue__main">
+                    <section class="catalogue-block" aria-labelledby="entries-heading">
+                        <header class="catalogue-block__head">
+                            <h2 id="entries-heading" class="text-headline">In release order</h2>
+                        </header>
 
-            @if (collectionDetail.showNoParts) {
-                <p class="empty-text">No movies in this collection.</p>
-            }
+                        @if (collectionDetail.showEntrySkeleton) {
+                            <ol class="entries" aria-hidden="true">
+                                @for (slot of collectionDetail.entrySkeletonCount | repeat; track slot) {
+                                    <li class="entry">
+                                        <span></span>
+                                        <app-skeleton class="entry__poster" />
+                                        <div class="entry__text">
+                                            <app-skeleton class="entry__line entry__line--title" />
+                                            <app-skeleton class="entry__line" />
+                                            <app-skeleton class="entry__line entry__line--overview" />
+                                        </div>
+                                    </li>
+                                }
+                            </ol>
+                        } @else if (collectionDetail.showNoParts) {
+                            <p class="text-body">No movies in this collection.</p>
+                        } @else {
+                            <ol class="entries">
+                                @for (entry of collectionDetail.entries; track entry.item.id) {
+                                    <li class="entry">
+                                        <span class="entry__number" aria-hidden="true">{{ entry.number }}</span>
+                                        <a class="entry__poster-link" [routerLink]="entry.routeCommands" tabindex="-1" aria-hidden="true">
+                                            <app-image class="entry__poster" [src]="entry.item.thumb" type="media" params="w185" alt="" />
+                                        </a>
+                                        <div class="entry__text">
+                                            <h3 class="entry__title">
+                                                <a class="entry__title-link" [routerLink]="entry.routeCommands">{{ entry.item.title }}</a>
+                                                @if (entry.item.isLatest) {
+                                                    <span class="entry__flag">Latest</span>
+                                                }
+                                            </h3>
+                                            <p class="entry__meta text-meta">
+                                                {{ entry.year }}
+                                                @if (entry.castLinks.length) {
+                                                    · Starring
+                                                    @for (actor of entry.castLinks; track actor.id; let last = $last) {
+                                                        <a class="entry__actor" [routerLink]="['/name', actor.id]">{{ actor.name }}</a>@if (!last) {<span>, </span>}
+                                                    }
+                                                }
+                                            </p>
+                                            @if (entry.item.overview) {
+                                                <p class="entry__overview text-body">{{ entry.item.overview }}</p>
+                                            }
+                                        </div>
+                                        @if (entry.item.rating) {
+                                            <b class="entry__score"><span class="u-visually-hidden">TMDb score </span>{{
+                                                entry.item.rating | number: '1.1-1'
+                                            }}</b>
+                                        } @else {
+                                            <span class="entry__unrated text-meta">Not rated yet</span>
+                                        }
+                                    </li>
+                                }
+                            </ol>
+                        }
+                    </section>
+                </div>
+            </div>
         </div>
     }
-</div>
+}

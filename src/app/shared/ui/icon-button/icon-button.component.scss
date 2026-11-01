@@ -44,6 +44,17 @@
     --icon-button-text: var(--color-brand-light);
 }
 
+// On an image the soft tint vanishes into bright frames, so a selected overlay button is solid gold.
+:host(.icon-button-host--overlay.icon-button-host--selected) {
+    --icon-button-border: var(--color-brand);
+    --icon-button-border-hover: var(--color-brand-hover);
+    --icon-button-surface: var(--color-brand);
+    --icon-button-surface-hover: var(--color-brand-hover);
+    --icon-button-surface-active: var(--color-brand-active);
+    --icon-button-text: var(--color-on-brand);
+    --icon-button-text-hover: var(--color-on-brand);
+}
+
 .icon-button {
     --mat-icon-button-state-layer-size: var(--icon-button-size);
     --mdc-icon-button-state-layer-size: var(--icon-button-size);

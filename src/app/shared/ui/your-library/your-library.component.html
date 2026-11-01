@@ -1,0 +1,17 @@
+<section class="your-library" aria-label="Your library">
+    <header class="your-library__head">
+        <h2 class="your-library__title">Your library</h2>
+        @if (isAuthenticated && ratedAt) {
+            <span class="your-library__date">Rated {{ ratedAt | date: 'd MMM y' }}</span>
+        }
+    </header>
+
+    @if (isAuthenticated) {
+        <ng-content />
+    } @else {
+        <p class="your-library__invite">
+            <button class="your-library__signin" type="button" (click)="signIn.emit()">Sign in</button>
+            {{ invite }}
+        </p>
+    }
+</section>

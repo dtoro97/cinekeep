@@ -1,7 +1,7 @@
 @if (loading) {
     <div class="skeleton-block" aria-hidden="true">
         <div class="skeleton-block__content">
-            <app-skeleton class="skeleton-block__badge" />
+            <app-skeleton class="skeleton-block__label" />
             <app-skeleton class="skeleton-block__title" />
             <app-skeleton class="skeleton-block__meta" />
             <app-skeleton class="skeleton-block__overview" />
@@ -13,16 +13,11 @@
     </div>
 } @else if (spotlight) {
     <app-hero-surface variant="detail" [backdropPath]="spotlight.backdropPath" [alt]="spotlight.title">
-        @if (backLink) {
-            <a class="back-link text-caption" [routerLink]="backLink">
-                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                {{ backLabel }}
-            </a>
-        }
-
         <section class="hero">
-            <div class="hero__content u-flex-column u-gap-4">
-                <app-badge class="badge" [label]="badge" variant="outline" />
+            <div class="hero__content">
+                @if (label) {
+                    <p class="label text-hero-meta">{{ label }}</p>
+                }
 
                 <a [routerLink]="['/title', spotlight.id, spotlight.mediaType]">
                     <h1 class="title text-hero-title">

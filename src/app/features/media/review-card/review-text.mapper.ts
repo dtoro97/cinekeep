@@ -9,7 +9,8 @@ const HTML_ENTITIES: Readonly<Record<string, string>> = {
 };
 
 // Turns review markdown into plain text for clamped excerpts, so markers like `*feeling*`
-// or `[link](url)` don't show up literally. The full review still renders the markdown.
+// or `[link](url)` don't show up literally. Bare URLs are dropped too, with an all-caps label
+// right before one ("FULL REVIEW @ https://…"). The full review still renders everything.
 export const toReviewPreviewText = (markdown: string): string =>
     markdown
         .replace(/<[^>]*>/g, ' ')
@@ -20,6 +21,8 @@ export const toReviewPreviewText = (markdown: string): string =>
         .replace(/(\*\*|__)(?=\S)([\s\S]*?\S)\1/g, '$2')
         .replace(/(^|[^\w*])[*_](?=\S)([^*_\n]*?\S)[*_](?![\w*])/g, '$1$2')
         .replace(/`([^`]*)`/g, '$1')
+        .replace(/^[^a-z]{4,}?\s*@?\s*https?:\/\/\S+/, '')
+        .replace(/\s*@?\s*https?:\/\/\S+/g, '')
         .replace(/&(?:amp|quot|#39|apos|lt|gt|nbsp);/g, (entity) => HTML_ENTITIES[entity] ?? entity)
         .replace(/\s+/g, ' ')
         .trim();

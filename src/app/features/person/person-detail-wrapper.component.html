@@ -1,0 +1,5 @@
+@if (showPageError$ | async) {
+    <app-page-error title="Couldn't load this person" (retry)="retry()" />
+} @else {
+    <router-outlet />
+}

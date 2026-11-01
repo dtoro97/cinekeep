@@ -1,71 +1,162 @@
 @use 'breakpoints' as *;
+@use 'mixins' as *;
 
-.videos {
+// Type chips between two hairlines, the sort at the end.
+.videos-bar {
     display: flex;
-    flex-direction: column;
-    gap: var(--space-5);
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-7);
+    padding: var(--space-2) 0;
+    border-block: 1px solid var(--color-border);
 
-    &__toolbar {
-        padding-bottom: var(--space-3);
-        border-bottom: 1px solid var(--color-border-subtle);
+    &__chip {
+        min-height: 2.5rem;
+        padding: 0 var(--space-3);
+        border: 1px solid var(--color-border);
+        border-radius: var(--control-radius);
+        background: none;
+        color: var(--text-secondary);
+        font: inherit;
+        font-size: var(--text-control);
+        font-weight: var(--weight-semibold);
+        cursor: pointer;
+        transition:
+            background-color var(--motion-fast),
+            color var(--motion-fast);
+
+        @include hover-capable {
+            &:hover {
+                color: var(--text-primary);
+            }
+        }
+
+        // The chosen type takes the light fill, like a light button.
+        &--active,
+        &--active:hover {
+            border-color: var(--text-primary);
+            background: var(--text-primary);
+            color: var(--surface-page);
+        }
     }
 
-    &__grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: var(--space-6) var(--space-5);
+    &__sort {
+        margin-left: auto;
     }
 
-    &__count-skeleton {
-        width: 90px;
-        height: 1rem;
+    &__skeleton {
+        width: min(28rem, 100%);
+        --skeleton-height: 2.5rem;
+    }
+}
+
+// The main trailer, large, with its title beside it.
+.featured {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: end;
+    gap: var(--space-8);
+    margin-top: var(--space-7);
+
+    &__still {
+        position: relative;
+        display: block;
+        aspect-ratio: var(--backdrop-ratio);
+        overflow: hidden;
+        border-radius: var(--radius-media);
+        background: var(--surface-panel);
+        @include media-hover();
     }
 
-    &__sort-skeleton {
-        width: 140px;
-        height: 2.25rem;
+    &__image {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
-    &__card-skeleton {
+    &__play {
+        position: absolute;
+        bottom: var(--space-6);
+        left: var(--space-6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 4.5rem;
+        height: 4.5rem;
+        border-radius: var(--radius-full);
+        background: color-mix(in oklch, var(--surface-page) 80%, transparent);
+        color: var(--text-primary);
+        font-size: var(--text-xl);
+    }
+
+    &__text {
         display: flex;
         flex-direction: column;
+        align-items: flex-start;
         gap: var(--space-2);
     }
 
-    &__card-media-skeleton {
-        height: auto;
+    // Playing isn't about your library, so the one filled button here is the light one.
+    &__play-button {
+        margin-top: var(--space-3);
+        --mat-button-filled-container-color: var(--text-primary);
+        --mat-button-filled-label-text-color: var(--surface-page);
+    }
+}
+
+.videos-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-7) var(--space-5);
+    margin-top: var(--space-10);
+
+    &__still-skeleton {
         aspect-ratio: var(--backdrop-ratio);
-        border-radius: var(--radius-lg);
+        --skeleton-height: auto;
+        --skeleton-radius: var(--radius-media);
     }
 
-    &__card-line-skeleton--title {
+    &__line-skeleton {
         width: 70%;
-        height: 1rem;
+        margin-top: var(--space-2);
+        --skeleton-height: 1rem;
     }
+}
 
-    &__card-line-skeleton--meta {
-        width: 40%;
-        height: 1rem;
-    }
+.videos-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+}
 
-    &__card-line-skeleton--short {
-        width: 25%;
-        height: 0.85rem;
-    }
-
-    &__empty {
-        border: 1px solid var(--color-border-subtle);
-        border-radius: var(--radius-xl);
-        background: var(--surface-panel);
+@include tablet() {
+    .videos-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
 @include mobile() {
-    .videos {
-        gap: var(--space-4);
+    .videos-bar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
 
-        &__grid {
-            grid-template-columns: 1fr;
+        &__chip {
+            flex: none;
         }
+    }
+
+    .featured {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-4);
+    }
+
+    .videos-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-5) var(--space-3);
     }
 }

@@ -1,28 +1,25 @@
 @if (streamingList$ | async; as streamingList) {
-    <div class="streaming-list page-container">
-        <header class="streaming-list__header inner-container">
-            <a class="streaming-list__back-link text-caption" [routerLink]="['/watch', 'streaming']">
-                <i class="streaming-list__back-icon fa-solid fa-chevron-left" aria-hidden="true"></i>
-                Back to what's streaming
-            </a>
+    <div class="page-container">
+        <div class="browse-page inner-container">
+            <header class="list-head">
+                <a class="list-head__back" [routerLink]="['/watch', 'streaming']">‹ Streaming guide</a>
 
-            <h1 class="text-display">{{ streamingList.title }}</h1>
-            <p class="streaming-list__description text-body">
-                {{ streamingList.description }}
-            </p>
-        </header>
-
-        <main class="streaming-list__content inner-container page-list-column">
-            <app-browse-toolbar>
-                <div start class="streaming-list__result-count">
-                    @if (streamingList.showResultCount) {
-                        <span class="text-caption">
-                            {{ streamingList.totalResults | pluralize: 'title' }}
-                        </span>
+                <div class="list-head__title">
+                    @if (streamingList.providerLogoPath; as logoPath) {
+                        <app-image class="list-head__logo" [src]="logoPath" params="w92" alt="" />
                     }
+                    <h1 class="text-display">{{ streamingList.title }}</h1>
                 </div>
 
-                <div end class="streaming-list__toolbar-actions">
+                <p class="list-head__description text-body">{{ streamingList.description }}</p>
+            </header>
+
+            <div class="browse-bar" role="toolbar" aria-label="List options">
+                @if (streamingList.showResultCount) {
+                    <span class="list-count">{{ streamingList.totalResults | pluralize: 'title' }}</span>
+                }
+
+                <span class="browse-bar__end">
                     @if (streamingList.showMediaTypeToggle) {
                         <app-toggle-group
                             [options]="streamingList.mediaTypeOptions"
@@ -38,55 +35,105 @@
                         (sortChange)="setSortKey($event)"
                         (directionToggle)="toggleSortDirection()"
                     />
-                </div>
-            </app-browse-toolbar>
+                </span>
+            </div>
 
-            @if (streamingList.showEmptyState) {
-                <div class="empty-panel streaming-list__empty">
-                    <app-empty-state
-                        iconClass="fa-solid fa-filter-circle-xmark"
-                        text="No titles matched this streaming list."
-                    />
-                </div>
-            } @else {
-                <div class="streaming-list__items">
-                    @for (entry of streamingList.displayItems; track entry.item.id) {
-                        <app-media-list-item [item]="entry.item" [link]="entry.routerLink">
-                            <span media-list-item-note class="streaming-list__availability text-caption">
-                                {{ entry.availabilityText }}
-                            </span>
+            <div class="list-columns">
+                <div class="list-main">
+                    @if (streamingList.showEmptyState) {
+                        <app-empty-state
+                            class="list-empty"
+                            iconClass="fa-solid fa-filter-circle-xmark"
+                            iconStyle="plain"
+                            text="No titles matched this streaming list."
+                        />
+                    } @else {
+                        <ul class="entries">
+                            @for (entry of streamingList.displayItems; track entry.item.id) {
+                                <li class="entry">
+                                    <a class="entry__poster" [routerLink]="entry.routerLink" tabindex="-1" aria-hidden="true">
+                                        <app-image [src]="entry.item.thumb" params="w185" alt="" />
+                                    </a>
 
-                            <app-library-toggle
-                                flag="watchlist"
-                                media-list-item-action
-                                class="streaming-list__watchlist"
-                                [media]="entry.item"
-                                [iconOnly]="true"
-                                [libraryState]="entry.libraryState"
-                            />
-                        </app-media-list-item>
+                                    <div class="entry__text">
+                                        <h2 class="entry__title">
+                                            <a class="entry__link" [routerLink]="entry.routerLink">{{ entry.item.title }}</a>
+                                        </h2>
+                                        @if (entry.metaText) {
+                                            <p class="entry__meta">{{ entry.metaText }}</p>
+                                        }
+                                        <p class="entry__availability">
+                                            @if (streamingList.providerLogoPath; as logoPath) {
+                                                <app-image class="entry__provider" [src]="logoPath" params="w92" alt="" />
+                                            }
+                                            {{ entry.availabilityText }}
+                                        </p>
+                                        @if (entry.item.overview) {
+                                            <p class="entry__overview text-body">{{ entry.item.overview }}</p>
+                                        }
+                                    </div>
+
+                                    @if (entry.item.rating; as rating) {
+                                        <b class="entry__score"><span class="u-visually-hidden">TMDb score </span>{{
+                                            rating | number: '1.1-1'
+                                        }}</b>
+                                    } @else {
+                                        <span class="entry__unrated">Not rated yet</span>
+                                    }
+
+                                    <app-library-toggle
+                                        class="entry__watchlist"
+                                        flag="watchlist"
+                                        [media]="entry.item"
+                                        [iconOnly]="true"
+                                        [libraryState]="entry.libraryState"
+                                    />
+                                </li>
+                            }
+
+                            @for (slot of streamingList.skeletonCount | repeat; track slot) {
+                                <li class="entry" aria-hidden="true">
+                                    <app-skeleton class="entry__poster" />
+                                    <div class="entry__text">
+                                        <app-skeleton class="entry__line entry__line--title" />
+                                        <app-skeleton class="entry__line" />
+                                        <app-skeleton class="entry__line entry__line--overview" />
+                                    </div>
+                                </li>
+                            }
+                        </ul>
                     }
 
-                    @for (slot of streamingList.skeletonCount | repeat; track slot) {
-                        <div class="streaming-list__skeleton-row">
-                            <app-skeleton class="streaming-list__poster-skeleton" />
-                            <div class="streaming-list__content-skeleton">
-                                <app-skeleton class="streaming-list__line streaming-list__line--title" />
-                                <app-skeleton class="streaming-list__line streaming-list__line--meta" />
-                                <app-skeleton class="streaming-list__line streaming-list__line--body" />
-                                <app-skeleton class="streaming-list__line streaming-list__line--body-short" />
-                                <app-skeleton class="streaming-list__line streaming-list__line--availability" />
-                            </div>
+                    @if (streamingList.hasMore) {
+                        <div class="browse-more">
+                            <span>
+                                Showing {{ streamingList.shownCount | number }} of {{ streamingList.totalResults | number }}
+                            </span>
+                            <button matButton="outlined" type="button" (click)="loadMore()">Show more</button>
                         </div>
                     }
                 </div>
-            }
 
-            @if (streamingList.hasMore) {
-                <div class="streaming-list__footer">
-                    <button mat-stroked-button type="button" (click)="loadMore()">Show more titles</button>
-                </div>
-            }
-        </main>
+                <aside class="list-side" aria-labelledby="services-heading">
+                    <h2 id="services-heading" class="list-side__heading text-display-sm">
+                        {{ streamingList.providerLogoPath ? 'Other services' : 'Streaming services' }}
+                    </h2>
+                    <ul class="list-side__services">
+                        @for (service of streamingList.otherServices; track service.id) {
+                            <li>
+                                <a class="list-side__service" [routerLink]="service.routerLink">
+                                    {{ service.name }}
+                                    <span aria-hidden="true">›</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <p class="list-side__note">
+                        Streaming data by JustWatch. Availability is for your region; change it with the language and
+                        region button in the header.
+                    </p>
+                </aside>
+            </div>
+        </div>
     </div>
 }

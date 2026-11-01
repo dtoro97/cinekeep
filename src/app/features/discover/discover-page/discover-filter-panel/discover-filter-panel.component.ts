@@ -1,15 +1,13 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 import { ToggleGroupComponent } from '../../../../shared';
-import type { DiscoverFilterChange, DiscoverFilters } from '../discover-store.service';
+import type { DiscoverFilterChange, DiscoverFilterGroup, DiscoverFilters } from '../discover-store.service';
 import { StepperInputComponent } from './stepper-input/stepper-input.component';
 
 @Component({
@@ -17,9 +15,7 @@ import { StepperInputComponent } from './stepper-input/stepper-input.component';
     imports: [
         FormsModule,
         MatAutocompleteModule,
-        MatButtonModule,
         MatFormFieldModule,
-        MatIconModule,
         MatInputModule,
         MatSelectModule,
         NgxMatSelectSearchModule,
@@ -32,16 +28,12 @@ import { StepperInputComponent } from './stepper-input/stepper-input.component';
 })
 export class DiscoverFilterPanelComponent {
     @Input({ required: true }) filters!: DiscoverFilters;
-    @Input() showHeader = false;
+    @Input({ required: true }) group!: DiscoverFilterGroup;
 
     @Output() readonly filterChange = new EventEmitter<DiscoverFilterChange>();
-    @Output() readonly resetFilters = new EventEmitter<void>();
-    @Output() readonly closePanel = new EventEmitter<void>();
 
     keywordSearchText = '';
     companySearchText = '';
-    // Starts closed even when a default (like 250+ votes) is active; the toggle's badge shows the count.
-    showMoreFilters = false;
 
     searchKeywords(text: string): void {
         this.keywordSearchText = text;
@@ -65,9 +57,5 @@ export class DiscoverFilterPanelComponent {
 
     searchLanguages(text: string | null): void {
         this.filterChange.emit({ key: 'languageSearch', value: text ?? '' });
-    }
-
-    toggleMoreFilters(): void {
-        this.showMoreFilters = !this.showMoreFilters;
     }
 }

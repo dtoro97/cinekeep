@@ -1,12 +1,10 @@
 @if (data.state === 'loading') {
     <ul class="cast-grid" aria-hidden="true">
         @for (slot of skeletonCount | repeat; track slot) {
-            <li class="cast-member cast-member--skeleton">
-                <app-skeleton class="cast-member__avatar" />
-                <span class="cast-member__text">
-                    <app-skeleton class="cast-member__name-skeleton" />
-                    <app-skeleton class="cast-member__role-skeleton" />
-                </span>
+            <li class="cast-member">
+                <app-skeleton class="cast-member__portrait" />
+                <app-skeleton class="cast-member__name-skeleton" />
+                <app-skeleton class="cast-member__role-skeleton" />
             </li>
         }
     </ul>
@@ -18,17 +16,17 @@
                     <li>
                         <a class="cast-member" [routerLink]="['/name', person.id]">
                             <app-image
-                                class="cast-member__avatar"
+                                class="cast-member__portrait"
                                 [src]="person.imagePath"
                                 [alt]="person.name"
+                                [name]="person.name"
                                 type="person"
+                                params="w185"
                             />
-                            <span class="cast-member__text">
-                                <span class="cast-member__name text-card-title">{{ person.name }}</span>
-                                @if (person.subtitle) {
-                                    <span class="cast-member__role text-card-meta">{{ person.subtitle }}</span>
-                                }
-                            </span>
+                            <span class="cast-member__name text-card-title">{{ person.name }}</span>
+                            @if (person.subtitle) {
+                                <span class="cast-member__role text-card-meta">{{ person.subtitle }}</span>
+                            }
                         </a>
                     </li>
                 }
@@ -36,26 +34,15 @@
         }
 
         @if (credits.episodeDirectors; as directors) {
-            <div class="list">
-                <div class="row">
-                    <span class="label text-caption">Episode directors</span>
-
-                    <span class="names text-body-sm">
-                        @for (person of directors.visible; track person.id; let last = $last) {
-                            <a class="link" [routerLink]="['/name', person.id]">
-                                {{ person.name }}
-                            </a>
-                            @if (!last) {
-                                <span class="separator"> &#x2022; </span>
-                            }
-                        }
-
-                        @if (directors.hiddenCount) {
-                            <span class="text-caption"> +{{ directors.hiddenCount }} more </span>
-                        }
-                    </span>
-                </div>
-            </div>
+            <p class="directors text-meta">
+                Episode directors ·
+                @for (person of directors.visible; track person.id; let last = $last) {
+                    <a class="directors__link" [routerLink]="['/name', person.id]">{{ person.name }}</a>@if (!last) {<span>, </span>}
+                }
+                @if (directors.hiddenCount) {
+                    <span> +{{ directors.hiddenCount }} more</span>
+                }
+            </p>
         }
     }
 }

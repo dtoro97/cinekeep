@@ -7,8 +7,23 @@
     gap: var(--space-2);
 }
 
+// The favourite toggle is a square default button; once it's yours the heart turns gold.
 .action {
+    --icon-button-size: var(--control-height-lg);
+    --icon-button-icon-size: 1.125rem;
+    --icon-button-border: var(--control-border);
+    --icon-button-border-hover: var(--control-border);
+    --icon-button-surface: var(--control-surface);
+    --icon-button-text: var(--text-primary);
+
     display: inline-flex;
+
+    &.icon-button-host--selected {
+        --icon-button-border: var(--control-border);
+        --icon-button-surface: var(--control-surface);
+        --icon-button-text: var(--color-yours);
+        --icon-button-text-hover: var(--color-yours);
+    }
 }
 
 .watchlist-button {

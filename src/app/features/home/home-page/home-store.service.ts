@@ -56,7 +56,6 @@ import {
     toCardItem,
     toKnownForPersonCardItem,
     toLibraryState,
-    TOP_PROVIDER_COUNT,
     UserLibraryService,
     UserSessionStoreService,
     WatchProviderStoreService,
@@ -82,9 +81,11 @@ export interface RecentRating {
 interface HomeState {
     readonly spotlight: RemoteData<SpotlightItem | null>;
     readonly spotlightTrailerUrl: string | null;
+    // The spotlight's place in today's trending list.
+    readonly spotlightRank: number | null;
     readonly popularMediaType: MediaType;
     readonly popular: RemoteData<Record<MediaType, CardItem[]>>;
-    readonly weekFilms: RemoteData<CardItem[]>;
+    readonly weekFilms: RemoteData<Array<{ readonly item: CardItem; readonly openingDate: string }>>;
     readonly weekEpisodes: RemoteData<WeekEpisode[]>;
     readonly trailers: RemoteData<TrailerVideoCardItem[]>;
     readonly popularPeople: RemoteData<PersonCardItem[]>;
@@ -98,16 +99,21 @@ const WEEK_DAYS = 7;
 const WEEK_SERIES_COUNT = 12;
 const WEEK_FILMS_PER_DAY = 3;
 const WEEK_EPISODES_PER_DAY = 4;
+// A film first released this long before it opens here is a re-release, which the week leaves out.
+const RE_RELEASE_MIN_AGE_DAYS = 365;
 const TRAILER_COUNT = 3;
 // Trending titles tried for trailers; some have none, so a few more than are shown.
 const TRAILER_SEED_COUNT = 6;
 const PEOPLE_COUNT = 7;
+// Enough services to run the height of the trailers beside them.
+const PROVIDER_COUNT = 5;
 const WATCHLIST_PREVIEW_COUNT = 6;
 const RECENT_RATINGS_COUNT = 4;
 
 const INITIAL_STATE: HomeState = {
     spotlight: { state: 'notAsked' },
     spotlightTrailerUrl: null,
+    spotlightRank: null,
     popularMediaType: 'movie',
     popular: { state: 'notAsked' },
     weekFilms: { state: 'notAsked' },
@@ -132,7 +138,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
             const providers = remoteData(regionProviders, null);
             const weekDays = Array.from({ length: WEEK_DAYS }, (_, offset) => {
                 const isoDate = getISODate(offset);
-                const films = weekFilms.filter(({ date }) => date === isoDate);
+                const films = weekFilms.filter(({ openingDate }) => openingDate === isoDate).map(({ item }) => item);
                 const episodes = weekEpisodes.filter(({ airDate }) => airDate === isoDate);
 
                 return {
@@ -152,6 +158,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
             return {
                 spotlight: remoteData(state.spotlight, null),
                 spotlightTrailerUrl: state.spotlightTrailerUrl,
+                spotlightLabel: state.spotlightRank ? `No. ${state.spotlightRank} trending today` : 'Trending today',
                 showSpotlightSkeleton: state.spotlight.state !== 'success',
                 popularMediaType: state.popularMediaType,
                 popularMediaTypeOptions: MEDIA_TYPE_OPTIONS,
@@ -170,7 +177,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
                 trailers: remoteData(state.trailers, []),
                 showTrailersSkeleton: state.trailers.state !== 'success',
                 trailerSkeletonCount: TRAILER_COUNT,
-                providers: (providers?.tvProviders ?? []).slice(0, TOP_PROVIDER_COUNT),
+                providers: (providers?.tvProviders ?? []).slice(0, PROVIDER_COUNT),
                 showProvidersSkeleton: regionProviders.state !== 'success',
                 people: remoteData(state.popularPeople, []),
                 showPeopleSkeleton: state.popularPeople.state !== 'success',
@@ -240,6 +247,7 @@ export class HomeStoreService extends ComponentStore<HomeState> {
 
                 return {
                     spotlight: picked?.id ? toCardItem(picked, picked.media_type) : null,
+                    rank: picked ? items.findIndex((item) => item === picked) + 1 : null,
                     others: items.filter((item) => item !== picked).map((item) => toCardItem(item, item.media_type)),
                 };
             }),
@@ -248,8 +256,11 @@ export class HomeStoreService extends ComponentStore<HomeState> {
 
         return merge(
             trending$.pipe(
-                switchMap(({ spotlight }) => {
-                    this.patchState({ spotlight: remoteSuccess(spotlight && toSpotlightItem(spotlight)) });
+                switchMap(({ spotlight, rank }) => {
+                    this.patchState({
+                        spotlight: remoteSuccess(spotlight && toSpotlightItem(spotlight)),
+                        spotlightRank: rank,
+                    });
 
                     if (!spotlight) {
                         return EMPTY;
@@ -305,20 +316,24 @@ export class HomeStoreService extends ComponentStore<HomeState> {
                     ),
             }).pipe(tap((popular) => this.patchState({ popular: remoteSuccess(popular) }))),
             this.tmdbDiscoverService
-                .discover$({
-                    mediaType: 'movie',
+                .openings$({
                     sortKey: 'popularity',
                     sortDirection: 'desc',
                     releaseDates: { from: today, to: weekEnd },
                     releaseType: THEATRICAL_MOVIE_RELEASE_TYPE,
                 })
                 .pipe(
-                    // Results carry the primary release date, which can fall outside the regional window.
-                    map(({ results }) =>
-                        (results ?? [])
-                            .map((item) => toCardItem(item, 'movie'))
-                            .filter(({ id, date }) => id > 0 && date >= today && date <= weekEnd),
-                    ),
+                    map((openings) => {
+                        const reReleaseCutoff = getISODate(-RE_RELEASE_MIN_AGE_DAYS);
+
+                        return openings.flatMap(({ item, openingDate }) => {
+                            const film = toCardItem(item, 'movie');
+
+                            return openingDate && film.id > 0 && (!film.date || film.date >= reReleaseCutoff)
+                                ? [{ item: film, openingDate }]
+                                : [];
+                        });
+                    }),
                     // A failed request leaves the cinema column empty.
                     catchError(() => of([])),
                     tap((weekFilms) => this.patchState({ weekFilms: remoteSuccess(weekFilms) })),

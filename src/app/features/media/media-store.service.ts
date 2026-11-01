@@ -21,6 +21,7 @@ import {
     buildExternalLinks,
     formatCompanyName,
     isDefined,
+    isNotFoundError,
     loadCachedResource$,
     mapRemoteData,
     toRating,
@@ -84,10 +85,15 @@ const INITIAL_STATE: MediaState = {
 
 @Injectable()
 export class MediaStoreService extends ComponentStore<MediaState> {
-    // The title the media pages show, set by `MediaWrapperComponent` from the route.
-    readonly currentTarget$ = this.select((state) => state.target).pipe(filter(isDefined));
+    // The title the media pages show, set by `MediaWrapperComponent` from the route. Debounced so it emits after the
+    // update that set it: a store that reacts by switching its own target would otherwise have that update queued
+    // behind this one, read the previous title's cached data from `get()`, and never load the new title.
+    readonly currentTarget$ = this.select((state) => state.target, { debounce: true }).pipe(filter(isDefined));
 
     readonly mediaState$ = this.select((state) => state.media);
+
+    // The title failed to load for a reason other than not existing, so the pages give way to a retry.
+    readonly showPageError$ = this.select(({ media }) => media.state === 'failure');
 
     readonly mediaDetailsState$ = this.select(({ target, media }): RemoteData<MediaDetails | null> =>
         target ? mapRemoteData(media, (data) => this.toMediaDetails(data, target)) : { state: 'notAsked' },
@@ -121,7 +127,9 @@ export class MediaStoreService extends ComponentStore<MediaState> {
             state$: this.mediaState$,
             fetch: () => this.mediaApiService.getDetails$(target),
             patch: (media) => this.patchState({ media }),
+            // A missing title loads as `null`, which the pages turn into a redirect to not-found.
             fallback: null,
+            isFailure: (error) => !isNotFoundError(error),
         }).pipe(map((media) => this.toMediaDetails(media, target)));
     }
 

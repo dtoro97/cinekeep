@@ -2,22 +2,11 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { ComponentStore } from '@ngrx/component-store';
-import {
-    EMPTY,
-    Observable,
-    combineLatest,
-    distinctUntilChanged,
-    filter,
-    map,
-    merge,
-    shareReplay,
-    switchMap,
-    take,
-    tap,
-} from 'rxjs';
+import { EMPTY, Observable, combineLatest, distinctUntilChanged, filter, map, merge, shareReplay, switchMap, tap } from 'rxjs';
 
 import {
     SeoMetadata,
+    UserSessionStoreService,
     isDefined,
     mapRemoteData,
     parseBoundedIntegerParam,
@@ -25,47 +14,62 @@ import {
     toVideoCardItems,
     toYoutubeVideos,
 } from '../../../shared';
+import { MediaDetailStoreService } from '../media-detail-store.service';
 import { toMediaSectionSeoMetadata } from '../media-seo';
 import { MediaSeasonsStoreService } from '../media-seasons-store.service';
 import { MediaStoreService } from '../media-store.service';
 import { isSameMediaTarget } from '../media-target';
-import { toSeasonRatingBars } from './season-ratings-strip/season-ratings.mapper';
+
+// One row of the six-up poster wall.
+const POSTER_PREVIEW_COUNT = 6;
+const SIDEBAR_VIDEO_COUNT = 5;
 
 @Injectable()
 export class SeasonDetailPageStoreService extends ComponentStore<Record<string, never>> {
     readonly seasonDetail$ = this.select(
+        this.mediaDetailStore.watchProviders$,
         this.mediaStore.currentTarget$,
         this.mediaStore.mediaDetails$,
         this.mediaSeasonsStore.season$,
-        (target, media, season) => {
-            const imageCount = remoteData(season.images, []).length;
+        this.userSessionStore.authSession$,
+        (providers, target, media, season, { isAuthenticated }) => {
+            const imageList = remoteData(season.images, []);
             const videos = mapRemoteData(season.videos, (videoList) =>
                 media ? toVideoCardItems(toYoutubeVideos(videoList?.results ?? []), media) : [],
             );
-            const videoCount = remoteData(videos, []).length;
-            const ratingBars = toSeasonRatingBars(remoteData(season.episodes, []));
+            const episodes = remoteData(season.episodes, []);
+            const airDates = episodes
+                .map((entry) => entry.item.airDate)
+                .filter(isDefined)
+                .sort();
 
             return {
                 backdropPath: media?.backdropPath ?? null,
                 mediaTitle: media?.title ?? null,
                 overviewLink: ['/title', target.id, target.type],
                 summary: season.summary,
-                hasSeasonOptions: season.seasonOptions.length > 0,
-                seasonOptions: season.seasonOptions,
-                selectedSeason: season.seasonNumber,
-                hasRatingBars: ratingBars.length > 0,
-                ratingBars,
+                year: season.summary?.airDate?.slice(0, 4) ?? null,
+                airedFrom: airDates[0] ?? null,
+                airedTo: airDates.length > 1 ? (airDates.at(-1) ?? null) : null,
+                seasonTabs: season.seasonOptions.map((option) => ({
+                    label: option.label,
+                    seasonNumber: option.value,
+                    routeCommands: ['/title', target.id, target.type, 'episodes', option.value],
+                    isActive: option.value === season.seasonNumber,
+                })),
                 episodes: season.episodes,
-                images: season.images,
-                imageList: remoteData(season.images, []),
-                imageCount,
-                showPhotos: season.images.state !== 'success' || imageCount > 0,
+                imageList,
+                imageCount: imageList.length,
+                showPosterSkeleton: season.images.state === 'loading',
+                posterPreview: imageList.slice(0, POSTER_PREVIEW_COUNT),
+                posterSkeletonCount: POSTER_PREVIEW_COUNT,
                 photosLink:
-                    season.seasonNumber !== null && imageCount > 0
+                    season.seasonNumber !== null && imageList.length > 0
                         ? ['/title', target.id, target.type, 'episodes', season.seasonNumber, 'photos']
                         : null,
-                videos,
-                showVideos: videos.state !== 'success' || videoCount > 0,
+                videos: remoteData(videos, []).slice(0, SIDEBAR_VIDEO_COUNT),
+                providers,
+                isAuthenticated,
             };
         },
         { debounce: true },
@@ -85,9 +89,11 @@ export class SeasonDetailPageStoreService extends ComponentStore<Record<string, 
     ).pipe(filter(isDefined));
 
     constructor(
+        private readonly mediaDetailStore: MediaDetailStoreService,
         private readonly mediaStore: MediaStoreService,
         private readonly mediaSeasonsStore: MediaSeasonsStoreService,
         private readonly router: Router,
+        private readonly userSessionStore: UserSessionStoreService,
     ) {
         super({});
     }
@@ -137,13 +143,10 @@ export class SeasonDetailPageStoreService extends ComponentStore<Record<string, 
                     }
                 }),
             ),
-        );
-    }
-
-    changeSeason$(seasonNumber: number): Observable<unknown> {
-        return this.mediaStore.currentTarget$.pipe(
-            take(1),
-            tap((target) => this.router.navigate(['/title', target.id, target.type, 'episodes', seasonNumber])),
+            this.mediaStore.currentTarget$.pipe(
+                distinctUntilChanged(isSameMediaTarget),
+                switchMap((target) => this.mediaDetailStore.loadWatchProviders$(target)),
+            ),
         );
     }
 }

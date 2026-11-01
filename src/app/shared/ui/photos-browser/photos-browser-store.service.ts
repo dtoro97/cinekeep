@@ -83,16 +83,26 @@ export class PhotosBrowserStoreService extends ComponentStore<PhotosBrowserState
                 sortDirection,
             );
             const visibleImages = sortedImages.slice(0, visibleCount);
-            const typeOptions = [...new Set(images.map((image) => image.photoType).filter(isDefined))]
-                .sort((left, right) => left.localeCompare(right))
-                .map((type) => ({ label: `${type.charAt(0).toUpperCase()}${type.slice(1)}`, value: type }));
+            const types = [...new Set(images.map((image) => image.photoType).filter(isDefined))].sort((left, right) =>
+                left.localeCompare(right),
+            );
+            // One tab per photo type after All; "Tagged" stays as it is, the rest read as plurals.
+            const typeTabs = [
+                { value: null, label: 'All', count: images.length, isActive: !selectedTypes.length },
+                ...types.map((type) => ({
+                    value: type,
+                    label: `${type.charAt(0).toUpperCase()}${type.slice(1)}${type === 'tagged' ? '' : 's'}`,
+                    count: images.filter((image) => image.photoType === type).length,
+                    isActive: selectedTypes.length === 1 && selectedTypes[0] === type,
+                })),
+            ];
 
             return {
                 hasImages: images.length > 0,
                 countLabel: sortedImages.length ? pluralize(sortedImages.length, 'photo') : null,
-                typeOptions,
-                showTypeFilter: typeOptions.length > 0,
-                selectedTypes,
+                shownLabel: `Showing ${visibleImages.length} of ${sortedImages.length}`,
+                typeTabs,
+                showTypeTabs: types.length > 1,
                 sortField,
                 sortDirection,
                 visibleImages,

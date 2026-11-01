@@ -10,7 +10,7 @@ export const toMediaSeoMetadata = (media: MediaDetails, options: MediaSeoOptions
     const mediaLabel = media.mediaType === 'tv' ? 'TV Series' : 'Movie';
     const titleSuffix = options.titleSuffix ?? mediaLabel;
     const displayTitle = formatTitleWithYear(media.title, media.year);
-    const fallbackDescription = `Explore cast, trailers, photos, reviews, ratings, and more for ${displayTitle}.`;
+    const fallbackDescription = `Cast, trailers, photos, reviews and ratings for ${displayTitle}.`;
 
     return {
         title: `${displayTitle} | ${titleSuffix}`,

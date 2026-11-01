@@ -15,4 +15,5 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
 export class PersonCardComponent {
     @Input() person: PersonCardItem | null = null;
     @Input() loading = false;
+    @Input() rank: number | null = null;
 }

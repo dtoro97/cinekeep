@@ -1,51 +1,43 @@
 @if (popularPeople$ | async; as popularPeople) {
-    <div class="popular-people page-container">
-        <header class="popular-people__header inner-container">
-            <h1 class="text-display">Popular People</h1>
-            <p class="popular-people__subtitle text-body">
-                Actors, filmmakers, and creators trending across movies and TV.
-            </p>
-        </header>
-
-        <main class="popular-people__content inner-container">
-            <app-browse-toolbar>
-                <div start class="popular-people__toolbar-start">
-                    @if (popularPeople.showResultCount) {
-                        <span class="popular-people__result-count text-caption">
-                            {{ popularPeople.totalResults | pluralize: "person" : "people" }}
-                        </span>
-                    }
-                </div>
-            </app-browse-toolbar>
+    <div class="page-container">
+        <div class="browse-page inner-container">
+            <header class="browse-head">
+                <h1 class="text-display">Popular people</h1>
+                @if (popularPeople.showCount) {
+                    <p class="browse-head__note">
+                        Trending across movies and TV series this week · {{ popularPeople.totalResults | number }} people
+                    </p>
+                }
+            </header>
 
             @if (popularPeople.showEmptyState) {
-                <div class="empty-panel popular-people__empty">
-                    <app-empty-state
-                        iconClass="fa-solid fa-user-group"
-                        text="No popular people are available right now."
-                    />
-                </div>
+                <app-empty-state
+                    class="people-empty"
+                    iconClass="fa-solid fa-user-group"
+                    iconStyle="plain"
+                    text="No popular people are available right now."
+                />
             } @else {
-                <ul class="popular-people__grid">
+                <ul class="people-wall">
+                    @for (entry of popularPeople.people; track entry.person.id) {
+                        <li><app-person-card [person]="entry.person" [rank]="entry.rank" /></li>
+                    }
                     @for (slot of popularPeople.skeletonCount | repeat; track slot) {
                         <li><app-person-card [loading]="true" /></li>
-                    }
-                    @for (person of popularPeople.people; track person.id) {
-                        <li><app-person-card [person]="person" /></li>
                     }
                 </ul>
             }
 
-            @if (popularPeople.showPaginator) {
-                <mat-paginator
-                    class="popular-people__paginator"
-                    [length]="popularPeople.paginatorLength"
-                    [pageIndex]="popularPeople.pageIndex"
-                    [pageSize]="popularPeople.pageSize"
-                    [hidePageSize]="true"
-                    (page)="changePage($event)"
-                />
+            @if (popularPeople.showMore) {
+                <div class="browse-more">
+                    <span>
+                        Showing {{ popularPeople.shownCount | number }} of {{ popularPeople.totalResults | number }}
+                    </span>
+                    <button matButton="outlined" type="button" [disabled]="popularPeople.isLoadingMore" (click)="loadMore()">
+                        Show more
+                    </button>
+                </div>
             }
-        </main>
+        </div>
     </div>
 }

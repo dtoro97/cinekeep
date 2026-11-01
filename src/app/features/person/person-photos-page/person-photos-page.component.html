@@ -1,13 +1,23 @@
 <div class="page-container">
     @if (personDetail$ | async; as personDetail) {
-        <app-sub-page-header [parentTitle]="personDetail.personName" [backLink]="['../']" pageTitle="Photos" />
+        <div class="catalogue-sub-page inner-container">
+            <app-catalogue-sub-header
+                pageTitle="Photos"
+                [count]="personDetail.photoCount || null"
+                [parentTitle]="personDetail.personName"
+                [backLink]="['../']"
+                [imagePath]="personDetail.profilePath"
+                imageType="person"
+                [loading]="!personDetail.personName"
+            />
 
-        <div class="page-main">
+            <div class="catalogue-sub-page__body">
             @if (personDetail.photos.state === 'loading') {
                 <app-photos-browser-skeleton />
             } @else if (personDetail.photos.state === 'success') {
                 <app-photos-browser [images]="personDetail.photos.data" (photoSelect)="openPhotoViewer($event)" />
             }
+            </div>
         </div>
     }
 </div>

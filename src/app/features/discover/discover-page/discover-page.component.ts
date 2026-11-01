@@ -1,23 +1,32 @@
-import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
+import { AsyncPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { A11yModule } from '@angular/cdk/a11y';
-import { ChangeDetectionStrategy, Component, DestroyRef, HostListener } from '@angular/core';
+import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
+import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 
 import {
     CardComponent,
     CardSkeletonComponent,
     EmptyStateComponent,
+    ImageComponent,
     LibraryToggleComponent,
     MediaType,
     RepeatPipe,
+    SkeletonComponent,
     SortButtonComponent,
     TmdbDiscoverSortKey,
     ToggleGroupComponent,
 } from '../../../shared';
+import type { DiscoverView } from '../discover-page-definitions';
 import { DiscoverFilterPanelComponent } from './discover-filter-panel/discover-filter-panel.component';
-import { DiscoverActiveFilter, DiscoverFilterChange, DiscoverStoreService } from './discover-store.service';
+import {
+    DiscoverActiveFilter,
+    DiscoverFilterChange,
+    DiscoverFilterGroup,
+    DiscoverStoreService,
+} from './discover-store.service';
 
 @Component({
     selector: 'app-discover-page',
@@ -26,13 +35,18 @@ import { DiscoverActiveFilter, DiscoverFilterChange, DiscoverStoreService } from
         AsyncPipe,
         CardComponent,
         CardSkeletonComponent,
+        CdkConnectedOverlay,
+        CdkOverlayOrigin,
+        DatePipe,
+        DecimalPipe,
         DiscoverFilterPanelComponent,
         EmptyStateComponent,
+        ImageComponent,
         LibraryToggleComponent,
         MatButtonModule,
-        MatIconModule,
-        NgTemplateOutlet,
         RepeatPipe,
+        RouterLink,
+        SkeletonComponent,
         SortButtonComponent,
         ToggleGroupComponent,
     ],
@@ -44,15 +58,33 @@ import { DiscoverActiveFilter, DiscoverFilterChange, DiscoverStoreService } from
 export class DiscoverPageComponent {
     readonly discover$ = this.discoverStoreService.discover$;
 
-    showMobileFilters = false;
+    openFilter: { group: DiscoverFilterGroup; label: string; origin: CdkOverlayOrigin } | null = null;
 
     constructor(
         private readonly discoverStoreService: DiscoverStoreService,
         private readonly destroyRef: DestroyRef,
     ) {}
 
+    toggleFilter(group: DiscoverFilterGroup, label: string, origin: CdkOverlayOrigin): void {
+        this.openFilter = this.openFilter?.group === group ? null : { group, label, origin };
+    }
+
+    closeFilter(): void {
+        this.openFilter = null;
+    }
+
+    closeFilterOnEscape(event: KeyboardEvent): void {
+        if (event.key === 'Escape') {
+            this.closeFilter();
+        }
+    }
+
     setMediaType(value: MediaType): void {
         this.discoverStoreService.setMediaType(value);
+    }
+
+    setView(view: DiscoverView): void {
+        this.discoverStoreService.setView(view);
     }
 
     setSortKey(value: TmdbDiscoverSortKey): void {
@@ -77,14 +109,5 @@ export class DiscoverPageComponent {
 
     loadMore(): void {
         this.discoverStoreService.loadMore$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
-    }
-
-    openFilters(): void {
-        this.showMobileFilters = true;
-    }
-
-    @HostListener('document:keydown.escape')
-    closeFilters(): void {
-        this.showMobileFilters = false;
     }
 }

@@ -61,6 +61,7 @@ import {
     TMDB_DISCOVER_SORT_KEYS,
     TmdbDiscoverService,
     TmdbDiscoverSortKey,
+    toGenreNames,
     toLanguageOptions,
     toLibraryState,
     toMediaListItem,
@@ -76,6 +77,7 @@ import {
     DiscoverPageDefinition,
     DiscoverQueryState,
     DiscoverRuntimePreset,
+    DiscoverView,
     MOVIE_RELEASE_TYPE_FILTER_OPTIONS,
     RATING_FILTER_OPTIONS,
     RUNTIME_FILTER_OPTIONS,
@@ -99,6 +101,9 @@ export interface DiscoverActiveFilter {
     // The query params that remove this filter.
     readonly clearParams: Record<string, string | number | null>;
 }
+
+// The filter bar's buttons, each opening one group of the filter panel.
+export type DiscoverFilterGroup = 'genres' | 'year' | 'rating' | 'watch' | 'more';
 
 // Everything the filter panel renders: which filters show, their options, and the current values.
 export type DiscoverFilters = ObservedValueOf<DiscoverStoreService['discover$']>['filters'];
@@ -133,6 +138,10 @@ interface DiscoverState {
     readonly languageSearch: string;
     // Watchlist and favorite states for the loaded titles; `null` while signed out.
     readonly libraryStates: MediaStateLookup | null;
+    // On a by-date page, the day each loaded movie opens in the region, by movie id.
+    readonly regionalReleaseDates: ReadonlyMap<number, string>;
+    // The `view` query param as given; the page falls back to its default view when it doesn't offer it.
+    readonly viewParam: string | null;
 }
 
 interface NamedResult {
@@ -152,6 +161,8 @@ interface DiscoverLookup {
 // Whose certifications to offer when the watch region has none of its own.
 const CERTIFICATION_FALLBACK_REGION = 'US';
 const LOADING_MORE_SKELETON_COUNT = 5;
+// The by-date grid's widest column count; a day spans one column per movie, up to a full row.
+const BY_DATE_COLUMNS = 8;
 const MIN_LOOKUP_QUERY_LENGTH = 2;
 const MAX_LOOKUP_SUGGESTIONS = 8;
 const MIN_YEAR = 1874;
@@ -163,8 +174,8 @@ const RESULT_NOUNS: Record<MediaType, readonly [string, string]> = {
 };
 
 const ADVANCED_TITLES: Record<MediaType, string> = {
-    movie: 'Discover Movies',
-    tv: 'Discover TV Series',
+    movie: 'Discover movies',
+    tv: 'Discover TV series',
 };
 
 // Filters folded under "More filters"; the panel shows how many of them are active.
@@ -243,6 +254,15 @@ const INITIAL_STATE: DiscoverState = {
     labels: { keyword: new Map(), company: new Map() },
     languageSearch: '',
     libraryStates: null,
+    regionalReleaseDates: new Map(),
+    viewParam: null,
+};
+
+const VIEW_LABELS: Record<DiscoverView, string> = {
+    wall: 'Wall',
+    entries: 'Entries',
+    chart: 'Chart',
+    'by-date': 'By release date',
 };
 
 @Injectable()
@@ -277,6 +297,14 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                       }))
                     : [];
 
+            const yearRangeText =
+                query.yearFrom !== null && query.yearTo !== null
+                    ? `${query.yearFrom}–${query.yearTo}`
+                    : query.yearFrom !== null
+                      ? `From ${query.yearFrom}`
+                      : query.yearTo !== null
+                        ? `Until ${query.yearTo}`
+                        : null;
             const activeFilters = [
                 ...toIdFilters('genres', query.genreIds, (id) => genreMap.get(id) ?? `Genre ${id}`),
                 definition?.defaultGenreExclusion && query.excludedGenreIds.length > 0
@@ -299,10 +327,8 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                           id: 'year-range',
                           label:
                               query.yearFrom !== null && query.yearTo !== null
-                                  ? `Years: ${query.yearFrom}-${query.yearTo}`
-                                  : query.yearFrom !== null
-                                    ? `From ${query.yearFrom}`
-                                    : `Until ${query.yearTo}`,
+                                  ? `Years ${yearRangeText}`
+                                  : (yearRangeText ?? ''),
                           group: 'yearRange' as const,
                           clearParams: { yearFrom: null, yearTo: null },
                       }
@@ -370,14 +396,66 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                 (visible.votes && query.voteCountGte !== (definition?.defaultVoteCountGte ?? null)) ||
                 (!!definition?.defaultGenreExclusion && query.excludedGenreIds.length === 0);
             const hasMore = results.state === 'success' && page < totalPages;
+            const hasMoreFilters = MORE_FILTER_GROUPS.some((group) => visible[group]);
+            const showWhereToWatch = visible.providers || visible.watchRegion;
+            const providerText =
+                query.providerIds.length === 0
+                    ? 'Any service'
+                    : query.providerIds.length === 1
+                      ? (findLabel(state.providerOptions, query.providerIds[0]) ?? '1 service')
+                      : `${query.providerIds.length} services`;
+            const filterButtons: Array<{ group: DiscoverFilterGroup; label: string; value: string } | null> = [
+                visible.genres
+                    ? {
+                          group: 'genres',
+                          label: 'Genre',
+                          value:
+                              query.genreIds.length === 0
+                                  ? 'Any'
+                                  : query.genreIds.length === 1
+                                    ? (genreMap.get(query.genreIds[0]) ?? '1 genre')
+                                    : `${query.genreIds.length} genres`,
+                      }
+                    : null,
+                visible.yearRange ? { group: 'year', label: 'Year', value: yearRangeText ?? 'Any' } : null,
+                visible.rating
+                    ? {
+                          group: 'rating',
+                          label: 'Rating',
+                          value: query.voteAverageGte !== null ? `${query.voteAverageGte}+` : 'Any',
+                      }
+                    : null,
+                showWhereToWatch
+                    ? {
+                          group: 'watch',
+                          label: 'Where to watch',
+                          value: visible.providers ? `${providerText} · ${query.watchRegion}` : query.watchRegion,
+                      }
+                    : null,
+                hasMoreFilters ? { group: 'more', label: 'More filters', value: '' } : null,
+            ];
+            const views = definition?.views ?? ['wall'];
+            const view = views.find((option) => option === state.viewParam) ?? views[0];
+            const entries = items.map((item, index) => ({
+                item: mediaListItemToCardItem(item),
+                libraryState: toLibraryState(state.libraryStates, item),
+                rank: index + 1,
+                year: item.date.slice(0, 4),
+                genreText: toGenreNames(item.genreIds, genreMap, 3).join(', '),
+            }));
+            const datedEntries = entries.map((entry) => ({
+                entry,
+                isoDate: state.regionalReleaseDates.get(entry.item.id) ?? entry.item.date,
+            }));
+            const resultCountLabel = pluralize(state.totalResults, singularNoun, pluralNoun);
             const filters = {
                 activeFilterCount: activeFilters.length,
                 hasActiveFilters: activeFilters.length > 0,
                 moreActiveCount,
                 hasMoreActiveFilters: moreActiveCount > 0,
-                hasMoreFilters: MORE_FILTER_GROUPS.some((group) => visible[group]),
+                hasMoreFilters,
                 visible,
-                showWhereToWatch: visible.providers || visible.watchRegion,
+                showWhereToWatch,
                 genreOptions: [...genreMap.entries()]
                     .filter(([value]) => !query.excludedGenreIds.includes(value))
                     .map(([value, label]) => ({ label, value }))
@@ -416,7 +494,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
 
             return {
                 title: definition?.mode === 'advanced' ? ADVANCED_TITLES[query.mediaType] : (definition?.title ?? ''),
-                subtitle: definition?.subtitle ?? '',
+                note: [definition?.subtitle, hasRemoteData(results) ? resultCountLabel : null].filter(Boolean).join(' · '),
                 showMediaTypeToggle: definition?.mode === 'advanced',
                 mediaType: query.mediaType,
                 mediaTypeOptions: MEDIA_TYPE_OPTIONS,
@@ -424,25 +502,39 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                 sortKey: query.sortKey,
                 sortDirection: query.sortDirection,
                 sortOptions: getTmdbDiscoverSortOptions(query.mediaType),
-                showFilters: Object.values(visible).some(Boolean),
+                filterButtons: filterButtons.filter(isDefined),
                 filters,
-                lockedFilters: definition?.lockedFilters ?? [],
+                view,
+                viewOptions: views.length > 1 ? views.map((value) => ({ value, label: VIEW_LABELS[value] })) : [],
                 activeFilters,
+                showFilterSummary: activeFilters.length > 0,
                 showReset:
                     activeFilters.some(({ id }) => id !== 'votes' && id !== 'excluded-genres') || hasChangedDefaults,
-                showResultCount: hasRemoteData(results),
-                resultCountLabel: pluralize(state.totalResults, singularNoun, pluralNoun),
                 showEmptyState: results.state === 'success' && items.length === 0,
-                displayItems: items.map((item) => ({
-                    item: mediaListItemToCardItem(item),
-                    libraryState: toLibraryState(state.libraryStates, item),
-                })),
+                entries,
+                dateGroups:
+                    view === 'by-date'
+                        ? [...new Set(datedEntries.map(({ isoDate }) => isoDate))].sort().map((isoDate) => {
+                              const dayEntries = datedEntries
+                                  .filter((datedEntry) => datedEntry.isoDate === isoDate)
+                                  .map(({ entry }) => entry);
+
+                              return {
+                                  isoDate,
+                                  countLabel: pluralize(dayEntries.length, singularNoun, pluralNoun),
+                                  span: Math.min(dayEntries.length, BY_DATE_COLUMNS),
+                                  entries: dayEntries,
+                              };
+                          })
+                        : [],
                 skeletonCount:
                     results.state === 'loading'
                         ? PAGE_SIZE
                         : results.state === 'loading-more'
                           ? LOADING_MORE_SKELETON_COUNT
                           : 0,
+                shownCount: items.length,
+                totalResults: state.totalResults,
                 showMore: hasMore || results.state === 'loading-more',
                 isLoadingMore: results.state === 'loading-more',
             };
@@ -535,6 +627,10 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
                 ),
             ),
         ),
+    );
+
+    private readonly setViewParam = this.effect<string | null>((viewParam$) =>
+        viewParam$.pipe(tap((viewParam) => this.patchState({ viewParam }))),
     );
 
     private readonly setLibraryStates = this.effect<MediaStateLookup | null>((libraryStates$) =>
@@ -665,6 +761,7 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
             ),
         );
         this.loadCertifications(this.select(({ visible }) => visible.certification).pipe(filter(Boolean), take(1)));
+        this.setViewParam(activatedRoute.queryParamMap.pipe(map((params) => params.get('view'))));
         this.setLibraryStates(userLibraryService.mediaStates$(this.select((state) => remoteData(state.results, []))));
     }
 
@@ -687,6 +784,10 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
             certification: null,
             releaseType: null,
         });
+    }
+
+    setView(view: DiscoverView): void {
+        this.navigate({ view: view === this.get().definition?.views[0] ? null : view });
     }
 
     setSortKey(sortKey: TmdbDiscoverSortKey): void {
@@ -775,59 +876,89 @@ export class DiscoverStoreService extends ComponentStore<DiscoverState> {
         });
     }
 
-    // A page is replaced on a new request and appended on "show more".
+    // A page is replaced on a new request and appended on "show more". A by-date page loads its whole window in
+    // one go instead: TMDb pages by first release, so a page could stop partway through a day.
     private fetchPage$(definition: DiscoverPageDefinition, query: DiscoverQueryState, page: number) {
         const windowDays = definition.dateWindow ? DATE_WINDOW_DAYS[definition.dateWindow] : null;
+        const releaseDates = windowDays ? { from: getISODate(windowDays[0]), to: getISODate(windowDays[1]) } : null;
         const runtime = RUNTIME_RANGES[query.runtimePreset];
+        const discoverQuery = {
+            sortKey: query.sortKey,
+            sortDirection: query.sortDirection,
+            watchRegion: query.watchRegion,
+            genreIds: query.genreIds,
+            excludedGenreIds: query.excludedGenreIds,
+            keywordIds: query.keywordIds,
+            companyIds: query.companyIds,
+            providerIds: query.providerIds,
+            originalLanguage: query.originalLanguage,
+            certification: query.certification,
+            releaseType: query.releaseType,
+            runtimeMin: runtime.min,
+            runtimeMax: runtime.max,
+            voteAverageMin: query.voteAverageGte,
+            voteCountMin: query.voteCountGte,
+        };
+        const page$ =
+            releaseDates && query.mediaType === 'movie' && definition.views.includes('by-date')
+                ? this.tmdbDiscoverService.openings$({ ...discoverQuery, releaseDates }).pipe(
+                      map((openings) => ({
+                          page: 1,
+                          totalPages: 1,
+                          totalResults: openings.length,
+                          items: openings.map(({ item }) => toMediaListItem(item, 'movie', 'full')),
+                          openingDates: new Map(
+                              openings.flatMap(({ item, openingDate }) =>
+                                  item.id && openingDate ? [[item.id, openingDate] as const] : [],
+                              ),
+                          ),
+                      })),
+                  )
+                : this.tmdbDiscoverService
+                      .discover$({
+                          ...discoverQuery,
+                          mediaType: query.mediaType,
+                          page,
+                          // Date-window pages filter by release dates; every other page by the year range of first releases.
+                          releaseDates: releaseDates ?? undefined,
+                          firstReleaseDates: windowDays
+                              ? undefined
+                              : {
+                                    from: query.yearFrom ? `${query.yearFrom}-01-01` : undefined,
+                                    to: query.yearTo ? `${query.yearTo}-12-31` : undefined,
+                                },
+                      })
+                      .pipe(
+                          map((response) => ({
+                              page: response.page ?? page,
+                              totalPages: response.total_pages ?? 0,
+                              totalResults: response.total_results ?? 0,
+                              items: (response.results ?? []).map((item) =>
+                                  toMediaListItem(item, query.mediaType, 'full'),
+                              ),
+                              openingDates: new Map<number, string>(),
+                          })),
+                      );
 
-        return this.tmdbDiscoverService
-            .discover$({
-                mediaType: query.mediaType,
-                sortKey: query.sortKey,
-                sortDirection: query.sortDirection,
-                page,
-                watchRegion: query.watchRegion,
-                genreIds: query.genreIds,
-                excludedGenreIds: query.excludedGenreIds,
-                keywordIds: query.keywordIds,
-                companyIds: query.companyIds,
-                providerIds: query.providerIds,
-                originalLanguage: query.originalLanguage,
-                certification: query.certification,
-                releaseType: query.releaseType,
-                // Date-window pages filter by release dates; every other page by the year range of first releases.
-                releaseDates: windowDays
-                    ? { from: getISODate(windowDays[0]), to: getISODate(windowDays[1]) }
-                    : undefined,
-                firstReleaseDates: windowDays
-                    ? undefined
-                    : {
-                          from: query.yearFrom ? `${query.yearFrom}-01-01` : undefined,
-                          to: query.yearTo ? `${query.yearTo}-12-31` : undefined,
-                      },
-                runtimeMin: runtime.min,
-                runtimeMax: runtime.max,
-                voteAverageMin: query.voteAverageGte,
-                voteCountMin: query.voteCountGte,
-            })
-            .pipe(
-            tap((response) => {
+        return page$.pipe(
+            tap(({ items, openingDates, ...paging }) => {
                 // A "show more" page that lands after the filters changed belongs to the previous list.
                 if (this.get().query !== query) {
                     return;
                 }
 
-                const items = (response.results ?? []).map((item) => toMediaListItem(item, query.mediaType, 'full'));
-
-                this.patchState(({ results }) => {
-                    const loaded = results.state === 'loading-more' ? results.data : [];
+                this.patchState(({ results, regionalReleaseDates }) => {
+                    const isLoadingMore = results.state === 'loading-more';
+                    const loaded = isLoadingMore ? results.data : [];
                     const loadedIds = new Set(loaded.map(({ id }) => id));
 
                     return {
-                        page: response.page ?? page,
-                        totalPages: response.total_pages ?? 0,
-                        totalResults: response.total_results ?? 0,
+                        ...paging,
                         results: remoteSuccess([...loaded, ...items.filter(({ id }) => !loadedIds.has(id))]),
+                        regionalReleaseDates: new Map([
+                            ...(isLoadingMore ? regionalReleaseDates : []),
+                            ...openingDates,
+                        ]),
                     };
                 });
             }),

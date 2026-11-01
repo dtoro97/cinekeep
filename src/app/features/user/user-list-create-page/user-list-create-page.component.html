@@ -1,33 +1,34 @@
 @if (userListCreate$ | async; as userListCreate) {
-    <div class="list-create page-container">
-        <app-sub-page-header
-            [parentTitle]="userListCreate.backParentTitle"
-            [backLink]="userListCreate.backLink"
-            pageTitle="New list"
-            [subtitle]="userListCreate.subtitle"
-        />
-
-        <main class="page-main list-create__main">
+    <div class="page-container">
+        <div class="browse-page inner-container list-create">
             <form
                 class="list-create__form"
                 [formGroup]="form"
                 [attr.aria-busy]="userListCreate.isSaving || null"
                 (ngSubmit)="submit()"
             >
+                <header class="list-create__head">
+                    <a class="list-create__back" [routerLink]="userListCreate.backLink">‹ {{ userListCreate.backParentTitle }}</a>
+                    <h1 class="text-display">New list</h1>
+                    @if (userListCreate.subtitle) {
+                        <p class="list-create__subtitle text-body">{{ userListCreate.subtitle }}</p>
+                    }
+                </header>
+
                 <app-user-list-form-fields [form]="form" idPrefix="create-list" />
 
                 <div class="list-create__actions">
                     <button matButton="filled" type="submit" [disabled]="userListCreate.isSaving">
                         {{ userListCreate.submitLabel }}
                     </button>
-                    <a matButton class="text-button" [routerLink]="userListCreate.backLink">Cancel</a>
+                    <a matButton="outlined" [routerLink]="userListCreate.backLink">Cancel</a>
                 </div>
             </form>
 
             <aside class="list-create__preview" aria-hidden="true">
-                <span class="list-create__preview-label text-caption">How it will look in your lists</span>
+                <span class="list-create__preview-label">How it will look in your lists</span>
                 <app-user-list-card [item]="userListCreate.preview" [preview]="true" />
             </aside>
-        </main>
+        </div>
     </div>
 }

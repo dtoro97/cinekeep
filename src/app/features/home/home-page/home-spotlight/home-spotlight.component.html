@@ -10,7 +10,7 @@
 } @else if (spotlight) {
     <app-hero-surface variant="integrated" [backdropPath]="spotlight.backdropPath" [alt]="spotlight.title">
         <section class="spotlight" aria-labelledby="spotlight-title">
-            <p class="text-hero-meta spotlight__label">Trending today</p>
+            <p class="text-hero-meta spotlight__label">{{ label }}</p>
 
             <a class="spotlight__title-link" [routerLink]="['/title', spotlight.id, spotlight.mediaType]">
                 <h1 id="spotlight-title" class="text-spotlight-title">{{ spotlight.title }}</h1>
@@ -39,8 +39,6 @@
                         Trailer
                     </a>
                 }
-
-                <a matButton="outlined" [routerLink]="['/title', spotlight.id, spotlight.mediaType]">Details</a>
             </div>
         </section>
     </app-hero-surface>

@@ -103,6 +103,18 @@ const SHORT_GENRE_NAMES: Readonly<Record<string, string>> = {
     'War & Politics': 'War',
 };
 
+// A title's first genre names, in their short forms.
+export const toGenreNames = (
+    genreIds: readonly number[] | undefined,
+    genreMap: ReadonlyMap<number, string>,
+    limit: number,
+): string[] =>
+    (genreIds ?? [])
+        .map((genreId) => genreMap.get(genreId))
+        .filter((genreName): genreName is string => !!genreName)
+        .map((genreName) => SHORT_GENRE_NAMES[genreName] ?? genreName)
+        .slice(0, limit);
+
 // List rows with up to three genre names and a link to the title.
 export const toMediaListEntries = (
     items: readonly MediaListItem[],
@@ -110,11 +122,7 @@ export const toMediaListEntries = (
 ): MediaListEntry[] =>
     items.map((item) => ({
         item,
-        genreNames: (item.genreIds ?? [])
-            .map((genreId) => genreMap.get(genreId))
-            .filter((genreName): genreName is string => !!genreName)
-            .map((genreName) => SHORT_GENRE_NAMES[genreName] ?? genreName)
-            .slice(0, 3),
+        genreNames: toGenreNames(item.genreIds, genreMap, 3),
         routerLink: ['/title', item.id, item.mediaType],
     }));
 

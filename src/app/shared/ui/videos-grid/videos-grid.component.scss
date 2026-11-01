@@ -8,7 +8,7 @@
 .videos-grid {
     &__section {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(var(--videos-grid-columns), minmax(0, 1fr));
         gap: var(--space-4);
     }
 

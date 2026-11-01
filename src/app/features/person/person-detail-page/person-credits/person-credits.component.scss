@@ -1,0 +1,256 @@
+@use 'breakpoints' as *;
+@use 'mixins' as *;
+
+:host {
+    display: block;
+}
+
+.credits-head {
+    margin-bottom: 0;
+
+    &__controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin-left: auto;
+        align-self: center;
+    }
+}
+
+.credit-section {
+    margin-top: var(--space-8);
+
+    &__title {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-3);
+        margin-bottom: var(--space-1);
+        font-size: var(--text-side-heading);
+        font-weight: var(--weight-extrabold);
+    }
+
+    &__count {
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-md);
+        font-weight: var(--weight-semibold);
+    }
+
+    &__toggle {
+        margin-top: var(--space-4);
+    }
+}
+
+.credits-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-data);
+    font-size: var(--text-md);
+    font-weight: var(--weight-semibold);
+
+    th,
+    td {
+        padding: var(--space-3) var(--space-4) var(--space-3) 0;
+        text-align: left;
+        vertical-align: baseline;
+        border-bottom: 1px solid var(--color-border);
+
+        // The score column.
+        &:last-child {
+            padding-right: 0;
+            text-align: right;
+        }
+    }
+
+    th {
+        padding-block: var(--space-2);
+        color: var(--text-muted);
+        font-size: var(--text-meta);
+        font-weight: var(--weight-bold);
+        text-transform: uppercase;
+        letter-spacing: var(--tracking-wide);
+    }
+
+    &__year {
+        width: 4rem;
+        color: var(--text-muted);
+        @include text-figure(var(--text-figure-sm), null);
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__role,
+    &__type {
+        color: var(--text-secondary);
+    }
+
+    &__title {
+        width: 40%;
+    }
+
+    &__link {
+        font-family: var(--font-body);
+        font-size: var(--text-lg);
+        font-weight: var(--weight-bold);
+        @include text-link(var(--text-primary));
+    }
+
+    &__episodes {
+        display: block;
+        margin-top: var(--space-1);
+        color: var(--text-muted);
+        font-size: var(--text-meta);
+    }
+
+    &__type {
+        width: 7rem;
+    }
+
+    &__score {
+        width: 6rem;
+    }
+
+    &__figure {
+        color: var(--text-primary);
+        @include text-figure(var(--text-figure-sm), null);
+    }
+
+    &__unrated {
+        color: var(--text-muted);
+        font-size: var(--text-meta);
+    }
+}
+
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding-block: var(--space-6);
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    margin-top: var(--space-8);
+
+    &__section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+
+    &__heading {
+        width: 10rem;
+        height: 1.5rem;
+    }
+
+    &__row {
+        display: grid;
+        grid-template-columns: 4rem minmax(10rem, 1fr) minmax(10rem, 1fr) 5rem;
+        gap: var(--space-4);
+        align-items: center;
+    }
+
+    &__cell {
+        height: 1rem;
+
+        &--year {
+            width: 3rem;
+        }
+
+        &--title {
+            width: min(18rem, 100%);
+        }
+
+        &--role {
+            width: min(14rem, 100%);
+        }
+
+        &--score {
+            width: 2.5rem;
+            justify-self: end;
+        }
+    }
+}
+
+@include tablet() {
+    .credits-table__type {
+        display: none;
+    }
+}
+
+// Phones: year, then title over role, then the score.
+@include mobile() {
+    .credits-head__controls {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .credits-table {
+        display: block;
+
+        thead {
+            display: none;
+        }
+
+        tbody {
+            display: block;
+            border-top: 1px solid var(--color-border);
+        }
+
+        tr {
+            display: grid;
+            grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+            grid-template-areas:
+                'year title score'
+                'year role score';
+            align-items: baseline;
+            column-gap: var(--space-3);
+            row-gap: var(--space-1);
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        td {
+            width: auto;
+            padding: 0;
+            border-bottom: 0;
+        }
+    }
+
+    .credits-table__year {
+        grid-area: year;
+    }
+
+    .credits-table__title {
+        grid-area: title;
+    }
+
+    .credits-table__link {
+        font-size: var(--text-md);
+    }
+
+    .credits-table__role {
+        grid-area: role;
+        color: var(--text-muted);
+        font-size: var(--text-meta);
+    }
+
+    .credits-table__score {
+        grid-area: score;
+    }
+
+    .credit-section__toggle {
+        width: 100%;
+    }
+
+    .loading__row {
+        grid-template-columns: 2.75rem minmax(0, 1fr) 2.5rem;
+    }
+
+    .loading__cell--role {
+        display: none;
+    }
+}

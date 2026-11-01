@@ -1,8 +1,10 @@
 import { AsyncPipe, ViewportScroller } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { RouterLink } from '@angular/router';
 
 import { EMPTY, catchError, switchMap, tap } from 'rxjs';
 
@@ -11,9 +13,7 @@ import {
     EmptyStateComponent,
     PluralizePipe,
     RepeatPipe,
-    SkeletonComponent,
     SnackbarService,
-    SubPageHeaderComponent,
 } from '../../../shared';
 import { UserListCardSkeletonComponent } from '../user-list-card-skeleton/user-list-card-skeleton.component';
 import { UserListCardComponent } from '../user-list-card/user-list-card.component';
@@ -30,11 +30,11 @@ import { UserListsPageStoreService } from './user-lists-page-store.service';
     imports: [
         AsyncPipe,
         EmptyStateComponent,
+        MatButtonModule,
         MatPaginatorModule,
         PluralizePipe,
         RepeatPipe,
-        SkeletonComponent,
-        SubPageHeaderComponent,
+        RouterLink,
         UserListCardComponent,
         UserListCardSkeletonComponent,
     ],

@@ -3,19 +3,19 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
+    CatalogueSubHeaderComponent,
     PhotosBrowserComponent,
     PhotosBrowserSelection,
     PhotosBrowserSkeletonComponent,
     PhotoViewerDialogService,
     SeoService,
-    SubPageHeaderComponent,
 } from '../../../shared';
 import { PersonDetailStoreService } from '../person-detail-store.service';
 import { toPersonSeoMetadata } from '../person-seo';
 
 @Component({
     selector: 'app-person-photos-page',
-    imports: [AsyncPipe, PhotosBrowserComponent, PhotosBrowserSkeletonComponent, SubPageHeaderComponent],
+    imports: [AsyncPipe, CatalogueSubHeaderComponent, PhotosBrowserComponent, PhotosBrowserSkeletonComponent],
     templateUrl: './person-photos-page.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -18,7 +18,6 @@ import {
     UserSessionStoreService,
     formatEpisodeCode,
     isDefined,
-    mapRemoteData,
     pluralize,
     remoteData,
     remoteSuccess,
@@ -50,48 +49,45 @@ const FIRST_PAGE = { page: 0, size: PAGE_SIZE, sortDirection: DEFAULT_USER_ACCOU
 const LIST_PREVIEW_COUNT = 3;
 const EMPTY_PREVIEW = { items: [], total: 0 };
 
-// Favourites are the profile's identity, shown larger; the other shelves stay dense.
+// Recently rated leads, then the watchlist, then favourites, as on the board.
 const SHELVES = [
-    {
-        key: 'favourites',
-        titleId: 'profile-favourites-title',
-        title: 'Favorites',
-        ariaLabel: 'Favorites preview',
-        link: '/me/favorites',
-        linkLabel: 'View favorites',
-        columns: 5,
-        imageParams: 'w342',
-        emptyIconClass: 'fa-regular fa-heart',
-        emptyTitle: 'No favorite titles',
-        emptyText: 'Movies and TV series you mark as favorites will appear here.',
-    },
-    {
-        key: 'watchlist',
-        titleId: 'profile-watchlist-title',
-        title: 'Watchlist',
-        ariaLabel: 'Watchlist preview',
-        link: '/me/watchlists',
-        linkLabel: 'View watchlist',
-        columns: 7,
-        imageParams: 'w185',
-        emptyIconClass: 'fa-regular fa-bookmark',
-        emptyTitle: 'No watchlist titles',
-        emptyText: 'Movies and TV series you add to your watchlist will appear here.',
-    },
     {
         key: 'ratings',
         titleId: 'profile-ratings-title',
-        title: 'Ratings',
-        ariaLabel: 'Ratings preview',
+        title: 'Recently rated',
         link: '/me/ratings',
-        linkLabel: 'View ratings',
-        columns: 7,
-        imageParams: 'w185',
+        linkLabel: 'All ratings',
+        noun: 'rating',
         emptyIconClass: 'fa-regular fa-star',
         emptyTitle: 'No rated titles',
         emptyText: 'Movies and TV series you rate will appear here.',
     },
+    {
+        key: 'watchlist',
+        titleId: 'profile-watchlist-title',
+        title: 'On your watchlist',
+        link: '/me/watchlists',
+        linkLabel: 'Full watchlist',
+        noun: 'title',
+        emptyIconClass: 'fa-regular fa-bookmark',
+        emptyTitle: 'Nothing on your watchlist',
+        emptyText: 'Movies and TV series you add to your watchlist will appear here.',
+    },
+    {
+        key: 'favourites',
+        titleId: 'profile-favourites-title',
+        title: 'Favourites',
+        link: '/me/favorites',
+        linkLabel: 'All favourites',
+        noun: 'title',
+        emptyIconClass: 'fa-regular fa-heart',
+        emptyTitle: 'No favourites yet',
+        emptyText: 'Movies and TV series you mark as favourites will appear here.',
+    },
 ] as const;
+
+// One row of the seven-up shelf.
+const SHELF_COUNT = 7;
 
 @Injectable()
 export class UserProfilePageStoreService extends ComponentStore<UserProfilePageState> {
@@ -115,12 +111,11 @@ export class UserProfilePageStoreService extends ComponentStore<UserProfilePageS
             return {
                 username: user?.username ?? null,
                 displayName: user?.username ?? 'Member',
-                profileMeta,
-                hasProfileMeta: profileMeta.length > 0,
+                metaLine: [user?.username ? `@${user.username}` : null, ...profileMeta].filter(isDefined).join(' · '),
                 stats: [
                     { label: 'Watchlist', link: '/me/watchlists', total: totals.watchlist },
+                    { label: 'Favourites', link: '/me/favorites', total: totals.favourites },
                     { label: 'Ratings', link: '/me/ratings', total: totals.ratings },
-                    { label: 'Favorites', link: '/me/favorites', total: totals.favourites },
                     { label: 'Lists', link: '/me/lists', total: totals.lists },
                 ],
                 shelves: SHELVES.map((shelf) => {
@@ -128,8 +123,10 @@ export class UserProfilePageStoreService extends ComponentStore<UserProfilePageS
 
                     return {
                         ...shelf,
-                        countLabel: pluralize(totals[shelf.key], 'title'),
-                        items: mapRemoteData(preview, ({ items }) => items),
+                        countLabel: pluralize(totals[shelf.key], shelf.noun),
+                        items: remoteData(preview, EMPTY_PREVIEW).items.slice(0, SHELF_COUNT),
+                        showSkeleton: preview.state === 'loading',
+                        skeletonCount: SHELF_COUNT,
                         showEmpty: preview.state === 'success' && preview.data.items.length === 0,
                     };
                 }),

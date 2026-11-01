@@ -1,20 +1,35 @@
 <div class="page-container">
     @if (episodePhotos$ | async; as episodePhotos) {
-        <app-sub-page-header
-            [backdropPath]="episodePhotos.backdropPath"
-            parentTitle="Episode"
-            [backLink]="episodePhotos.backLink"
-            [pageTitle]="episodePhotos.pageTitle"
-            [subtitle]="episodePhotos.subtitle"
-            [loading]="episodePhotos.isHeaderLoading"
-        />
+        <div class="catalogue-sub-page inner-container">
+            <app-catalogue-sub-header
+                pageTitle="Stills"
+                [count]="episodePhotos.stills?.length || null"
+                [parentTitle]="episodePhotos.seriesTitle"
+                [parentDetail]="episodePhotos.episodeLabel"
+                [backLink]="episodePhotos.backLink"
+                [imagePath]="episodePhotos.posterPath"
+                [loading]="episodePhotos.isHeaderLoading"
+            />
 
-        <main class="page-main">
-            @if (episodePhotos.showSkeleton) {
-                <app-photos-browser-skeleton />
-            } @else if (episodePhotos.stills; as stills) {
-                <app-photos-browser [images]="stills" (photoSelect)="openPhotoViewer($event)" />
+            @if (episodePhotos.episode; as episode) {
+                <p class="episode-facts">
+                    <span>Season <b>{{ episode.season_number }}</b>, episode <b>{{ episode.episode_number }}</b></span>
+                    @if (episode.air_date) {
+                        <span>Aired <b>{{ episode.air_date | date: 'd MMM y' }}</b></span>
+                    }
+                    @if (episode.runtime) {
+                        <span><b>{{ episode.runtime | m2h }}</b></span>
+                    }
+                </p>
             }
-        </main>
+
+            <div class="catalogue-sub-page__body">
+                @if (episodePhotos.showSkeleton) {
+                    <app-photos-browser-skeleton />
+                } @else if (episodePhotos.stills; as stills) {
+                    <app-photos-browser [images]="stills" (photoSelect)="openPhotoViewer($event)" />
+                }
+            </div>
+        </div>
     }
 </div>

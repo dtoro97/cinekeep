@@ -1,35 +1,88 @@
 <div class="page-container">
     @if (reviewDetail$ | async; as reviewDetail) {
-        <app-sub-page-header
-            [backdropPath]="reviewDetail.media?.backdropPath"
-            parentTitle="Reviews"
-            [backLink]="['../']"
-            [pageTitle]="reviewDetail.pageTitle"
-        />
+        <div class="review-page inner-container">
+            <article class="review-page__body">
+                <a class="review-page__back" [routerLink]="['../']">
+                    ‹ All
+                    @if (reviewDetail.reviewCount) {
+                        {{ reviewDetail.reviewCount }}
+                    }
+                    reviews@if (reviewDetail.media?.title; as title) { of {{ title }}}
+                </a>
 
-        <main class="page-main review-detail-layout">
-            <aside class="review-detail-layout__summary">
-                <app-review-media-summary [media]="reviewDetail.media" />
-            </aside>
-
-            <section class="review-detail-layout__body">
                 @if (reviewDetail.showSkeleton) {
-                    <div class="review-detail-skeleton" aria-hidden="true">
-                        <app-skeleton class="review-detail-skeleton__score" />
-                        <div class="review-detail-skeleton__body">
-                            <app-skeleton class="review-detail-skeleton__line review-detail-skeleton__line--byline" />
-                            @for (slot of skeletonLineCount | repeat; track slot) {
-                                <app-skeleton class="review-detail-skeleton__line" />
-                            }
-                            <app-skeleton class="review-detail-skeleton__line review-detail-skeleton__line--short" />
-                        </div>
+                    <div class="review-page__skeleton" aria-hidden="true">
+                        <app-skeleton class="review-page__title-skeleton" />
+                        @for (slot of skeletonLineCount | repeat; track slot) {
+                            <app-skeleton class="review-page__line-skeleton" />
+                        }
                     </div>
                 } @else if (reviewDetail.review; as review) {
-                    <app-review-card [review]="review" variant="detail" />
+                    <header class="review-page__head">
+                        @if (reviewDetail.score) {
+                            <b class="review-page__score text-rating">{{ reviewDetail.score | number: '1.1-1' }}</b>
+                        }
+                        <div>
+                            <h1 class="review-page__author">{{ reviewDetail.author }}</h1>
+                            <p class="text-meta">
+                                Reviewed {{ reviewDetail.media?.title ?? review.media_title }}
+                                @if (review.created_at) {
+                                    · {{ review.created_at | date: 'd MMM y' }}
+                                }
+                                @if (reviewDetail.score) {
+                                    · {{ reviewDetail.score | number: '1.0-1' }} / 10
+                                }
+                            </p>
+                        </div>
+                    </header>
+
+                    <div class="review-page__content text-prose" [innerHTML]="reviewDetail.contentHtml"></div>
+
+                    @if (review.url) {
+                        <a class="review-page__source" matButton="outlined" [href]="review.url" target="_blank" rel="noopener noreferrer">
+                            Read on TMDb
+                        </a>
+                    }
                 } @else if (reviewDetail.showUnavailable) {
                     <app-empty-state iconClass="fa-regular fa-comment-dots" text="This review is unavailable." />
                 }
-            </section>
-        </main>
+            </article>
+
+            <aside class="review-page__side" aria-label="The title and other reviews">
+                @if (reviewDetail.media; as media) {
+                    <a class="review-film" [routerLink]="['/title', media.id, media.mediaType]">
+                        <app-image class="review-film__poster" [src]="media.posterPath" params="w185" alt="" />
+                        <span class="review-film__text">
+                            <span class="review-film__title">{{ media.title }}</span>
+                            <span class="text-meta">{{ media.year }} · {{ media.mediaType === 'tv' ? 'TV series' : 'Movie' }}</span>
+                            @if (media.voteAverage) {
+                                <b class="review-film__score">{{ media.voteAverage | number: '1.1-1' }}</b>
+                            }
+                        </span>
+                    </a>
+                }
+
+                @if (reviewDetail.moreReviews.length) {
+                    <section class="catalogue-group" aria-labelledby="more-reviews-heading">
+                        <h2 id="more-reviews-heading" class="catalogue-group__title text-display-sm">More reviews</h2>
+                        <ul class="more-reviews">
+                            @for (item of reviewDetail.moreReviews; track item.id) {
+                                <li>
+                                    <a class="more-reviews__link" [routerLink]="item.link">
+                                        <b class="more-reviews__score">{{ item.score ? (item.score | number: '1.1-1') : '–' }}</b>
+                                        <span class="more-reviews__text">
+                                            <span class="more-reviews__author">{{ item.author }}</span>
+                                            @if (item.createdAt) {
+                                                <span class="text-meta">{{ item.createdAt | date: 'd MMM y' }}</span>
+                                            }
+                                        </span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </section>
+                }
+            </aside>
+        </div>
     }
 </div>

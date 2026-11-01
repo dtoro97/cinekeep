@@ -1,61 +1,107 @@
 <div class="page-container">
     @if (mediaVideos$ | async; as mediaVideos) {
-        <app-sub-page-header
-            [backdropPath]="mediaVideos.media?.backdropPath"
-            [parentTitle]="mediaVideos.media?.title"
-            [backLink]="['../']"
-            pageTitle="Videos"
-        />
+        <div class="catalogue-sub-page inner-container">
+            <app-catalogue-sub-header
+                pageTitle="Videos"
+                [count]="mediaVideos.videoCount || null"
+                [parentTitle]="mediaVideos.media?.title"
+                [parentDetail]="mediaVideos.media?.year"
+                [backLink]="['../']"
+                [imagePath]="mediaVideos.media?.posterPath"
+                [loading]="!mediaVideos.media"
+            />
 
-        <main class="page-main">
             @if (mediaVideos.showLoading) {
-                <section class="videos">
-                    <app-browse-toolbar class="videos__toolbar">
-                        <app-skeleton start class="videos__count-skeleton" />
-                        <app-skeleton end class="videos__sort-skeleton" />
-                    </app-browse-toolbar>
-
-                    <div class="videos__grid">
-                        @for (i of skeletonCount | repeat; track i) {
-                            <div class="videos__card-skeleton">
-                                <app-skeleton class="videos__card-media-skeleton" />
-                                <app-skeleton class="videos__card-line-skeleton videos__card-line-skeleton--title" />
-                                <app-skeleton class="videos__card-line-skeleton videos__card-line-skeleton--meta" />
-                                <app-skeleton class="videos__card-line-skeleton videos__card-line-skeleton--short" />
-                            </div>
-                        }
-                    </div>
-                </section>
+                <div class="videos-bar" aria-hidden="true">
+                    <app-skeleton class="videos-bar__skeleton" />
+                </div>
+                <div class="videos-grid">
+                    @for (slot of skeletonCount | repeat; track slot) {
+                        <div>
+                            <app-skeleton class="videos-grid__still-skeleton" />
+                            <app-skeleton class="videos-grid__line-skeleton" />
+                        </div>
+                    }
+                </div>
             } @else if (mediaVideos.hasVideos) {
-                <section class="videos">
-                    <app-browse-toolbar class="videos__toolbar">
-                        <span start class="text-caption">
-                            {{ mediaVideos.videoCount | pluralize: "video" }}
-                        </span>
-                        <app-sort-button
-                            end
-                            [options]="mediaVideos.sortOptions"
-                            [selectedValue]="mediaVideos.sortField"
-                            [direction]="mediaVideos.sortDirection"
-                            (sortChange)="setSortField($event)"
-                            (directionToggle)="toggleSortDirection()"
-                        />
-                    </app-browse-toolbar>
-
-                    <div class="videos__grid">
-                        @for (item of mediaVideos.videoItems; track item.id) {
-                            <app-video-card [item]="item" />
+                <div class="videos-bar" role="toolbar" aria-label="Filter videos">
+                    @if (mediaVideos.showTypeChips) {
+                        @for (chip of mediaVideos.typeChips; track chip.label) {
+                            <button
+                                class="videos-bar__chip"
+                                [class.videos-bar__chip--active]="chip.isActive"
+                                type="button"
+                                [attr.aria-pressed]="chip.isActive"
+                                (click)="setType(chip.value)"
+                            >
+                                {{ chip.label }}
+                            </button>
                         }
+                    }
+
+                    <app-sort-button
+                        class="videos-bar__sort"
+                        [options]="mediaVideos.sortOptions"
+                        [selectedValue]="mediaVideos.sortField"
+                        [direction]="mediaVideos.sortDirection"
+                        (sortChange)="setSortField($event)"
+                        (directionToggle)="toggleSortDirection()"
+                    />
+                </div>
+
+                @if (mediaVideos.featured; as featured) {
+                    <section class="featured" aria-labelledby="featured-heading">
+                        <a
+                            class="featured__still"
+                            [href]="featured.href"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            [attr.aria-label]="featured.openLabel"
+                        >
+                            <img class="featured__image" [src]="featured.thumbnailUrl" alt="" />
+                            <span class="featured__play" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+                        </a>
+
+                        <div class="featured__text">
+                            <p class="featured__label text-meta">Main trailer</p>
+                            <h2 id="featured-heading" class="text-headline">{{ featured.title }}</h2>
+                            <p class="text-meta">
+                                {{ featured.typeLabel }}@if (featured.publishedAt) { · {{ featured.publishedAt | date: 'd MMM y' }}} · YouTube
+                            </p>
+                            <a
+                                class="featured__play-button"
+                                matButton="filled"
+                                [href]="featured.href"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                                Play
+                            </a>
+                        </div>
+                    </section>
+                }
+
+                <div class="videos-grid">
+                    @for (item of mediaVideos.videoItems; track item.id) {
+                        <app-video-card [item]="item" />
+                    }
+                </div>
+
+                @if (mediaVideos.hasMore) {
+                    <div class="videos-more">
+                        <span class="text-meta">{{ mediaVideos.shownLabel }}</span>
+                        <button matButton="outlined" type="button" (click)="showMore()">Show more</button>
                     </div>
-                </section>
+                }
             } @else {
-                <section class="videos__empty">
+                <div class="catalogue-sub-page__body">
                     <app-empty-state
                         iconClass="fa-regular fa-circle-play"
                         text="No trailers or clips are available for this title yet."
                     />
-                </section>
+                </div>
             }
-        </main>
+        </div>
     }
 </div>

@@ -6,9 +6,10 @@
 }
 
 .media-list-item {
-    grid-template-columns: var(--row-thumb-poster) minmax(0, 1fr) auto;
-    grid-template-areas: 'poster content extra';
+    grid-template-columns: var(--row-thumb-poster) minmax(0, 1fr) auto auto;
+    grid-template-areas: 'poster content score extra';
     @include list-row('.media-list-item__poster', '.media-list-item__title');
+    padding-inline: 0;
 }
 
 .media-list-item__poster-link {
@@ -44,8 +45,19 @@
 .media-list-item__title {
     min-width: 0;
     color: var(--text-primary);
+    font-size: var(--text-side-heading);
+    font-weight: var(--weight-extrabold);
+    line-height: 1.1;
     text-decoration: none;
     @include line-clamp(2);
+}
+
+.media-list-item__meta,
+.media-list-item__cast {
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    font-size: var(--text-meta);
+    font-weight: var(--weight-semibold);
 }
 
 .media-list-item__meta {
@@ -53,13 +65,35 @@
 }
 
 .media-list-item__overview {
-    margin: 0;
+    margin: var(--space-1) 0 0;
     @include line-clamp(2);
 }
 
 .media-list-item__cast {
     margin: 0;
     @include line-clamp(1);
+}
+
+.media-list-item__score {
+    grid-area: score;
+    min-width: 3.5rem;
+    @include text-figure(var(--text-figure-md));
+    text-align: right;
+
+    &--yours {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-1-5);
+    }
+
+    // A line as tall as a score figure, so the text sits level with the scores in other rows.
+    &--none {
+        color: var(--text-muted);
+        font-family: var(--font-data);
+        font-size: var(--text-meta);
+        font-weight: var(--weight-semibold);
+        line-height: var(--text-figure-md);
+    }
 }
 
 .media-list-item__actor-link {
@@ -73,6 +107,26 @@
 .media-list-item__note:empty,
 .media-list-item__extra:empty {
     display: none;
+}
+
+// Yours is the one place a score sits on the accent.
+.media-list-item__own {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.25rem;
+    height: 2.875rem;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--color-brand);
+    color: var(--gold-ink);
+}
+
+.media-list-item__out-of {
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
 }
 
 .media-list-item__extra {
@@ -103,10 +157,24 @@
 
 @include mobile() {
     .media-list-item {
-        grid-template-columns: var(--row-thumb-poster-compact) minmax(0, 1fr);
+        grid-template-columns: var(--row-thumb-poster-compact) minmax(0, 1fr) auto;
         grid-template-areas:
-            'poster content'
-            'poster extra';
+            'poster content score'
+            'poster extra extra';
+    }
+
+    .media-list-item__title {
+        font-size: var(--text-lg);
+    }
+
+    .media-list-item__score {
+        min-width: 0;
+        font-size: var(--text-figure-sm);
+
+        &--none {
+            font-size: var(--text-meta);
+            line-height: var(--text-figure-sm);
+        }
     }
 
     .media-list-item__extra {

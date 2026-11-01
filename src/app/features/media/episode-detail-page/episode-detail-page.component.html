@@ -1,163 +1,249 @@
 <div class="page-container">
     @if (episodeDetail$ | async; as episodeDetail) {
-        <app-hero-surface [backdropPath]="episodeDetail.heroImage" variant="integrated">
-            <div class="episode-hero">
-                <a class="episode-hero__back text-caption" [routerLink]="episodeDetail.episodesLink">
-                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                    Back to {{ episodeDetail.seasonLabel }}
-                </a>
+        <app-catalogue-backdrop [backdropPath]="episodeDetail.heroImage" [alt]="episodeDetail.episode?.name ?? ''" />
 
-                @if (episodeDetail.episode; as episode) {
-                    <div class="episode-hero__text">
-                        <p class="episode-hero__eyebrow text-hero-meta">
+        <div class="catalogue inner-container">
+            @if (episodeDetail.episode; as episode) {
+                <section class="catalogue__lead catalogue__lead--text-only" aria-labelledby="episode-heading">
+                    @if (episodeDetail.tmdbRating) {
+                        <div class="catalogue__lead-score">
+                            <app-tmdb-rating
+                                prominent
+                                label="TMDb score"
+                                [value]="episodeDetail.tmdbRating"
+                                [voteCount]="episode.vote_count"
+                            />
+                        </div>
+                    }
+
+                    <div class="catalogue__body">
+                        <p class="catalogue__eyebrow">
                             @if (episodeDetail.seriesTitle; as title) {
-                                <a class="episode-hero__series" [routerLink]="episodeDetail.seriesLink">{{ title }}</a>
+                                <a class="catalogue__eyebrow-link" [routerLink]="episodeDetail.seriesLink">{{ title }}</a> ·
                             }
-                            <span>{{ episodeDetail.episodeLabel }}</span>
+                            <a class="catalogue__eyebrow-link" [routerLink]="episodeDetail.episodesLink">{{
+                                episodeDetail.seasonLabel
+                            }}</a>
+                            · Episode {{ episode.episode_number }}
                         </p>
 
-                        <h1 class="text-hero-title">{{ episode.name }}</h1>
+                        <h1 id="episode-heading" class="text-hero-title">{{ episode.name }}</h1>
 
-                        @if (episodeDetail.hasMeta) {
-                            <p class="episode-hero__meta text-hero-meta">
+                        @if (episodeDetail.hasMeta || episodeDetail.directors.length) {
+                            <dl class="catalogue-facts">
                                 @if (episode.air_date) {
-                                    <span>{{ episode.air_date | date: "MMMM d, y" }}</span>
+                                    <div class="catalogue-facts__cell">
+                                        <dt class="catalogue-facts__label">Aired</dt>
+                                        <dd>{{ episode.air_date | date: 'd MMM y' }}</dd>
+                                    </div>
                                 }
                                 @if (episode.runtime) {
-                                    <span>{{ episode.runtime | m2h }}</span>
+                                    <div class="catalogue-facts__cell">
+                                        <dt class="catalogue-facts__label">Runtime</dt>
+                                        <dd>{{ episode.runtime | m2h }}</dd>
+                                    </div>
                                 }
-                            </p>
-                        }
-                    </div>
-                } @else {
-                    <div class="episode-hero__text" aria-hidden="true">
-                        <app-skeleton class="episode-hero__line episode-hero__line--meta" />
-                        <app-skeleton class="episode-hero__line episode-hero__line--title" />
-                        <app-skeleton class="episode-hero__line episode-hero__line--meta" />
-                    </div>
-                }
-            </div>
-        </app-hero-surface>
-
-        <main class="page-main episode-page">
-            @if (episodeDetail.episode; as episode) {
-                <section class="episode-intro">
-                    <div class="episode-intro__text">
-                        <p
-                            class="episode-intro__overview text-hero-summary"
-                            [class.episode-intro__overview--empty]="episodeDetail.isOverviewEmpty"
-                        >
-                            {{ episodeDetail.overviewText }}
-                        </p>
-
-                        @if (episodeDetail.hasCrewRows) {
-                            <dl class="episode-crew">
-                                @for (row of episodeDetail.crewRows; track row.label) {
-                                    <div class="episode-crew__row">
-                                        <dt class="episode-crew__label text-caption">{{ row.label }}</dt>
-                                        <dd class="episode-crew__names text-body-sm">
-                                            @for (person of row.people; track person.id; let last = $last) {
-                                                <a class="episode-crew__link" [routerLink]="['/name', person.id]">{{ person.name }}</a>@if (!last) {<span>, </span>}
+                                <div class="catalogue-facts__cell">
+                                    <dt class="catalogue-facts__label">Episode</dt>
+                                    <dd>
+                                        {{ episode.episode_number }}@if (episodeDetail.seasonEpisodeCount; as count) { of {{ count }}}
+                                    </dd>
+                                </div>
+                                @if (episodeDetail.directors.length) {
+                                    <div class="catalogue-facts__cell">
+                                        <dt class="catalogue-facts__label">Directed by</dt>
+                                        <dd>
+                                            @for (person of episodeDetail.directors; track person.id; let last = $last) {
+                                                <a class="catalogue-facts__link" [routerLink]="['/name', person.id]">{{ person.name }}</a>@if (!last) {<span>, </span>}
                                             }
                                         </dd>
                                     </div>
                                 }
                             </dl>
                         }
-                    </div>
 
-                    @if (episodeDetail.showRatings) {
-                        <aside class="episode-intro__ratings" aria-label="Ratings">
-                            @if (episodeDetail.tmdbRating) {
+                        <p class="catalogue__overview text-body" [class.catalogue__overview--empty]="episodeDetail.isOverviewEmpty">
+                            {{ episodeDetail.overviewText }}
+                        </p>
+
+                        <div class="catalogue__actions">
+                            @if (episodeDetail.canRateEpisode) {
+                                <button
+                                    matButton="filled"
+                                    type="button"
+                                    [disabled]="episodeDetail.userRating.disabled"
+                                    (click)="
+                                        episodeDetail.isAuthenticated
+                                            ? openUserRatingDialog(episodeDetail.ratingRequest)
+                                            : signIn()
+                                    "
+                                >
+                                    {{ episodeDetail.userRating.currentRating !== null ? 'Change your rating' : 'Rate this episode' }}
+                                </button>
+                            }
+
+                            @if (episodeDetail.pager; as pager) {
+                                @if (pager.previous; as previous) {
+                                    <a matButton="outlined" [routerLink]="previous.routeCommands" rel="prev">‹ {{ previous.label }}</a>
+                                }
+                                @if (pager.next; as next) {
+                                    <a matButton="outlined" [routerLink]="next.routeCommands" rel="next">{{ next.label }} ›</a>
+                                }
+                            }
+                        </div>
+                    </div>
+                </section>
+            } @else {
+                <div class="catalogue__lead catalogue__lead--text-only" aria-hidden="true">
+                    <div class="catalogue__body">
+                        <app-skeleton class="catalogue__line-skeleton" />
+                        <app-skeleton class="catalogue__title-skeleton" />
+                        <app-skeleton class="catalogue__facts-skeleton" />
+                        <app-skeleton class="catalogue__overview-skeleton" />
+                    </div>
+                </div>
+            }
+
+            <aside class="catalogue__side" aria-label="Episode score, your library and crew">
+                @if (episodeDetail.episode; as episode) {
+                    @if (episodeDetail.tmdbRating) {
+                        <div class="catalogue__side-score">
+                            <div class="episode-score">
                                 <app-tmdb-rating
                                     prominent
+                                    label="TMDb score"
                                     [value]="episodeDetail.tmdbRating"
                                     [voteCount]="episode.vote_count"
                                 />
-                            }
-
-                            @if (episodeDetail.canRateEpisode) {
-                                <app-user-rating
-                                    class="episode-intro__user-rating"
-                                    [currentRating]="episodeDetail.userRating.currentRating"
-                                    [disabled]="episodeDetail.userRating.disabled"
-                                    [loading]="episodeDetail.userRating.loading"
-                                    [pending]="episodeDetail.userRating.pending"
-                                    (ratingClick)="openUserRatingDialog(episodeDetail.ratingRequest)"
-                                />
-                            }
-                        </aside>
-                    }
-                </section>
-            } @else if (episodeDetail.showIntroSkeleton) {
-                <section class="episode-intro" aria-hidden="true">
-                    <div class="episode-intro__text">
-                        <app-skeleton class="episode-intro__line" />
-                        <app-skeleton class="episode-intro__line" />
-                        <app-skeleton class="episode-intro__line episode-intro__line--short" />
-                    </div>
-                </section>
-            }
-
-            @if (episodeDetail.pager; as pager) {
-                <nav class="episode-pager" aria-label="Other episodes">
-                    @if (pager.previous; as previous) {
-                        <a class="episode-pager__link" [routerLink]="previous.routeCommands" rel="prev">
-                            <span class="episode-pager__direction text-caption">
-                                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-                                {{ previous.label }}
-                            </span>
-                            @if (previous.title) {
-                                <span class="episode-pager__title text-subtitle">{{ previous.title }}</span>
-                            }
-                        </a>
-                    } @else {
-                        <span></span>
+                                @if (episodeDetail.isSeasonBest) {
+                                    <p class="episode-score__note">Highest rated episode of {{ episodeDetail.seasonLabel }}</p>
+                                }
+                            </div>
+                        </div>
                     }
 
-                    @if (pager.next; as next) {
-                        <a class="episode-pager__link episode-pager__link--next" [routerLink]="next.routeCommands" rel="next">
-                            <span class="episode-pager__direction text-caption">
-                                {{ next.label }}
-                                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                            </span>
-                            @if (next.title) {
-                                <span class="episode-pager__title text-subtitle">{{ next.title }}</span>
+                    <app-your-library
+                        [isAuthenticated]="episodeDetail.isAuthenticated"
+                        invite="to rate this episode."
+                        (signIn)="signIn()"
+                    >
+                        <app-rating-scale
+                            [request]="episodeDetail.ratingRequest"
+                            [currentRating]="episodeDetail.userRating.currentRating"
+                            [canRate]="episodeDetail.canRateEpisode"
+                            [disabled]="episodeDetail.userRating.disabled"
+                            [loading]="episodeDetail.userRating.loading"
+                            unratedText="You haven't rated this episode yet."
+                        />
+                    </app-your-library>
+
+                    @if (episodeDetail.hasCrewRows) {
+                        <section class="catalogue-group" aria-labelledby="crew-heading">
+                            <h2 id="crew-heading" class="catalogue-group__title text-display-sm">Crew</h2>
+                            <dl class="catalogue-rows">
+                                @for (row of episodeDetail.crewRows; track row.label) {
+                                    <div class="catalogue-rows__row">
+                                        <dt class="catalogue-rows__label">{{ row.label }}</dt>
+                                        <dd>
+                                            @for (person of row.people; track person.id; let last = $last) {
+                                                <a class="catalogue-rows__link" [routerLink]="['/name', person.id]">{{ person.name }}</a>@if (!last) {<span>, </span>}
+                                            }
+                                        </dd>
+                                    </div>
+                                }
+                            </dl>
+                        </section>
+                    }
+
+                    @if (episodeDetail.seasonWindow.length) {
+                        <section class="catalogue-group" aria-labelledby="season-heading">
+                            <h2 id="season-heading" class="catalogue-group__title text-display-sm">{{ episodeDetail.seasonLabel }}</h2>
+                            <ol class="season-window">
+                                @for (item of episodeDetail.seasonWindow; track item.episodeNumber) {
+                                    <li>
+                                        <a
+                                            class="season-window__episode"
+                                            [class.season-window__episode--current]="item.isCurrent"
+                                            [routerLink]="item.routeCommands"
+                                            [attr.aria-current]="item.isCurrent ? 'page' : null"
+                                        >
+                                            <b class="season-window__number">{{ item.episodeNumber }}</b>
+                                            <span class="season-window__text">
+                                                <span class="season-window__name">{{ item.name }}</span>
+                                                @if (item.airDate) {
+                                                    <span class="text-meta">{{ item.airDate | date: 'd MMM y' }}</span>
+                                                }
+                                            </span>
+                                            @if (item.score) {
+                                                <span class="season-window__score">{{ item.score | number: '1.1-1' }}</span>
+                                            }
+                                        </a>
+                                    </li>
+                                }
+                            </ol>
+                            <a class="catalogue-group__more" [routerLink]="episodeDetail.episodesLink">
+                                All {{ episodeDetail.seasonEpisodeCount }} episodes ›
+                            </a>
+                        </section>
+                    }
+                } @else {
+                    <app-tmdb-rating prominent [loading]="true" />
+                }
+            </aside>
+
+            <div class="catalogue__main">
+                @if (episodeDetail.hasGuestCast) {
+                    <section class="catalogue-block" aria-labelledby="guests-heading">
+                        <header class="catalogue-block__head">
+                            <h2 id="guests-heading" class="text-headline">Guest stars</h2>
+                            @if (episodeDetail.episode?.guest_stars?.length; as guestCount) {
+                                <span class="catalogue-block__count">{{ guestCount }}</span>
                             }
-                        </a>
-                    }
-                </nav>
-            }
+                        </header>
+                        <app-media-credits-summary [data]="episodeDetail.guestCast" />
+                    </section>
+                }
 
-            @if (episodeDetail.hasGuestCast) {
-                <app-page-section subtitle="Guest stars">
-                    <app-media-credits-summary [data]="episodeDetail.guestCast" />
-                </app-page-section>
-            }
+                @if (episodeDetail.showStills) {
+                    <section class="catalogue-block" aria-labelledby="stills-heading">
+                        <header class="catalogue-block__head">
+                            <h2 id="stills-heading" class="text-headline">Stills</h2>
+                            @if (episodeDetail.hasStills) {
+                                <span class="catalogue-block__count">{{ episodeDetail.stillCount }}</span>
+                                <a class="catalogue-block__more" [routerLink]="['photos']">All stills ›</a>
+                            }
+                        </header>
 
-            @if (episodeDetail.showStills) {
-                <app-page-section subtitle="Stills">
-                    @if (episodeDetail.hasStills) {
-                        <a section-controls class="section-link text-body-sm" [routerLink]="['photos']">
-                            Browse all photos ({{ episodeDetail.stillCount }})
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </a>
-                    }
-                    <app-photos-preview
-                        [state]="episodeDetail.stills"
-                        [totalCount]="episodeDetail.stillCount"
-                        variant="compact"
-                        (photoClick)="openPhotoViewer($event, episodeDetail.stillList)"
-                        (moreClick)="openPhotosPage()"
-                    />
-                </app-page-section>
-            }
+                        <div class="stills">
+                            @if (episodeDetail.hasStills) {
+                                @for (still of episodeDetail.stillRow; track still.file_path; let index = $index) {
+                                    <button
+                                        class="stills__button"
+                                        type="button"
+                                        [attr.aria-label]="'Open still ' + (index + 1)"
+                                        (click)="openPhotoViewer(index, episodeDetail.stillList)"
+                                    >
+                                        <app-image class="stills__still" [src]="still.file_path" params="w780" alt="" />
+                                    </button>
+                                }
+                            } @else {
+                                @for (slot of 3 | repeat; track slot) {
+                                    <app-skeleton class="stills__still" aria-hidden="true" />
+                                }
+                            }
+                        </div>
+                    </section>
+                }
 
-            @if (episodeDetail.showVideos) {
-                <app-page-section subtitle="Videos">
-                    <app-videos-grid [state]="episodeDetail.videos" />
-                </app-page-section>
-            }
-        </main>
+                @if (episodeDetail.showVideos) {
+                    <section class="catalogue-block" aria-labelledby="videos-heading">
+                        <header class="catalogue-block__head">
+                            <h2 id="videos-heading" class="text-headline">Videos</h2>
+                        </header>
+                        <app-videos-grid [state]="episodeDetail.videos" [gridCount]="2" />
+                    </section>
+                }
+            </div>
+        </div>
     }
 </div>

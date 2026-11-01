@@ -1,8 +1,18 @@
-.person-list {
-    display: flex;
-    flex-direction: column;
+@use 'breakpoints' as *;
 
-    > * + * {
-        border-block-start: 1px solid var(--row-divider);
+// People in two columns, each row on a hairline.
+.person-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-10);
+
+    > * {
+        border-block-end: 1px solid var(--row-divider);
+    }
+}
+
+@include mobile() {
+    .person-list {
+        grid-template-columns: minmax(0, 1fr);
     }
 }

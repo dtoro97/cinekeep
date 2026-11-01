@@ -1,0 +1,28 @@
+<header class="sub-header">
+    @if (backLink) {
+        <a class="sub-header__thumb" [routerLink]="backLink" tabindex="-1" aria-hidden="true">
+            @if (loading) {
+                <app-skeleton class="sub-header__image" />
+            } @else {
+                <app-image class="sub-header__image" [src]="imagePath" [type]="imageType" params="w185" alt="" />
+            }
+        </a>
+    }
+
+    <div class="sub-header__text">
+        @if (loading) {
+            <app-skeleton class="sub-header__back-skeleton" />
+        } @else if (backLink) {
+            <a class="sub-header__back" [routerLink]="backLink">
+                ‹ {{ parentTitle }}@if (parentDetail) {<span> · {{ parentDetail }}</span>}
+            </a>
+        }
+
+        <h1 class="sub-header__title">
+            {{ pageTitle }}
+            @if (count) {
+                <span class="sub-header__count">{{ count }}</span>
+            }
+        </h1>
+    </div>
+</header>

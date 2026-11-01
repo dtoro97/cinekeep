@@ -1,79 +1,63 @@
 @if (ratings$ | async; as ratings) {
-    <app-sub-page-header parentTitle="Profile" backLink="/me" pageTitle="Ratings" />
-
-    <main class="page-main page page-list-column">
-        <app-browse-toolbar>
-            <div start class="page__total">
+    <div class="page-container">
+        <div class="browse-page inner-container">
+            <header class="browse-head">
+                <h1 class="text-display">Ratings</h1>
                 @if (ratings.showTotal) {
-                    <span class="text-caption">{{ ratings.totalLabel }}</span>
+                    <p class="browse-head__note">{{ ratings.totalLabel }}</p>
                 }
-            </div>
+            </header>
 
-            <div end class="page__toolbar-actions">
-                <app-toggle-group
-                    [options]="contentTypeOptions"
-                    [selectedValue]="ratings.contentType"
-                    (selected)="setContentType($event)"
-                />
-
-                <app-sort-button
-                    [options]="sortOptions"
-                    [selectedValue]="sortField"
-                    [direction]="ratings.sortDirection"
-                    (directionToggle)="toggleSortDirection()"
-                />
-            </div>
-        </app-browse-toolbar>
-
-        @if (ratings.showTitleSkeleton) {
-            <div class="page__list" aria-hidden="true">
-                @for (placeholder of skeletonCount | repeat; track placeholder) {
-                    <app-media-list-item [loading]="true" />
+            <nav class="catalogue-tabs ratings-tabs" aria-label="Rating types">
+                @for (option of contentTypeOptions; track option.value) {
+                    <button
+                        class="catalogue-tabs__tab"
+                        [class.catalogue-tabs__tab--active]="option.value === ratings.contentType"
+                        type="button"
+                        [attr.aria-current]="option.value === ratings.contentType ? 'page' : null"
+                        (click)="setContentType(option.value)"
+                    >
+                        {{ option.label }}
+                    </button>
                 }
-            </div>
-        } @else if (ratings.showEpisodeSkeleton) {
-            <ul class="page__episode-list" aria-hidden="true">
-                @for (placeholder of skeletonCount | repeat; track placeholder) {
-                    <li>
-                        <app-episode-list-item [loading]="true" />
-                    </li>
-                }
-            </ul>
-        } @else if (ratings.hasTitles) {
-            <div class="page__list">
-                @for (item of ratings.titles; track item.id) {
-                    <app-media-list-item [item]="item" [link]="['/title', item.id, item.mediaType]">
-                        <div media-list-item-action class="page__actions">
-                            <app-icon-button
-                                title="Edit rating"
-                                ariaLabel="Edit rating for {{ item.title }}"
-                                (buttonClick)="editTitleRating(item)"
-                            >
-                                <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
-                            </app-icon-button>
 
-                            <app-icon-button
-                                tone="danger"
-                                title="Remove rating"
-                                ariaLabel="Remove rating from {{ item.title }}"
-                                (buttonClick)="removeTitleRating(item)"
-                            >
-                                <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
-                            </app-icon-button>
-                        </div>
-                    </app-media-list-item>
-                }
-            </div>
-        } @else if (ratings.hasEpisodes) {
-            <ul class="page__episode-list" aria-label="Rated episodes">
-                @for (episode of ratings.episodes; track episode.key) {
-                    <li>
-                        <app-episode-list-item [item]="episode.item">
-                            <div class="page__actions">
+                <span class="catalogue-tabs__end">
+                    <app-sort-button
+                        [options]="sortOptions"
+                        [selectedValue]="sortField"
+                        [direction]="ratings.sortDirection"
+                        (directionToggle)="toggleSortDirection()"
+                    />
+                </span>
+            </nav>
+
+            @if (ratings.showTitleSkeleton) {
+                <div class="ratings-list" aria-hidden="true">
+                    @for (placeholder of skeletonCount | repeat; track placeholder) {
+                        <app-media-list-item [loading]="true" />
+                    }
+                </div>
+            } @else if (ratings.showEpisodeSkeleton) {
+                <ul class="ratings-list ratings-list--episodes" aria-hidden="true">
+                    @for (placeholder of skeletonCount | repeat; track placeholder) {
+                        <li>
+                            <app-episode-list-item [loading]="true" />
+                        </li>
+                    }
+                </ul>
+            } @else if (ratings.hasTitles) {
+                <div class="ratings-list">
+                    @for (item of ratings.titles; track item.id) {
+                        <app-media-list-item
+                            [item]="item"
+                            [link]="['/title', item.id, item.mediaType]"
+                            [isOwnRating]="true"
+                        >
+                            <div media-list-item-action class="ratings-actions">
                                 <app-icon-button
                                     title="Edit rating"
-                                    ariaLabel="Edit rating for {{ episode.title }}"
-                                    (buttonClick)="editEpisodeRating(episode)"
+                                    ariaLabel="Edit rating for {{ item.title }}"
+                                    (buttonClick)="editTitleRating(item)"
                                 >
                                     <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
                                 </app-icon-button>
@@ -81,35 +65,62 @@
                                 <app-icon-button
                                     tone="danger"
                                     title="Remove rating"
-                                    ariaLabel="Remove rating from {{ episode.title }}"
-                                    (buttonClick)="removeEpisodeRating(episode)"
+                                    ariaLabel="Remove rating from {{ item.title }}"
+                                    (buttonClick)="removeTitleRating(item)"
                                 >
                                     <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
                                 </app-icon-button>
                             </div>
-                        </app-episode-list-item>
-                    </li>
-                }
-            </ul>
-        } @else if (ratings.showEmpty) {
-            <section class="page__empty">
+                        </app-media-list-item>
+                    }
+                </div>
+            } @else if (ratings.hasEpisodes) {
+                <ul class="ratings-list ratings-list--episodes" aria-label="Rated episodes">
+                    @for (episode of ratings.episodes; track episode.key) {
+                        <li>
+                            <app-episode-list-item [item]="episode.item">
+                                <div class="ratings-actions">
+                                    <app-icon-button
+                                        title="Edit rating"
+                                        ariaLabel="Edit rating for {{ episode.title }}"
+                                        (buttonClick)="editEpisodeRating(episode)"
+                                    >
+                                        <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+                                    </app-icon-button>
+
+                                    <app-icon-button
+                                        tone="danger"
+                                        title="Remove rating"
+                                        ariaLabel="Remove rating from {{ episode.title }}"
+                                        (buttonClick)="removeEpisodeRating(episode)"
+                                    >
+                                        <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                                    </app-icon-button>
+                                </div>
+                            </app-episode-list-item>
+                        </li>
+                    }
+                </ul>
+            } @else if (ratings.showEmpty) {
                 <app-empty-state
+                    class="library-empty"
                     iconClass="fa-regular fa-star"
+                    iconStyle="plain"
                     [title]="ratings.emptyTitle"
                     [text]="ratings.emptyText"
                 />
-            </section>
-        }
+            }
 
-        @if (ratings.showPaginator) {
-            <mat-paginator
-                class="page__paginator"
-                [length]="ratings.total"
-                [pageIndex]="ratings.pageIndex"
-                [pageSize]="ratings.pageSize"
-                [hidePageSize]="true"
-                (page)="changePage($event)"
-            />
-        }
-    </main>
+            @if (ratings.showPaginator) {
+                <mat-paginator
+                    class="library-paginator"
+                    [length]="ratings.total"
+                    [pageIndex]="ratings.pageIndex"
+                    [pageSize]="ratings.pageSize"
+                    [hidePageSize]="true"
+                    (page)="changePage($event)"
+                />
+            }
+        </div>
+    </div>
 }

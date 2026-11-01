@@ -1,23 +1,12 @@
 @use 'breakpoints' as *;
 
-:host {
-    --hero-fallback-bg: var(--surface-page);
-    --gradient-hero-scrim: linear-gradient(
-        to bottom,
-        color-mix(in oklch, var(--surface-page) 2%, transparent) 0%,
-        color-mix(in oklch, var(--surface-page) 28%, transparent) 52%,
-        var(--surface-page) 100%
-    );
-    --gradient-hero-lateral: linear-gradient(
-        to right,
-        var(--surface-page) 0%,
-        color-mix(in srgb, var(--surface-page) 76%, transparent) 26%,
-        color-mix(in srgb, var(--surface-page) 12%, transparent) 58%,
-        transparent 78%
-    );
-}
-
 .hero-surface {
+    // The backdrop takes the content width, so its left edge lines up with the text over it.
+    --hero-surface-image-inset: max(
+        var(--layout-gutter),
+        calc((100% - var(--layout-content-max-width)) / 2 + var(--layout-gutter))
+    );
+
     position: relative;
     display: flex;
     align-items: flex-end;
@@ -38,70 +27,25 @@
         --hero-surface-min-height: 180px;
     }
 
-    &__backdrop-blur,
-    &__backdrop {
+    &__backdrop,
+    &__overlay {
         position: absolute;
+        inset-block: 0;
+        inset-inline-start: var(--hero-surface-image-inset);
+        width: calc(100% - 2 * var(--hero-surface-image-inset));
+    }
+
+    &__backdrop {
+        height: 100%;
         --image-radius: 0;
         --image-position: center 20%;
     }
 
-    &__backdrop-blur {
-        inset: -20px;
-        width: calc(100% + 40px);
-        height: calc(100% + 40px);
-        filter: blur(30px) saturate(1.2);
-    }
-
-    &__backdrop {
-        inset: -4px;
-        width: calc(100% + 8px);
-        height: calc(100% + 8px);
-    }
-
-    &__base,
+    // The same dimming as catalogue backdrops: text sits on the left, so the right of the image stays bright
+    // enough to read as an image.
     &__overlay {
-        position: absolute;
-        inset: 0;
-    }
-
-    &__base {
-        background: var(--hero-fallback-bg);
-    }
-
-    &__overlay {
-        background: var(--gradient-hero-scrim);
-    }
-
-    &--detail &__overlay::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: var(--gradient-hero-lateral);
-        pointer-events: none;
-    }
-
-    // Text sits on the left, so the right of the backdrop stays bright enough to read as an image.
-    &--integrated &__overlay {
-        background: linear-gradient(
-            to bottom,
-            color-mix(in oklch, var(--surface-page) 20%, transparent) 0%,
-            color-mix(in oklch, var(--surface-page) 52%, transparent) 58%,
-            var(--surface-page) 100%
-        );
-    }
-
-    &--integrated &__overlay::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-            to right,
-            var(--surface-page) 0%,
-            color-mix(in srgb, var(--surface-page) 84%, transparent) 32%,
-            color-mix(in srgb, var(--surface-page) 30%, transparent) 62%,
-            transparent 90%
-        );
-        pointer-events: none;
+        background:
+            var(--gradient-backdrop-fade-right), var(--gradient-backdrop-dim-left), var(--gradient-backdrop-dim-bottom);
     }
 
     &__content {
@@ -160,6 +104,8 @@
 
 @include mobile() {
     .hero-surface {
+        --hero-surface-image-inset: var(--layout-gutter-compact);
+
         &__container {
             padding-inline: var(--layout-gutter-compact);
         }
@@ -186,10 +132,6 @@
             min-height: auto;
             padding-top: var(--space-12);
             padding-bottom: var(--space-6);
-        }
-
-        &__backdrop-blur {
-            display: none;
         }
 
         &--detail.hero-surface--has-backdrop &__content {

@@ -1,8 +1,8 @@
 @if (trailers$ | async; as trailers) {
     <div class="page-container">
         @if (trailers.featured; as featured) {
-            <app-hero-spotlight badge="Featured trailer" backLink="/" backLabel="Home" [spotlight]="featured.spotlight">
-                <a matButton="filled" [href]="featured.href" target="_blank" rel="noopener noreferrer">
+            <app-hero-spotlight label="Featured trailer" [spotlight]="featured.spotlight">
+                <a class="button--light" matButton="filled" [href]="featured.href" target="_blank" rel="noopener noreferrer">
                     <i class="fa-solid fa-play" aria-hidden="true"></i>
                     Play trailer
                 </a>
@@ -11,48 +11,47 @@
             <app-hero-spotlight [loading]="true" />
         }
 
-        <div class="page-main">
-            <section class="trailers">
-                <header class="trailers__toolbar">
-                    <app-toggle-group
-                        [options]="trailers.feedOptions"
-                        [selectedValue]="trailers.feedType"
-                        (selected)="setFeedType($event)"
-                    />
-                </header>
-
-                <ul class="trailers__grid">
-                    @for (trailer of trailers.trailers; track trailer.id) {
-                        <li>
-                            <app-video-card [item]="trailer" />
-                        </li>
-                    }
-
-                    @for (slot of trailers.skeletonCount | repeat; track slot) {
-                        <li class="thumb" aria-hidden="true">
-                            <div class="thumb__frame aspect-landscape">
-                                <app-skeleton class="thumb__art" />
-                            </div>
-                            <app-skeleton class="thumb__line thumb__line--primary" />
-                            <app-skeleton class="thumb__line thumb__line--secondary" />
-                            <app-skeleton class="thumb__line thumb__line--tertiary" />
-                        </li>
-                    }
-                </ul>
-
-                @if (trailers.showMore) {
-                    <div class="trailers__more">
-                        <button
-                            mat-stroked-button
-                            type="button"
-                            [disabled]="trailers.isLoadingMore"
-                            (click)="loadMore()"
-                        >
-                            {{ trailers.showMoreLabel }}
-                        </button>
-                    </div>
+        <div class="inner-container trailers">
+            <nav class="catalogue-tabs trailers__tabs" aria-label="Trailer feeds">
+                @for (option of trailers.feedOptions; track option.value) {
+                    <button
+                        class="catalogue-tabs__tab"
+                        [class.catalogue-tabs__tab--active]="option.value === trailers.feedType"
+                        type="button"
+                        [attr.aria-current]="option.value === trailers.feedType ? 'page' : null"
+                        (click)="setFeedType(option.value)"
+                    >
+                        {{ option.label }}
+                    </button>
                 }
-            </section>
+            </nav>
+
+            <ul class="trailers__grid">
+                @for (trailer of trailers.trailers; track trailer.id) {
+                    <li>
+                        <app-video-card [item]="trailer" />
+                    </li>
+                }
+
+                @for (slot of trailers.skeletonCount | repeat; track slot) {
+                    <li class="thumb" aria-hidden="true">
+                        <div class="thumb__frame aspect-landscape">
+                            <app-skeleton class="thumb__art" />
+                        </div>
+                        <app-skeleton class="thumb__line thumb__line--primary" />
+                        <app-skeleton class="thumb__line thumb__line--secondary" />
+                        <app-skeleton class="thumb__line thumb__line--tertiary" />
+                    </li>
+                }
+            </ul>
+
+            @if (trailers.showMore) {
+                <div class="browse-more">
+                    <button matButton="outlined" type="button" [disabled]="trailers.isLoadingMore" (click)="loadMore()">
+                        {{ trailers.showMoreLabel }}
+                    </button>
+                </div>
+            }
         </div>
     </div>
 }

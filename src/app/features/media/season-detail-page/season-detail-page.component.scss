@@ -1,113 +1,81 @@
 @use 'breakpoints' as *;
 @use 'mixins' as *;
 
-.season-hero {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
+:host {
+    display: block;
+}
 
-    &__back {
-        display: inline-flex;
-        align-self: flex-start;
-        align-items: center;
-        gap: var(--space-1);
+// One tab per season; the open season is underlined in white.
+.season-tabs {
+    margin-top: var(--space-12);
+
+    &__skeleton {
+        display: block;
+        width: min(24rem, 100%);
+        margin-top: var(--space-12);
+        --skeleton-height: 2.75rem;
+    }
+}
+
+.season-library {
+    color: var(--text-muted);
+    font-size: var(--text-control);
+    font-weight: var(--weight-medium);
+
+    &__link {
+        font-weight: var(--weight-bold);
+        white-space: nowrap;
         @include text-link(var(--text-primary));
+    }
+}
 
-        i {
-            font-size: var(--text-2xs);
+.season-videos {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    &__link {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        padding: var(--space-2) 0;
+        border-top: 1px solid var(--color-border);
+        color: var(--text-primary);
+        font-weight: var(--weight-bold);
+        transition: color var(--motion-base);
+
+        @include hover-capable {
+            &:hover .season-videos__title {
+                color: var(--text-accent);
+            }
         }
     }
+}
 
-    &__body {
-        display: grid;
-        grid-template-columns: 10rem minmax(0, 1fr) auto;
-        align-items: end;
-        gap: var(--space-6);
-    }
+.season-posters {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-3);
 
-    // Same ratings aside as the title and episode pages.
-    &__ratings {
-        padding-inline-start: var(--space-6);
-        border-inline-start: 1px solid var(--color-border-subtle);
+    &__button {
+        display: block;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+        @include media-hover();
     }
 
     &__poster {
-        width: 100%;
+        display: block;
         aspect-ratio: var(--poster-ratio);
-        overflow: hidden;
-        border: 1px solid var(--color-border-subtle);
-        border-radius: var(--radius-lg);
-        background: var(--surface-panel);
-        box-shadow: var(--shadow-lg);
-        --image-radius: var(--radius-lg);
-        --skeleton-height: auto;
-        --skeleton-radius: var(--radius-lg);
+        --image-radius: var(--radius-media);
+        --skeleton-radius: var(--radius-media);
     }
-
-    &__text {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--space-3);
-        min-width: 0;
-        max-width: 46rem;
-        text-shadow: var(--shadow-text-hero);
-    }
-
-    &__series {
-        color: var(--text-secondary);
-    }
-
-    &__meta {
-        @include meta-list();
-    }
-
-    &__overview {
-        @include line-clamp(3);
-    }
-
-    &__line {
-        width: 60%;
-
-        &--title {
-            width: 40%;
-            --skeleton-height: 3rem;
-        }
-
-        &--meta {
-            width: 25%;
-        }
-    }
-}
-
-.season-detail {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-}
-
-.season-nav__skeleton {
-    width: min(28rem, 100%);
-    --skeleton-height: 1.875rem;
 }
 
 @include mobile() {
-    .season-hero {
-        gap: var(--space-4);
-
-        &__body {
-            grid-template-columns: 6rem minmax(0, 1fr);
-            gap: var(--space-4);
-        }
-
-        &__ratings {
-            grid-column: 1 / -1;
-            padding-inline-start: 0;
-            border-inline-start: 0;
-        }
-    }
-
-    .season-detail {
-        gap: var(--space-6);
+    .season-posters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }

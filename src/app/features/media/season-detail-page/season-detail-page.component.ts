@@ -1,44 +1,40 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { map } from 'rxjs';
 
 import {
-    HeroSurfaceComponent,
+    CatalogueBackdropComponent,
     ImageComponent,
-    PageSectionComponent,
-    PhotosPreviewComponent,
     PhotoViewerDialogService,
-    RouteCommands,
+    RepeatPipe,
     SeoService,
+    SigninDialogService,
     SkeletonComponent,
     TmdbRatingComponent,
-    ToggleGroupComponent,
-    VideosGridComponent,
     ViewerImage,
+    YourLibraryComponent,
 } from '../../../shared';
+import { WhereToWatchComponent } from '../where-to-watch/where-to-watch.component';
 import { EpisodeListComponent } from './episode-list/episode-list.component';
 import { SeasonDetailPageStoreService } from './season-detail-page-store.service';
-import { SeasonRatingsStripComponent } from './season-ratings-strip/season-ratings-strip.component';
 
 @Component({
     selector: 'app-season-detail-page',
     imports: [
         AsyncPipe,
+        CatalogueBackdropComponent,
         DatePipe,
         EpisodeListComponent,
-        HeroSurfaceComponent,
         ImageComponent,
-        PageSectionComponent,
-        PhotosPreviewComponent,
+        RepeatPipe,
         RouterLink,
-        SeasonRatingsStripComponent,
         SkeletonComponent,
         TmdbRatingComponent,
-        ToggleGroupComponent,
-        VideosGridComponent,
+        WhereToWatchComponent,
+        YourLibraryComponent,
     ],
     providers: [SeasonDetailPageStoreService],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,8 +46,9 @@ export class SeasonDetailPageComponent {
 
     constructor(
         private readonly store: SeasonDetailPageStoreService,
+        private readonly destroyRef: DestroyRef,
         private readonly photoViewerDialogService: PhotoViewerDialogService,
-        private readonly router: Router,
+        private readonly signinDialogService: SigninDialogService,
         activatedRoute: ActivatedRoute,
         seoService: SeoService,
     ) {
@@ -63,17 +60,11 @@ export class SeasonDetailPageComponent {
         this.store.seoMetadata$.pipe(takeUntilDestroyed()).subscribe((metadata) => seoService.setPage(metadata));
     }
 
-    changeSeason(seasonNumber: number): void {
-        this.store.changeSeason$(seasonNumber).subscribe();
-    }
-
     openPhotoViewer(index: number, images: ViewerImage[]): void {
         this.photoViewerDialogService.open({ images, activeIndex: index });
     }
 
-    openSeasonPhotos(photosLink: RouteCommands | null): void {
-        if (photosLink) {
-            this.router.navigate(photosLink);
-        }
+    signIn(): void {
+        this.signinDialogService.open$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
     }
 }

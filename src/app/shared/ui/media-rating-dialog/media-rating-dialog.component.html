@@ -1,17 +1,24 @@
 <div class="media-rating-dialog">
-    <header class="media-rating-dialog__header">
-        <h2 class="text-display-sm">Rate {{ title }}</h2>
-        @if (!isAuthenticated) {
-            <p class="text-body-sm">Sign in to save ratings to your CineKeep account.</p>
+    <header class="media-rating-dialog__header" [class.media-rating-dialog__header--poster]="imagePath">
+        @if (imagePath) {
+            <app-image class="media-rating-dialog__poster" [src]="imagePath" params="w185" alt="" />
         }
+        <div>
+            <h2 class="media-rating-dialog__title">{{ isAuthenticated ? 'Your score for' : 'Rate' }} {{ title }}</h2>
+            @if (meta) {
+                <p class="media-rating-dialog__meta">{{ meta }}</p>
+            }
+        </div>
     </header>
 
+    @if (!isAuthenticated) {
+        <p class="media-rating-dialog__invite text-body">Sign in to save ratings to your CineKeep account.</p>
+    }
+
     <div class="media-rating-dialog__content" mat-dialog-content>
-        <div class="media-rating-dialog__score">
-            <span class="text-rating">
-                {{ value | number: '1.1-1' }}
-            </span>
-            <span class="text-caption">/ 10</span>
+        <div class="media-rating-dialog__score" [class.media-rating-dialog__score--yours]="isAuthenticated">
+            <b class="media-rating-dialog__figure">{{ value | number: '1.0-1' }}</b>
+            <span class="media-rating-dialog__out-of">/ 10</span>
         </div>
 
         <mat-slider class="media-rating-dialog__slider" [min]="0.5" [max]="10" [step]="0.5" discrete>

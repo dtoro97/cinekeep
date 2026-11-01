@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 
 import { catchError, finalize, map } from 'rxjs';
 
-import { SnackbarService, SubPageHeaderComponent } from '../../../shared';
+import { SnackbarService } from '../../../shared';
 import { UserListCardComponent } from '../user-list-card/user-list-card.component';
 import {
     UserListForm,
@@ -23,7 +23,6 @@ import { UserListCreatePageStoreService } from './user-list-create-page-store.se
         MatButtonModule,
         ReactiveFormsModule,
         RouterLink,
-        SubPageHeaderComponent,
         UserListCardComponent,
         UserListFormFieldsComponent,
     ],

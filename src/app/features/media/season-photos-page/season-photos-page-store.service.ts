@@ -3,9 +3,9 @@ import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 import { EMPTY, Observable, combineLatest, filter, switchMap } from 'rxjs';
 
-import { SeoMetadata, formatTitleWithYear, isDefined, parseBoundedIntegerParam } from '../../../shared';
+import { SeoMetadata, isDefined, parseBoundedIntegerParam } from '../../../shared';
 import { toMediaSectionSeoMetadata } from '../media-seo';
-import { MediaSeasonsStoreService } from '../media-seasons-store.service';
+import { MediaSeasonsStoreService, toSeasonLabel } from '../media-seasons-store.service';
 import { MediaStoreService } from '../media-store.service';
 
 interface SeasonPhotosPageState {
@@ -29,10 +29,10 @@ export class SeasonPhotosPageStoreService extends ComponentStore<SeasonPhotosPag
             const hasSeason = seasonNumber !== null;
 
             return {
-                backdropPath: media?.backdropPath ?? null,
                 isMediaLoading: !media,
-                pageTitle: hasSeason ? `Season ${seasonNumber} Photos` : 'Season Photos',
-                subtitle: media?.title ? formatTitleWithYear(media.title, media.year) : null,
+                seriesTitle: media?.title ?? null,
+                posterPath: media?.posterPath ?? null,
+                seasonLabel: seasonNumber !== null ? toSeasonLabel(seasonNumber) : null,
                 backLink: ['/title', target.id, target.type, 'episodes', seasonNumber ?? ''],
                 showSkeleton: hasSeason && (!media || images.state === 'loading'),
                 images: hasSeason && images.state === 'success' ? images.data : null,

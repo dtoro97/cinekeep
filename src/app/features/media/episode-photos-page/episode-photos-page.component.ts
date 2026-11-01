@@ -1,21 +1,30 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 
 import {
+    CatalogueSubHeaderComponent,
+    MinutesToHoursPipe,
     PhotosBrowserComponent,
     PhotosBrowserSelection,
     PhotosBrowserSkeletonComponent,
     PhotoViewerDialogService,
     SeoService,
-    SubPageHeaderComponent,
 } from '../../../shared';
 import { EpisodeDetailStoreService } from '../episode-detail-store.service';
 
 @Component({
     selector: 'app-episode-photos-page',
-    imports: [AsyncPipe, PhotosBrowserComponent, PhotosBrowserSkeletonComponent, SubPageHeaderComponent],
+    imports: [
+        AsyncPipe,
+        CatalogueSubHeaderComponent,
+        DatePipe,
+        MinutesToHoursPipe,
+        PhotosBrowserComponent,
+        PhotosBrowserSkeletonComponent,
+    ],
+    styleUrl: './episode-photos-page.component.scss',
     templateUrl: './episode-photos-page.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })

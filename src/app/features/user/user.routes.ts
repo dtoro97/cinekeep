@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 
-import { authenticatedGuard } from '../../shared';
 import { UserFavouritesPageComponent } from './user-favourites-page/user-favourites-page.component';
 import { UserListCreatePageComponent } from './user-list-create-page/user-list-create-page.component';
 import { UserListDetailPageComponent } from './user-list-detail-page/user-list-detail-page.component';
@@ -8,11 +7,12 @@ import { UserListsPageComponent } from './user-lists-page/user-lists-page.compon
 import { UserProfilePageComponent } from './user-profile-page/user-profile-page.component';
 import { UserRatingsPageComponent } from './user-ratings-page/user-ratings-page.component';
 import { UserWatchlistPageComponent } from './user-watchlist-page/user-watchlist-page.component';
+import { UserWrapperComponent } from './user-wrapper/user-wrapper.component';
 
 export const userRoutes: Routes = [
     {
         path: '',
-        canActivate: [authenticatedGuard],
+        component: UserWrapperComponent,
         children: [
             {
                 path: '',
@@ -33,7 +33,7 @@ export const userRoutes: Routes = [
             {
                 path: 'favorites',
                 component: UserFavouritesPageComponent,
-                title: 'Your Favorites',
+                title: 'Your Favourites',
             },
             {
                 path: 'ratings',

@@ -16,7 +16,7 @@
             <span class="person-list-item__index text-numeral">{{ index }}</span>
         }
 
-        <app-image class="person-list-item__avatar" [src]="currentPerson.imagePath" alt="" type="person" />
+        <app-image class="person-list-item__avatar" [src]="currentPerson.imagePath" alt="" type="person" [name]="currentPerson.name" />
 
         <div class="person-list-item__content">
             <div class="person-list-item__primary">

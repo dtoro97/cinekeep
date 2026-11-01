@@ -46,7 +46,7 @@ export const toCastPeople = (cast: readonly CastGridMember[]): CreditPerson[] =>
     cast
         .filter((member) => member.id !== undefined)
         .map((member, index) => {
-            const role = member.character ? `as ${member.character}` : null;
+            const role = member.character || null;
 
             return {
                 key: `cast-${member.id}-${index}`,

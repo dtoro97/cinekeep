@@ -1,122 +1,77 @@
 @use 'breakpoints' as *;
 @use 'mixins' as *;
 
-// Dense, scannable cast: name and role beside a small portrait, three columns wide.
+// The cast as a six-up wall of 2:3 portraits, name and role underneath.
 .cast-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-2) var(--space-6);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-6) var(--space-4);
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
 .cast-member {
-    display: grid;
-    grid-template-columns: var(--media-square-lg) minmax(0, 1fr);
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2);
-    margin-inline: calc(var(--space-2) * -1);
-    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
     color: inherit;
-    text-decoration: none;
-    transition: background-color var(--motion-base);
+    @include card-hover(
+        '.cast-member__portrait',
+        '.cast-member__name',
+        $frame-selector: '.cast-member__portrait',
+        $scale: false
+    );
 
-    @include hover-capable {
-        &:hover {
-            background: var(--control-subtle-surface-hover);
-        }
-
-        &:hover .cast-member__name {
-            color: var(--text-accent);
-        }
-
-        &:hover .cast-member__avatar {
-            filter: var(--interactive-media-hover-filter);
-        }
-    }
-
-    &__avatar {
-        width: var(--media-square-lg);
-        height: var(--media-square-lg);
-        overflow: hidden;
-        border: 1px solid var(--color-border-subtle);
-        border-radius: var(--radius-full);
-        --image-radius: var(--radius-full);
-        --skeleton-radius: var(--radius-full);
-        transition: filter var(--motion-base);
-    }
-
-    &__text {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
-        min-width: 0;
+    &__portrait {
+        aspect-ratio: var(--poster-ratio);
+        margin-bottom: var(--space-1-5);
+        --image-radius: var(--radius-media);
+        --skeleton-radius: var(--radius-media);
     }
 
     &__name {
-        transition: color var(--motion-base);
-        @include line-clamp(1);
+        @include line-clamp(2);
     }
 
     &__role {
-        @include line-clamp(1);
+        @include line-clamp(2);
     }
 
     &__name-skeleton {
-        width: 70%;
+        width: 80%;
         --skeleton-height: 0.9rem;
     }
 
     &__role-skeleton {
-        width: 50%;
+        width: 55%;
         --skeleton-height: 0.8rem;
     }
 }
 
-.list {
-    display: flex;
-    flex-direction: column;
-    margin-top: var(--space-4);
+.directors {
+    margin-top: var(--space-6);
     padding-top: var(--space-3);
-    border-top: 1px solid var(--color-border-subtle);
-}
+    border-top: 1px solid var(--color-border);
 
-.row {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-3);
-    padding: var(--space-1) 0;
-}
-
-.label {
-    flex-shrink: 0;
-}
-
-.names {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-1);
-    min-width: 0;
-}
-
-.link {
-    @include text-link(inherit);
+    &__link {
+        @include text-link(var(--text-primary));
+    }
 }
 
 @include tablet() {
     .cast-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 
 @include mobile() {
     .cast-grid {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--space-5) var(--space-3);
 
-        // One column gets long fast; the full list is one tap away via "All cast & crew".
+        // The full list is one tap away via "All cast & crew".
         > li:nth-child(n + 7) {
             display: none;
         }

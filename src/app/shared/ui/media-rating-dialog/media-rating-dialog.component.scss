@@ -1,12 +1,43 @@
+@use 'mixins' as *;
+
 :host {
     --mat-dialog-actions-alignment: space-between;
 }
 
 .media-rating-dialog__header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-5);
+
+    &--poster {
+        display: grid;
+        grid-template-columns: 4.5rem minmax(0, 1fr);
+        align-items: center;
+        gap: var(--space-4);
+    }
+}
+
+.media-rating-dialog__poster {
+    display: block;
+    aspect-ratio: var(--poster-ratio);
+    --image-radius: var(--radius-media);
+}
+
+.media-rating-dialog__title {
+    font-size: var(--text-side-heading);
+    font-weight: var(--weight-black);
+    line-height: 1.05;
+    letter-spacing: var(--tracking-tight);
+}
+
+.media-rating-dialog__meta {
+    margin-top: var(--space-1-5);
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    font-size: var(--text-meta);
+    font-weight: var(--weight-semibold);
+}
+
+.media-rating-dialog__invite {
+    margin-bottom: var(--space-4);
 }
 
 .media-rating-dialog__content {
@@ -23,7 +54,22 @@
 }
 
 .media-rating-dialog__score {
+    align-items: baseline;
     gap: var(--space-2);
+
+    // Signed in, the score is yours, so it takes the accent.
+    &--yours .media-rating-dialog__figure {
+        color: var(--color-brand);
+    }
+}
+
+.media-rating-dialog__figure {
+    @include text-figure(var(--text-figure-xl));
+}
+
+.media-rating-dialog__out-of {
+    color: var(--text-muted);
+    font-weight: var(--weight-semibold);
 }
 
 .media-rating-dialog__slider {

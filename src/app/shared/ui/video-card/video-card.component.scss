@@ -41,10 +41,6 @@
             @include video-card-media-active;
         }
     }
-
-    &:focus-visible {
-        @include video-card-media-active;
-    }
 }
 
 .video-card__play {
@@ -76,6 +72,10 @@
 
 .video-card__title {
     @include line-clamp(2);
+}
+
+.video-card__title-link {
+    @include text-link();
 }
 
 .video-card__metadata {

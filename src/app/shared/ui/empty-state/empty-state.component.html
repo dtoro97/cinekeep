@@ -1,11 +1,19 @@
 <div class="empty-state">
-    <span
-        class="empty-state__icon-shell"
-        [class.empty-state__icon-shell--plain]="iconStyle === 'plain'"
-        aria-hidden="true"
-    >
-        <i class="empty-state__icon {{ iconClass }}"></i>
-    </span>
+    @if (iconStyle === 'posters') {
+        <span class="empty-state__posters" aria-hidden="true">
+            <span class="empty-state__poster"></span>
+            <span class="empty-state__poster"></span>
+            <span class="empty-state__poster"></span>
+        </span>
+    } @else {
+        <span
+            class="empty-state__icon-shell"
+            [class.empty-state__icon-shell--plain]="iconStyle === 'plain'"
+            aria-hidden="true"
+        >
+            <i class="empty-state__icon {{ iconClass }}"></i>
+        </span>
+    }
 
     <div class="empty-state__content">
         @if (title) {
@@ -14,4 +22,6 @@
 
         <p class="empty-state__text text-body-sm">{{ text }}</p>
     </div>
+
+    <ng-content />
 </div>

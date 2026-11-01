@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, booleanAttribute } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -7,7 +7,6 @@ import { MinutesToHoursPipe } from '../../pipes/minutes-to-hours.pipe';
 import type { RouteCommands } from '../../types';
 import { BadgeComponent } from '../badge/badge.component';
 import { ImageComponent } from '../image/image.component';
-import { RatingComponent } from '../rating/rating.component';
 import { SkeletonComponent } from '../skeleton/skeleton.component';
 
 export interface EpisodeListItemData {
@@ -27,16 +26,16 @@ export interface EpisodeListItemData {
     readonly routeCommands: RouteCommands | null;
 }
 
-// An episode row: still, title with rating and badges, a meta line and the overview.
-// Projected content renders at the end of the row (actions).
+// An episode row: still, title with badges, a meta line and the overview, the score as a figure on the right.
+// Projected content renders after the score (actions).
 @Component({
     selector: 'app-episode-list-item',
     imports: [
         BadgeComponent,
         DatePipe,
+        DecimalPipe,
         ImageComponent,
         MinutesToHoursPipe,
-        RatingComponent,
         RouterLink,
         SkeletonComponent,
     ],

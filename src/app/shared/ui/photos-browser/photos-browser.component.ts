@@ -3,11 +3,9 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { MatButtonModule } from '@angular/material/button';
 
 import type { ViewerImage } from '../../models';
-import { BrowseToolbarComponent } from '../browse-toolbar/browse-toolbar.component';
 import { EmptyStateComponent } from '../empty-state/empty-state.component';
 import { ImageComponent } from '../image/image.component';
 import { SortButtonComponent } from '../sort-button/sort-button.component';
-import { ToggleGroupComponent } from '../toggle-group/toggle-group.component';
 import { PHOTO_SORT_OPTIONS, PhotoSortField, PhotosBrowserStoreService } from './photos-browser-store.service';
 
 export interface PhotosBrowserSelection {
@@ -19,12 +17,10 @@ export interface PhotosBrowserSelection {
     selector: 'app-photos-browser',
     imports: [
         AsyncPipe,
-        BrowseToolbarComponent,
         EmptyStateComponent,
         ImageComponent,
         MatButtonModule,
         SortButtonComponent,
-        ToggleGroupComponent,
     ],
     templateUrl: './photos-browser.component.html',
     styleUrl: './photos-browser.component.scss',

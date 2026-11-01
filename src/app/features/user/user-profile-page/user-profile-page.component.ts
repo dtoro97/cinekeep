@@ -1,9 +1,16 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 
-import { EmptyStateComponent, MediaCarouselPanelComponent, RepeatPipe, UserAvatarComponent } from '../../../shared';
+import {
+    CardComponent,
+    CardSkeletonComponent,
+    EmptyStateComponent,
+    RepeatPipe,
+    UserAvatarComponent,
+} from '../../../shared';
 import { UserListCardSkeletonComponent } from '../user-list-card-skeleton/user-list-card-skeleton.component';
 import { UserListCardComponent } from '../user-list-card/user-list-card.component';
 import { UserProfilePageStoreService } from './user-profile-page-store.service';
@@ -12,8 +19,10 @@ import { UserProfilePageStoreService } from './user-profile-page-store.service';
     selector: 'app-user-profile-page',
     imports: [
         AsyncPipe,
+        CardComponent,
+        CardSkeletonComponent,
         EmptyStateComponent,
-        MediaCarouselPanelComponent,
+        MatButtonModule,
         RepeatPipe,
         RouterLink,
         UserAvatarComponent,

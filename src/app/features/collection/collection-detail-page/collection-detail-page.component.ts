@@ -1,19 +1,22 @@
-import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
-import { distinctUntilChanged, EMPTY, map, switchMap } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, combineLatest, distinctUntilChanged, EMPTY, map, startWith, Subject, switchMap, tap } from 'rxjs';
 
 import {
-    HeroSurfaceComponent,
+    CatalogueBackdropComponent,
     ImageComponent,
-    MediaListComponent,
-    PageSectionComponent,
-    PluralizePipe,
+    PageErrorComponent,
+    RepeatPipe,
     SeoService,
+    SigninDialogService,
     SkeletonComponent,
+    SnackbarService,
     TmdbRatingComponent,
     toSeoImage,
+    YourLibraryComponent,
 } from '../../../shared';
 import { CollectionDetailStoreService } from './collection-detail-store.service';
 
@@ -21,13 +24,16 @@ import { CollectionDetailStoreService } from './collection-detail-store.service'
     selector: 'app-collection-detail-page',
     imports: [
         AsyncPipe,
-        HeroSurfaceComponent,
+        CatalogueBackdropComponent,
+        DecimalPipe,
         ImageComponent,
-        MediaListComponent,
-        PageSectionComponent,
-        PluralizePipe,
+        MatButtonModule,
+        PageErrorComponent,
+        RepeatPipe,
+        RouterLink,
         SkeletonComponent,
         TmdbRatingComponent,
+        YourLibraryComponent,
     ],
     providers: [CollectionDetailStoreService],
     templateUrl: './collection-detail-page.component.html',
@@ -37,17 +43,26 @@ import { CollectionDetailStoreService } from './collection-detail-store.service'
 export class CollectionDetailPageComponent {
     readonly collectionDetail$ = this.store.collectionDetail$;
 
+    private readonly retryRequests = new Subject<void>();
+
     constructor(
-        private store: CollectionDetailStoreService,
+        private readonly store: CollectionDetailStoreService,
+        private readonly destroyRef: DestroyRef,
+        private readonly signinDialogService: SigninDialogService,
+        private readonly snackbarService: SnackbarService,
         router: Router,
         activatedRoute: ActivatedRoute,
         seoService: SeoService,
     ) {
-        activatedRoute.paramMap
-            .pipe(
+        combineLatest([
+            activatedRoute.paramMap.pipe(
                 map((paramMap) => Number(paramMap.get('collectionId'))),
                 distinctUntilChanged(),
-                switchMap((collectionId) => {
+            ),
+            this.retryRequests.pipe(startWith(undefined)),
+        ])
+            .pipe(
+                switchMap(([collectionId]) => {
                     if (!Number.isInteger(collectionId) || collectionId <= 0) {
                         router.navigate(['not-found']);
                         return EMPTY;
@@ -64,10 +79,46 @@ export class CollectionDetailPageComponent {
                 title: `${collection.name} | Collection`,
                 description:
                     collection.overview ||
-                    `Explore every movie in ${collection.name}, with release order, ratings, cast highlights, posters, and backdrops.`,
+                    `Every movie in ${collection.name} in release order, with ratings and cast.`,
                 ...toSeoImage(collection.backdrop_path, collection.poster_path),
                 imageAlt: `${collection.name} collection artwork`,
             }),
         );
+    }
+
+    retry(): void {
+        this.retryRequests.next();
+    }
+
+    signIn(): void {
+        this.signinDialogService.open$().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    }
+
+    addAllToWatchlist(isAuthenticated: boolean): void {
+        if (!isAuthenticated) {
+            this.signIn();
+            return;
+        }
+
+        this.store
+            .addAllToWatchlist$()
+            .pipe(
+                tap(({ addedCount, failedCount }) => {
+                    const added = `${addedCount} ${addedCount === 1 ? 'movie' : 'movies'}`;
+
+                    if (!failedCount) {
+                        this.snackbarService.showSuccess(`Added ${added} to your watchlist.`);
+                    } else if (!addedCount) {
+                        this.snackbarService.showError$('Could not update your watchlist.');
+                    } else {
+                        this.snackbarService.showError$(
+                            `Added ${added} to your watchlist; ${failedCount} could not be added.`,
+                        );
+                    }
+                }),
+                catchError(() => this.snackbarService.showError$('Could not update your watchlist.')),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe();
     }
 }

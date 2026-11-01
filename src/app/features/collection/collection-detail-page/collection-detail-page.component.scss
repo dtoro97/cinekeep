@@ -1,184 +1,149 @@
 @use 'breakpoints' as *;
+@use 'mixins' as *;
 
 :host {
-    --collection-detail-poster-width: 200px;
-    --collection-detail-poster-width-mobile: 110px;
-    --collection-detail-side-width: 16rem;
+    display: block;
 }
 
-.collection-hero {
+.collection-backdrop {
+    --catalogue-backdrop-height: 25rem;
+}
+
+.collection-meta {
+    margin-top: var(--space-3);
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    font-size: var(--text-technical);
+    font-weight: var(--weight-semibold);
+}
+
+.collection-library-skeleton {
+    --skeleton-height: 4rem;
+}
+
+// A catalogue entry: number, poster, title and credits, overview, score on the right.
+.entries {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.entry {
     display: grid;
-    grid-template-columns:
-        var(--collection-detail-poster-width)
-        minmax(0, 1fr)
-        minmax(13rem, var(--collection-detail-side-width));
-    align-items: end;
-    gap: var(--space-8);
-    width: 100%;
-    text-shadow: var(--shadow-text-hero);
-}
+    grid-template-columns: 2.75rem 7.5rem minmax(0, 1fr) 5.5rem;
+    align-items: start;
+    gap: var(--space-6);
+    padding: var(--space-6) 0;
+    border-top: 1px solid var(--color-border);
 
-.collection-hero__main,
-.collection-hero__heading,
-.collection-hero__side,
-.collection-facts,
-.collection-facts__item {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-}
-
-.collection-hero__main {
-    gap: var(--space-4);
-}
-
-.collection-hero__heading {
-    gap: var(--space-3);
-}
-
-.collection-hero__side {
-    gap: var(--space-5);
-    align-self: end;
-    padding-left: var(--space-5);
-    border-left: 1px solid var(--border-overlay-soft);
-}
-
-.collection-facts {
-    gap: var(--space-4);
-}
-
-.collection-facts__item {
-    gap: var(--space-1);
-}
-
-.poster {
-    width: var(--collection-detail-poster-width);
-    max-height: 300px;
-    overflow: hidden;
-    border: 1px solid var(--color-border-subtle);
-    border-radius: var(--radius-lg);
-    background: var(--surface-panel);
-
-    &--skeleton {
-        height: 300px;
-        --skeleton-radius: var(--radius-lg);
-    }
-}
-
-.hero-title {
-    max-width: min(22ch, 680px);
-    font-size: var(--text-4xl);
-    text-wrap: balance;
-}
-
-.hero-kicker-skeleton {
-    width: 8rem;
-    --skeleton-height: 1rem;
-}
-
-.hero-title-skeleton {
-    width: min(28rem, 72vw);
-    height: 5.75rem;
-}
-
-.summary-skeleton-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-3);
-}
-
-.overview,
-.overview-skeleton {
-    max-width: 58ch;
-}
-
-.summary-pill-skeleton {
-    width: 5.5rem;
-    height: 2rem;
-    --skeleton-radius: var(--radius-pill);
-
-    &--wide {
-        width: 7rem;
-    }
-}
-
-.overview-skeleton {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-}
-
-.overview-line {
-    width: 100%;
-    height: 1rem;
-
-    &--wide {
-        width: 94%;
+    &:last-child {
+        border-bottom: 1px solid var(--color-border);
     }
 
-    &--medium {
-        width: 86%;
-    }
-}
-
-.section-count-skeleton {
-    width: 4rem;
-    height: 1rem;
-}
-
-@include tablet() {
-    .collection-hero {
-        grid-template-columns: var(--collection-detail-poster-width) minmax(0, 1fr);
-        align-items: start;
+    &__number {
+        color: var(--text-muted);
+        @include text-figure(var(--text-4xl));
+        text-align: right;
     }
 
-    .collection-hero__side {
-        grid-column: 2;
-        width: min(100%, var(--collection-detail-side-width));
-        align-self: start;
-        padding-top: var(--space-4);
-        padding-left: 0;
-        border-top: 1px solid var(--border-overlay-soft);
-        border-left: 0;
+    &__poster-link {
+        display: block;
+        @include media-hover();
+    }
+
+    &__poster {
+        display: block;
+        aspect-ratio: var(--poster-ratio);
+        --image-radius: var(--radius-media);
+        --skeleton-radius: var(--radius-media);
+    }
+
+    &__text {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1-5);
+        min-width: 0;
+    }
+
+    &__title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2) var(--space-3);
+        font-size: var(--text-section);
+        font-weight: var(--weight-extrabold);
+        line-height: 1.05;
+        letter-spacing: var(--tracking-tight);
+    }
+
+    &__title-link {
+        @include text-link(var(--text-primary));
+    }
+
+    // Flags are neutral: raised strong with text, never the accent.
+    &__flag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 1.5rem;
+        padding: 0 var(--space-2);
+        border-radius: var(--radius-sm);
+        background: var(--surface-raised);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-extrabold);
+        letter-spacing: 0;
+    }
+
+    &__actor {
+        @include text-link(var(--text-secondary));
+    }
+
+    &__overview {
+        max-width: var(--layout-body-measure);
+        @include line-clamp(3);
+    }
+
+    &__score {
+        @include text-figure(var(--text-figure-lg));
+        text-align: right;
+    }
+
+    &__unrated {
+        text-align: right;
+    }
+
+    &__line {
+        width: 60%;
+        --skeleton-height: 0.9rem;
+
+        &--title {
+            width: 45%;
+            --skeleton-height: 1.75rem;
+        }
+
+        &--overview {
+            width: 90%;
+            --skeleton-height: 3.5rem;
+        }
     }
 }
 
 @include mobile() {
-    .collection-hero {
-        grid-template-columns: 1fr;
-        gap: var(--space-6);
-    }
+    .entry {
+        grid-template-columns: 5rem minmax(0, 1fr);
+        gap: var(--space-3) var(--space-4);
 
-    .collection-hero__main {
-        gap: var(--space-3);
-    }
-
-    .collection-hero__side {
-        grid-column: auto;
-        width: auto;
-        gap: var(--space-4);
-        padding-top: var(--space-4);
-        padding-left: 0;
-        border-top: 1px solid var(--border-overlay-soft);
-        border-left: 0;
-    }
-
-    .poster {
-        width: var(--collection-detail-poster-width-mobile);
-        max-height: 165px;
-
-        &--skeleton {
-            height: 165px;
+        &__number {
+            display: none;
         }
-    }
 
-    .hero-title {
-        font-size: var(--text-3xl);
-    }
+        &__score,
+        &__unrated {
+            grid-column: 2;
+            text-align: left;
+        }
 
-    .overview,
-    .overview-skeleton {
-        max-width: 100%;
+        &__title {
+            font-size: var(--text-xl);
+        }
     }
 }

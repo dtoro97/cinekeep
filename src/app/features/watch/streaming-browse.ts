@@ -9,7 +9,6 @@ export interface StreamingEditorialSection {
     readonly slug: string;
     readonly title: string;
     readonly description: string;
-    readonly ctaLabel: string;
     readonly baseQuery: StreamingBaseQuery;
 }
 
@@ -21,8 +20,7 @@ export const getStreamingThisMonthTitle = (): string => `Streaming in ${getCurre
 export const STREAMING_THIS_MONTH_SECTION: StreamingEditorialSection = {
     slug: STREAMING_THIS_MONTH_SLUG,
     title: "This month's streaming arrivals",
-    description: 'Fresh premieres and returning seasons landing on major streaming services.',
-    ctaLabel: 'Browse arrivals',
+    description: 'New series and new seasons arriving on the major streaming services this month.',
     baseQuery: toStreamingThisMonthQuery([]),
 };
 
@@ -31,8 +29,7 @@ export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] 
     {
         slug: AIRING_TODAY_SLUG,
         title: 'Airing today',
-        description: 'Popular TV series with episodes scheduled today.',
-        ctaLabel: "See today's TV series",
+        description: 'Popular TV series with a new episode out today.',
         baseQuery: {
             mediaTypes: ['tv'],
             datePreset: 'today',
@@ -42,8 +39,7 @@ export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] 
     {
         slug: 'anime-premieres',
         title: 'Japanese animation premieres',
-        description: 'New and popular animated series from Japan, grouped by current season.',
-        ctaLabel: 'Find anime premieres',
+        description: 'Japanese animated series that started this season, most popular first.',
         baseQuery: {
             mediaTypes: ['tv'],
             genreIds: [16],
@@ -54,9 +50,8 @@ export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] 
     },
     {
         slug: 'short-streaming-movies',
-        title: 'Short watches for movie night',
-        description: 'Streaming movies with lean runtimes for an easier movie night.',
-        ctaLabel: 'See short movies',
+        title: 'Movies under 100 minutes',
+        description: 'Popular movies on subscription services that run 100 minutes or less.',
         baseQuery: {
             mediaTypes: ['movie'],
             monetization: 'flatrate',
@@ -66,9 +61,8 @@ export const STREAMING_EDITORIAL_SECTIONS: readonly StreamingEditorialSection[] 
     },
     {
         slug: 'hidden-streaming-gems',
-        title: 'Under-the-radar streaming',
-        description: 'Movies and TV series with strong scores outside the obvious crowd favorites.',
-        ctaLabel: 'Browse under-the-radar titles',
+        title: 'Highly rated, little seen',
+        description: 'Movies and TV series scored 7.5 or higher by fewer than 1,000 voters.',
         baseQuery: {
             mediaTypes: ['movie', 'tv'],
             monetization: 'flatrate',

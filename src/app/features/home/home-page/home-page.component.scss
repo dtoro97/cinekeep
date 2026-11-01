@@ -116,10 +116,7 @@
 }
 
 .rated__score {
-    font-family: var(--font-figure);
-    font-size: var(--text-figure-md);
-    font-weight: var(--weight-extrabold);
-    line-height: 1;
+    @include text-figure(var(--text-figure-md));
     color: var(--color-yours);
 }
 
@@ -165,10 +162,7 @@
 
 .week__date {
     display: block;
-    font-family: var(--font-figure);
-    font-size: var(--text-section);
-    font-weight: var(--weight-extrabold);
-    line-height: 1;
+    @include text-figure(var(--text-section));
     text-transform: uppercase;
     color: var(--text-primary);
 }

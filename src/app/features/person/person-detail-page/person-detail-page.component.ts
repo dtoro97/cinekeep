@@ -1,25 +1,28 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { AsyncPipe, DatePipe, DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, Inject, PLATFORM_ID } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { filter, map, take } from 'rxjs';
 
 import {
     AgePipe,
+    CardComponent,
+    CardSkeletonComponent,
     ExternalLinksComponent,
     ImageComponent,
     isDefined,
-    MediaCarouselPanelComponent,
-    PageSectionComponent,
+    LibraryToggleComponent,
     PhotosPreviewComponent,
     PhotoViewerDialogService,
     RecentlyViewedItem,
     RecentlyViewedStoreService,
+    RepeatPipe,
+    scrollToSection,
     SeoService,
     SkeletonComponent,
     toPersonCardItem,
+    watchActiveSectionId$,
 } from '../../../shared';
-import { PersonCreditsComponent } from '../person-credits/person-credits.component';
 import {
     PersonCreditMediaFilter,
     PersonCreditSectionKey,
@@ -28,6 +31,7 @@ import {
     PersonDetailStoreService,
 } from '../person-detail-store.service';
 import { toPersonSeoMetadata } from '../person-seo';
+import { PersonCreditsComponent } from './person-credits/person-credits.component';
 
 @Component({
     selector: 'app-person-detail-page',
@@ -36,12 +40,14 @@ import { toPersonSeoMetadata } from '../person-seo';
         DatePipe,
         RouterLink,
         AgePipe,
+        CardComponent,
+        CardSkeletonComponent,
         ExternalLinksComponent,
         ImageComponent,
-        MediaCarouselPanelComponent,
-        PageSectionComponent,
+        LibraryToggleComponent,
         PersonCreditsComponent,
         PhotosPreviewComponent,
+        RepeatPipe,
         SkeletonComponent,
     ],
     templateUrl: './person-detail-page.component.html',
@@ -51,10 +57,18 @@ import { toPersonSeoMetadata } from '../person-seo';
 export class PersonDetailPageComponent {
     readonly personDetail$ = this.store.personDetail$;
 
+    readonly activeSectionId$ = watchActiveSectionId$(
+        this.document,
+        this.platformId,
+        this.personDetail$.pipe(map(({ sectionIndex }) => sectionIndex.map((section) => section.id))),
+    );
+
     constructor(
         private store: PersonDetailStoreService,
         private readonly photoViewerDialogService: PhotoViewerDialogService,
         private router: Router,
+        @Inject(DOCUMENT) private readonly document: Document,
+        @Inject(PLATFORM_ID) private readonly platformId: object,
         seoService: SeoService,
         recentlyViewedStoreService: RecentlyViewedStoreService,
     ) {
@@ -85,6 +99,10 @@ export class PersonDetailPageComponent {
                 this.router.navigate(photosLink);
             }
         });
+    }
+
+    scrollToSection(id: string): void {
+        scrollToSection(this.document, id);
     }
 
     toggleBiography(): void {

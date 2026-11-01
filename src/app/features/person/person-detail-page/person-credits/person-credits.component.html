@@ -1,0 +1,104 @@
+<header class="catalogue-block__head credits-head">
+    <h2 id="filmography-heading" class="text-headline">Filmography</h2>
+
+    @if (filmography.state === 'success') {
+        <div class="credits-head__controls">
+            <app-toggle-group
+                [options]="filmography.data.mediaOptions"
+                [selectedValue]="filters.mediaType"
+                (selected)="changeMediaType($event)"
+            />
+            <app-sort-button
+                [options]="sortOptions"
+                [selectedValue]="filters.sortBy"
+                [direction]="filters.sortDirection"
+                (sortChange)="changeSortBy($event)"
+                (directionToggle)="sortDirectionToggle.emit()"
+            />
+        </div>
+    }
+</header>
+
+@if (filmography.state === 'loading') {
+    <div class="loading" aria-hidden="true">
+        @for (section of 2 | repeat; track section) {
+            <div class="loading__section">
+                <app-skeleton class="loading__heading" />
+                @for (row of 5 | repeat; track row) {
+                    <div class="loading__row">
+                        <app-skeleton class="loading__cell loading__cell--year" />
+                        <app-skeleton class="loading__cell loading__cell--title" />
+                        <app-skeleton class="loading__cell loading__cell--role" />
+                        <app-skeleton class="loading__cell loading__cell--score" />
+                    </div>
+                }
+            </div>
+        }
+    </div>
+} @else if (filmography.state === 'success') {
+    @if (filmography.data.totalCount) {
+        @for (section of filmography.data.sections; track section.key) {
+            <section class="credit-section" [attr.aria-labelledby]="'credits-' + section.key">
+                <h3 [id]="'credits-' + section.key" class="credit-section__title">
+                    {{ section.title }}
+                    <span class="credit-section__count">{{ section.totalCount }} credits</span>
+                </h3>
+
+                <table class="credits-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Year</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">{{ section.roleHeading }}</th>
+                            <th scope="col" class="credits-table__type">Type</th>
+                            <th scope="col" class="credits-table__score">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (credit of section.credits; track credit.mediaType + '-' + credit.id) {
+                            <tr>
+                                <td class="credits-table__year">{{ credit.year }}</td>
+                                <td class="credits-table__title">
+                                    <a class="credits-table__link" [routerLink]="['/title', credit.id, credit.mediaType]">
+                                        {{ credit.title }}
+                                    </a>
+                                </td>
+                                <td class="credits-table__role">
+                                    {{ credit.roleLabel || 'Credit' }}
+                                    @if (credit.episodeLabel) {
+                                        <span class="credits-table__episodes">{{ credit.episodeLabel }}</span>
+                                    }
+                                </td>
+                                <td class="credits-table__type">{{ credit.mediaTypeLabel }}</td>
+                                <td class="credits-table__score">
+                                    @if (credit.rating) {
+                                        <b class="credits-table__figure">{{ credit.rating | number: '1.1-1' }}</b>
+                                    } @else {
+                                        <span class="credits-table__unrated">Not rated</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (section.hasToggle) {
+                    <button class="credit-section__toggle" matButton="outlined" type="button" (click)="sectionToggle.emit(section.key)">
+                        {{ section.toggleLabel }}
+                    </button>
+                }
+            </section>
+        }
+    } @else {
+        <div class="empty">
+            <app-empty-state
+                iconClass="fa-solid fa-table-list"
+                [title]="filmography.data.emptyTitle"
+                [text]="filmography.data.emptyText"
+            />
+            @if (filmography.data.hasActiveFilters) {
+                <button matButton="outlined" type="button" (click)="resetFilters.emit()">Reset filters</button>
+            }
+        </div>
+    }
+}
