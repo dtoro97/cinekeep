@@ -6,10 +6,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:github-pages": "ng build --configuration production,github-pages --base-href https://dtoro97.github.io/cinekeep/",
     "watch": "ng build --watch --configuration development",
-    "deploy": "npm run deploy:github-pages",
-    "deploy:github-pages": "npm run build:github-pages && npx angular-cli-ghpages --no-silent --dir=dist/github-pages/",
     "generate-api": "npx -y @openapitools/openapi-generator-cli generate -i openapi.json -g typescript-angular -o src/app/api --additional-properties=providedIn=root,withInterfaces=true,serviceSuffix=RestControllerService,useSingleRequestParameter=true",
     "generate-api:cinekeep": "npx -y @openapitools/openapi-generator-cli generate -i openapi-cinekeep.json -g typescript-angular -o src/app/api-cinekeep --additional-properties=providedIn=root,withInterfaces=true,useSingleRequestParameter=true",
     "serve:ssr:cinekeep": "node dist/cinekeep/server/server.mjs"
@@ -43,7 +40,6 @@
     "@angular/compiler-cli": "^21.2.0",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
-    "angular-cli-ghpages": "^2.0.3",
     "typescript": "~5.9.3"
   }
 }
